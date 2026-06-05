@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Services — Atmosferi°</title>
+<meta name="description" content="Web design, development, and 3D visualisation for architecture.">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  /* services-specific layout */
+  .svc { display: grid; grid-template-columns: 96px 1fr 1fr; gap: var(--space-6); align-items: start; padding: var(--space-7) 0; border-bottom: 1px solid var(--line); }
+  .svc__num { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); padding-top: 10px; }
+  .svc__title { font-size: var(--text-5xl); font-weight: 700; letter-spacing: var(--track-display); line-height: var(--leading-tight); margin: 0; }
+  .svc__desc { font-size: var(--text-lg); line-height: var(--leading-body); color: var(--neutral-700); margin: var(--space-3) 0 0; }
+  .svc__deliver { margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+  .svc__deliver li { display: flex; align-items: baseline; gap: var(--space-3); padding: 12px 0; border-top: 1px solid var(--line); font-family: var(--font-mono); font-size: 13px; color: var(--ink); }
+  .svc__deliver li span.mark { color: var(--neutral-500); }
+  .process { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); border-top: 1px solid var(--line); }
+  .process__step { padding-top: var(--space-3); }
+  .process__num { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); color: var(--neutral-500); }
+  .process__title { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; margin: var(--space-3) 0 var(--space-2); }
+  .process__desc { font-size: var(--text-md); color: var(--neutral-700); line-height: var(--leading-body); }
+  @media (max-width: 860px) {
+    .svc { grid-template-columns: 40px 1fr; gap: var(--space-2) var(--space-3); }
+    .svc__body, .svc__side { grid-column: 2 / 3; }
+    .svc__side { margin-top: var(--space-4); }
+    .process { grid-template-columns: 1fr 1fr; gap: var(--space-5) var(--space-3); }
+  }
+  @media (max-width: 520px) { .process { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a href="index.html" class="wordmark">Atmosferi<sup>°</sup></a>
+    <div class="nav__links">
+      <a href="work.html" class="navlink">Work</a>
+      <a href="services.html" class="navlink" aria-current="true">Services</a>
+      <a href="pricing.html" class="navlink">Pricing</a>
+      <a href="studio.html" class="navlink">Studio</a>
+      <a href="contact.html" class="navlink">Contact</a>
+      <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+        <span class="toggle__label">Color</span>
+        <span class="toggle__track"><span class="toggle__knob"></span></span>
+      </button>
+    </div>
+    <button class="nav__burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="nav__mobile">
+    <a href="work.html" class="navlink">Work</a>
+    <a href="services.html" class="navlink" aria-current="true">Services</a>
+    <a href="pricing.html" class="navlink">Pricing</a>
+    <a href="studio.html" class="navlink">Studio</a>
+    <a href="contact.html" class="navlink">Contact</a>
+    <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+      <span class="toggle__label">Color</span>
+      <span class="toggle__track"><span class="toggle__knob"></span></span>
+    </button>
+  </div>
+</nav>
+
+<header class="pagehead wrap" data-screen-label="Services / Header">
+  <div class="pagehead__meta">
+    <span class="eyebrow">Services — capabilities</span>
+    <span class="eyebrow">Design · Build · Visualise</span>
+  </div>
+  <h1 class="pagehead__title">Services</h1>
+  <p class="pagehead__lead">Three disciplines, run end to end by one studio. We take a project from first grid to live deployment without a hand-off — and render the unbuilt along the way.</p>
+</header>
+
+<section class="section--tight wrap" data-screen-label="Services / Disciplines">
+  <!-- 01 -->
+  <div class="svc">
+    <span class="svc__num">01</span>
+    <div class="svc__body">
+      <h2 class="svc__title">Web Design</h2>
+      <p class="svc__desc">Image-led, editorial design built around the architecture — not over it. Typographic systems, mathematical grids and restrained motion that let the work carry the colour. Every layout is drawn for the imagery it will hold.</p>
+    </div>
+    <div class="svc__side">
+      <ul class="svc__deliver">
+        <li><span class="mark">→</span> Art direction &amp; visual system</li>
+        <li><span class="mark">→</span> Responsive layout design</li>
+        <li><span class="mark">→</span> Typographic &amp; grid systems</li>
+        <li><span class="mark">→</span> Motion &amp; interaction design</li>
+        <li><span class="mark">→</span> Design tokens &amp; handoff</li>
+      </ul>
+    </div>
+  </div>
+  <!-- 02 -->
+  <div class="svc">
+    <span class="svc__num">02</span>
+    <div class="svc__body">
+      <h2 class="svc__title">Development</h2>
+      <p class="svc__desc">Implementation engineered to outlast a project cycle. Fast, accessible, standards-based builds with a content model your team can run. We treat the codebase like a structure — load-bearing, documented, and built to specification.</p>
+    </div>
+    <div class="svc__side">
+      <ul class="svc__deliver">
+        <li><span class="mark">→</span> Front-end engineering</li>
+        <li><span class="mark">→</span> Headless CMS integration</li>
+        <li><span class="mark">→</span> Performance &amp; accessibility (WCAG)</li>
+        <li><span class="mark">→</span> CRM &amp; availability data</li>
+        <li><span class="mark">→</span> Deployment &amp; maintenance</li>
+      </ul>
+    </div>
+  </div>
+  <!-- 03 -->
+  <div class="svc">
+    <span class="svc__num">03</span>
+    <div class="svc__body">
+      <h2 class="svc__title">3D &amp; Visualisation</h2>
+      <p class="svc__desc">Bringing unbuilt space into the browser. Renders, fly-throughs and interactive models — from a single hero still to a navigable floor-stack — so a project can be understood, and sold, before the ground is broken.</p>
+    </div>
+    <div class="svc__side">
+      <ul class="svc__deliver">
+        <li><span class="mark">→</span> Architectural stills &amp; renders</li>
+        <li><span class="mark">→</span> Animated fly-throughs</li>
+        <li><span class="mark">→</span> Interactive 3D models</li>
+        <li><span class="mark">→</span> Floor-stack &amp; unit explorers</li>
+        <li><span class="mark">→</span> Real-time / WebGL scenes</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<a href="work.html" class="reveal" style="display:block;height:46vh;min-height:320px" aria-label="See the work">
+  <img src="https://picsum.photos/seed/atm-services/1800/900" alt="Architectural visualisation placeholder" style="width:100%;height:100%;object-fit:cover">
+</a>
+
+<!-- Process -->
+<section class="section wrap" data-screen-label="Services / Process">
+  <div class="section__head">
+    <h2 class="section__title">How a project runs.</h2>
+    <span class="eyebrow">The method</span>
+  </div>
+  <div class="process">
+    <div class="process__step">
+      <span class="process__num">01 / Survey</span>
+      <h3 class="process__title">Measure</h3>
+      <p class="process__desc">Audience, content, and the architecture itself. We define the constraints before drawing a single frame.</p>
+    </div>
+    <div class="process__step">
+      <span class="process__num">02 / Design</span>
+      <h3 class="process__title">Draw</h3>
+      <p class="process__desc">Grid, type and motion. The visual system is set and pressure-tested against the real imagery.</p>
+    </div>
+    <div class="process__step">
+      <span class="process__num">03 / Build</span>
+      <h3 class="process__title">Construct</h3>
+      <p class="process__desc">Development and visualisation in parallel — content-managed, performant, accessible.</p>
+    </div>
+    <div class="process__step">
+      <span class="process__num">04 / Deliver</span>
+      <h3 class="process__title">Hand over</h3>
+      <p class="process__desc">Deployed, documented, and yours to run. Maintenance available on retainer.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta wrap" data-screen-label="Services / CTA">
+  <span class="eyebrow">Contact — open for 2026</span>
+  <h2 class="cta__title">Tell us what<br>you&rsquo;re building.</h2>
+  <a href="contact.html" class="btn">Start a project <span class="arrow">→</span></a>
+</section>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__top">
+      <a href="index.html" class="wordmark" style="font-size:40px">Atmosferi<sup>°</sup></a>
+      <div class="footer__cols">
+        <div class="footer__col">
+          <span class="eyebrow">Studio</span>
+          <span class="mono">Prague · Remote</span>
+          <a href="mailto:studio@atmosferi.studio" class="mono">studio@atmosferi.studio</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Index</span>
+          <a href="work.html" class="mono muted">Work</a>
+          <a href="services.html" class="mono muted">Services</a>
+          <a href="pricing.html" class="mono muted">Pricing</a>
+          <a href="studio.html" class="mono muted">Studio</a>
+          <a href="contact.html" class="mono muted">Contact</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Elsewhere</span>
+          <a href="#" class="mono muted">Instagram</a>
+          <a href="#" class="mono muted">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span class="eyebrow">© MMXXVI Atmosferi°</span>
+      <span class="eyebrow">N 50°05′ E 14°25′ · Prague</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

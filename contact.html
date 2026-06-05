@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Atmosferi°</title>
+<meta name="description" content="Start a project. Tell the studio what you're building.">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a href="index.html" class="wordmark">Atmosferi<sup>°</sup></a>
+    <div class="nav__links">
+      <a href="work.html" class="navlink">Work</a>
+      <a href="services.html" class="navlink">Services</a>
+      <a href="pricing.html" class="navlink">Pricing</a>
+      <a href="studio.html" class="navlink">Studio</a>
+      <a href="contact.html" class="navlink" aria-current="true">Contact</a>
+      <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+        <span class="toggle__label">Color</span>
+        <span class="toggle__track"><span class="toggle__knob"></span></span>
+      </button>
+    </div>
+    <button class="nav__burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="nav__mobile">
+    <a href="work.html" class="navlink">Work</a>
+    <a href="services.html" class="navlink">Services</a>
+    <a href="pricing.html" class="navlink">Pricing</a>
+    <a href="studio.html" class="navlink">Studio</a>
+    <a href="contact.html" class="navlink" aria-current="true">Contact</a>
+    <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+      <span class="toggle__label">Color</span>
+      <span class="toggle__track"><span class="toggle__knob"></span></span>
+    </button>
+  </div>
+</nav>
+
+<header class="pagehead wrap" data-screen-label="Contact / Header">
+  <div class="pagehead__meta">
+    <span class="eyebrow">Contact — open for 2026</span>
+    <span class="eyebrow">Reply within 2 working days</span>
+  </div>
+  <h1 class="pagehead__title">Start a<br>project.</h1>
+</header>
+
+<section class="section--tight wrap" data-screen-label="Contact / Form">
+  <div class="contact-grid">
+    <!-- Form -->
+    <form id="contact-form" novalidate>
+      <div class="field">
+        <label for="c-name">Your name</label>
+        <input type="text" id="c-name" name="name" placeholder="Name / practice" autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label for="c-email">Email <span aria-hidden="true">·</span> required</label>
+        <input type="email" id="c-email" name="email" placeholder="name@studio.com" autocomplete="email" required>
+      </div>
+
+      <div class="field">
+        <label>Project type</label>
+        <div class="choice-row" data-choice-group="project-type">
+          <button type="button" class="choice" aria-pressed="false">Studio portfolio</button>
+          <button type="button" class="choice" aria-pressed="false">Developer / property</button>
+          <button type="button" class="choice" aria-pressed="false">Urbanism / public</button>
+          <button type="button" class="choice" aria-pressed="false">Interior</button>
+          <button type="button" class="choice" aria-pressed="false">3D / visualisation</button>
+          <button type="button" class="choice" aria-pressed="false">Other</button>
+        </div>
+        <input type="hidden" name="project_type" value="">
+      </div>
+
+      <div class="field">
+        <label>Budget range <span aria-hidden="true">·</span> EUR</label>
+        <div class="choice-row" data-choice-group="budget">
+          <button type="button" class="choice" aria-pressed="false">&lt; 10k</button>
+          <button type="button" class="choice" aria-pressed="false">10—25k</button>
+          <button type="button" class="choice" aria-pressed="false">25—50k</button>
+          <button type="button" class="choice" aria-pressed="false">50k+</button>
+          <button type="button" class="choice" aria-pressed="false">Not sure yet</button>
+        </div>
+        <input type="hidden" name="budget" value="">
+      </div>
+
+      <div class="field">
+        <label for="c-message">Message</label>
+        <textarea id="c-message" name="message" placeholder="Tell us about the project — the architecture, the audience, the timeline."></textarea>
+      </div>
+
+      <button type="submit" class="btn">Send <span class="arrow">→</span></button>
+      <p class="form-status" role="status" aria-live="polite"></p>
+    </form>
+
+    <!-- Aside -->
+    <aside class="contact-aside">
+      <div class="block">
+        <span class="eyebrow">Or simply email</span>
+        <br>
+        <a href="mailto:studio@atmosferi.studio" class="big-mail">studio@atmosferi.studio</a>
+      </div>
+      <div class="block">
+        <span class="eyebrow">Studio</span>
+        <p class="mono" style="font-size:13px;line-height:2;margin:8px 0 0;color:var(--ink)">Prague, Czech Republic<br>Working remote across the EU<br>N 50°05′ E 14°25′</p>
+      </div>
+      <div class="block">
+        <span class="eyebrow">Good to include</span>
+        <ul class="spec-list">
+          <li>— Links to existing site / references</li>
+          <li>— Approximate timeline</li>
+          <li>— Imagery or renders already in hand</li>
+        </ul>
+      </div>
+      <div class="block">
+        <span class="eyebrow">Availability</span>
+        <p class="mono" style="font-size:13px;line-height:2;margin:8px 0 0;color:var(--ink)">Booking projects for Q3—Q4 2026.</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<div style="height:var(--space-8)"></div>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__top">
+      <a href="index.html" class="wordmark" style="font-size:40px">Atmosferi<sup>°</sup></a>
+      <div class="footer__cols">
+        <div class="footer__col">
+          <span class="eyebrow">Studio</span>
+          <span class="mono">Prague · Remote</span>
+          <a href="mailto:studio@atmosferi.studio" class="mono">studio@atmosferi.studio</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Index</span>
+          <a href="work.html" class="mono muted">Work</a>
+          <a href="services.html" class="mono muted">Services</a>
+          <a href="pricing.html" class="mono muted">Pricing</a>
+          <a href="studio.html" class="mono muted">Studio</a>
+          <a href="contact.html" class="mono muted">Contact</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Elsewhere</span>
+          <a href="#" class="mono muted">Instagram</a>
+          <a href="#" class="mono muted">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span class="eyebrow">© MMXXVI Atmosferi°</span>
+      <span class="eyebrow">N 50°05′ E 14°25′ · Prague</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

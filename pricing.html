@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — Atmosferi°</title>
+<meta name="description" content="Engagements and pricing — websites, development and 3D visualisation for architecture. Compose a bundle and see the estimate build.">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  /* ============================ PRICING ============================ */
+  /* Three engagements as columns bounded by rules (no fill, no radius). */
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--ink); }
+  .tier { border-bottom: 1px solid var(--ink); border-right: 1px solid var(--line); padding: var(--space-5) var(--space-4) var(--space-5) 0; display: flex; flex-direction: column; }
+  .tier:last-child { border-right: 0; }
+  .tier__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+  .tier__num { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); }
+  .tier__for { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); text-align: right; max-width: 16ch; }
+  .tier__name { font-size: var(--text-5xl); font-weight: 700; letter-spacing: var(--track-display); line-height: var(--leading-tight); margin: var(--space-4) 0 0; }
+  .tier__price { display: flex; align-items: baseline; gap: 10px; margin: var(--space-3) 0 var(--space-2); }
+  .tier__from { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); }
+  .tier__fig { font-size: var(--text-3xl); font-weight: 600; letter-spacing: -0.02em; }
+  .tier__desc { font-size: var(--text-md); line-height: var(--leading-body); color: var(--neutral-700); margin: 0 0 var(--space-4); max-width: 34ch; }
+  .tier__list { list-style: none; margin: 0 0 var(--space-5); padding: var(--space-3) 0 0; border-top: 1px solid var(--line); font-family: var(--font-mono); font-size: 12px; line-height: 1; color: var(--ink); flex: 1; }
+  .tier__list li { display: flex; gap: 12px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .tier__list li .mk { color: var(--neutral-400); flex: none; }
+  .tier__list li.off { color: var(--neutral-400); }
+  .tier__list li.off .mk { color: var(--neutral-300); }
+  .tier__cta { align-self: flex-start; }
+
+  /* ---- Composer ---------------------------------------------------- */
+  .composer { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: var(--space-7); align-items: start; }
+  .composer__controls { display: flex; flex-direction: column; }
+  .ctl-group { border-top: 1px solid var(--line); padding-top: var(--space-3); margin-bottom: var(--space-5); }
+  .ctl-group > .eyebrow { display: block; margin-bottom: var(--space-3); }
+
+  /* base = segmented radio, monochrome hardware feel */
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--ink); }
+  .seg button { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; padding: 16px 8px; background: var(--canvas); color: var(--neutral-700); border: 0; border-right: 1px solid var(--line-strong); cursor: pointer; transition: background var(--dur-micro) var(--curve), color var(--dur-micro) var(--curve); }
+  .seg button:last-child { border-right: 0; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--canvas); }
+  .seg__hint { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); margin-top: 12px; }
+
+  /* modules = toggle rows */
+  .mod { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: var(--space-3) 0; display: grid; grid-template-columns: 26px 1fr auto; gap: var(--space-3); align-items: baseline; cursor: pointer; }
+  .mod:first-of-type { border-top: 1px solid var(--line); }
+  .mod__box { width: 18px; height: 18px; border: 1px solid var(--ink); position: relative; align-self: center; transition: background var(--dur-micro) var(--curve); }
+  .mod__box::after { content: ""; position: absolute; inset: 4px; background: var(--canvas); opacity: 0; transition: opacity var(--dur-micro) var(--curve); }
+  .mod[aria-pressed="true"] .mod__box { background: var(--ink); }
+  .mod[aria-pressed="true"] .mod__box::after { opacity: 1; }
+  .mod__body .mod__name { font-size: var(--text-xl); font-weight: 500; letter-spacing: -0.01em; line-height: var(--leading-snug); }
+  .mod__body .mod__desc { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); margin-top: 8px; }
+  .mod__price { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--ink); white-space: nowrap; align-self: center; }
+  .mod[data-locked="true"] { cursor: default; }
+  .mod[data-locked="true"] .mod__price { color: var(--neutral-500); }
+  .mod__incl { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); white-space: nowrap; align-self: center; }
+
+  /* ---- The stack visualization ------------------------------------- */
+  .stack-panel { border: 1px solid var(--ink); position: sticky; top: 88px; }
+  .stack-head { display: flex; align-items: baseline; justify-content: space-between; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--line); gap: var(--space-3); }
+  .stack-head .eyebrow { color: var(--neutral-500); }
+  .stack-total { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; }
+  .stack { display: flex; flex-direction: column-reverse; height: 460px; padding: 10px; gap: 4px; }
+  .blk { position: relative; background: var(--ink); color: var(--canvas); overflow: hidden; display: flex; align-items: flex-end; padding: 12px 14px; min-height: 30px; transition: flex-grow var(--dur-standard) var(--curve), height var(--dur-standard) var(--curve), opacity var(--dur-standard) var(--curve), transform var(--dur-standard) var(--curve); }
+  .blk--base { background: var(--ink); }
+  .blk--mod { background: var(--neutral-700); }
+  .blk__row { display: flex; align-items: baseline; justify-content: space-between; width: 100%; gap: var(--space-2); }
+  .blk__name { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; }
+  .blk__val { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); }
+  .blk--enter { opacity: 0; transform: translateY(8px); }
+  .stack-foot { display: flex; align-items: baseline; justify-content: space-between; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--line); gap: var(--space-3); }
+  .stack-foot .lab { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); }
+  .stack-foot .meta-line { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); }
+
+  @media (max-width: 980px) {
+    .tiers { grid-template-columns: 1fr; }
+    .tier { border-right: 0; padding-right: 0; }
+    .tier__name { font-size: var(--text-4xl); }
+    .composer { grid-template-columns: 1fr; gap: var(--space-6); }
+    .stack-panel { position: static; }
+  }
+  @media (max-width: 520px) {
+    .tier__for { display: none; }
+    .stack { height: 380px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a href="index.html" class="wordmark">Atmosferi<sup>°</sup></a>
+    <div class="nav__links">
+      <a href="work.html" class="navlink">Work</a>
+      <a href="services.html" class="navlink">Services</a>
+      <a href="pricing.html" class="navlink" aria-current="true">Pricing</a>
+      <a href="studio.html" class="navlink">Studio</a>
+      <a href="contact.html" class="navlink">Contact</a>
+      <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+        <span class="toggle__label">Color</span>
+        <span class="toggle__track"><span class="toggle__knob"></span></span>
+      </button>
+    </div>
+    <button class="nav__burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="nav__mobile">
+    <a href="work.html" class="navlink">Work</a>
+    <a href="services.html" class="navlink">Services</a>
+    <a href="pricing.html" class="navlink" aria-current="true">Pricing</a>
+    <a href="studio.html" class="navlink">Studio</a>
+    <a href="contact.html" class="navlink">Contact</a>
+    <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+      <span class="toggle__label">Color</span>
+      <span class="toggle__track"><span class="toggle__knob"></span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ============================ PAGE HEAD ============================ -->
+<header class="pagehead wrap" data-screen-label="Pricing / Header">
+  <div class="pagehead__meta">
+    <span class="eyebrow">Pricing — engagements</span>
+    <span class="eyebrow">Fixed scope · EUR · ex. VAT</span>
+  </div>
+  <h1 class="pagehead__title">Pricing</h1>
+  <p class="pagehead__lead">Three engagements, scaled to the work. Every project is fixed-scope and fixed-price — no hourly meters. Visualisation bundles into the larger engagements, or attaches to any of them. Compose yours below.</p>
+</header>
+
+<!-- ============================ TIERS ============================ -->
+<section class="section--tight wrap" data-screen-label="Pricing / Engagements">
+  <div class="tiers">
+    <!-- 01 -->
+    <article class="tier">
+      <div class="tier__head">
+        <span class="tier__num">01 / Engagement</span>
+        <span class="tier__for">Individual architects · Small studios</span>
+      </div>
+      <h2 class="tier__name">Portfolio</h2>
+      <div class="tier__price"><span class="tier__from">From</span><span class="tier__fig">€6,000</span></div>
+      <p class="tier__desc">A precise, image-led site for a focused body of work. Designed and built end to end.</p>
+      <ul class="tier__list">
+        <li><span class="mk">→</span> Bespoke design, up to 6 pages</li>
+        <li><span class="mk">→</span> Responsive build &amp; deployment</li>
+        <li><span class="mk">→</span> Light CMS for projects</li>
+        <li><span class="mk">→</span> Performance &amp; accessibility pass</li>
+        <li class="off"><span class="mk">⊘</span> Visualisation — add-on</li>
+      </ul>
+      <a href="contact.html" class="arrow-link tier__cta">Enquire <span class="arrow">→</span></a>
+    </article>
+    <!-- 02 -->
+    <article class="tier">
+      <div class="tier__head">
+        <span class="tier__num">02 / Engagement</span>
+        <span class="tier__for">Established practices · Studios</span>
+      </div>
+      <h2 class="tier__name">Practice</h2>
+      <div class="tier__price"><span class="tier__from">From</span><span class="tier__fig">€14,000</span></div>
+      <p class="tier__desc">A full design system and a deep project archive — the public face of a working studio.</p>
+      <ul class="tier__list">
+        <li><span class="mk">→</span> Design system &amp; component library</li>
+        <li><span class="mk">→</span> Full CMS &amp; project archive</li>
+        <li><span class="mk">→</span> Up to 16 pages / templates</li>
+        <li><span class="mk">→</span> Journal, press &amp; team modules</li>
+        <li><span class="mk">→</span> One visualisation module included</li>
+      </ul>
+      <a href="contact.html" class="arrow-link tier__cta">Enquire <span class="arrow">→</span></a>
+    </article>
+    <!-- 03 -->
+    <article class="tier">
+      <div class="tier__head">
+        <span class="tier__num">03 / Engagement</span>
+        <span class="tier__for">Developers · Property launches</span>
+      </div>
+      <h2 class="tier__name">Launch</h2>
+      <div class="tier__price"><span class="tier__from">From</span><span class="tier__fig">€30,000</span></div>
+      <p class="tier__desc">A sales platform for an unbuilt project — visualisation at its core, sold from the browser.</p>
+      <ul class="tier__list">
+        <li><span class="mk">→</span> Everything in Practice</li>
+        <li><span class="mk">→</span> Sales / availability platform</li>
+        <li><span class="mk">→</span> CRM &amp; integrations</li>
+        <li><span class="mk">→</span> Full visualisation suite included</li>
+        <li><span class="mk">→</span> Launch support &amp; retainer</li>
+      </ul>
+      <a href="contact.html" class="arrow-link tier__cta">Enquire <span class="arrow">→</span></a>
+    </article>
+  </div>
+</section>
+
+<hr class="horizon">
+
+<!-- ============================ COMPOSER ============================ -->
+<section class="section wrap" data-screen-label="Pricing / Composer">
+  <div class="section__head">
+    <h2 class="section__title">Compose your engagement.</h2>
+    <span class="eyebrow">Estimate builder</span>
+  </div>
+
+  <div class="composer">
+    <!-- CONTROLS -->
+    <div class="composer__controls">
+      <div class="ctl-group">
+        <span class="eyebrow eyebrow--ink">Base engagement</span>
+        <div class="seg" id="seg-base" role="group" aria-label="Base engagement">
+          <button type="button" data-base="portfolio" aria-pressed="false">Portfolio</button>
+          <button type="button" data-base="practice" aria-pressed="true">Practice</button>
+          <button type="button" data-base="launch" aria-pressed="false">Launch</button>
+        </div>
+        <p class="seg__hint" id="base-hint"></p>
+      </div>
+
+      <div class="ctl-group">
+        <span class="eyebrow eyebrow--ink">Visualisation modules</span>
+        <div id="mods"></div>
+      </div>
+    </div>
+
+    <!-- STACK -->
+    <div class="stack-panel" aria-live="polite">
+      <div class="stack-head">
+        <span class="eyebrow">Estimate — from</span>
+        <span class="stack-total" id="total">€0</span>
+      </div>
+      <div class="stack" id="stack"></div>
+      <div class="stack-foot">
+        <span class="lab" id="mod-count">0 modules</span>
+        <span class="meta-line">Indicative · fixed on brief</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ NOTE ============================ -->
+<section class="section--tight wrap" data-screen-label="Pricing / Note">
+  <hr class="horizon">
+  <div class="baseline-row" style="padding-top:var(--space-4);align-items:flex-start;gap:var(--space-6);flex-wrap:wrap">
+    <p class="hero__lead" style="max-width:60ch;color:var(--neutral-700)">These figures are starting points for planning, not a quote. Every engagement is scoped, fixed and dated against a written brief — what you compose here is the conversation we'll have, drawn to scale.</p>
+    <span class="eyebrow">Payment · 40 / 40 / 20 by milestone</span>
+  </div>
+</section>
+
+<!-- ============================ CTA ============================ -->
+<section class="cta wrap" data-screen-label="Pricing / CTA">
+  <span class="eyebrow">Contact — open for 2026</span>
+  <h2 class="cta__title">Get a fixed<br>quote.</h2>
+  <a href="contact.html" class="btn">Start a project <span class="arrow">→</span></a>
+</section>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__top">
+      <a href="index.html" class="wordmark" style="font-size:40px">Atmosferi<sup>°</sup></a>
+      <div class="footer__cols">
+        <div class="footer__col">
+          <span class="eyebrow">Studio</span>
+          <span class="mono">Prague · Remote</span>
+          <a href="mailto:studio@atmosferi.studio" class="mono">studio@atmosferi.studio</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Index</span>
+          <a href="work.html" class="mono muted">Work</a>
+          <a href="services.html" class="mono muted">Services</a>
+          <a href="pricing.html" class="mono muted">Pricing</a>
+          <a href="studio.html" class="mono muted">Studio</a>
+          <a href="contact.html" class="mono muted">Contact</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Elsewhere</span>
+          <a href="#" class="mono muted">Instagram</a>
+          <a href="#" class="mono muted">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span class="eyebrow">© MMXXVI Atmosferi°</span>
+      <span class="eyebrow">N 50°05′ E 14°25′ · Prague</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+<script src="assets/pricing.js"></script>
+</body>
+</html>

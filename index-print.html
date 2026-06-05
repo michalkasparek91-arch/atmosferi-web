@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atmosferi° — Websites for architecture</title>
+<meta name="description" content="Atmosferi designs and builds websites and 3D visualisation for architecture studios, developers, urbanism and interiors.">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  /* ============================ PRINT ============================ */
+  @page { size: portrait; margin: 1.2cm; }
+
+  @media print {
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      animation-delay: -99s !important; animation-duration: .001s !important;
+      animation-iteration-count: 1 !important; animation-fill-mode: both !important;
+      animation-play-state: running !important; transition-duration: 0s !important;
+    }
+    html { scroll-behavior: auto !important; }
+    /* Drop sticky nav + interactive chrome from the printed sheet */
+    .nav, .nav__burger, .nav__mobile { display: none !important; }
+    /* Imagery prints in full colour for the PDF */
+    .reveal img, .scroller img { filter: none !important; }
+
+    /* Keep sections intact across page boundaries */
+    .hero, .section, .section--tight, .cta, .footer,
+    .workcard, .cap, .audience__row, .process__step { break-inside: avoid; }
+    .hero__img { break-after: avoid; }
+    .footer { break-before: avoid; }
+
+    /* Tame full-viewport heights so nothing overflows a sheet */
+    .hero__img { height: auto !important; min-height: 0 !important; aspect-ratio: 16 / 7; }
+    .workcard__img { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 3; }
+    .hero { padding-top: var(--space-4) !important; }
+  }
+</style>
+</head>
+<body class="color-on">
+
+<!-- ============================ NAV ============================ -->
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a href="index.html" class="wordmark">Atmosferi<sup>°</sup></a>
+    <div class="nav__links">
+      <a href="work.html" class="navlink">Work</a>
+      <a href="services.html" class="navlink">Services</a>
+      <a href="studio.html" class="navlink">Studio</a>
+      <a href="contact.html" class="navlink">Contact</a>
+      <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+        <span class="toggle__label">Color</span>
+        <span class="toggle__track"><span class="toggle__knob"></span></span>
+      </button>
+    </div>
+    <button class="nav__burger" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav__mobile">
+    <a href="work.html" class="navlink">Work</a>
+    <a href="services.html" class="navlink">Services</a>
+    <a href="studio.html" class="navlink">Studio</a>
+    <a href="contact.html" class="navlink">Contact</a>
+    <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+      <span class="toggle__label">Color</span>
+      <span class="toggle__track"><span class="toggle__knob"></span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ============================ HERO ============================ -->
+<header class="hero wrap" data-screen-label="Home / Hero">
+  <div class="hero__head">
+    <span class="eyebrow">Web studio for architecture</span>
+    <span class="eyebrow">Selected work · 2024—2026</span>
+  </div>
+  <h1 class="hero__title">Websites for<br>people who<br>build space<span class="deg">°</span></h1>
+  <div class="hero__foot">
+    <p class="hero__lead">Atmosferi designs and builds the digital surface of architecture — studios, developments, and the projects that shape a skyline. Interface, drawn with the same precision as a plan.</p>
+    <a href="work.html" class="arrow-link">View the work <span class="arrow">→</span></a>
+  </div>
+</header>
+
+<a href="work.html" class="reveal hero__img" aria-label="View selected work">
+  <img src="https://picsum.photos/seed/atm-arch-hero/1800/1000" alt="Architectural project placeholder">
+</a>
+
+<!-- ============================ CAPABILITIES ============================ -->
+<section class="section wrap" data-screen-label="Home / Capabilities">
+  <div class="section__head">
+    <h2 class="section__title">Three disciplines, one surface.</h2>
+    <span class="eyebrow">What the studio does</span>
+  </div>
+  <div class="caps">
+    <a href="services.html" class="cap">
+      <span class="cap__num">01</span>
+      <span class="cap__title">Web Design</span>
+      <span class="cap__desc">Editorial, image-led sites that frame architecture the way it deserves — typographic systems, grids, and motion designed around the work.</span>
+    </a>
+    <a href="services.html" class="cap">
+      <span class="cap__num">02</span>
+      <span class="cap__title">Development</span>
+      <span class="cap__desc">Implementation that holds up — fast, accessible, content-managed builds engineered to outlast a project cycle, not a trend.</span>
+    </a>
+    <a href="services.html" class="cap">
+      <span class="cap__num">03</span>
+      <span class="cap__title">3D &amp; Visualisation</span>
+      <span class="cap__desc">Renders, fly-throughs and interactive models — bringing unbuilt space into the browser before the ground is broken.</span>
+    </a>
+  </div>
+</section>
+
+<hr class="horizon">
+
+<!-- ============================ SELECTED WORK ============================ -->
+<section class="section wrap" data-screen-label="Home / Selected work">
+  <div class="section__head">
+    <span class="eyebrow eyebrow--ink">Selected work</span>
+    <a href="work.html" class="arrow-link">Full index <span class="arrow">→</span></a>
+  </div>
+  <div class="workgrid">
+    <a href="case.html" class="workcard reveal-card">
+      <span class="reveal workcard__img"><img src="https://picsum.photos/seed/atm-meridian/1200/900" alt="Meridian Tower placeholder"></span>
+      <span class="workcard__meta">
+        <span class="workcard__title">Meridian Tower</span>
+        <span class="workcard__cat">Developer · 2026</span>
+      </span>
+      <span class="workcard__blurb">A launch site for a 41-storey residential tower. Sales, in the browser.</span>
+    </a>
+    <a href="case.html" class="workcard reveal-card">
+      <span class="reveal workcard__img"><img src="https://picsum.photos/seed/atm-voss/1200/900" alt="Atelier Voss placeholder"></span>
+      <span class="workcard__meta">
+        <span class="workcard__title">Atelier Voss</span>
+        <span class="workcard__cat">Studio portfolio · 2025</span>
+      </span>
+      <span class="workcard__blurb">Portfolio for an award-winning practice. Forty projects, one quiet grid.</span>
+    </a>
+    <a href="case.html" class="workcard reveal-card">
+      <span class="reveal workcard__img"><img src="https://picsum.photos/seed/atm-northgate/1200/900" alt="Northgate placeholder"></span>
+      <span class="workcard__meta">
+        <span class="workcard__title">Northgate</span>
+        <span class="workcard__cat">Urbanism · 2025</span>
+      </span>
+      <span class="workcard__blurb">A masterplan microsite — phasing, density, and public consultation.</span>
+    </a>
+    <a href="case.html" class="workcard reveal-card">
+      <span class="reveal workcard__img"><img src="https://picsum.photos/seed/atm-cassia/1200/900" alt="Cassia Interiors placeholder"></span>
+      <span class="workcard__meta">
+        <span class="workcard__title">Cassia Interiors</span>
+        <span class="workcard__cat">Interior · 2024</span>
+      </span>
+      <span class="workcard__blurb">Material-first portfolio for an interior studio. Texture at full bleed.</span>
+    </a>
+  </div>
+</section>
+
+<hr class="horizon">
+
+<!-- ============================ AUDIENCE ============================ -->
+<section class="section wrap" data-screen-label="Home / Who we work with">
+  <div class="section__head">
+    <h2 class="section__title">For everyone who works in space.</h2>
+    <span class="eyebrow">Who we work with</span>
+  </div>
+  <div class="audience">
+    <div class="audience__row"><span class="audience__num">01</span><span class="audience__label">Architecture studios</span></div>
+    <div class="audience__row"><span class="audience__num">02</span><span class="audience__label">Real-estate developers</span></div>
+    <div class="audience__row"><span class="audience__num">03</span><span class="audience__label">Urbanism &amp; public projects</span></div>
+    <div class="audience__row"><span class="audience__num">04</span><span class="audience__label">Interior designers</span></div>
+    <div class="audience__row"><span class="audience__num">05</span><span class="audience__label">Individual architects &amp; portfolios</span></div>
+  </div>
+</section>
+
+<!-- ============================ CTA ============================ -->
+<section class="cta wrap" data-screen-label="Home / CTA">
+  <span class="eyebrow">Contact — open for 2026</span>
+  <h2 class="cta__title">Let&rsquo;s draw the<br>digital plan.</h2>
+  <a href="contact.html" class="btn">Start a project <span class="arrow">→</span></a>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__top">
+      <a href="index.html" class="wordmark" style="font-size:40px">Atmosferi<sup>°</sup></a>
+      <div class="footer__cols">
+        <div class="footer__col">
+          <span class="eyebrow">Studio</span>
+          <span class="mono">Prague · Remote</span>
+          <a href="mailto:studio@atmosferi.studio" class="mono">studio@atmosferi.studio</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Index</span>
+          <a href="work.html" class="mono muted">Work</a>
+          <a href="services.html" class="mono muted">Services</a>
+          <a href="studio.html" class="mono muted">Studio</a>
+          <a href="contact.html" class="mono muted">Contact</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Elsewhere</span>
+          <a href="#" class="mono muted">Instagram</a>
+          <a href="#" class="mono muted">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span class="eyebrow">© MMXXVI Atmosferi°</span>
+      <span class="eyebrow">N 50°05′ E 14°25′ · Prague</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+<script>
+  // Force colour imagery for the PDF regardless of stored preference, then print.
+  window.addEventListener('load', function () {
+    document.body.classList.add('color-on');
+    var ready = document.fonts ? document.fonts.ready : Promise.resolve();
+    ready.then(function () {
+      setTimeout(function () { window.print(); }, 500);
+    });
+  });
+</script>
+</body>
+</html>

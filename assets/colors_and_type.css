@@ -1,0 +1,240 @@
+/* ==========================================================================
+   ATMOSFERI — Foundations
+   Colors, Type, Spacing, Motion, Grid
+   --------------------------------------------------------------------------
+   Manifesto in brief:
+   01 // The Obsidian Palette — off-white canvas, pure black ink, strictly
+        monochrome interface. Color lives in the imagery, never the UI.
+   02 // Extreme Typographic Tension — 160px displays beside 9px metadata.
+   03 // The Mathematical Grid — 1px horizon lines at 10% opacity, flush
+        alignment, baseline-locked metadata.
+   04 // Precision Kinetics — the Atmosferi Curve: cubic-bezier(0.76,0,0.24,1).
+   Shadows & radii are FORBIDDEN. Everything is mathematically sharp.
+   ========================================================================== */
+
+/* Geist + Geist Mono. If these fail to load, document a substitution.
+   Google Fonts hosts both as of 2024/2025. */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ---- 01 // THE OBSIDIAN PALETTE -------------------------------------- */
+  /* The canvas is a warm off-white. Never a dark gray. */
+  --canvas:        #F2F1EC;   /* primary background (warm paper) */
+  --canvas-pure:   #FFFFFF;   /* lifted surfaces, image mattes */
+  --ink:           #000000;   /* pure black — text, lines, marks */
+
+  /* Monochrome scale (Vercel/Linear lineage). Use sparingly. */
+  --neutral-900:   #0A0A0A;
+  --neutral-700:   #404040;
+  --neutral-500:   #737373;   /* metadata + muted micro-type */
+  --neutral-400:   #A3A3A3;
+  --neutral-300:   #D4D4D4;
+  --neutral-200:   #E5E4DF;   /* hairline fills on canvas */
+
+  /* Lines & marks — the 10% horizon line is the structural unit. */
+  --line:          rgba(0,0,0,0.10);   /* major horizon dividers */
+  --line-strong:   rgba(0,0,0,0.24);   /* secondary emphasis */
+  --line-ink:      #000000;            /* full-strength rule */
+  --hairline:      1px;                /* the only line weight */
+
+  /* Semantic surface tokens */
+  --fg-1:          var(--ink);          /* primary text */
+  --fg-2:          var(--neutral-700);  /* secondary text */
+  --fg-3:          var(--neutral-500);  /* metadata / muted */
+  --bg-1:          var(--canvas);
+  --bg-2:          var(--canvas-pure);
+
+  /* ---- 02 // TYPOGRAPHY ------------------------------------------------ */
+  --font-sans: 'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'Geist Mono', 'SF Mono', ui-monospace, 'Roboto Mono', monospace;
+
+  /* Macro scale — concrete blocks. Fluid, capped, aggressively tight. */
+  --text-9xl: clamp(4.5rem, 13vw, 10rem);    /* ~72 → 160px  display */
+  --text-8xl: clamp(3.5rem, 9vw, 7.5rem);    /* ~56 → 120px */
+  --text-7xl: clamp(3rem, 7vw, 6rem);        /* ~48 → 96px */
+  --text-6xl: clamp(2.5rem, 5vw, 4.5rem);    /* ~40 → 72px */
+  --text-5xl: 3rem;     /* 48px */
+  --text-4xl: 2.25rem;  /* 36px */
+  --text-3xl: 1.75rem;  /* 28px */
+  --text-2xl: 1.375rem; /* 22px */
+  --text-xl:  1.125rem; /* 18px */
+
+  /* Body */
+  --text-lg:  1.0625rem;/* 17px */
+  --text-md:  0.9375rem;/* 15px */
+  --text-sm:  0.8125rem;/* 13px */
+
+  /* Micro — razor sharp. Always uppercase, wide-tracked, muted. */
+  --text-meta:  0.625rem;   /* 10px */
+  --text-nano:  0.5625rem;  /* 9px */
+
+  /* Leading — heavy stacking up top, generous air in body. */
+  --leading-display: 0.85;
+  --leading-tight:   0.95;
+  --leading-snug:    1.1;
+  --leading-body:    1.55;
+  --leading-flat:    1;
+
+  /* Tracking — tight macro, wide micro. */
+  --track-display: -0.03em;
+  --track-tight:   -0.01em;
+  --track-normal:  0;
+  --track-wide:    0.08em;
+  --track-meta:    0.2em;    /* the signature micro-tracking */
+
+  /* Weights */
+  --weight-light:  300;
+  --weight-reg:    400;
+  --weight-med:    500;
+  --weight-semi:   600;
+  --weight-bold:   700;
+  --weight-black:  800;
+
+  /* ---- 03 // SPACING — EDITORIAL SILENCE ------------------------------- */
+  /* 8px base grid. Vertical rhythm is intentionally cavernous. */
+  --space-1:  0.5rem;   /* 8 */
+  --space-2:  1rem;     /* 16 */
+  --space-3:  1.5rem;   /* 24 */
+  --space-4:  2rem;     /* 32 */
+  --space-5:  3rem;     /* 48 */
+  --space-6:  4rem;     /* 64 */
+  --space-7:  6rem;     /* 96 */
+  --space-8:  8rem;     /* 128 */
+  --space-9:  12rem;    /* 192 */
+  --space-10: 16rem;    /* 256 — section silence */
+
+  --gutter:   clamp(1.25rem, 4vw, 3.5rem);  /* page margins */
+  --maxw:     1440px;                        /* content frame */
+
+  /* ---- RADII & SHADOWS — FORBIDDEN ------------------------------------ */
+  --radius: 0px;        /* there is no other value */
+  /* No shadow tokens exist by design. Depth is communicated by line + scale. */
+
+  /* ---- 04 // PRECISION KINETICS --------------------------------------- */
+  --curve: cubic-bezier(0.76, 0, 0.24, 1);   /* THE Atmosferi Curve */
+  --dur-micro:     0.2s;
+  --dur-standard:  0.6s;
+  --dur-slow:      1s;
+  --dur-cinematic: 8s;    /* the 8-second auto-scroll */
+  --ease-linear:   linear;
+}
+
+/* ==========================================================================
+   SEMANTIC ELEMENT STYLES
+   Apply via classes; these encode the system so usage stays consistent.
+   ========================================================================== */
+
+.atmos-display {
+  font-family: var(--font-sans);
+  font-size: var(--text-9xl);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-display);
+  letter-spacing: var(--track-display);
+  color: var(--fg-1);
+  text-wrap: balance;
+}
+
+.atmos-h1 {
+  font-family: var(--font-sans);
+  font-size: var(--text-7xl);
+  font-weight: var(--weight-semi);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-display);
+  color: var(--fg-1);
+}
+
+.atmos-h2 {
+  font-family: var(--font-sans);
+  font-size: var(--text-5xl);
+  font-weight: var(--weight-semi);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-tight);
+  color: var(--fg-1);
+}
+
+.atmos-h3 {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-med);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--track-tight);
+  color: var(--fg-1);
+}
+
+.atmos-body {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-reg);
+  line-height: var(--leading-body);
+  letter-spacing: var(--track-normal);
+  color: var(--fg-2);
+  text-wrap: pretty;
+}
+
+.atmos-body-sm {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-reg);
+  line-height: var(--leading-body);
+  color: var(--fg-2);
+}
+
+/* The signature micro-type. Metadata, labels, indices, code captions. */
+.atmos-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-med);
+  line-height: var(--leading-flat);
+  letter-spacing: var(--track-meta);
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.atmos-nano {
+  font-family: var(--font-mono);
+  font-size: var(--text-nano);
+  font-weight: var(--weight-med);
+  line-height: var(--leading-flat);
+  letter-spacing: var(--track-meta);
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.atmos-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-reg);
+  letter-spacing: var(--track-normal);
+  color: var(--fg-1);
+}
+
+/* ---- Structural utilities ------------------------------------------- */
+
+/* The horizon line — major section divider. */
+.atmos-horizon {
+  width: 100%;
+  height: var(--hairline);
+  background: var(--line);
+  border: 0;
+  margin: 0;
+}
+
+/* Baseline-locked metadata row: title sits on the same line as its meta. */
+.atmos-baseline-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+/* Cinematic reveal — desaturated → full color on hover. */
+.atmos-reveal img,
+img.atmos-reveal {
+  filter: grayscale(1) contrast(1.02) brightness(1.02);
+  transition: filter var(--dur-standard) var(--curve),
+              transform var(--dur-standard) var(--curve);
+}
+.atmos-reveal:hover img,
+img.atmos-reveal:hover {
+  filter: grayscale(0) contrast(1) brightness(1);
+}

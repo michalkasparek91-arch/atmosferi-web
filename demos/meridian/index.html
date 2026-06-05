@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian — Residences in the sky</title>
+<meta name="description" content="Meridian. Forty-one floors of residences above the harbour. Now releasing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#13110D; --bg-2:#1A1813; --ink:#ECE6DA; --muted:#9A9384;
+    --gold:#C3A368; --gold-dim:#8C7748; --line:rgba(236,230,218,.14);
+    --serif:'Cormorant Garamond', Georgia, serif; --sans:'Jost', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:16px;line-height:1.7;}
+  img{display:block;max-width:100%;}
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--gold);color:var(--bg);}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 40px;}
+  .kicker{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:400;}
+  .serif{font-family:var(--serif);font-weight:300;}
+  .rule{width:54px;height:1px;background:var(--gold);margin:26px 0;}
+
+  /* nav */
+  header.nav{position:absolute;top:0;left:0;right:0;z-index:30;}
+  .nav__in{display:flex;align-items:center;justify-content:space-between;height:96px;}
+  .brand{font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:.32em;text-transform:uppercase;padding-left:.32em;}
+  .nav__links{display:flex;gap:38px;align-items:center;}
+  .nav__links a{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);opacity:.8;transition:opacity .3s, color .3s;white-space:nowrap;}
+  .nav__links a:hover{opacity:1;color:var(--gold);}
+  .btn{border:1px solid var(--gold);color:var(--gold);padding:13px 26px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;transition:background .35s ease,color .35s ease;}
+  .btn:hover{background:var(--gold);color:var(--bg);}
+  .btn--solid{background:var(--gold);color:var(--bg);}
+  .btn--solid:hover{background:transparent;color:var(--gold);}
+
+  /* hero */
+  .hero{position:relative;height:100vh;min-height:660px;overflow:hidden;display:flex;align-items:flex-end;}
+  .hero__img{position:absolute;inset:0;}
+  .hero__img img{width:100%;height:100%;object-fit:cover;filter:brightness(.62) saturate(.85);}
+  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(19,17,13,.5) 0%,rgba(19,17,13,0) 30%,rgba(19,17,13,.85) 100%);}
+  .hero__c{position:relative;z-index:2;padding-bottom:90px;}
+  .hero h1{font-family:var(--serif);font-weight:300;font-size:clamp(64px,12vw,168px);line-height:.92;letter-spacing:.02em;}
+  .hero h1 em{font-style:italic;color:var(--gold);}
+  .hero__sub{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;flex-wrap:wrap;margin-top:30px;}
+  .hero__sub p{max-width:40ch;color:var(--ink);opacity:.85;font-size:18px;}
+
+  /* intro */
+  .intro{padding:130px 0;text-align:center;}
+  .intro p{font-family:var(--serif);font-weight:300;font-size:clamp(28px,3.6vw,46px);line-height:1.4;max-width:24ch;margin:0 auto;}
+  .intro .rule{margin:30px auto;}
+
+  /* residences */
+  .res{padding:40px 0 130px;}
+  .sec__head{text-align:center;margin-bottom:70px;}
+  .sec__head h2{font-family:var(--serif);font-weight:300;font-size:clamp(40px,6vw,82px);line-height:1;margin-top:14px;}
+  .res__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:36px;}
+  .card{background:var(--bg-2);border:1px solid var(--line);transition:border-color .4s ease,transform .5s cubic-bezier(.2,.7,.1,1);}
+  .card:hover{border-color:var(--gold-dim);transform:translateY(-4px);}
+  .card img{width:100%;aspect-ratio:4/3;object-fit:cover;filter:saturate(.85) brightness(.92);}
+  .card__b{padding:30px 30px 36px;}
+  .card__b h3{font-family:var(--serif);font-weight:400;font-size:30px;margin-bottom:6px;}
+  .card__b .price{color:var(--gold);font-size:13px;letter-spacing:.16em;text-transform:uppercase;}
+  .card__b ul{list-style:none;margin-top:22px;border-top:1px solid var(--line);}
+  .card__b li{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted);}
+  .card__b li span{color:var(--ink);}
+
+  /* amenities */
+  .amen{padding:130px 0;background:var(--bg-2);}
+  .amen__grid{display:grid;grid-template-columns:1.1fr 1fr;gap:80px;align-items:center;}
+  .amen__list{list-style:none;}
+  .amen__list li{padding:22px 0;border-bottom:1px solid var(--line);display:flex;gap:22px;align-items:baseline;}
+  .amen__list li:first-child{border-top:1px solid var(--line);}
+  .amen__list .n{font-family:var(--serif);color:var(--gold);font-size:18px;min-width:34px;}
+  .amen__list h4{font-size:19px;font-weight:400;color:var(--ink);}
+  .amen__list p{font-size:14px;color:var(--muted);margin-top:2px;}
+  .amen__img img{width:100%;aspect-ratio:3/4;object-fit:cover;filter:saturate(.85) brightness(.9);}
+
+  /* view band */
+  .view{position:relative;height:80vh;min-height:520px;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;}
+  .view img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.55) saturate(.85);}
+  .view__c{position:relative;z-index:2;}
+  .view__c h2{font-family:var(--serif);font-weight:300;font-size:clamp(40px,7vw,108px);line-height:1;}
+  .view__c h2 em{font-style:italic;color:var(--gold);}
+  .view__c p{margin-top:20px;color:var(--ink);opacity:.85;letter-spacing:.2em;text-transform:uppercase;font-size:12px;}
+
+  /* register */
+  .reg{padding:130px 0;}
+  .reg__grid{display:grid;grid-template-columns:1fr 1fr;gap:90px;align-items:start;}
+  .reg h2{font-family:var(--serif);font-weight:300;font-size:clamp(40px,5vw,72px);line-height:1.02;}
+  .reg p{color:var(--muted);margin-top:22px;max-width:38ch;}
+  .form .f{margin-bottom:26px;}
+  .form label{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+  .form input,.form select{width:100%;background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--ink);font-family:var(--sans);font-size:17px;padding:10px 0;outline:none;transition:border-color .3s;}
+  .form input::placeholder{color:#5d574a;}
+  .form input:focus,.form select:focus{border-bottom-color:var(--gold);}
+  .form select option{background:var(--bg-2);}
+  .form .btn{margin-top:10px;cursor:pointer;background:var(--gold);color:var(--bg);border:1px solid var(--gold);}
+  .status{margin-top:18px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);min-height:14px;}
+
+  footer{border-top:1px solid var(--line);padding:60px 0 36px;}
+  .foot{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;color:var(--muted);font-size:13px;letter-spacing:.04em;}
+  .foot .brand{font-size:20px;color:var(--ink);}
+  .ds-ribbon{background:var(--bg-2);color:var(--muted);font-size:12px;text-align:center;padding:13px 20px;letter-spacing:.08em;border-bottom:1px solid var(--line);}
+  .ds-ribbon strong{color:var(--gold);font-weight:400;}
+  .ds-ribbon a{color:var(--ink);border-bottom:1px solid var(--gold-dim);}
+
+  @media(max-width:900px){
+    .wrap{padding:0 22px;}
+    .nav__links a:not(.btn){display:none;}
+    .res__grid{grid-template-columns:1fr;gap:26px;}
+    .amen__grid,.reg__grid{grid-template-columns:1fr;gap:40px;}
+    .amen__img{display:none;}
+    .intro,.res,.amen,.reg{padding:80px 0;}
+  }
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;}}
+</style>
+</head>
+<body>
+
+<div class="ds-ribbon">Reference site by <strong>Atmosferi°</strong> — luxury residential developer · <a href="../../index.html">Back to Atmosferi</a></div>
+
+<header class="nav">
+  <div class="wrap nav__in">
+    <a href="#" class="brand">Meridian</a>
+    <nav class="nav__links">
+      <a href="#res">Residences</a>
+      <a href="#amen">Amenities</a>
+      <a href="#view">The View</a>
+      <a href="#reg" class="btn">Register Interest</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero__img"><img src="https://picsum.photos/seed/meridian-tower/2000/1200" alt="Meridian tower at dusk"></div>
+  <div class="wrap hero__c">
+    <span class="kicker">Harbour district · Now releasing</span>
+    <h1>Live <em>above</em><br>the line.</h1>
+    <div class="hero__sub">
+      <p>Forty-one floors of residences above the harbour. A limited collection of homes where the city ends and the sky begins.</p>
+      <a href="#reg" class="btn btn--solid">Request the brochure</a>
+    </div>
+  </div>
+</section>
+
+<section class="intro wrap">
+  <span class="kicker">The address</span>
+  <span class="rule"></span>
+  <p class="serif">A tower drawn as a single gesture — slender, quiet, and turned precisely toward the evening light.</p>
+</section>
+
+<section class="res wrap" id="res">
+  <div class="sec__head">
+    <span class="kicker">The collection</span>
+    <h2 class="serif">Residences</h2>
+  </div>
+  <div class="res__grid">
+    <article class="card">
+      <img src="https://picsum.photos/seed/meridian-one/1200/900" alt="One-bedroom residence">
+      <div class="card__b">
+        <h3 class="serif">The Pied-à-Terre</h3>
+        <span class="price">From €640,000</span>
+        <ul>
+          <li>Bedrooms <span>1</span></li>
+          <li>Interior <span>58 m²</span></li>
+          <li>Floors <span>06—18</span></li>
+        </ul>
+      </div>
+    </article>
+    <article class="card">
+      <img src="https://picsum.photos/seed/meridian-two/1200/900" alt="Two-bedroom residence">
+      <div class="card__b">
+        <h3 class="serif">The Sky Residence</h3>
+        <span class="price">From €1,180,000</span>
+        <ul>
+          <li>Bedrooms <span>2—3</span></li>
+          <li>Interior <span>104 m²</span></li>
+          <li>Floors <span>19—34</span></li>
+        </ul>
+      </div>
+    </article>
+    <article class="card">
+      <img src="https://picsum.photos/seed/meridian-pent/1200/900" alt="Penthouse">
+      <div class="card__b">
+        <h3 class="serif">The Penthouse</h3>
+        <span class="price">Price on application</span>
+        <ul>
+          <li>Bedrooms <span>4</span></li>
+          <li>Interior <span>312 m²</span></li>
+          <li>Floors <span>39—41</span></li>
+        </ul>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="amen" id="amen">
+  <div class="wrap amen__grid">
+    <div>
+      <span class="kicker">Life at Meridian</span>
+      <span class="rule"></span>
+      <ul class="amen__list">
+        <li><span class="n serif">01</span><div><h4>The Sky Lounge</h4><p>A residents' lounge and library on the 40th floor.</p></div></li>
+        <li><span class="n serif">02</span><div><h4>25-metre pool</h4><p>An infinity lap pool facing the harbour mouth.</p></div></li>
+        <li><span class="n serif">03</span><div><h4>Wellness floor</h4><p>Spa, sauna and a quiet treatment suite.</p></div></li>
+        <li><span class="n serif">04</span><div><h4>Concierge</h4><p>24-hour concierge, valet and private dining.</p></div></li>
+      </ul>
+    </div>
+    <div class="amen__img"><img src="https://picsum.photos/seed/meridian-amen/900/1200" alt="Sky lounge"></div>
+  </div>
+</section>
+
+<section class="view" id="view">
+  <img src="https://picsum.photos/seed/meridian-view/2000/1100" alt="View from the tower">
+  <div class="view__c">
+    <span class="kicker">Floor 41</span>
+    <h2 class="serif">A <em>horizon</em><br>you own.</h2>
+    <p>180° of harbour, city and open sky</p>
+  </div>
+</section>
+
+<section class="reg wrap" id="reg">
+  <div class="reg__grid">
+    <div>
+      <span class="kicker">Register interest</span>
+      <h2 class="serif" style="margin-top:16px">Be first to<br>the tower.</h2>
+      <p>Join the priority list for floor plans, pricing and a private preview of the show residence.</p>
+    </div>
+    <form class="form" id="reg-form" novalidate>
+      <div class="f"><label>Full name</label><input type="text" name="name" placeholder="Your name"></div>
+      <div class="f"><label>Email — required</label><input type="email" name="email" placeholder="you@email.com" required></div>
+      <div class="f"><label>Residence of interest</label>
+        <select name="residence">
+          <option>The Pied-à-Terre — 1 bed</option>
+          <option>The Sky Residence — 2—3 bed</option>
+          <option>The Penthouse — 4 bed</option>
+          <option>Not sure yet</option>
+        </select>
+      </div>
+      <button type="submit" class="btn">Join the priority list</button>
+      <p class="status" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span class="brand serif">Meridian</span>
+    <span>Harbour District · Sales gallery open daily<br>+44 20 0000 0000 · sales@meridian-residences.com</span>
+    <span>© 2026 Meridian Residences<br>A development by Atlas Property Group</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('reg-form').addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=this.querySelector('input[name=email]');
+    var s=this.querySelector('.status');
+    if(!email.value){s.textContent='— An email is required.';email.focus();return;}
+    this.querySelectorAll('input,select,button').forEach(function(el){el.disabled=true;});
+    s.textContent='— Received. Our sales team will be in touch shortly.';
+  });
+</script>
+</body>
+</html>

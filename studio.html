@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio — Atmosferi°</title>
+<meta name="description" content="A web studio that designs and builds for architecture. The conditions, not the decoration.">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .principle { display: grid; grid-template-columns: 64px 1fr 1.2fr; gap: var(--space-5); align-items: baseline; padding: var(--space-5) 0; border-bottom: 1px solid var(--line); }
+  .principle__num { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); }
+  .principle__title { font-size: var(--text-3xl); font-weight: 600; letter-spacing: -0.02em; line-height: var(--leading-snug); }
+  .principle__desc { font-size: var(--text-lg); line-height: var(--leading-body); color: var(--neutral-700); }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); border-top: 1px solid var(--ink); padding-top: var(--space-4); }
+  .stat__fig { font-size: var(--text-6xl); font-weight: 700; letter-spacing: var(--track-display); line-height: 1; }
+  .stat__label { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); margin-top: var(--space-3); display: block; }
+  @media (max-width: 860px) {
+    .principle { grid-template-columns: 40px 1fr; gap: var(--space-2) var(--space-3); }
+    .principle__desc { grid-column: 2 / 3; }
+    .stat-row { grid-template-columns: 1fr; gap: var(--space-5); }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a href="index.html" class="wordmark">Atmosferi<sup>°</sup></a>
+    <div class="nav__links">
+      <a href="work.html" class="navlink">Work</a>
+      <a href="services.html" class="navlink">Services</a>
+      <a href="pricing.html" class="navlink">Pricing</a>
+      <a href="studio.html" class="navlink" aria-current="true">Studio</a>
+      <a href="contact.html" class="navlink">Contact</a>
+      <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+        <span class="toggle__label">Color</span>
+        <span class="toggle__track"><span class="toggle__knob"></span></span>
+      </button>
+    </div>
+    <button class="nav__burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="nav__mobile">
+    <a href="work.html" class="navlink">Work</a>
+    <a href="services.html" class="navlink">Services</a>
+    <a href="pricing.html" class="navlink">Pricing</a>
+    <a href="studio.html" class="navlink" aria-current="true">Studio</a>
+    <a href="contact.html" class="navlink">Contact</a>
+    <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
+      <span class="toggle__label">Color</span>
+      <span class="toggle__track"><span class="toggle__knob"></span></span>
+    </button>
+  </div>
+</nav>
+
+<header class="pagehead wrap" data-screen-label="Studio / Header">
+  <div class="pagehead__meta">
+    <span class="eyebrow">The studio</span>
+    <span class="eyebrow">Est. MMXXIV · Prague</span>
+  </div>
+  <h1 class="pagehead__title" style="max-width:14ch">We design the conditions, not the decoration.</h1>
+  <p class="pagehead__lead">Atmosferi is a small web studio working only with people who build space. We design and develop websites — and render the unbuilt — for architecture, development, urbanism and interiors.</p>
+</header>
+
+<a class="reveal" style="display:block;height:48vh;min-height:340px" aria-label="">
+  <img src="https://picsum.photos/seed/atm-studio-arch/1800/900" alt="Studio placeholder" style="width:100%;height:100%;object-fit:cover">
+</a>
+
+<!-- Principles -->
+<section class="section wrap" data-screen-label="Studio / Principles">
+  <div class="section__head">
+    <span class="eyebrow eyebrow--ink">How we work</span>
+    <span class="eyebrow">Four principles</span>
+  </div>
+  <div style="border-top:1px solid var(--line)">
+    <div class="principle">
+      <span class="principle__num">01</span>
+      <span class="principle__title">The architecture leads</span>
+      <span class="principle__desc">The interface frames the work and then disappears. Colour belongs to the photograph and the render — never the chrome around it.</span>
+    </div>
+    <div class="principle">
+      <span class="principle__num">02</span>
+      <span class="principle__title">Drawn to specification</span>
+      <span class="principle__desc">We treat a website like a building — measured, gridded, and load-bearing. Typographic tension and flush alignment do the structural work.</span>
+    </div>
+    <div class="principle">
+      <span class="principle__num">03</span>
+      <span class="principle__title">Design and build, one studio</span>
+      <span class="principle__desc">No hand-off between a design shop and a dev shop. The people who draw it are the people who build it — and visualise it.</span>
+    </div>
+    <div class="principle">
+      <span class="principle__num">04</span>
+      <span class="principle__title">Made to last</span>
+      <span class="principle__desc">Permanent, accessible, performant. A site that outlives the launch and is yours to run, like a structure you can maintain.</span>
+    </div>
+  </div>
+</section>
+
+<hr class="horizon">
+
+<!-- Stats / facts -->
+<section class="section wrap" data-screen-label="Studio / Facts">
+  <div class="stat-row">
+    <div>
+      <span class="stat__fig">2024</span>
+      <span class="stat__label">Established · Prague</span>
+    </div>
+    <div>
+      <span class="stat__fig">3</span>
+      <span class="stat__label">Disciplines · design, build, visualise</span>
+    </div>
+    <div>
+      <span class="stat__fig">EU</span>
+      <span class="stat__label">Working · remote across Europe</span>
+    </div>
+  </div>
+</section>
+
+<section class="cta wrap" data-screen-label="Studio / CTA">
+  <span class="eyebrow">Contact — open for 2026</span>
+  <h2 class="cta__title">Work with<br>the studio.</h2>
+  <a href="contact.html" class="btn">Start a project <span class="arrow">→</span></a>
+</section>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__top">
+      <a href="index.html" class="wordmark" style="font-size:40px">Atmosferi<sup>°</sup></a>
+      <div class="footer__cols">
+        <div class="footer__col">
+          <span class="eyebrow">Studio</span>
+          <span class="mono">Prague · Remote</span>
+          <a href="mailto:studio@atmosferi.studio" class="mono">studio@atmosferi.studio</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Index</span>
+          <a href="work.html" class="mono muted">Work</a>
+          <a href="services.html" class="mono muted">Services</a>
+          <a href="pricing.html" class="mono muted">Pricing</a>
+          <a href="studio.html" class="mono muted">Studio</a>
+          <a href="contact.html" class="mono muted">Contact</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Elsewhere</span>
+          <a href="#" class="mono muted">Instagram</a>
+          <a href="#" class="mono muted">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span class="eyebrow">© MMXXVI Atmosferi°</span>
+      <span class="eyebrow">N 50°05′ E 14°25′ · Prague</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>
