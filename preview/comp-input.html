@@ -1,0 +1,28 @@
+<!-- @dsCard group="Components" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .field { display:flex; flex-direction:column; gap:10px; }
+  .field input { font-family:var(--font-sans); font-size:18px; color:var(--ink); background:none;
+    border:0; border-bottom:1px solid var(--ink); padding:8px 0; outline:none; width:100%; }
+  .field input::placeholder { color:var(--neutral-400); }
+  .field input:focus { border-bottom-color:var(--ink); }
+  .focus { border-bottom-width:1px; }
+</style>
+</head>
+<body>
+<div class="card col" style="gap:26px;">
+  <div class="field">
+    <span class="label">Email — empty</span>
+    <input type="text" placeholder="name@studio.com">
+  </div>
+  <div class="field">
+    <span class="label" style="color:var(--ink);">Email — filled</span>
+    <input type="text" value="atelier@atmosferi.studio">
+  </div>
+</div>
+</body>
+</html>

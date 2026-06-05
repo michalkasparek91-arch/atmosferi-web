@@ -1,0 +1,24 @@
+<!-- @dsCard group="Spacing" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .bar { display:flex; align-items:center; gap:14px; }
+  .bar i { display:block; height:10px; background:var(--ink); }
+  .bar span { font-family:var(--font-mono); font-size:9px; letter-spacing:0.2em; color:var(--neutral-500); text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div class="card col" style="gap:11px;">
+  <div class="bar"><i style="width:8px;"></i><span>1 · 8</span></div>
+  <div class="bar"><i style="width:16px;"></i><span>2 · 16</span></div>
+  <div class="bar"><i style="width:32px;"></i><span>4 · 32</span></div>
+  <div class="bar"><i style="width:64px;"></i><span>6 · 64</span></div>
+  <div class="bar"><i style="width:128px;"></i><span>8 · 128</span></div>
+  <div class="bar"><i style="width:192px;"></i><span>9 · 192</span></div>
+  <div class="bar"><i style="width:256px;"></i><span>10 · 256</span></div>
+</div>
+</body>
+</html>

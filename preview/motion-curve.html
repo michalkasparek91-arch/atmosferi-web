@@ -1,0 +1,31 @@
+<!-- @dsCard group="Spacing" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .curve { stroke:var(--ink); stroke-width:1.5; fill:none; }
+  .frame { stroke:var(--line); stroke-width:1; fill:none; }
+  .track { position:relative; height:1px; background:var(--line); margin-top:8px; }
+  .dot { position:absolute; top:-4px; left:0; width:9px; height:9px; background:var(--ink);
+         animation: travel 2.8s var(--curve) infinite; }
+  @keyframes travel { 0%{left:0;} 45%{left:calc(100% - 9px);} 55%{left:calc(100% - 9px);} 100%{left:0;} }
+  @media (prefers-reduced-motion: reduce) { .dot { animation:none; } }
+</style>
+</head>
+<body>
+<div class="card row" style="gap:24px; align-items:center;">
+  <svg width="104" height="104" viewBox="0 0 100 100" style="flex:none;">
+    <path class="frame" d="M0,100 H100 M0,0 V100"></path>
+    <path class="curve" d="M0,100 C76,100 24,0 100,0"></path>
+  </svg>
+  <div class="col" style="gap:10px; flex:1;">
+    <span class="label" style="color:var(--ink);">The Atmosferi Curve</span>
+    <span style="font-family:var(--font-mono); font-size:13px;">cubic-bezier(0.76, 0, 0.24, 1)</span>
+    <div class="track"><span class="dot"></span></div>
+    <span class="label">High-friction · 600ms standard</span>
+  </div>
+</div>
+</body>
+</html>

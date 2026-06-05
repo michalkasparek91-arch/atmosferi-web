@@ -1,0 +1,23 @@
+<!-- @dsCard group="Components" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .chip { font-family:var(--font-mono); font-size:9px; letter-spacing:0.2em; text-transform:uppercase;
+    padding:7px 11px; border:1px solid var(--line-strong); color:var(--neutral-700); }
+  .chip--ink { background:var(--ink); color:var(--canvas); border-color:var(--ink); }
+  .chip--dot::before { content:"● "; }
+</style>
+</head>
+<body>
+<div class="card row wrap" style="gap:8px;">
+  <span class="chip chip--ink">Direction</span>
+  <span class="chip">Photography</span>
+  <span class="chip">Spatial</span>
+  <span class="chip">Identity</span>
+  <span class="chip chip--dot">Available 2026</span>
+</div>
+</body>
+</html>

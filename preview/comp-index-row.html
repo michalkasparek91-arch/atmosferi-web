@@ -1,0 +1,29 @@
+<!-- @dsCard group="Components" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .ix { display:block; text-decoration:none; color:inherit; padding:16px 0; }
+  .ix:first-child { border-top:1px solid var(--line); }
+  .ix { border-bottom:1px solid var(--line); transition: padding-left var(--dur-standard) var(--curve); }
+  .ix:hover { padding-left:14px; }
+  .ix .t { font-size:24px; font-weight:600; letter-spacing:-0.02em; }
+</style>
+</head>
+<body>
+<div class="card" style="padding-top:14px; padding-bottom:14px;">
+  <a class="ix row between baseline" href="#">
+    <span class="label">014</span>
+    <span class="t" style="flex:1; margin-left:24px;">Northbound</span>
+    <span class="label">Film · 2026</span>
+  </a>
+  <a class="ix row between baseline" href="#">
+    <span class="label">013</span>
+    <span class="t" style="flex:1; margin-left:24px;">Glacial</span>
+    <span class="label">Identity · 2025</span>
+  </a>
+</div>
+</body>
+</html>

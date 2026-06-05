@@ -1,0 +1,27 @@
+<!-- @dsCard group="Components" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .btn { font-family:var(--font-mono); font-size:10px; letter-spacing:0.2em; text-transform:uppercase;
+         padding:14px 22px; border:1px solid var(--ink); cursor:pointer; background:none;
+         transition: background var(--dur-micro) var(--curve), color var(--dur-micro) var(--curve); }
+  .btn--solid { background:var(--ink); color:var(--canvas); }
+  .btn--solid:hover { background:var(--canvas); color:var(--ink); }
+  .btn--ghost { background:none; color:var(--ink); }
+  .btn--ghost:hover { background:var(--ink); color:var(--canvas); }
+  .btn--link { border:0; padding:14px 0; display:inline-flex; gap:10px; align-items:center; }
+  .btn--link span { display:inline-block; transition: transform var(--dur-standard) var(--curve); }
+  .btn--link:hover span { transform: translateX(6px); }
+</style>
+</head>
+<body>
+<div class="card row wrap center" style="gap:14px;">
+  <button class="btn btn--solid">Begin →</button>
+  <button class="btn btn--ghost">Index</button>
+  <button class="btn btn--link">View case <span>→</span></button>
+</div>
+</body>
+</html>

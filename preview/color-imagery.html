@@ -1,0 +1,30 @@
+<!-- @dsCard group="Colors" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .pair { display:flex; gap:1px; background:var(--line-ink); border:1px solid var(--line-ink); }
+  .pair figure { margin:0; flex:1; position:relative; height:170px; overflow:hidden; background:#000; }
+  .pair img { width:100%; height:100%; object-fit:cover; display:block; }
+  .rest img { filter:grayscale(1) contrast(1.02) brightness(1.02); }
+  .pair figcaption { position:absolute; left:10px; bottom:10px; }
+  .pair figcaption span { background:var(--ink); color:var(--canvas); padding:4px 7px; font-family:var(--font-mono); font-size:9px; letter-spacing:0.2em; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="pair">
+    <figure class="rest">
+      <img src="https://picsum.photos/seed/atmosferi-fog/600/400" alt="">
+      <figcaption><span>Rest — desaturated</span></figcaption>
+    </figure>
+    <figure>
+      <img src="https://picsum.photos/seed/atmosferi-fog/600/400" alt="">
+      <figcaption><span>Hover — full color</span></figcaption>
+    </figure>
+  </div>
+</div>
+</body>
+</html>

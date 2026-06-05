@@ -1,0 +1,48 @@
+/* Shared chrome for Design System preview cards.
+   Each card is a 700px-wide specimen. No titles inside — the asset name
+   renders outside the card. Just show the system directly. */
+@import url('../colors_and_type.css');
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.card {
+  width: 100%;
+  padding: 28px 32px;
+  background: var(--canvas);
+}
+
+.card--pad-lg { padding: 40px 36px; }
+
+/* Common helpers reused across cards */
+.row { display: flex; }
+.col { display: flex; flex-direction: column; }
+.between { justify-content: space-between; }
+.baseline { align-items: baseline; }
+.center { align-items: center; }
+.wrap { flex-wrap: wrap; }
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--neutral-500);
+  line-height: 1;
+}
+
+.hr {
+  width: 100%;
+  height: 1px;
+  background: var(--line);
+  border: 0;
+}

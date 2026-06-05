@@ -1,0 +1,80 @@
+/* Atmosferi studio website — kit layout.
+   Pulls all tokens from the root foundations file. */
+@import url('../../colors_and_type.css');
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+::selection { background: var(--ink); color: var(--canvas); }
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+
+.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter); }
+
+/* ---- Nav ----------------------------------------------------------- */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--line);
+}
+.nav__inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.nav__links { display: flex; align-items: center; gap: 36px; }
+.navlink {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--neutral-700);
+  transition: color var(--dur-micro) var(--curve);
+}
+.navlink:hover, .navlink[aria-current="true"] { color: var(--ink); }
+
+.wordmark { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; cursor: pointer; }
+.wordmark sup { font-size: 0.42em; font-weight: 400; vertical-align: 0.7em; }
+
+/* ---- Hardware toggle ----------------------------------------------- */
+.toggle { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; background:none; border:0; padding:0; }
+.toggle__track { width: 52px; height: 26px; border: 1px solid var(--ink); position: relative; background: var(--canvas);
+  transition: background var(--dur-standard) var(--curve); }
+.toggle__knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: var(--ink);
+  transition: left var(--dur-standard) var(--curve), background var(--dur-standard) var(--curve); }
+.toggle[aria-pressed="true"] .toggle__track { background: var(--ink); }
+.toggle[aria-pressed="true"] .toggle__knob { left: 28px; background: var(--canvas); }
+
+/* ---- Buttons ------------------------------------------------------- */
+.btn {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 15px 26px; border: 1px solid var(--ink); background: var(--ink); color: var(--canvas);
+  cursor: pointer; transition: background var(--dur-micro) var(--curve), color var(--dur-micro) var(--curve);
+}
+.btn:hover { background: var(--canvas); color: var(--ink); }
+.btn--ghost { background: none; color: var(--ink); }
+.btn--ghost:hover { background: var(--ink); color: var(--canvas); }
+
+/* ---- Sections & horizons ------------------------------------------ */
+.horizon { width: 100%; height: 1px; background: var(--line); }
+.eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--neutral-500); }
+
+/* ---- Reveal imagery ----------------------------------------------- */
+.reveal { overflow: hidden; background: #000; display: block; }
+.reveal img { width: 100%; height: 100%; object-fit: cover; display: block;
+  filter: grayscale(1) contrast(1.03) brightness(1.02);
+  transition: filter var(--dur-standard) var(--curve), transform var(--dur-standard) var(--curve); }
+.reveal:hover img { filter: grayscale(0) contrast(1) brightness(1); }
+/* Global color-on mode (driven by the nav toggle) */
+body.color-on .reveal img { filter: grayscale(0) contrast(1) brightness(1); }
+
+/* ---- 8-second auto-scroll case image ------------------------------ */
+.scroller { overflow: hidden; background: #000; position: relative; }
+.scroller img { width: 100%; display: block; transform: translateY(0);
+  filter: grayscale(1) contrast(1.03);
+  transition: transform var(--dur-cinematic) var(--ease-linear), filter var(--dur-standard) var(--curve); }
+.scroller:hover img { transform: translateY(var(--scroll-shift, -55%)); filter: grayscale(0); }
+
+/* utility */
+.mono { font-family: var(--font-mono); }
+.muted { color: var(--neutral-500); }
+.flush-right { text-align: right; }

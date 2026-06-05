@@ -1,0 +1,26 @@
+<!-- @dsCard group="Components" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .sw { width:64px; height:30px; border:1px solid var(--ink); position:relative; cursor:pointer;
+        transition: background var(--dur-standard) var(--curve); background:var(--canvas); }
+  .sw i { position:absolute; top:3px; left:3px; width:24px; height:22px; background:var(--ink);
+          transition: left var(--dur-standard) var(--curve), background var(--dur-standard) var(--curve); }
+  .sw.on { background:var(--ink); }
+  .sw.on i { left:35px; background:var(--canvas); }
+  .unit { display:flex; align-items:center; gap:14px; }
+</style>
+</head>
+<body>
+<div class="card row" style="gap:48px; align-items:center;">
+  <div class="unit"><div class="sw"><i></i></div><span class="label">Off</span></div>
+  <div class="unit"><div class="sw on"><i></i></div><span class="label" style="color:var(--ink);">On</span></div>
+</div>
+<script>
+  document.querySelectorAll('.sw').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+</script>
+</body>
+</html>

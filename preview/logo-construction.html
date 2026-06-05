@@ -1,0 +1,32 @@
+<!-- @dsCard group="Brand" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="card.css">
+<style>
+  .cs { position:relative; border:1px solid var(--line); padding:34px; display:inline-flex; }
+  .cs .guide { position:absolute; background:var(--line-strong); }
+  .gt { top:0; left:0; right:0; height:1px; }
+  .gb { bottom:0; left:0; right:0; height:1px; }
+  .gl { top:0; bottom:0; left:0; width:1px; }
+  .gr { top:0; bottom:0; right:0; width:1px; }
+  .q { position:absolute; font-family:var(--font-mono); font-size:9px; letter-spacing:0.2em; color:var(--neutral-500); }
+</style>
+</head>
+<body>
+<div class="card row" style="gap:36px; align-items:center;">
+  <div class="cs">
+    <span class="guide gt"></span><span class="guide gb"></span>
+    <span class="guide gl"></span><span class="guide gr"></span>
+    <span class="q" style="top:10px; left:10px;">X</span>
+    <div style="font-size:30px; font-weight:600; letter-spacing:-0.03em;">A<sup style="font-size:0.4em; font-weight:400;">°</sup></div>
+  </div>
+  <div class="col" style="gap:8px;">
+    <span class="label" style="color:var(--ink);">Clearspace = X</span>
+    <span class="label">X = cap-height of the mark</span>
+    <span class="label">Never scale below 16px</span>
+  </div>
+</div>
+</body>
+</html>
