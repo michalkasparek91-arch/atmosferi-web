@@ -1,91 +1,138 @@
-/* ============================================================
-   ATMOSFERI° — shared site behaviour
-   Multi-page (non-SPA). Keeps the global "Color" mode in sync
-   across page loads via localStorage. Mobile menu. Contact form.
-   ============================================================ */
+/* ==========================================================================
+   ATMOSFERI — site.js
+   Colour toggle (persisted), mobile menu, choice groups, contact form.
+   All behaviour is progressive: the site is fully readable without JS.
+   ========================================================================== */
 (function () {
   'use strict';
 
-  var STORE_KEY = 'atmosferi:colorOn';
+  var STORE_KEY = 'atmos-color';
 
-  /* ---- Global color mode (grayscale ↔ color) ---------------------- */
+  /* ---- Colour toggle ------------------------------------------------ */
+  function readColor() {
+    try { return localStorage.getItem(STORE_KEY) === 'on'; } catch (e) { return false; }
+  }
+  function writeColor(on) {
+    try { localStorage.setItem(STORE_KEY, on ? 'on' : 'off'); } catch (e) {}
+  }
   function applyColor(on) {
     document.body.classList.toggle('color-on', on);
-    document.querySelectorAll('.toggle').forEach(function (t) {
-      t.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
+    var toggles = document.querySelectorAll('.toggle');
+    for (var i = 0; i < toggles.length; i++) {
+      toggles[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
   }
 
   function initColor() {
-    var on = false;
-    try { on = localStorage.getItem(STORE_KEY) === '1'; } catch (e) {}
+    // index-print forces colour on via the .color-on body class — respect it.
+    var forced = document.body.classList.contains('color-on');
+    var on = forced || readColor();
     applyColor(on);
 
-    document.querySelectorAll('.toggle').forEach(function (t) {
-      t.addEventListener('click', function () {
-        var now = document.body.classList.contains('color-on');
-        var next = !now;
+    var toggles = document.querySelectorAll('.toggle');
+    for (var i = 0; i < toggles.length; i++) {
+      toggles[i].addEventListener('click', function () {
+        var next = !document.body.classList.contains('color-on');
         applyColor(next);
-        try { localStorage.setItem(STORE_KEY, next ? '1' : '0'); } catch (e) {}
+        writeColor(next);
       });
-    });
+    }
   }
 
-  /* ---- Mobile menu ----------------------------------------------- */
+  /* ---- Mobile menu -------------------------------------------------- */
   function initMenu() {
+    var nav = document.querySelector('.nav');
     var burger = document.querySelector('.nav__burger');
-    if (!burger) return;
+    if (!nav || !burger) return;
+
     burger.addEventListener('click', function () {
-      document.body.classList.toggle('menu-open');
-      var open = document.body.classList.contains('menu-open');
+      var open = nav.classList.toggle('is-open');
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
-    // close menu when a link is tapped
-    document.querySelectorAll('.nav__mobile .navlink').forEach(function (a) {
-      a.addEventListener('click', function () {
-        document.body.classList.remove('menu-open');
+
+    // Close the menu when a link inside the mobile drawer is followed.
+    var mobile = nav.querySelector('.nav__mobile');
+    if (mobile) {
+      mobile.addEventListener('click', function (e) {
+        if (e.target.closest('a')) {
+          nav.classList.remove('is-open');
+          burger.setAttribute('aria-expanded', 'false');
+        }
       });
-    });
+    }
   }
 
-  /* ---- Choice chips (project type / budget) ----------------------- */
+  /* ---- Single-select choice groups (contact) ------------------------ */
   function initChoices() {
-    document.querySelectorAll('[data-choice-group]').forEach(function (group) {
-      var hidden = group.parentNode.querySelector('input[type="hidden"]');
-      group.querySelectorAll('.choice').forEach(function (chip) {
-        chip.addEventListener('click', function () {
-          group.querySelectorAll('.choice').forEach(function (c) { c.setAttribute('aria-pressed', 'false'); });
-          chip.setAttribute('aria-pressed', 'true');
-          if (hidden) hidden.value = chip.textContent.trim();
+    var groups = document.querySelectorAll('[data-choice-group]');
+    for (var g = 0; g < groups.length; g++) {
+      (function (group) {
+        var name = group.getAttribute('data-choice-group');
+        var hidden = document.querySelector('input[type="hidden"][name="' +
+          (name === 'project-type' ? 'project_type' : name) + '"]');
+        group.addEventListener('click', function (e) {
+          var btn = e.target.closest('.choice');
+          if (!btn) return;
+          var buttons = group.querySelectorAll('.choice');
+          var alreadyOn = btn.getAttribute('aria-pressed') === 'true';
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].setAttribute('aria-pressed', 'false');
+          }
+          if (!alreadyOn) {
+            btn.setAttribute('aria-pressed', 'true');
+            if (hidden) hidden.value = btn.textContent.trim();
+          } else if (hidden) {
+            hidden.value = '';
+          }
         });
-      });
-    });
+      })(groups[g]);
+    }
   }
 
-  /* ---- Contact form (faked submit) -------------------------------- */
+  /* ---- Contact form (client-side only) ------------------------------ */
   function initForm() {
-    var form = document.querySelector('#contact-form');
+    var form = document.getElementById('contact-form');
     if (!form) return;
     var status = form.querySelector('.form-status');
+    var email = form.querySelector('#c-email');
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var email = form.querySelector('input[name="email"]');
-      if (email && !email.value) {
-        if (status) status.textContent = '— An email is required.';
-        email.focus();
+      var value = (email && email.value || '').trim();
+      var ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+      if (!ok) {
+        if (status) {
+          status.textContent = '— A valid email is required to reply.';
+          status.className = 'form-status is-error';
+        }
+        if (email) email.focus();
         return;
       }
-      form.querySelectorAll('input, textarea, select, button, .choice').forEach(function (el) {
-        if (el.tagName === 'BUTTON' || el.classList.contains('choice')) { el.disabled = true; el.style.pointerEvents = 'none'; }
-      });
-      if (status) status.textContent = '— Received. The studio replies within two working days.';
+
+      if (status) {
+        status.textContent = '— Received. The studio replies within 2 working days.';
+        status.className = 'form-status is-ok';
+      }
+      form.reset();
+      var pressed = form.querySelectorAll('.choice[aria-pressed="true"]');
+      for (var i = 0; i < pressed.length; i++) pressed[i].setAttribute('aria-pressed', 'false');
+      var hiddens = form.querySelectorAll('input[type="hidden"]');
+      for (var j = 0; j < hiddens.length; j++) hiddens[j].value = '';
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  /* ---- Boot --------------------------------------------------------- */
+  function boot() {
     initColor();
     initMenu();
     initChoices();
     initForm();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();

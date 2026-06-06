@@ -1,196 +1,199 @@
-/* ============================================================
-   ATMOSFERI° — Pricing composer
-   Compose a base engagement + visualisation modules.
-   The stack visualises VALUE delivered (block mass ∝ price);
-   the total readout shows what you PAY. Modules that are
-   bundled into the engagement render as ghost blocks (INCL)
-   with full mass but zero cost — so you see the bundle.
-   ============================================================ */
+/* ==========================================================================
+   ATMOSFERI — pricing.js
+   The estimate composer. A base engagement plus optional visualisation
+   modules; the running total is drawn as a stack of ink blocks sized to
+   each line's share of the figure. Indicative only — fixed on brief.
+   ========================================================================== */
 (function () {
   'use strict';
 
+  var EUR = function (n) { return '€' + n.toLocaleString('en-US'); };
+
+  /* ---- Data --------------------------------------------------------- */
   var BASES = {
-    portfolio: { label: 'Portfolio', price: 6000,  included: 0,
-      hint: 'Visualisation priced per module.' },
-    practice:  { label: 'Practice',  price: 14000, included: 1,
-      hint: 'One module included — highest value, free.' },
-    launch:    { label: 'Launch',    price: 30000, included: 'all',
-      hint: 'Full visualisation suite — every module bundled in.' }
+    portfolio: { name: 'Portfolio', price: 6000,  hint: 'Up to 6 pages · light CMS · visualisation à la carte' },
+    practice:  { name: 'Practice',  price: 14000, hint: 'Design system · full CMS · one visualisation module included' },
+    launch:    { name: 'Launch',    price: 30000, hint: 'Sales platform · CRM · the full visualisation suite included' }
   };
 
-  // Order matters: this is the stacking order (bottom → top of the stack).
+  // Visualisation modules, in escalating scope.
   var MODULES = [
-    { id: 'stills',     name: 'Architectural stills', desc: 'Set of 5 · still renders', price: 3500 },
-    { id: 'floorstack', name: 'Floor-stack explorer', desc: 'Interactive unit picker', price: 7500 },
-    { id: 'flythrough', name: 'Animated fly-through',  desc: '60s · cinematic',         price: 6000 },
-    { id: 'model',      name: 'Interactive 3D model',  desc: 'Real-time · WebGL',        price: 9000 }
+    { id: 'still',  name: 'Hero render — still',     price: 2500,  desc: 'One large-format architectural still' },
+    { id: 'flythr', name: 'Animated fly-through',    price: 6000,  desc: 'Cinematic camera move · ~30s' },
+    { id: 'model',  name: 'Interactive 3D model',    price: 8000,  desc: 'Orbit · section · explore in browser' },
+    { id: 'stack',  name: 'Floor-stack explorer',    price: 9000,  desc: 'Navigable unit / availability stack' },
+    { id: 'webgl',  name: 'Real-time WebGL scene',   price: 12000, desc: 'Live-lit, navigable spatial scene' }
   ];
 
-  var state = {
-    base: 'practice',
-    selected: {} // id -> true
+  // Which modules each base bundles in (locked-on, no extra charge).
+  var INCLUDED = {
+    portfolio: [],
+    practice:  ['still'],
+    launch:    ['still', 'flythr', 'model', 'stack', 'webgl']
   };
 
-  var fmt = function (n) { return '€' + n.toLocaleString('en-US'); };
+  /* ---- State -------------------------------------------------------- */
+  var state = {
+    base: 'practice',
+    // selected = user-chosen optional modules (excludes included ones)
+    selected: {}
+  };
 
-  var elSeg   = document.getElementById('seg-base');
-  var elHint  = document.getElementById('base-hint');
-  var elMods  = document.getElementById('mods');
-  var elStack = document.getElementById('stack');
-  var elTotal = document.getElementById('total');
-  var elCount = document.getElementById('mod-count');
+  /* ---- Elements ----------------------------------------------------- */
+  var segEl     = document.getElementById('seg-base');
+  var hintEl    = document.getElementById('base-hint');
+  var modsEl    = document.getElementById('mods');
+  var stackEl   = document.getElementById('stack');
+  var totalEl   = document.getElementById('total');
+  var countEl   = document.getElementById('mod-count');
 
-  /* ---- which selected modules are bundled-in (free) --------------- */
-  function includedSet() {
-    var base = BASES[state.base];
-    var inc = {};
-    if (base.included === 'all') {
-      MODULES.forEach(function (m) { inc[m.id] = true; });
-      return inc;
-    }
-    if (!base.included) return inc;
-    // most valuable selected modules are the ones included
-    var sel = MODULES.filter(function (m) { return state.selected[m.id]; })
-                     .sort(function (a, b) { return b.price - a.price; });
-    sel.slice(0, base.included).forEach(function (m) { inc[m.id] = true; });
-    return inc;
+  if (!segEl || !modsEl || !stackEl) return; // not the pricing page
+
+  function isIncluded(id) { return INCLUDED[state.base].indexOf(id) !== -1; }
+
+  function activeModules() {
+    // Returns module objects that are part of the estimate (included or selected).
+    return MODULES.filter(function (m) { return isIncluded(m.id) || state.selected[m.id]; });
   }
 
-  /* ---- build module toggle rows ----------------------------------- */
-  function renderMods() {
-    var base = BASES[state.base];
-    var lockAll = base.included === 'all';
-    var inc = includedSet();
-    elMods.innerHTML = '';
-
+  function total() {
+    var t = BASES[state.base].price;
     MODULES.forEach(function (m) {
-      var on = lockAll ? true : !!state.selected[m.id];
-      var isIncl = on && inc[m.id];
+      if (!isIncluded(m.id) && state.selected[m.id]) t += m.price;
+    });
+    return t;
+  }
 
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'mod';
-      btn.setAttribute('data-mod', m.id);
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      if (lockAll) btn.setAttribute('data-locked', 'true');
+  /* ---- Render: base segmented control ------------------------------- */
+  function renderSeg() {
+    var btns = segEl.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++) {
+      var on = btns[i].getAttribute('data-base') === state.base;
+      btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    if (hintEl) hintEl.textContent = BASES[state.base].hint;
+  }
 
-      var priceLabel = isIncl
-        ? '<span class="mod__incl">Included</span>'
-        : '<span class="mod__price">+' + fmt(m.price) + '</span>';
+  /* ---- Render: module toggle rows ----------------------------------- */
+  function renderMods() {
+    modsEl.innerHTML = '';
+    MODULES.forEach(function (m) {
+      var included = isIncluded(m.id);
+      var on = included || !!state.selected[m.id];
 
-      btn.innerHTML =
-        '<span class="mod__box"></span>' +
-        '<span class="mod__body">' +
-          '<span class="mod__name">' + m.name + '</span>' +
-          '<span class="mod__desc">' + m.desc + '</span>' +
-        '</span>' + priceLabel;
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'mod';
+      row.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (included) row.setAttribute('data-locked', 'true');
 
-      if (!lockAll) {
-        btn.addEventListener('click', function () {
+      var box = document.createElement('span');
+      box.className = 'mod__box';
+
+      var body = document.createElement('span');
+      body.className = 'mod__body';
+      var nm = document.createElement('span');
+      nm.className = 'mod__name';
+      nm.textContent = m.name;
+      var ds = document.createElement('span');
+      ds.className = 'mod__desc';
+      ds.textContent = m.desc;
+      body.appendChild(nm);
+      body.appendChild(ds);
+
+      var price = document.createElement('span');
+      if (included) {
+        price.className = 'mod__incl';
+        price.textContent = 'Included';
+      } else {
+        price.className = 'mod__price';
+        price.textContent = '+ ' + EUR(m.price);
+      }
+
+      row.appendChild(box);
+      row.appendChild(body);
+      row.appendChild(price);
+
+      if (!included) {
+        row.addEventListener('click', function () {
           state.selected[m.id] = !state.selected[m.id];
           render();
         });
       }
-      elMods.appendChild(btn);
+      modsEl.appendChild(row);
     });
   }
 
-  /* ---- build the stack -------------------------------------------- */
+  /* ---- Render: the block stack -------------------------------------- */
   function renderStack(animateIds) {
-    var base = BASES[state.base];
-    var lockAll = base.included === 'all';
-    var inc = includedSet();
-    elStack.innerHTML = '';
+    var rows = [{ name: BASES[state.base].name, val: BASES[state.base].price, base: true, id: '__base' }];
+    activeModules().forEach(function (m) {
+      rows.push({ name: m.name, val: m.price, base: false, id: m.id });
+    });
 
-    // base block (always at the bottom — flex-direction column-reverse)
-    var baseBlk = document.createElement('div');
-    baseBlk.className = 'blk blk--base';
-    baseBlk.style.flexGrow = base.price;
-    baseBlk.innerHTML = '<span class="blk__row"><span class="blk__name">' +
-      base.label + ' · base</span><span class="blk__val">' + fmt(base.price) + '</span></span>';
-    elStack.appendChild(baseBlk);
+    var sum = rows.reduce(function (a, r) { return a + r.val; }, 0);
 
-    MODULES.forEach(function (m) {
-      var on = lockAll ? true : !!state.selected[m.id];
-      if (!on) return;
-      var isIncl = !!inc[m.id];
-
+    stackEl.innerHTML = '';
+    rows.forEach(function (r) {
       var blk = document.createElement('div');
-      blk.className = 'blk blk--mod' + (isIncl ? ' blk--incl' : '');
-      blk.style.flexGrow = m.price; // mass ∝ value delivered
-      if (isIncl) {
-        // ghost block: value shown, cost zero
-        blk.style.background = 'var(--canvas)';
-        blk.style.color = 'var(--ink)';
-        blk.style.outline = '1px solid var(--ink)';
-        blk.style.outlineOffset = '-1px';
-      }
-      blk.innerHTML = '<span class="blk__row"><span class="blk__name">' +
-        m.name + '</span><span class="blk__val">' +
-        (isIncl ? 'Incl' : '+' + fmt(m.price)) + '</span></span>';
+      blk.className = 'blk ' + (r.base ? 'blk--base' : 'blk--mod');
+      // Proportional height, with a floor so labels stay legible.
+      blk.style.flexGrow = String(Math.max(r.val / sum, 0.06));
 
-      if (animateIds && animateIds[m.id]) {
+      var rowEl = document.createElement('span');
+      rowEl.className = 'blk__row';
+      var nm = document.createElement('span');
+      nm.className = 'blk__name';
+      nm.textContent = r.name;
+      var vl = document.createElement('span');
+      vl.className = 'blk__val';
+      vl.textContent = EUR(r.val);
+      rowEl.appendChild(nm);
+      rowEl.appendChild(vl);
+      blk.appendChild(rowEl);
+
+      stackEl.appendChild(blk);
+
+      if (animateIds && animateIds.indexOf(r.id) !== -1) {
         blk.classList.add('blk--enter');
         requestAnimationFrame(function () {
           requestAnimationFrame(function () { blk.classList.remove('blk--enter'); });
         });
       }
-      elStack.appendChild(blk);
     });
   }
 
-  /* ---- totals ----------------------------------------------------- */
-  function computeTotal() {
-    var base = BASES[state.base];
-    var lockAll = base.included === 'all';
-    var inc = includedSet();
-    var total = base.price;
-    var count = 0;
-    MODULES.forEach(function (m) {
-      var on = lockAll ? true : !!state.selected[m.id];
-      if (!on) return;
-      count++;
-      if (!inc[m.id]) total += m.price;
-    });
-    return { total: total, count: count };
+  /* ---- Render: totals ----------------------------------------------- */
+  function renderTotals() {
+    if (totalEl) totalEl.textContent = EUR(total());
+    if (countEl) {
+      var n = activeModules().length;
+      countEl.textContent = n + (n === 1 ? ' module' : ' modules');
+    }
   }
 
-  /* ---- seg (base) ------------------------------------------------- */
-  function renderSeg() {
-    elSeg.querySelectorAll('button').forEach(function (b) {
-      b.setAttribute('aria-pressed', b.getAttribute('data-base') === state.base ? 'true' : 'false');
-    });
-    elHint.textContent = '— ' + BASES[state.base].hint;
-  }
-
-  var prevSelected = {};
+  var prevActive = [];
   function render() {
-    // figure out which module blocks are newly visible, to animate them in
-    var lockAll = BASES[state.base].included === 'all';
-    var nowOn = {};
-    MODULES.forEach(function (m) { nowOn[m.id] = lockAll ? true : !!state.selected[m.id]; });
-    var entering = {};
-    MODULES.forEach(function (m) { if (nowOn[m.id] && !prevSelected[m.id]) entering[m.id] = true; });
-    prevSelected = nowOn;
+    var nowActive = activeModules().map(function (m) { return m.id; });
+    var entering = nowActive.filter(function (id) { return prevActive.indexOf(id) === -1; });
+    prevActive = nowActive;
 
     renderSeg();
     renderMods();
     renderStack(entering);
-
-    var t = computeTotal();
-    elTotal.textContent = fmt(t.total);
-    elCount.textContent = t.count + (t.count === 1 ? ' module' : ' modules');
+    renderTotals();
   }
 
-  elSeg.querySelectorAll('button').forEach(function (b) {
-    b.addEventListener('click', function () {
-      state.base = b.getAttribute('data-base');
-      render();
-    });
+  /* ---- Wire base control -------------------------------------------- */
+  segEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-base]');
+    if (!btn) return;
+    state.base = btn.getAttribute('data-base');
+    // Selecting a base resets optional picks (included set changes).
+    state.selected = {};
+    prevActive = []; // animate the new included set in
+    render();
   });
 
-  // sensible default selection so the stack reads well on load
-  state.selected.stills = true;
-  state.selected.flythrough = true;
   render();
 })();

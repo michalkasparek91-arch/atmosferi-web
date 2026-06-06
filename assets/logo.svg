@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="120" viewBox="0 0 520 120" role="img" aria-label="Atmosferi">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" width="360" height="80" role="img" aria-label="Atmosferi">
   
-  <rect width="520" height="120" fill="#F2F1EC"></rect>
-  <text class="wm" x="24" y="78" font-size="58" fill="#000000">Atmosferi<tspan font-size="24" dy="-22">°</tspan></text>
+  <rect width="360" height="80" fill="#F2F1EC"></rect>
+  <text x="0" y="56" class="wm" font-size="48" fill="#000000">Atmosferi<tspan font-size="24" dy="-18">°</tspan></text>
 </svg>
