@@ -165,7 +165,7 @@ export const AdminScraping = () => {
           const firstName = worker.full_name ? worker.full_name.split(' ')[0] : 'Mistře';
           const subcategory = worker.matched_subcategory || reviewJob.service_subcategories?.name || 'architektura a design';
           
-          const aiMessage = `Dobrý den, ${firstName},\n\nomlouvám se, že píšu napřímo. Na Atmosferi jsme před chvílí dostali novou poptávku na ${subcategory} v okolí (${reviewJob.city}) a napadlo mě, jestli by se Vám nehodila?\n\nDetaily projektu si můžete prohlédnout rovnou tady:\nhttps://atmosferi-web.cz/sdilena-zakazka/${reviewJob.id}\n\nDejte mi prosím vědět, kdyby to pro Vás nebylo zajímavé.\n\nMějte fajn den,\nTým Atmosferi`;
+          const aiMessage = `Dobrý den, ${firstName},\n\nomlouvám se, že píšu napřímo. Na Atmosferi jsme před chvílí dostali novou poptávku na ${subcategory} v okolí (${reviewJob.city}) a napadlo mě, jestli by se Vám nehodila?\n\nDetaily projektu si můžete prohlédnout rovnou tady:\nhttps://atmosferi.com/sdilena-zakazka/${reviewJob.id}\n\nDejte mi prosím vědět, kdyby to pro Vás nebylo zajímavé.\n\nMějte fajn den,\nTým Atmosferi`;
 
           // Kontakt MÁ telefon -> odeslat do WhatsApp Outboxu pro validaci
           const { error } = await supabase.from("whatsapp_outbox").insert({
@@ -207,7 +207,7 @@ export const AdminScraping = () => {
     if (!reviewJob) return;
     try {
       const subcategory = reviewJob.service_subcategories?.name || 'architektura a design';
-      const aiMessage = `[TEST] Dobrý den,\n\ntoto je zkušební testovací zpráva. Na Atmosferi jsme před chvílí dostali novou poptávku na ${subcategory} v okolí (${reviewJob.city}).\n\nhttps://atmosferi-web.cz/sdilena-zakazka/${reviewJob.id}\n\nMějte fajn den,\nTým Atmosferi`;
+      const aiMessage = `[TEST] Dobrý den,\n\ntoto je zkušební testovací zpráva. Na Atmosferi jsme před chvílí dostali novou poptávku na ${subcategory} v okolí (${reviewJob.city}).\n\nhttps://atmosferi.com/sdilena-zakazka/${reviewJob.id}\n\nMějte fajn den,\nTým Atmosferi`;
 
       const { error } = await supabase.from("whatsapp_outbox").insert({
         job_id: reviewJob.id,
@@ -248,7 +248,7 @@ export const AdminScraping = () => {
         ) : (
           <ul className="divide-y divide-border/30">
             {jobs?.map((job) => {
-              const subcatName = job.service_subcategories?.name || "Nespecifikováno";
+              const subcatName = job.service_subcategories?.name || "Architektura a design";
               const totalScraped = outboxStats?.[job.id] || 0;
               const maxLimit = 30;
               const percent = Math.min(100, Math.round((totalScraped / maxLimit) * 100));
