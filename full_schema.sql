@@ -4383,36 +4383,6 @@ CREATE INDEX idx_invoices_issued_at ON public.invoices(issued_at DESC);
 -- Add marketing consent timestamp column to profiles table
 ALTER TABLE public.profiles 
 ADD COLUMN IF NOT EXISTS marketing_consent_at TIMESTAMP WITH TIME ZONE;
--- Create missing invoice for purchase 38f0760d-6f05-43b3-af5b-88f53efff655
-INSERT INTO invoices (
-  user_id,
-  invoice_number,
-  amount_total,
-  amount_without_vat,
-  vat_amount,
-  vat_rate,
-  currency,
-  status,
-  issued_at,
-  tax_date,
-  points_purchase_id,
-  billing_snapshot,
-  items
-) VALUES (
-  '66dfd6db-a888-4a7d-a59e-4debf8c6988d',
-  (SELECT generate_invoice_number()),
-  59,
-  48.76,
-  10.24,
-  21,
-  'CZK',
-  'paid',
-  '2026-01-03 21:33:23+00',
-  '2026-01-03 21:33:23+00',
-  '38f0760d-6f05-43b3-af5b-88f53efff655',
-  '{"company_name": "Michal Kašpárek", "street": "Heřmanická 2041", "city": "Rychvald", "zip": "735 32", "country": "Czechia", "ico": "", "dic": ""}',
-  '[{"desc": "Startovací balíček - 5 kreditů", "qty": 1, "price": 59, "price_without_vat": 48.76}]'
-);
 -- Add referral columns to profiles table
 ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS referral_code text UNIQUE,
@@ -5449,34 +5419,7 @@ CREATE POLICY "Service role can update email campaigns"
   ON public.email_campaigns FOR UPDATE TO public
   USING (true) WITH CHECK (true);
 
--- Create 3 completed jobs from different customers for worker Michal
-INSERT INTO jobs (id, customer_id, category_id, subcategory_id, title, description, status, city, full_address, final_price, created_at, updated_at)
-VALUES
-  ('a0000001-0001-4000-8000-000000000001', 'f6b55457-5a51-4f5a-bc3a-5c6faca0f0c4', 'aa36ca8a-f286-4356-94a0-97a4fa88410c', '28770c31-65b6-4976-a055-84724956251b', 'Instalace chytrého termostatu', 'Potřebuji nainstalovat chytrý termostat Tado v bytě 3+1.', 'completed', 'Ostrava', 'Stodolní 12, Ostrava', 4500, now() - interval '30 days', now() - interval '25 days'),
-  ('a0000001-0001-4000-8000-000000000002', 'b8574a5d-07b7-4e13-a83f-e6c30b8a8acf', 'cab210ce-3270-4886-9ec7-4a97ebb1eac5', 'a3056d5e-d829-4cbe-a4bd-e121b3ae2a39', 'Hodinový manžel - oprava zámku', 'Rozbil se mi zámek u vchodových dveří, potřebuji vyměnit vložku.', 'completed', 'Frýdek-Místek', 'Hlavní třída 45, Frýdek-Místek', 1800, now() - interval '20 days', now() - interval '16 days'),
-  ('a0000001-0001-4000-8000-000000000003', '215b27a3-2560-4593-a84a-ae020c2dfd88', 'aa36ca8a-f286-4356-94a0-97a4fa88410c', '6d90fed4-e872-41ab-929e-7edf30f2ca3d', 'Automatizace osvětlení v obýváku', 'Chci nainstalovat smart osvětlení Philips Hue v celém obýváku.', 'completed', 'Havířov', 'Dlouhá 8, Havířov', 6200, now() - interval '14 days', now() - interval '10 days');
 
--- Create 2 in-progress jobs
-INSERT INTO jobs (id, customer_id, category_id, subcategory_id, title, description, status, city, full_address, created_at, updated_at)
-VALUES
-  ('a0000001-0001-4000-8000-000000000004', 'f6b55457-5a51-4f5a-bc3a-5c6faca0f0c4', 'aa36ca8a-f286-4356-94a0-97a4fa88410c', '1a1d6aca-c8b7-44b5-b196-6809e317f110', 'Instalace FVE panelů na střechu', 'Chci nainstalovat 10 solárních panelů na sedlovou střechu.', 'in_progress', 'Ostrava', 'Porubská 99, Ostrava', now() - interval '5 days', now() - interval '2 days'),
-  ('a0000001-0001-4000-8000-000000000005', '215b27a3-2560-4593-a84a-ae020c2dfd88', 'cab210ce-3270-4886-9ec7-4a97ebb1eac5', 'a49f1347-7b13-4acd-ab1f-8f3f3945da86', 'Vrtání do betonu - montáž polic', 'Potřebuji vyvrtat díry do betonové zdi a namontovat 3 police.', 'in_progress', 'Havířov', 'Svornosti 22, Havířov', now() - interval '3 days', now() - interval '1 day');
-
--- Create accepted offers from Michal for all 5 jobs
-INSERT INTO offers (id, job_id, worker_id, price, message, status, created_at)
-VALUES
-  ('b0000001-0001-4000-8000-000000000001', 'a0000001-0001-4000-8000-000000000001', '66dfd6db-a888-4a7d-a59e-4debf8c6988d', 4500, 'Mám zkušenosti s instalací Tado termostatů, rád pomohu.', 'accepted', now() - interval '29 days'),
-  ('b0000001-0001-4000-8000-000000000002', 'a0000001-0001-4000-8000-000000000002', '66dfd6db-a888-4a7d-a59e-4debf8c6988d', 1800, 'Zámky měním pravidelně, zvládnu do hodiny.', 'accepted', now() - interval '19 days'),
-  ('b0000001-0001-4000-8000-000000000003', 'a0000001-0001-4000-8000-000000000003', '66dfd6db-a888-4a7d-a59e-4debf8c6988d', 6200, 'Philips Hue instaluji často, včetně nastavení aplikace.', 'accepted', now() - interval '13 days'),
-  ('b0000001-0001-4000-8000-000000000004', 'a0000001-0001-4000-8000-000000000004', '66dfd6db-a888-4a7d-a59e-4debf8c6988d', 85000, 'FVE instalace je moje specialita, domluvíme se na termínu.', 'accepted', now() - interval '4 days'),
-  ('b0000001-0001-4000-8000-000000000005', 'a0000001-0001-4000-8000-000000000005', '66dfd6db-a888-4a7d-a59e-4debf8c6988d', 2500, 'Vrtání do betonu bez problému, mám SDS kladivo.', 'accepted', now() - interval '2 days');
-
--- Create reviews for the 3 completed jobs (from customers to Michal)
-INSERT INTO reviews (job_id, reviewer_id, reviewee_id, rating, comment, quality_communication, quality_punctuality, quality_professionalism, quality_cleanliness, created_at)
-VALUES
-  ('a0000001-0001-4000-8000-000000000001', 'f6b55457-5a51-4f5a-bc3a-5c6faca0f0c4', '66dfd6db-a888-4a7d-a59e-4debf8c6988d', 5, 'Naprosto profesionální práce, termostat funguje perfektně. Michal vše vysvětlil a uklidil po sobě. Doporučuji!', 5, 5, 5, 5, now() - interval '24 days'),
-  ('a0000001-0001-4000-8000-000000000002', 'b8574a5d-07b7-4e13-a83f-e6c30b8a8acf', '66dfd6db-a888-4a7d-a59e-4debf8c6988d', 4, 'Dobrá práce, zámek funguje jak má. Trochu se zpozdil, ale jinak spokojenost.', 4, 3, 5, 4, now() - interval '15 days'),
-  ('a0000001-0001-4000-8000-000000000003', '215b27a3-2560-4593-a84a-ae020c2dfd88', '66dfd6db-a888-4a7d-a59e-4debf8c6988d', 5, 'Skvělá instalace, vše funguje přes aplikaci i hlasového asistenta. Velmi šikovný řemeslník!', 5, 5, 5, 5, now() - interval '9 days');
 -- Add description column to service_categories
 ALTER TABLE service_categories ADD COLUMN IF NOT EXISTS description text;
 
@@ -13692,3 +13635,5 @@ CREATE TABLE IF NOT EXISTS public.pages (
 -- Index for optimized lookup during GSC status synchronization
 CREATE INDEX IF NOT EXISTS idx_pages_gsc_sync 
 ON public.pages (gsc_last_checked NULLS FIRST, created_at DESC);
+
+
