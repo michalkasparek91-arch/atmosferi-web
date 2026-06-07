@@ -12563,15 +12563,6 @@ BEGIN
           p.longitude IS NULL OR p.latitude IS NULL OR
           ST_DWithin(ST_SetSRID(ST_MakePoint(p.longitude::float, p.latitude::float), 4326)::geography, j.location, 50000)
         )
-          p.category ILIKE '%' || meta.cat_name || '%' OR
-          p.category ILIKE '%' || meta.sub_clean || '%'
-        )
-        AND (
-          j.location IS NULL OR
-          p.longitude IS NULL OR 
-          p.latitude IS NULL OR
-          ST_DWithin(ST_SetSRID(ST_MakePoint(p.longitude::float, p.latitude::float), 4326)::geography, j.location, 50000)
-        )
     ) as reach_count
   FROM public.jobs j
   WHERE j.status = 'open';
