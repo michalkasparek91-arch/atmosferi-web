@@ -32,7 +32,7 @@ export default function AdminDashboard() {
           <CardContent>
             <Button 
               className="w-full justify-between mt-2" 
-              onClick={() => navigate('/admin/emaily')}
+              onClick={() => navigate('/emaily')}
             >
               Přejít na Kampaně
               <ArrowRight className="h-4 w-4" />

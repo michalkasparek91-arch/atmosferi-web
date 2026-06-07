@@ -38,8 +38,8 @@ import AddToHomeScreen from "@/components/AddToHomeScreen";
 import { usePushNotificationPrompt } from "@/hooks/use-push-notification-prompt";
 
 const sidebarLinks = [
-  { label: "Přehled", href: "/admin", icon: LayoutDashboard },
-  { label: "Kampaně", href: "/admin/emaily", icon: Mail },
+  { label: "Přehled", href: "/", icon: LayoutDashboard },
+  { label: "Kampaně", href: "/emaily", icon: Mail },
 ];
 
 export function AdminLayout() {
@@ -91,7 +91,7 @@ export function AdminLayout() {
           <div className="px-5 h-[100px] flex items-center mb-4 border-b border-border transition-all">
             <div className="flex items-center justify-between w-full">
               <Link 
-                to="/admin" 
+                to="/" 
                 className="flex flex-col items-start lg:items-end hover:opacity-80 transition-opacity translate-y-2 lg:-translate-x-2"
               >
                 <span className="text-lg font-black tracking-widest text-foreground dark:text-white uppercase">Atmosferi</span>
