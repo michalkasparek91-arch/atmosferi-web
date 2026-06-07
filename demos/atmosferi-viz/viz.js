@@ -6,6 +6,7 @@
 (function () {
   "use strict";
   var reduce = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  document.documentElement.classList.add("vz");  // enables curtain reveals
 
   /* ---- scroll progress ---- */
   var bar = document.getElementById("progress");
@@ -34,15 +35,65 @@
     document.querySelectorAll("[data-rise]").forEach(function (el) { el.classList.add("in"); });
   }
 
-  /* ---- bloom: featured frames colourise when centred; grid frames bloom on hover (CSS) ---- */
+  /* ---- curtain reveal: featured + gallery frames wipe open as they enter ---- */
   if ("IntersectionObserver" in window && !reduce) {
     var bio = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { e.target.classList.toggle("lit", e.intersectionRatio > 0.55); });
-    }, { threshold: [0, 0.55, 1] });
-    document.querySelectorAll(".feature__media.bloom").forEach(function (el) { bio.observe(el); });
+      es.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("lit"); bio.unobserve(e.target); }
+      });
+    }, { threshold: 0.18, rootMargin: "0px 0px -4% 0px" });
+    document.querySelectorAll(".feature__media.bloom, .frame.bloom").forEach(function (el) { bio.observe(el); });
   } else {
-    document.querySelectorAll(".feature__media.bloom").forEach(function (el) { el.classList.add("lit"); });
+    document.querySelectorAll(".feature__media.bloom, .frame.bloom").forEach(function (el) { el.classList.add("lit"); });
   }
+
+  /* ---- intro loader: lift once the page is ready (CSS auto-dismisses as a fallback) ---- */
+  var vload = document.getElementById("vload");
+  if (vload) {
+    function liftLoader() { vload.classList.add("gone"); setTimeout(function () { vload.remove(); }, 800); }
+    if (reduce) { liftLoader(); }
+    else {
+      window.addEventListener("load", function () { setTimeout(liftLoader, 500); });
+      setTimeout(liftLoader, 2600); // hard fallback
+    }
+  }
+
+  /* ---- custom VIEW cursor over openable images (desktop only) ---- */
+  var vcur = document.getElementById("vcur");
+  if (vcur && window.matchMedia("(pointer:fine)").matches && !reduce) {
+    var cx = 0, cy = 0, tx = 0, ty = 0, curRaf = 0;
+    window.addEventListener("mousemove", function (e) {
+      tx = e.clientX; ty = e.clientY;
+      if (!curRaf) curRaf = requestAnimationFrame(follow);
+    });
+    function follow() {
+      cx += (tx - cx) * 0.22; cy += (ty - cy) * 0.22;
+      vcur.style.left = cx + "px"; vcur.style.top = cy + "px";
+      curRaf = (Math.abs(tx - cx) > 0.5 || Math.abs(ty - cy) > 0.5) ? requestAnimationFrame(follow) : 0;
+    }
+    document.querySelectorAll("[data-full]").forEach(function (el) {
+      el.addEventListener("mouseenter", function () { vcur.classList.add("show"); });
+      el.addEventListener("mouseleave", function () { vcur.classList.remove("show"); });
+    });
+  }
+
+  /* ---- site switcher: sliding knob (Studio ↔ Visual) ---- */
+  (function () {
+    function place(sw, seg) {
+      var knob = sw.querySelector(".swx__knob"); if (!knob || !seg) return;
+      knob.style.left = seg.offsetLeft + "px"; knob.style.width = seg.offsetWidth + "px";
+    }
+    function rest(sw) { place(sw, sw.querySelector(".swx__seg.is-on")); }
+    document.querySelectorAll(".swx").forEach(function (sw) {
+      rest(sw);
+      sw.querySelectorAll(".swx__seg").forEach(function (seg) {
+        seg.addEventListener("mouseenter", function () { place(sw, seg); });
+      });
+      sw.addEventListener("mouseleave", function () { rest(sw); });
+    });
+    window.addEventListener("resize", function () { document.querySelectorAll(".swx").forEach(rest); });
+    window.addEventListener("load", function () { document.querySelectorAll(".swx").forEach(rest); });
+  })();
 
   /* ---- live Prague clock ---- */
   var clk = document.getElementById("clk");

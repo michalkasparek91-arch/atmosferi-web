@@ -43,6 +43,12 @@
     .process__body{grid-template-columns:1fr;gap:var(--space-2);}
     .process__meta{justify-self:start;}
   }
+
+  /* ---- site switcher (Studio ↔ Visual) ---- */
+  .swx{position:relative;display:inline-flex;align-items:center;padding:3px;border:1px solid color-mix(in srgb,currentColor 28%,transparent);border-radius:999px;}
+  .swx__knob{position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:0;border-radius:999px;background:color-mix(in srgb,currentColor 13%,transparent);transition:left .5s cubic-bezier(.22,1,.36,1),width .5s cubic-bezier(.22,1,.36,1);}
+  .swx__seg{position:relative;z-index:1;padding:7px 13px;border-radius:999px;font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.17em;text-transform:uppercase;white-space:nowrap;opacity:.5;transition:opacity .35s cubic-bezier(.22,1,.36,1);cursor:pointer;color:var(--ink);}
+  .swx__seg.is-on,.swx__seg:hover{opacity:1;}
 </style>
 </head>
 <body>
@@ -57,6 +63,11 @@
       <a href="pricing.html" class="navlink">Pricing</a>
       <a href="studio.html" class="navlink">Studio</a>
       <a href="contact.html" class="navlink">Contact</a>
+      <div class="swx" aria-label="Switch between Atmosferi sites">
+        <span class="swx__knob"></span>
+        <a class="swx__seg is-on" aria-current="page" href="index.html">Studio</a>
+        <a class="swx__seg" href="demos/atmosferi-viz/index.html">Visual</a>
+      </div>
       <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
         <span class="toggle__label">Color</span>
         <span class="toggle__track"><span class="toggle__knob"></span></span>
@@ -72,6 +83,11 @@
     <a href="pricing.html" class="navlink">Pricing</a>
     <a href="studio.html" class="navlink">Studio</a>
     <a href="contact.html" class="navlink">Contact</a>
+    <div class="swx" aria-label="Switch between Atmosferi sites">
+      <span class="swx__knob"></span>
+      <a class="swx__seg is-on" aria-current="page" href="index.html">Studio</a>
+      <a class="swx__seg" href="demos/atmosferi-viz/index.html">Visual</a>
+    </div>
     <button class="toggle" aria-pressed="false" aria-label="Toggle colour">
       <span class="toggle__label">Color</span>
       <span class="toggle__track"><span class="toggle__knob"></span></span>
@@ -276,6 +292,7 @@
         </div>
         <div class="footer__col">
           <span class="eyebrow">Elsewhere</span>
+          <a href="demos/atmosferi-viz/index.html" class="mono muted">Visualisation</a>
           <a href="#" class="mono muted">Instagram</a>
           <a href="#" class="mono muted">LinkedIn</a>
           <a href="/admin/prihlaseni" class="mono muted" style="margin-top: auto; opacity: 0.3;">Admin</a>
@@ -291,5 +308,22 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/home.js"></script>
+<script>
+  /* site switcher — sliding knob */
+  (function () {
+    function place(sw, seg) { var k = sw.querySelector(".swx__knob"); if (!k || !seg) return; k.style.left = seg.offsetLeft + "px"; k.style.width = seg.offsetWidth + "px"; }
+    function rest(sw) { place(sw, sw.querySelector(".swx__seg.is-on")); }
+    function init() {
+      document.querySelectorAll(".swx").forEach(function (sw) {
+        rest(sw);
+        sw.querySelectorAll(".swx__seg").forEach(function (seg) { seg.addEventListener("mouseenter", function () { place(sw, seg); }); });
+        sw.addEventListener("mouseleave", function () { rest(sw); });
+      });
+    }
+    if (document.readyState !== "loading") init(); else document.addEventListener("DOMContentLoaded", init);
+    window.addEventListener("resize", function () { document.querySelectorAll(".swx").forEach(rest); });
+    window.addEventListener("load", function () { document.querySelectorAll(".swx").forEach(rest); });
+  })();
+</script>
 </body>
 </html>
