@@ -6136,6 +6136,7 @@ $$ LANGUAGE sql;
 
 DO $$
 DECLARE
+  line RECORD;
   map_data TEXT := 'Akce a svatby	Akce a svatby
 Zapůjčení svatebního auta s řidičem	Zapůjčení svatebního auta s řidičem
 Narozeninový dort	Cukrářství
@@ -10815,7 +10816,7 @@ SELECT DISTINCT ON (url)
 FROM public.seo_crawl_health
 ORDER BY url, checked_at DESC;
 -- Unschedule if exists to allow re-running
-SELECT cron.unschedule('seo-crawl-monitor-nightly');
+-- SELECT cron.unschedule('seo-crawl-monitor-nightly');
 
 SELECT cron.schedule(
   'seo-crawl-monitor-nightly',
@@ -11825,8 +11826,8 @@ SET last_run_status = 'failure',
 WHERE last_run_status = 'running';
 
 -- Hourly watchdog cron
-SELECT cron.unschedule('automation-watchdog-hourly')
-WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'automation-watchdog-hourly');
+-- SELECT cron.unschedule('automation-watchdog-hourly')
+-- WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'automation-watchdog-hourly');
 
 SELECT cron.schedule(
   'automation-watchdog-hourly',
@@ -12562,40 +12563,6 @@ BEGIN
           p.longitude IS NULL OR p.latitude IS NULL OR
           ST_DWithin(ST_SetSRID(ST_MakePoint(p.longitude::float, p.latitude::float), 4326)::geography, j.location, 50000)
         )
-    ) as reach_count
-  FROM public.jobs j
-  WHERE j.status = 'open';
-END;
-$$;
--- Final optimization for get_all_sniper_reach_counts to prevent timeouts
-CREATE OR REPLACE FUNCTION public.get_all_sniper_reach_counts()
-RETURNS TABLE (
-  job_id uuid,
-  reach_count bigint
-)
-LANGUAGE plpgsql
-STABLE
-SECURITY DEFINER
-AS $$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    j.id as job_id,
-    (
-      SELECT count(*)
-      FROM public.unified_contacts p
-      CROSS JOIN LATERAL (
-        SELECT 
-          TRIM(REGEXP_REPLACE(s.name, '\s*\(.*\)', '')) as sub_clean,
-          TRIM(c.name) as cat_name
-        FROM public.service_subcategories s
-        JOIN public.service_categories c ON c.id = s.category_id
-        WHERE s.id = j.subcategory_id
-      ) meta
-      WHERE 
-        (p.user_type IN ('worker', 'both', 'lead', 'pro') OR p.user_type IS NULL OR p.user_type = '')
-        AND (
-          p.subcategory ILIKE '%' || meta.sub_clean || '%' OR
           p.category ILIKE '%' || meta.cat_name || '%' OR
           p.category ILIKE '%' || meta.sub_clean || '%'
         )
@@ -12702,9 +12669,25 @@ BEGIN
 END;
 $$;
 DROP TABLE IF EXISTS public.gsc_index_status CASCADE;
-DELETE FROM public.pages WHERE url LIKE 'http%';
+CREATE TABLE IF NOT EXISTS public.pages (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    url text UNIQUE NOT NULL,
+    title text,
+    gsc_indexing_status text DEFAULT 'Unknown',
+    gsc_coverage_state text,
+    gsc_robots_txt_status text,
+    gsc_last_crawl_time timestamp with time zone,
+    gsc_last_checked timestamp with time zone,
+    gsc_inspect_error text,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_pages_gsc_sync 
+ON public.pages (gsc_last_checked NULLS FIRST, created_at DESC);
+-- DELETE FROM public.pages WHERE url LIKE 'http%';
 -- Ensure URL uniqueness going forward so resync is idempotent
-CREATE UNIQUE INDEX IF NOT EXISTS pages_url_unique_idx ON public.pages (url);
+-- CREATE UNIQUE INDEX IF NOT EXISTS pages_url_unique_idx ON public.pages (url);
 UPDATE public.email_templates
 SET 
   subject = 'Máte novou nabídku na „{{nazev_zakazky}}"',
@@ -13088,14 +13071,14 @@ DROP TRIGGER IF EXISTS pseo_to_pages_upsert ON public.pseo_contents;
 DROP TRIGGER IF EXISTS pseo_to_pages_delete ON public.pseo_contents;
 
 -- Re-create trigger for INSERT/UPDATE
-CREATE TRIGGER pseo_to_pages_upsert
-AFTER INSERT OR UPDATE ON public.pseo_contents
-FOR EACH ROW EXECUTE FUNCTION sync_pages_from_pseo();
-
--- Re-create trigger for DELETE
-CREATE TRIGGER pseo_to_pages_delete
-AFTER DELETE ON public.pseo_contents
-FOR EACH ROW EXECUTE FUNCTION delete_page_from_pseo();
+-- CREATE TRIGGER pseo_to_pages_upsert
+-- AFTER INSERT OR UPDATE ON public.pseo_contents
+-- FOR EACH ROW EXECUTE FUNCTION sync_pages_from_pseo();
+-- 
+-- -- Re-create trigger for DELETE
+-- CREATE TRIGGER pseo_to_pages_delete
+-- AFTER DELETE ON public.pseo_contents
+-- FOR EACH ROW EXECUTE FUNCTION delete_page_from_pseo();
 -- Idempotent fix for pages sync triggers
 
 DROP TRIGGER IF EXISTS pseo_to_pages_upsert ON public.pseo_contents;
@@ -13428,7 +13411,7 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
 -- 2. Clean up any existing duplicate cron job
-SELECT cron.unschedule('gsc-index-status-sync-job');
+-- SELECT cron.unschedule('gsc-index-status-sync-job');
 
 -- 3. Schedule the pg_cron job to automatically trigger the sync function every 2 minutes
 -- Uses pg_net's HTTP POST to trigger the Edge Function securely via the API gateway
@@ -13505,23 +13488,8 @@ ON CONFLICT (key) DO NOTHING;
 
 -- Reference Schema for Pages (Indexing Health Status)
 -- If you already have a pages/URLs table, you can skip this part or merge these fields.
-CREATE TABLE IF NOT EXISTS public.pages (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    url text UNIQUE NOT NULL,
-    title text,
-    -- GSC Indexing Health Columns
-    gsc_indexing_status text DEFAULT 'Unknown', -- e.g., 'Indexed', 'Excluded', 'Crawled - currently not indexed', etc.
-    gsc_coverage_state text, -- Detailed coverage category from GSC
-    gsc_robots_txt_status text, -- e.g., 'Allowed', 'Blocked'
-    gsc_last_crawl_time timestamp with time zone,
-    gsc_last_checked timestamp with time zone,
-    gsc_inspect_error text, -- Errors from URL inspection call if any
-    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
-);
 
--- Index for optimized lookup during GSC status synchronization
-CREATE INDEX IF NOT EXISTS idx_pages_gsc_sync 
-ON public.pages (gsc_last_checked NULLS FIRST, created_at DESC);
+
+
 
 

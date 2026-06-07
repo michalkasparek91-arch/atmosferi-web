@@ -1,0 +1,6 @@
+        )
+          p.category ILIKE '%' || meta.cat_name || '%' OR
+          p.category ILIKE '%' || meta.sub_clean || '%'
+        )
+        AND (
+          j.location IS NULL OR
