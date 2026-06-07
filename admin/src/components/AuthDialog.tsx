@@ -177,7 +177,7 @@ const AuthDialog = ({ open, onOpenChange, initialStep }: AuthDialogProps) => {
         changeStep("register");
       }
     } catch {
-      changeStep("login");
+      changeStep("register");
     } finally {
       setCheckingEmail(false);
     }
