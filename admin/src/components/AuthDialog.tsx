@@ -73,7 +73,7 @@ const AuthDialog = ({ open, onOpenChange, initialStep }: AuthDialogProps) => {
   const { session, profile } = useSession();
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState<AuthStep>("email");
-  const [userType] = useState('admin');
+  const [userType] = useState('customer');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");

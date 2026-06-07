@@ -34,29 +34,12 @@ import { cn } from "@/lib/utils";
 import { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
 import { AdminCommandPalette } from "@/components/admin/AdminCommandPalette";
 import { DarkModeToggle } from "@/components/admin/DarkModeToggle";
-import zrobeeLogo from "@/assets/zrobee-logo.svg";
 import AddToHomeScreen from "@/components/AddToHomeScreen";
 import { usePushNotificationPrompt } from "@/hooks/use-push-notification-prompt";
 
 const sidebarLinks = [
-  { label: "Přehled", href: "/admin/prehled", icon: LayoutDashboard },
-  { label: "Analytika", href: "/admin/analytika", icon: BarChart3 },
-  { label: "Uživatelé", href: "/admin/uzivatele", icon: Users },
-  { label: "Zakázky", href: "/admin/zakazky", icon: Briefcase },
-  { label: "Platby", href: "/admin/platby", icon: CreditCard },
-  { label: "WhatsApp Sniper", href: "/admin/whatsapp-sniper", icon: MessageSquare },
-  { label: "Verifikace", href: "/admin/verifikace", icon: CheckCircle },
-  { label: "Recenze", href: "/admin/recenze", icon: Star },
-  { label: "Kupóny", href: "/admin/kupony", icon: Ticket },
-  { label: "Notifikace", href: "/admin/notifikace", icon: Bell },
-  { label: "E-maily", href: "/admin/emaily", icon: Mail },
-  { label: "Hlášení", href: "/admin/hlaseni", icon: AlertTriangle },
-  { label: "Poptávky", href: "/admin/poptavky", icon: Inbox },
-  { label: "Audit log", href: "/admin/log", icon: ScrollText },
-  { label: "Magazín", href: "/admin/magazin", icon: BookOpen },
-  { label: "Kategorie", href: "/admin/kategorie", icon: FolderTree },
-  { label: "SEO Obsah", href: "/admin/seo-obsah", icon: Globe },
-  { label: "Nastavení", href: "/admin/nastaveni", icon: Settings },
+  { label: "Přehled", href: "/admin", icon: LayoutDashboard },
+  { label: "Kampaně", href: "/admin/emaily", icon: Mail },
 ];
 
 export function AdminLayout() {
@@ -83,85 +66,7 @@ export function AdminLayout() {
   };
 
   useEffect(() => {
-    // Real-time listener for new jobs
-    const channel = supabase
-      .channel('admin-job-alerts')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'jobs'
-        },
-        (payload) => {
-          const newJob = payload.new;
-          
-          toast.custom((t) => (
-            <div className="flex flex-col gap-3 p-4 bg-white dark:bg-slate-900 border border-border rounded-xl shadow-lg min-w-[320px] animate-in fade-in slide-in-from-right-5 duration-300">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-full shrink-0">
-                  <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <h3 className="text-sm font-bold text-foreground leading-none">🚨 Nová poptávka ke zpracování</h3>
-                  <p className="text-[12px] text-muted-foreground leading-snug font-medium">
-                    {newJob.title} — <span className="text-primary">{newJob.city || "Celá ČR"}</span>
-                  </p>
-                </div>
-                <button 
-                  onClick={() => toast.dismiss(t)}
-                  className="p-1 hover:bg-muted rounded-full transition-colors"
-                >
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-              </div>
-              
-              <Button 
-                size="sm"
-                className="w-full h-8 text-[11px] font-bold gap-2 shadow-sm active:scale-95 transition-all bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => {
-                  navigate(`/admin/emaily?job_id=${newJob.id}`);
-                  toast.dismiss(t);
-                }}
-              >
-                <Zap className="h-3.5 w-3.5" />
-                Spustit Sniper
-              </Button>
-            </div>
-          ), { duration: Infinity });
-        }
-      )
-      .subscribe();
-
-    // Real-time listener for admin notifications (SEO / System)
-    const notificationChannel = supabase
-      .channel('admin-notifications-alert')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'admin_notifications'
-        },
-        (payload) => {
-          const notification = payload.new;
-          
-          toast.success(notification.title, {
-            description: notification.message,
-            action: notification.link ? {
-              label: "Zobrazit",
-              onClick: () => navigate(notification.link)
-            } : undefined,
-            duration: 10000,
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(notificationChannel);
-    };
+    // Basic setup if any is needed in the future
   }, [navigate]);
 
   return (
@@ -186,11 +91,11 @@ export function AdminLayout() {
           <div className="px-5 h-[100px] flex items-center mb-4 border-b border-border transition-all">
             <div className="flex items-center justify-between w-full">
               <Link 
-                to="/admin/prehled" 
+                to="/admin" 
                 className="flex flex-col items-start lg:items-end hover:opacity-80 transition-opacity translate-y-2 lg:-translate-x-2"
               >
-                <img src={zrobeeLogo} alt="zrobee" className="h-6 logo-adaptive" />
-                <span className="text-[9px] font-black tracking-[0.2em] text-foreground dark:text-primary leading-none mt-1 uppercase">Admin</span>
+                <span className="text-lg font-black tracking-widest text-foreground dark:text-white uppercase">Atmosferi</span>
+                <span className="text-[9px] font-black tracking-[0.2em] text-foreground/50 dark:text-primary leading-none mt-1 uppercase">Admin</span>
               </Link>
               <Button 
                 variant="ghost" 
@@ -272,7 +177,7 @@ export function AdminLayout() {
         <header className="lg:hidden flex-shrink-0 bg-background border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex flex-col items-start translate-y-1">
-              <img src={zrobeeLogo} alt="zrobee" className="h-5 logo-adaptive" />
+              <span className="text-sm font-black tracking-widest text-foreground dark:text-white uppercase">Atmosferi</span>
               <span className="text-[8px] font-medium tracking-wider text-[#213319] dark:text-primary leading-none mt-0.5">ADMIN</span>
             </div>
             <Button 
