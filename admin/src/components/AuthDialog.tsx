@@ -73,7 +73,7 @@ const AuthDialog = ({ open, onOpenChange, initialStep }: AuthDialogProps) => {
   const { session, profile } = useSession();
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState<AuthStep>("email");
-  const [userType, setUserType] = useState<'customer' | 'worker'>('customer');
+  const [userType] = useState('admin');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -174,7 +174,7 @@ const AuthDialog = ({ open, onOpenChange, initialStep }: AuthDialogProps) => {
       } else if (exists) {
         changeStep("login");
       } else {
-        changeStep("register-type");
+        changeStep("register");
       }
     } catch {
       changeStep("login");
@@ -466,11 +466,8 @@ const AuthDialog = ({ open, onOpenChange, initialStep }: AuthDialogProps) => {
 
   const handleBack = () => {
     if (step === "email-verification") return;
-    if (step === "login" || step === "register-type") {
+    if (step === "login" || step === "register") {
       changeStep("email");
-      setPassword("");
-    } else if (step === "register") {
-      changeStep("register-type");
       setPassword("");
       setFullName("");
     }
@@ -480,7 +477,6 @@ const AuthDialog = ({ open, onOpenChange, initialStep }: AuthDialogProps) => {
     switch (step) {
       case "email": return "Přihlášení";
       case "login": return "Vítejte zpět";
-      case "register-type": return "Vyberte typ účtu";
       case "register": return "Registrace";
       case "email-verification": return "Čekáme na potvrzení";
       case "password-reset-sent": return "";
@@ -491,7 +487,6 @@ const AuthDialog = ({ open, onOpenChange, initialStep }: AuthDialogProps) => {
     switch (step) {
       case "email": return "Zadejte svůj email pro pokračování";
       case "login": return email;
-      case "register-type": return "Registrujete se jako pracovník nebo zákazník?";
       case "register": return email;
       case "email-verification": return "";
       case "password-reset-sent": return "";
@@ -657,46 +652,7 @@ const AuthDialog = ({ open, onOpenChange, initialStep }: AuthDialogProps) => {
               </>
             )}
 
-            {/* Step 2b-1: User type selection (new user) */}
-            {step === "register-type" && (
-              <>
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    className="w-full flex items-center gap-4 p-5 rounded-xl border border-border bg-background hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
-                    onClick={() => {
-                      setUserType('customer');
-                      changeStep("register");
-                    }}
-                  >
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                      <User className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-base">Zákazník</p>
-                      <p className="text-sm text-muted-foreground">Hledám řemeslníka pro svůj projekt</p>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full flex items-center gap-4 p-5 rounded-xl border border-border bg-background hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
-                    onClick={() => {
-                      setUserType('worker');
-                      changeStep("register");
-                    }}
-                  >
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                      <Wrench className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-base">Pracovník</p>
-                      <p className="text-sm text-muted-foreground">Nabízím své řemeslnické služby</p>
-                    </div>
-                  </button>
-                </div>
 
-              </>
-            )}
 
             {/* Step 2b-2: Registration form (new user) */}
             {step === "register" && (
