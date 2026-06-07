@@ -39,10 +39,10 @@ export const EmailTopNav = () => {
   const navigate = useNavigate();
   
   const pathParts = location.pathname.split("/");
-  const activeTab = pathParts[3] || "sber";
+  const activeTab = pathParts[2] || "sber";
 
   const onTabChange = (tab: string) => {
-    navigate(`/admin/emaily/${tab}`);
+    navigate(`/emaily/${tab}`);
   };
   const { data: outboxReadyCount = 0 } = useQuery({
     queryKey: ["outbox-ready-count-nav"],
@@ -118,7 +118,7 @@ export const EmailTopNav = () => {
           onClick={onTabChange} 
         />
         <button
-          onClick={() => navigate("/admin/seo-obsah?tab=automation")}
+          onClick={() => navigate("/seo-obsah?tab=automation")}
           title="Nastavení automatizací"
           className="ml-2 inline-flex items-center justify-center rounded-full w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-white dark:hover:bg-slate-900 transition-all"
         >
