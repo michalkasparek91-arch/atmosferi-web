@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Offline | Zrobee</title>
+  <style>
+    :root {
+      --bg-color: hsl(105, 35%, 10%);
+      --text-color: #ffffff;
+      --accent-color: #a6d16f;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    .logo-container {
+      margin-bottom: 24px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .logo {
+      width: 120px;
+      height: 120px;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--accent-color);
+    }
+    .message {
+      font-size: 0.875rem;
+      opacity: 0.7;
+      max-width: 240px;
+      line-height: 1.5;
+    }
+    .retry-button {
+      margin-top: 32px;
+      padding: 12px 24px;
+      background-color: var(--accent-color);
+      color: #121210;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    .retry-button:active {
+      transform: scale(0.96);
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(0.98); }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+    <img src="/splash/splash_logo.svg" alt="Zrobee" class="logo">
+  </div>
+  
+  <div class="status">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17.5 19c.7 0 1.3-.2 1.8-.7s.7-1.1.7-1.8c0-1.4-1.1-2.5-2.5-2.5-.2 0-.3 0-.5.1-.4-1.8-2-3.1-3.9-3.1-.7 0-1.3.2-1.9.5m-3.2 4.4L2 22"/><path d="M11 5.7a7 7 0 0 1 12 4.3"/><path d="M1.6 1.6l20.8 20.8"/>
+    </svg>
+    Jste offline
+  </div>
+  
+  <p class="message">
+    Momentálně nejste připojeni k internetu. <br> Zkuste stránku znovu načíst, až budete online.
+  </p>
+  
+  <button class="retry-button" onclick="window.location.reload()">
+    Zkusit znovu
+  </button>
+</body>
+</html>

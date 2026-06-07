@@ -1,0 +1,100 @@
+# Zrobee
+
+> Zrobee je česká online platforma, která spojuje zákazníky s kvalitními řemeslníky. Funguje jako tržiště – zákazník zadá poptávku zdarma a ověření řemeslníci z okolí mu pošlou cenové nabídky.
+
+## O platformě
+
+- **Název**: Zrobee
+- **Web**: https://zrobee.cz
+- **Typ**: Marketplace / tržiště řemeslnických služeb
+- **Region**: Česká republika
+- **Jazyk**: čeština
+
+## Jak to funguje
+
+### Pro zákazníky
+1. Zákazník popíše, co potřebuje (např. malování, elektrika, instalatérství)
+2. Řemeslníci z okolí pošlou své nabídky s cenou a dostupností
+3. Zákazník porovná nabídky, prohlédne profily a hodnocení
+4. Vybere nejlepšího řemeslníka a nechá práci udělat
+- Vložení zakázky je **zdarma**
+
+### Pro řemeslníky
+1. Řemeslník si vytvoří profil se svými službami a zkušenostmi
+2. Prohlíží dostupné zakázky ve svém okolí
+3. Reaguje nabídkou s cenou a popisem
+4. Buduje si reputaci přes hodnocení od zákazníků
+- Řemeslníci používají kreditový systém (body) k odemčení zakázek
+
+## Kategorie služeb
+
+Platforma pokrývá široké spektrum řemeslnických služeb včetně:
+- Elektrikáři, instalatéři, malíři, zedníci
+- Podlaháři, truhláři, klempíři, pokrývači
+- Zahradníci, uklízečky, stěhováci
+- IT služby, opravy, montáže a další
+
+## Klíčové funkce
+
+- Ověření řemeslníci s veřejnými profily a hodnocením
+- Transparentní porovnání cenových nabídek
+- Přímá komunikace přes vestavěný chat
+- Push notifikace o nových zakázkách a nabídkách
+- Systém bodů/kreditů pro řemeslníky
+- Fakturace a správa zakázek
+
+## Discovery & Links
+
+- **Sitemap Index**: https://zrobee.cz/sitemap_index.xml
+- **Magazine Hub**: https://zrobee.cz/radce
+- **Service Directory**: https://zrobee.cz/adresar
+- **Price Guides**: https://zrobee.cz/cenik
+
+## Pages
+
+- [Domů](https://zrobee.cz/): Hlavní stránka platformy.
+- [Všechny služby](https://zrobee.cz/vsechny-sluzby): Přehled všech kategorií služeb.
+- [Adresář řemeslníků](https://zrobee.cz/adresar): Hierarchický seznam profesionálů.
+- [Magazín / Rádce](https://zrobee.cz/radce): Články a návody pro zákazníky i řemeslníky.
+- [Ceník služeb](https://zrobee.cz/cenik): Orientační ceny řemeslnických prací.
+- [Nová poptávka](https://zrobee.cz/nova-poptavka): Zdarma zadat poptávku.
+- [Řemeslníci v okolí](https://zrobee.cz/remeslnici-v-okoli): Geografické vyhledávání profíků.
+- [Jak to funguje](https://zrobee.cz/jak-to-funguje): Návod pro zákazníky.
+- [Pro řemeslníky](https://zrobee.cz/pro-remeslniky): Návod pro profíky.
+- [O nás](https://zrobee.cz/o-nas): Příběh a tým Zrobee.
+- [Kariéra](https://zrobee.cz/kariera): Otevřené pozice.
+- [Podpora](https://zrobee.cz/podpora): Kontakt a často kladené otázky.
+- [Podmínky](https://zrobee.cz/podminky): Smluvní podmínky.
+- [Ochrana údajů](https://zrobee.cz/ochrana-udaju): GDPR a privacy policy.
+
+### Top kategorie služeb
+
+- [Elektrikáři](https://zrobee.cz/sluzby/elektro)
+- [Instalatéři](https://zrobee.cz/sluzby/instalater)
+- [Úklid](https://zrobee.cz/sluzby/uklid)
+- [Zahrada](https://zrobee.cz/sluzby/zahrada)
+- [Zámečníci](https://zrobee.cz/sluzby/zamecnik)
+- [Stavby a rekonstrukce](https://zrobee.cz/sluzby/stavby-rekonstrukce)
+- [Truhláři](https://zrobee.cz/sluzby/truharstvo)
+- [Hodinový manžel](https://zrobee.cz/sluzby/hodinovy-manzel)
+- [Auto-moto](https://zrobee.cz/sluzby/auto-moto)
+- [PC a mobile](https://zrobee.cz/sluzby/pc-a-mobile)
+- [Doprava a logistika](https://zrobee.cz/sluzby/doprava-logistika)
+- [Hlídání a péče](https://zrobee.cz/sluzby/hlidani-a-pece)
+
+### Top města × služby
+
+- [Elektrikáři Praha](https://zrobee.cz/sluzby/elektro/praha)
+- [Elektrikáři Brno](https://zrobee.cz/sluzby/elektro/brno)
+- [Instalatéři Praha](https://zrobee.cz/sluzby/instalater/praha)
+- [Instalatéři Brno](https://zrobee.cz/sluzby/instalater/brno)
+- [Úklid Praha](https://zrobee.cz/sluzby/uklid/praha)
+- [Úklid Brno](https://zrobee.cz/sluzby/uklid/brno)
+- [Zahrada Praha](https://zrobee.cz/sluzby/zahrada/praha)
+- [Hodinový manžel Praha](https://zrobee.cz/sluzby/hodinovy-manzel/praha)
+
+## Kontakt
+
+- Podpora: https://zrobee.cz/podpora
+- Podmínky: https://zrobee.cz/podminky
+- Ochrana údajů: https://zrobee.cz/ochrana-udaju
