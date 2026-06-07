@@ -2,6 +2,6 @@
   "name": "atmosferi",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd admin && npm install && npm run build && cd .. && rm -rf admin/src admin/node_modules admin/public && cp -r admin/dist/* admin/"
+    "build": "mkdir -p _vercel_out && cp *.html _vercel_out/ && cp *.css _vercel_out/ && cp -r assets fonts demos preview ui_kits _vercel_out/ && cp _redirects _vercel_out/ && cp vercel.json _vercel_out/ && cd admin && npm install && npm run build && cd .. && mkdir -p _vercel_out/admin && cp -r admin/dist/* _vercel_out/admin/"
   }
 }

@@ -1,4 +1,5 @@
 {
+  "outputDirectory": "_vercel_out",
   "rewrites": [
     {
       "source": "/admin/(.*)",
