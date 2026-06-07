@@ -1,8 +1,12 @@
+import { Resend } from "npm:resend@2.0.0";
 import { render } from "react-email";
 import { StandardAlert } from "./email-templates/StandardAlert.tsx";
 import { MagazineTemplate } from "./email-templates/MagazineTemplate.tsx";
 import { SniperTemplate } from "./email-templates/SniperTemplate.tsx";
 import { SniperRecruitmentEmail } from "./email-templates/SniperRecruitmentEmail.tsx";
+
+// Lazily initialized to prevent Edge Function worker crashes on boot if secret is missing
+let resendClient: InstanceType<typeof Resend> | null = null;
 
 export interface EmailPayload {
   to: string;
@@ -14,7 +18,7 @@ export interface EmailPayload {
   greeting?: string;
   secondaryText?: string;
   emoji?: string;
-  layoutType?: "standard" | "magazine" | "sniper" | "sniper_recruitment" | "plain";
+  layoutType?: "standard" | "magazine" | "sniper" | "sniper_recruitment";
   heroImageUrl?: string;
   magazineArticles?: Array<{
     title: string;
@@ -45,18 +49,20 @@ export interface EmailPayload {
   carouselImages?: string[];
   articlesEnabled?: boolean;
   from?: string;
-  fromName?: string;
 }
 
-export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; brevoId?: string }> {
+export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; resendId?: string }> {
   try {
-    const apiKey = Deno.env.get("BREVO_API_KEY");
-    if (!apiKey) {
-      console.error('[Email] Missing BREVO_API_KEY environment variable');
-      return { success: false, error: 'Missing BREVO_API_KEY environment variable' };
+    if (!resendClient) {
+      const apiKey = Deno.env.get("RESEND_API_KEY");
+      if (!apiKey) {
+         console.error('[Email] Missing RESEND_API_KEY environment variable');
+         return { success: false, error: 'Missing RESEND_API_KEY environment variable' };
+      }
+      resendClient = new Resend(apiKey);
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://tuuzehvlcpooatajyxdx.supabase.co";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://uminqrrkflgldlfeaypn.supabase.co";
     const unsubscribeUrl = `${supabaseUrl}/functions/v1/handle-unsubscribe?email=${encodeURIComponent(payload.to)}`;
 
     let html;
@@ -67,10 +73,10 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         heroTitle: payload.title,
         heroDescription: payload.body,
         heroCtaText: payload.ctaText || "Zobrazit",
-        heroCtaUrl: payload.ctaUrl || "https://atmosferi.com",
-        bannerText: payload.secondaryText || "Hledáte architekta?",
-        bannerCtaText: "Kontakt",
-        bannerCtaUrl: "https://atmosferi.com/contact",
+        heroCtaUrl: payload.ctaUrl || "https://zrobee.cz",
+        bannerText: payload.secondaryText || "Hledáte řemeslníka?",
+        bannerCtaText: "Zadat poptávku",
+        bannerCtaUrl: "https://zrobee.cz/zadat-poptavku",
         mainArticles: payload.magazineArticles || [],
         unsubscribeUrl,
       }));
@@ -90,11 +96,11 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         greeting: payload.greeting,
         buttonText: payload.ctaText,
         urgencyBannerEnabled: payload.urgencyBannerEnabled ?? true,
-        urgencyBannerText: payload.urgencyBannerText || "Atmosferi: Architektura & Interiéry",
+        urgencyBannerText: payload.urgencyBannerText || "Spěchá: Zákazník čeká na rychlou reakci. Tuto zakázku jsme právě odeslali pouze vybraným specialistům ve vašem okolí.",
         promoBannerEnabled: payload.promoBannerEnabled ?? true,
-        promoBannerText: payload.promoBannerText || "Spojujeme špičkové dodavatele s architekty.",
+        promoBannerText: payload.promoBannerText || "Zaváděcí akce: Protože Zrobee právě spouštíme, první registrovaní profíci od nás získávají 100 kreditů zdarma do začátku.",
         psFooterEnabled: payload.psFooterEnabled ?? false,
-        psFooterText: payload.psFooterText || "P.S. Pokud si nepřejete dostávat další e-maily, napište 'Ne'.",
+        psFooterText: payload.psFooterText || "P.S. Pokud už máte plno a další zakázky teď nepotřebujete, stačí mi odepsat 'Ne' a už Vás nebudu nabídkami rušit.",
         showJobWidget: payload.showJobWidget ?? true,
         showCtaButton: payload.showCtaButton ?? true,
         secondaryText: payload.secondaryText,
@@ -133,33 +139,20 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       }));
     }
 
-    const fromEmail = payload.from || "info@atmosferi.com";
-    const fromName = payload.fromName || "Atmosferi";
-
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "accept": "application/json",
-        "api-key": apiKey,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { name: fromName, email: fromEmail },
-        to: [{ email: payload.to }],
-        subject: payload.subject,
-        htmlContent: html,
-      }),
+    const { data, error } = await resendClient.emails.send({
+      from: payload.from || "Zrobee <noreply@zrobee.cz>",
+      to: [payload.to],
+      subject: payload.subject,
+      html,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Email] Failed to send via Brevo:', errorText);
-      return { success: false, error: errorText };
+    if (error) {
+      console.error('[Email] Failed to send:', error);
+      return { success: false, error: error.message };
     }
 
-    const data = await response.json();
-    console.log('[Email] Sent successfully via Brevo to:', payload.to);
-    return { success: true, brevoId: data.messageId };
+    console.log('[Email] Sent successfully to:', payload.to);
+    return { success: true, resendId: data?.id };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[Email] Error:', errorMessage);

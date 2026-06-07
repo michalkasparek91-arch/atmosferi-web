@@ -1,0 +1,10 @@
+{
+  "imports": {
+    "supabase": "https://esm.sh/@supabase/supabase-js@2.39.7",
+    "stripe": "https://esm.sh/stripe@18.5.0",
+    "resend": "https://esm.sh/resend@2.0.0",
+    "react-email": "npm:@react-email/render@0.0.12",
+    "vokativ": "https://esm.sh/vokativ@1.0.0",
+    "std/": "https://deno.land/std@0.168.0/"
+  }
+}
