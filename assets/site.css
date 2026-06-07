@@ -222,22 +222,20 @@ button { font-family: inherit; }
 .nav.is-open .nav__mobile { display: flex; }
 
 /* ==========================================================================
-   IMAGERY — the cinematic reveal (grayscale → colour)
+   IMAGERY — natively in colour, full saturation on hover
    ========================================================================== */
 .reveal { display: block; overflow: hidden; }
 .reveal img, .scroller img, .viewfinder img {
   width: 100%;
-  filter: grayscale(1) contrast(1.02) brightness(1.02);
+  filter: saturate(0.9);
   transition: filter var(--dur-standard) var(--curve),
               transform var(--dur-standard) var(--curve);
 }
 .reveal:hover img,
 .reveal-card:hover .reveal img,
 .viewfinder:hover img,
-body.color-on .reveal img,
-body.color-on .scroller img,
-body.color-on .viewfinder img {
-  filter: grayscale(0) contrast(1) brightness(1);
+.scroller:hover img {
+  filter: saturate(1.05);
 }
 
 /* ==========================================================================
