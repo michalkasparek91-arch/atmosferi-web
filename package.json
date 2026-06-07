@@ -1,0 +1,7 @@
+{
+  "name": "atmosferi",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd admin && npm install && npm run build && cd .. && rm -rf admin/src admin/node_modules admin/public && cp -r admin/dist/* admin/"
+  }
+}
