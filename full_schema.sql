@@ -1788,8 +1788,8 @@ WHERE category_id IN (
 DELETE FROM service_categories 
 WHERE slug = 'rekonstrukce' OR slug = 'rekonstrukce-opravy';
 -- Create Rekonstrukce / opravy category
-INSERT INTO service_categories (name, slug, icon) 
-VALUES ('Rekonstrukce / opravy', 'rekonstrukce-opravy', 'Wrench');
+INSERT INTO service_categories (id, name, slug, icon) 
+VALUES ('fc067ba7-2eda-4905-8c29-8d40b365636d', 'Rekonstrukce / opravy', 'rekonstrukce-opravy', 'Wrench');
 
 -- Get the category ID
 DO $$
