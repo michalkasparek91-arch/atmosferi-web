@@ -10,7 +10,8 @@
   /* ============================ PRICING ============================ */
   /* Three engagements as columns bounded by rules (no fill, no radius). */
   .tiers { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--ink); }
-  .tier { border-bottom: 1px solid var(--ink); border-right: 1px solid var(--line); padding: var(--space-5) var(--space-4) var(--space-5) 0; display: flex; flex-direction: column; }
+  .tier { border-bottom: 1px solid var(--ink); border-right: 1px solid var(--line); padding: var(--space-5) var(--space-4); display: flex; flex-direction: column; }
+  .tier:first-child { padding-left: 0; }
   .tier:last-child { border-right: 0; }
   .tier__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
   .tier__num { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); }
@@ -73,7 +74,7 @@
 
   @media (max-width: 980px) {
     .tiers { grid-template-columns: 1fr; }
-    .tier { border-right: 0; padding-right: 0; }
+    .tier { border-right: 0; padding-left: 0; padding-right: 0; }
     .tier__name { font-size: var(--text-4xl); }
     .composer { grid-template-columns: 1fr; gap: var(--space-6); }
     .stack-panel { position: static; }

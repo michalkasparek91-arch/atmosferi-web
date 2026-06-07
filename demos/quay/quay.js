@@ -149,10 +149,10 @@
 
   /* ───── find your home ───── */
   var HOMES=[
-    {key:"Studio",  name:"The Studio",     price:"£245k", beds:"Studio", size:"38 m²", count:24, sold:70, blurb:"Compact, light and clever — a complete first home opening straight onto the boardwalk.", seed:"quay-plan-studio"},
-    {key:"1 bed",   name:"The One-Bed",    price:"£330k", beds:"1 bed",  size:"52 m²", count:38, sold:54, blurb:"A proper one-bedroom with a galley kitchen and a balcony facing the water.", seed:"quay-plan-1b"},
-    {key:"2 bed",   name:"The Two-Bed",    price:"£465k", beds:"2 bed",  size:"74 m²", count:31, sold:42, blurb:"Dual-aspect living, two double bedrooms and a wide terrace for the long evenings.", seed:"quay-plan-2b"},
-    {key:"Townhouse",name:"The Townhouse", price:"£720k", beds:"3–4 bed",size:"128 m²",count:12, sold:25, blurb:"A three-storey family home with a roof garden and its own door onto the green.", seed:"quay-plan-th"}
+    {key:"Studio",  name:"The Studio",     price:"£245k", beds:"Studio", size:"38 m²", count:24, sold:70, blurb:"Compact, light and clever — a complete first home opening straight onto the boardwalk.", img:"img/plan-studio.webp"},
+    {key:"1 bed",   name:"The One-Bed",    price:"£330k", beds:"1 bed",  size:"52 m²", count:38, sold:54, blurb:"A proper one-bedroom with a galley kitchen and a balcony facing the water.", img:"img/plan-1bed.webp"},
+    {key:"2 bed",   name:"The Two-Bed",    price:"£465k", beds:"2 bed",  size:"74 m²", count:31, sold:42, blurb:"Dual-aspect living, two double bedrooms and a wide terrace for the long evenings.", img:"img/plan-2bed.webp"},
+    {key:"Townhouse",name:"The Townhouse", price:"£720k", beds:"3–4 bed",size:"128 m²",count:12, sold:25, blurb:"A three-storey family home with a roof garden and its own door onto the green.", img:"img/plan-townhouse.webp"}
   ];
   var htabs=document.getElementById('htabs');
   HOMES.forEach(function(h,i){
@@ -175,7 +175,7 @@
     document.getElementById('hBar').style.width=h.sold+'%';
     var img=document.getElementById('hplanImg');
     img.style.opacity='0';
-    setTimeout(function(){ img.src='https://picsum.photos/seed/'+h.seed+'/900/700'; img.onload=function(){ img.style.opacity='.9'; }; }, 120);
+    setTimeout(function(){ img.src=h.img||('https://picsum.photos/seed/'+h.seed+'/900/700'); img.onload=function(){ img.style.opacity='.9'; }; }, 120);
   }
 
   /* ───── what's on ───── */
