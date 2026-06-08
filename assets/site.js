@@ -122,12 +122,37 @@
     });
   }
 
+  /* ---- Site switcher (sliding knob) --------------------------------- */
+  function initSwitcher() {
+    function place(sw, seg) {
+      var k = sw.querySelector('.swx__knob');
+      if (!k || !seg) return;
+      k.style.left = seg.offsetLeft + 'px';
+      k.style.width = seg.offsetWidth + 'px';
+    }
+    function rest(sw) { place(sw, sw.querySelector('.swx__seg.is-on')); }
+    var sws = document.querySelectorAll('.swx');
+    for (var i = 0; i < sws.length; i++) {
+      (function (sw) {
+        rest(sw);
+        var segs = sw.querySelectorAll('.swx__seg');
+        for (var j = 0; j < segs.length; j++) {
+          segs[j].addEventListener('mouseenter', (function (s) { return function () { place(sw, s); }; })(segs[j]));
+        }
+        sw.addEventListener('mouseleave', function () { rest(sw); });
+      })(sws[i]);
+    }
+    window.addEventListener('resize', function () { for (var k = 0; k < sws.length; k++) rest(sws[k]); });
+    window.addEventListener('load', function () { for (var k = 0; k < sws.length; k++) rest(sws[k]); });
+  }
+
   /* ---- Boot --------------------------------------------------------- */
   function boot() {
     initColor();
     initMenu();
     initChoices();
     initForm();
+    initSwitcher();
   }
 
   if (document.readyState === 'loading') {

@@ -8,14 +8,23 @@
   var reduce = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
   document.documentElement.classList.add("vz");  // enables curtain reveals
 
-  /* ---- scroll progress ---- */
+  /* ---- scroll progress + nav readability state ---- */
   var bar = document.getElementById("progress");
+  var nav = document.querySelector("header.nav");
+  var ribbon = document.querySelector(".ds-ribbon");
   function onScroll() {
     var h = document.documentElement;
+    var st = h.scrollTop || window.pageYOffset || 0;
     var max = h.scrollHeight - h.clientHeight;
-    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+    bar.style.width = (max > 0 ? (st / max) * 100 : 0) + "%";
+    if (nav) {
+      var rh = ribbon ? ribbon.offsetHeight : 0;
+      nav.style.top = Math.max(0, rh - st) + "px";
+      nav.classList.toggle("scrolled", st >= rh - 2);
+    }
   }
   window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
   onScroll();
 
   /* ---- hero bloom on load ---- */
@@ -76,6 +85,46 @@
       el.addEventListener("mouseleave", function () { vcur.classList.remove("show"); });
     });
   }
+
+  /* ---- contact form: chips + mailto compose ---- */
+  (function () {
+    var form = document.getElementById("viz-form");
+    if (!form) return;
+    var chipsWrap = form.querySelector("[data-viz-chips]");
+    var chosen = "";
+    if (chipsWrap) {
+      chipsWrap.addEventListener("click", function (e) {
+        var b = e.target.closest(".vchip");
+        if (!b) return;
+        var on = b.getAttribute("aria-pressed") === "true";
+        chipsWrap.querySelectorAll(".vchip").forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
+        if (!on) { b.setAttribute("aria-pressed", "true"); chosen = b.textContent.trim(); }
+        else { chosen = ""; }
+      });
+    }
+    var status = form.querySelector(".vstatus");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = (form.querySelector("#vf-name").value || "").trim();
+      var email = (form.querySelector("#vf-email").value || "").trim();
+      var msg = (form.querySelector("#vf-msg").value || "").trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (status) status.textContent = "— A valid email is needed so I can reply.";
+        form.querySelector("#vf-email").focus();
+        return;
+      }
+      var subject = "Visualisation enquiry" + (chosen ? " · " + chosen : "");
+      var body =
+        "Name: " + (name || "—") + "\n" +
+        "Email: " + email + "\n" +
+        "Needs: " + (chosen || "—") + "\n\n" +
+        (msg || "");
+      var href = "mailto:info@atmosferi.com?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(body);
+      window.location.href = href;
+      if (status) status.textContent = "— Opening your email app… or write to info@atmosferi.com.";
+    });
+  })();
 
   /* ---- site switcher: sliding knob (Studio ↔ Visual) ---- */
   (function () {

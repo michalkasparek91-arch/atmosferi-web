@@ -11,18 +11,18 @@
 
   /* ---- Data --------------------------------------------------------- */
   var BASES = {
-    portfolio: { name: 'Portfolio', price: 6000,  hint: 'Up to 6 pages · light CMS · visualisation à la carte' },
-    practice:  { name: 'Practice',  price: 14000, hint: 'Design system · full CMS · one visualisation module included' },
-    launch:    { name: 'Launch',    price: 30000, hint: 'Sales platform · CRM · the full visualisation suite included' }
+    portfolio: { name: 'Portfolio', price: 3000,  hint: 'Up to 6 pages · light CMS · visualisation à la carte' },
+    practice:  { name: 'Practice',  price: 7000, hint: 'Design system · full CMS · one visualisation module included' },
+    launch:    { name: 'Launch',    price: 15000, hint: 'Sales platform · CRM · the full visualisation suite included' }
   };
 
   // Visualisation modules, in escalating scope.
   var MODULES = [
-    { id: 'still',  name: 'Hero render — still',     price: 2500,  desc: 'One large-format architectural still' },
-    { id: 'flythr', name: 'Animated fly-through',    price: 6000,  desc: 'Cinematic camera move · ~30s' },
-    { id: 'model',  name: 'Interactive 3D model',    price: 8000,  desc: 'Orbit · section · explore in browser' },
-    { id: 'stack',  name: 'Floor-stack explorer',    price: 9000,  desc: 'Navigable unit / availability stack' },
-    { id: 'webgl',  name: 'Real-time WebGL scene',   price: 12000, desc: 'Live-lit, navigable spatial scene' }
+    { id: 'still',  name: 'Hero render — still',     price: 1250,  desc: 'One large-format architectural still' },
+    { id: 'flythr', name: 'Animated fly-through',    price: 3000,  desc: 'Cinematic camera move · ~30s' },
+    { id: 'model',  name: 'Interactive 3D model',    price: 4000,  desc: 'Orbit · section · explore in browser' },
+    { id: 'stack',  name: 'Floor-stack explorer',    price: 4500,  desc: 'Navigable unit / availability stack' },
+    { id: 'webgl',  name: 'Real-time WebGL scene',   price: 6000, desc: 'Live-lit, navigable spatial scene' }
   ];
 
   // Which modules each base bundles in (locked-on, no extra charge).
