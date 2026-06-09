@@ -993,9 +993,9 @@ export default function AdminEmails() {
         return;
       }
 
-      const header = "full_name,email,phone,user_type,website,is_pro,city,full_address,postal_code,street_name,street_number,latitude,longitude,tags,category,subcategory,engagement_score,contact_source,description\n";
+      const header = "full_name,email,phone,user_type,website,is_pro,city,country,language,full_address,postal_code,street_name,street_number,latitude,longitude,tags,category,subcategory,engagement_score,contact_source,description,ai_icebreaker\n";
       const rows = data.map((c: any) => {
-        return `"${c.full_name || ""}","${c.email}","${c.phone || ""}","${c.user_type || "worker"}","${c.website || ""}","${c.is_pro ? "Yes" : "No"}","${c.city || ""}","${c.full_address || ""}","${c.postal_code || ""}","${c.street_name || ""}","${c.street_number || ""}","${c.latitude || ""}","${c.longitude || ""}","${(c.tags || []).join(";")}","${c.category || ""}","${c.subcategory || ""}","${c.engagement_score}","${c.contact_source}","${(c.description || "").replace(/"/g, '""')}"`;
+        return `"${c.full_name || ""}","${c.email}","${c.phone || ""}","${c.user_type || "worker"}","${c.website || ""}","${c.is_pro ? "Yes" : "No"}","${c.city || ""}","${c.country || ""}","${c.language || ""}","${c.full_address || ""}","${c.postal_code || ""}","${c.street_name || ""}","${c.street_number || ""}","${c.latitude || ""}","${c.longitude || ""}","${(c.tags || []).join(";")}","${c.category || ""}","${c.subcategory || ""}","${c.engagement_score}","${c.contact_source}","${(c.description || "").replace(/"/g, '""')}","${(c.ai_icebreaker || "").replace(/"/g, '""')}"`;
       });
 
       const csv = header + rows.join("\n");
@@ -1038,6 +1038,8 @@ export default function AdminEmails() {
         if (cleaned === "jméno" || cleaned === "name") return "full_name";
         if (cleaned === "firma" || cleaned === "společnost" || cleaned === "název firmy") return "company_name";
         if (cleaned === "město" || cleaned === "obec") return "city";
+        if (cleaned === "stát" || cleaned === "země") return "country";
+        if (cleaned === "jazyk") return "language";
         if (cleaned === "telefon" || cleaned === "tel") return "phone";
         if (cleaned === "web" || cleaned === "stránky") return "website";
         return cleaned;
@@ -1074,6 +1076,8 @@ export default function AdminEmails() {
             email: rowData.email,
             phone: rowData.phone || null,
             city: rowData.city || null,
+            country: rowData.country || null,
+            language: rowData.language || null,
             website: rowData.website || null,
             full_address: rowData.full_address || null,
             postal_code: rowData.postal_code || null,
@@ -1087,6 +1091,7 @@ export default function AdminEmails() {
             is_pro: rowData.is_pro?.toLowerCase() === "yes" || rowData.is_pro === "true",
             engagement_score: rowData.engagement_score ? parseInt(rowData.engagement_score) : 0,
             description: rowData.description || null,
+            ai_icebreaker: rowData.ai_icebreaker || null,
             user_type: rowData.user_type || 'worker',
             source: rowData.contact_source || 'scraped',
             referral_code: rowData.referral_code || null,
