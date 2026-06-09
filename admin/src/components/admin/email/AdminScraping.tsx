@@ -34,6 +34,10 @@ export const AdminScraping = () => {
   const [newCity, setNewCity] = useState("");
   const [newCountry, setNewCountry] = useState("");
 
+  const [selectedKeyword, setSelectedKeyword] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+
   const { data: serverConfig, isLoading: configLoading } = useQuery({
     queryKey: ["admin-scraper-config"],
     queryFn: async () => {
@@ -148,7 +152,12 @@ export const AdminScraping = () => {
     toast.loading("🌐 AI (Gemini) prohledává web podle aktuálního nastavení...", { id: "manual-sniper" });
     try {
       const res = await supabase.functions.invoke("autonomous-web-sniper", {
-        body: { forceSearch: true }
+        body: { 
+          forceSearch: true,
+          targetKeyword: selectedKeyword || undefined,
+          targetCity: selectedCity || undefined,
+          targetCountry: selectedCountry || undefined
+        }
       });
       if (res.error) throw new Error(res.error.message || "Neznámá chyba");
       
@@ -219,9 +228,14 @@ export const AdminScraping = () => {
               <div className="flex flex-wrap gap-2">
                 {config.keywords.length === 0 && <span className="text-sm text-muted-foreground italic">Zatím žádná klíčová slova</span>}
                 {config.keywords.map(kw => (
-                  <Badge key={kw} variant="secondary" className="px-3 py-1.5 text-xs gap-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">
+                  <Badge 
+                    key={kw} 
+                    variant={selectedKeyword === kw ? "default" : "secondary"} 
+                    className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedKeyword === kw ? "bg-primary text-primary-foreground shadow-sm" : "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20"}`}
+                    onClick={() => setSelectedKeyword(selectedKeyword === kw ? null : kw)}
+                  >
                     {kw}
-                    <button onClick={() => handleRemoveKeyword(kw)} className="text-primary hover:text-red-500 transition-colors">
+                    <button onClick={(e) => { e.stopPropagation(); handleRemoveKeyword(kw); }} className={`transition-colors ${selectedKeyword === kw ? "text-primary-foreground/70 hover:text-white" : "text-primary hover:text-red-500"}`}>
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -252,9 +266,14 @@ export const AdminScraping = () => {
               <div className="flex flex-wrap gap-2">
                 {config.cities.length === 0 && <span className="text-sm text-muted-foreground italic">Zatím žádná města</span>}
                 {config.cities.map(city => (
-                  <Badge key={city} variant="outline" className="px-3 py-1.5 text-xs gap-2 rounded-xl border-border hover:bg-muted transition-colors">
+                  <Badge 
+                    key={city} 
+                    variant={selectedCity === city ? "default" : "outline"} 
+                    className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCity === city ? "bg-primary text-primary-foreground shadow-sm border-primary" : "border-border hover:bg-muted"}`}
+                    onClick={() => setSelectedCity(selectedCity === city ? null : city)}
+                  >
                     {city}
-                    <button onClick={() => handleRemoveCity(city)} className="text-muted-foreground hover:text-red-500 transition-colors">
+                    <button onClick={(e) => { e.stopPropagation(); handleRemoveCity(city); }} className={`transition-colors ${selectedCity === city ? "text-primary-foreground/70 hover:text-white" : "text-muted-foreground hover:text-red-500"}`}>
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -285,9 +304,14 @@ export const AdminScraping = () => {
     <div className="flex flex-wrap gap-2">
       {config.countries.length === 0 && <span className="text-sm text-muted-foreground italic">Zatím žádné země</span>}
       {config.countries.map(ctry => (
-        <Badge key={ctry} variant="outline" className="px-3 py-1.5 text-xs gap-2 rounded-xl border-border hover:bg-muted transition-colors">
+        <Badge 
+          key={ctry} 
+          variant={selectedCountry === ctry ? "default" : "outline"} 
+          className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCountry === ctry ? "bg-primary text-primary-foreground shadow-sm border-primary" : "border-border hover:bg-muted"}`}
+          onClick={() => setSelectedCountry(selectedCountry === ctry ? null : ctry)}
+        >
           {ctry}
-          <button onClick={() => handleRemoveCountry(ctry)} className="text-muted-foreground hover:text-red-500 transition-colors">
+          <button onClick={(e) => { e.stopPropagation(); handleRemoveCountry(ctry); }} className={`transition-colors ${selectedCountry === ctry ? "text-primary-foreground/70 hover:text-white" : "text-muted-foreground hover:text-red-500"}`}>
             <X className="h-3 w-3" />
           </button>
         </Badge>
@@ -342,7 +366,7 @@ export const AdminScraping = () => {
               <div className="space-y-1.5">
                 <h3 className="font-bold text-foreground">Manuální hledání</h3>
                 <p className="text-[11px] text-muted-foreground">
-                  AI si právě teď vybere 1 náhodné klíčové slovo a 1 město z vašeho seznamu a pokusí se najít 5-10 zcela nových firem.
+                  AI prohledá web. Pokud kliknutím vyberete konkrétní zemi, město nebo klíčové slovo ze seznamů vlevo, vyhledá se PŘESNĚ tato kombinace. Jinak si vybere sama náhodně.
                 </p>
               </div>
               <Button 

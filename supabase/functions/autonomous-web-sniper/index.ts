@@ -65,8 +65,9 @@ Deno.serve(async (req) => {
     }
 
     const keywords = (config.keywords && config.keywords.length > 0) ? config.keywords : defaultConfig.keywords;
-    const targetKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-    const targetCountry = (config.countries && config.countries.length > 0) ? config.countries[Math.floor(Math.random() * config.countries.length)] : defaultConfig.countries[0];
+    const targetKeyword = body.targetKeyword || keywords[Math.floor(Math.random() * keywords.length)];
+    const targetCountry = body.targetCountry || ((config.countries && config.countries.length > 0) ? config.countries[Math.floor(Math.random() * config.countries.length)] : defaultConfig.countries[0]);
+    const targetCity = body.targetCity || "";
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
@@ -76,8 +77,8 @@ Deno.serve(async (req) => {
     // NADOPovaný prompt s automatickou rotací měst
     const SEARCH_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: ${targetCountry}. Obor: "${targetKeyword}". 
 TVŮJ ÚKOL: 
-1. Náhodně si vymysli a vyber JEDNO středně velké město v tomto státě. Pokaždé vyber jiné město, ať nehledáme pořád to samé dookola! Vyhni se hlavnímu městu.
-2. Pomocí nástroje Google Search najdi reálné firmy v tomto nově vybraném městě pro zadaný obor.
+1. ${targetCity ? `Zaměř se PŘESNĚ na toto město: ${targetCity}. Prohledej firmy pouze v této lokalitě.` : `Náhodně si vymysli a vyber JEDNO středně velké město v tomto státě. Pokaždé vyber jiné město, ať nehledáme pořád to samé dookola! Vyhni se hlavnímu městu.`}
+2. Pomocí nástroje Google Search najdi reálné firmy v tomto ${targetCity ? 'zadaném' : 'nově vybraném'} městě pro zadaný obor.
 3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 3-5 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Omezení na 5 firem je přísné z důvodu délky výstupu!
 
 Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
