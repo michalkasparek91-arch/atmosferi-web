@@ -1024,30 +1024,38 @@ export default function AdminEmails() {
       const content = e.target?.result as string;
       if (!content) return;
 
-      const lines = content.split("\n").filter(l => l.trim());
-      if (lines.length <= 1) {
+      const rows = content.split("\n").filter(l => l.trim());
+      if (rows.length <= 1) {
         setIsImporting(false);
         toast({ title: "CSV soubor je prázdný.", variant: "destructive" });
         return;
       }
 
-      const headerLine = lines[0];
-      const separator = headerLine.includes("\t") ? "\t" : ",";
-      const headers = headerLine.split(separator).map(h => h.trim().replace(/^"|"$/g, "").toLowerCase());
+      const separator = content.includes("\t") ? "\t" : content.includes(";") ? ";" : ",";
+      const headers = rows[0].split(separator).map(h => {
+        let cleaned = h.trim().toLowerCase().replace(/^"|"$/g, "");
+        if (cleaned === "e-mail" || cleaned === "emailová adresa" || cleaned === "e-mailová adresa") return "email";
+        if (cleaned === "jméno" || cleaned === "name") return "full_name";
+        if (cleaned === "firma" || cleaned === "společnost" || cleaned === "název firmy") return "company_name";
+        if (cleaned === "město" || cleaned === "obec") return "city";
+        if (cleaned === "telefon" || cleaned === "tel") return "phone";
+        if (cleaned === "web" || cleaned === "stránky") return "website";
+        return cleaned;
+      });
       
-      const dataRows = lines.slice(1);
+      const dataRows = rows.slice(1);
       setImportTotalCount(dataRows.length);
       
       let successCount = 0;
       let errorCount = 0;
       
-      const batchSize = 50;
+      const batchSize = 100;
       for (let i = 0; i < dataRows.length; i += batchSize) {
-        const batch = dataRows.slice(i, i + batchSize).map(row => {
-          // Robust parsing for the detected separator
+        const batchRows = dataRows.slice(i, i + batchSize);
+        const batch = batchRows.map(row => {
           let parts = [];
-          if (separator === "\t") {
-            parts = row.split("\t").map(p => p.trim().replace(/^"|"$/g, ""));
+          if (separator === "\t" || separator === ";") {
+            parts = row.split(separator).map(p => p.trim().replace(/^"|"$/g, ""));
           } else {
             parts = row.match(/(".*?"|[^,]+)/g)?.map(p => p.trim().replace(/^"|"$/g, "")) || [];
           }

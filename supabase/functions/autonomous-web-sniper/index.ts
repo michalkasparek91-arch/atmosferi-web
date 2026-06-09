@@ -115,15 +115,22 @@ Odpověz POUZE čistým validním JSON polem objektů. Žádný markdown, žádn
     const resJson = await geminiRes.json();
     let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     
-    // Strip markdown formatting if any
-    textOut = textOut.replace(/^```json/i, "").replace(/^```/, "").replace(/```$/, "").trim();
+    // Extract JSON block using regex if it's wrapped in markdown
+    const jsonMatch = textOut.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (jsonMatch) {
+      textOut = jsonMatch[1].trim();
+    } else {
+      // fallback basic stripping
+      textOut = textOut.replace(/^```json/i, "").replace(/^```/, "").replace(/```$/, "").trim();
+    }
 
     let discoveredList: any[] = [];
     try {
       discoveredList = JSON.parse(textOut);
     } catch (parseErr) {
       console.error("[WebSniper] Could not parse JSON from Gemini output:", textOut);
-      throw new Error("AI nevrátila validní formát JSON.");
+      // Wait, if it failed parsing, let's just log it and act like 0 discovered instead of crashing the whole function
+      discoveredList = [];
     }
 
     if (!Array.isArray(discoveredList) || discoveredList.length === 0) {
