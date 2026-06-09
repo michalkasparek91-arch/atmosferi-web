@@ -135,7 +135,12 @@ Odpověz POUZE čistým validním JSON polem objektů. Žádný markdown, žádn
 
     if (!Array.isArray(discoveredList) || discoveredList.length === 0) {
       await logJobSuccess(supabase, jobName, { discovered_count: 0, targetKeyword, targetCity });
-      return new Response(JSON.stringify({ ok: true, discovered_count: 0, message: "Nebyly objeveny žádné firmy s e-mailem." }), {
+      return new Response(JSON.stringify({ 
+        ok: true, 
+        discovered_count: 0, 
+        message: "Nebyly objeveny žádné firmy s e-mailem.",
+        debug_output: textOut 
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -199,7 +204,8 @@ Odpověz POUZE čistým validním JSON polem objektů. Žádný markdown, žádn
 
     return new Response(JSON.stringify({ 
       ok: true, 
-      discovered_count: newSavedCount, 
+      discovered_count: newSavedCount,
+      total_found_by_ai: discoveredList.length,
       targetKeyword,
       targetCity,
       message: `Úspěšně dohledáno a uloženo ${newSavedCount} firem z webu pro klíčové slovo ${targetKeyword} (${targetCity}).` 

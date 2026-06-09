@@ -148,15 +148,25 @@ export const AdminScraping = () => {
     toast.loading("🌐 AI (Gemini) prohledává web podle aktuálního nastavení...", { id: "manual-sniper" });
     try {
       const res = await supabase.functions.invoke("autonomous-web-sniper", {
-        body: { forceSearch: true } // Vše si Edge Funkce načte sama ze supabase DB
+        body: { forceSearch: true }
       });
-      if (res.error) throw new Error(res.error.message || "Chyba při volání AI");
+      if (res.error) throw new Error(res.error.message || "Neznámá chyba");
+      
       const data = res.data;
-      if (data?.discovered_count > 0) {
+      if (!data || data.error) throw new Error(data?.error || "Neznámá chyba AI serveru");
+      
+      if (data.discovered_count > 0) {
         toast.success(`🎯 Úspěch: AI objevila a uložila ${data.discovered_count} nových B2B kontaktů!`, { id: "manual-sniper" });
         queryClient.invalidateQueries({ queryKey: ["admin-leads-count-total"] });
       } else {
-        toast.info("AI tentokrát nenalezla žádné nové kontakty (nebo už je všechny v databázi máte).", { id: "manual-sniper" });
+        if (data.total_found_by_ai > 0) {
+           toast.info(`AI našla ${data.total_found_by_ai} kontaktů, ale všechny už v CRM máte (nebo chyběl e-mail). Zkuste jiná klíčová slova!`, { id: "manual-sniper", duration: 8000 });
+        } else if (data.debug_output) {
+           console.error("AI Output:", data.debug_output);
+           toast.error(`Nenalezeno nic. AI vrátila:\n${data.debug_output.substring(0, 150)}...`, { id: "manual-sniper", duration: 10000 });
+        } else {
+           toast.info("AI tentokrát nenalezla žádné nové kontakty (nebo už je všechny v databázi máte).", { id: "manual-sniper" });
+        }
       }
     } catch (err: any) {
       toast.error(`❌ Vyhledávání selhalo: ${err.message || err}`, { id: "manual-sniper" });
