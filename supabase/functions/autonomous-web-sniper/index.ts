@@ -124,6 +124,7 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
     }
 
     let newSavedCount = 0;
+    let lastInsertError = null;
     for (const item of discoveredList) {
       if (!item.email || !item.email.includes("@")) continue;
       const cleanEmail = item.email.toLowerCase().trim();
@@ -154,12 +155,24 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
           source: "ai_web_sniper",
       }).select().single();
 
-      if (!insertErr && newLead) newSavedCount++;
+      if (!insertErr && newLead) {
+          newSavedCount++;
+      } else if (insertErr) {
+          lastInsertError = insertErr.message;
+      }
     }
 
     await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount });
     
     if (newSavedCount === 0 && discoveredList.length > 0) {
+       if (lastInsertError) {
+          // Pokud selhalo ukládání, nesmíme poslat total_found_by_ai, jinak to frontend schová pod "info" hlášku
+          return new Response(JSON.stringify({ 
+            ok: true, 
+            discovered_count: 0, 
+            debug_output: `Kritická chyba: AI našla kontakty, ale databáze je odmítla uložit! Důvod z DB: ${lastInsertError}` 
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+       }
        return new Response(JSON.stringify({ 
          ok: true, 
          discovered_count: 0, 
