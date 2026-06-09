@@ -78,20 +78,20 @@ Deno.serve(async (req) => {
 TVŮJ ÚKOL: 
 1. Náhodně si vymysli a vyber JEDNO středně velké město v tomto státě. Pokaždé vyber jiné město, ať nehledáme pořád to samé dookola! Vyhni se hlavnímu městu.
 2. Pomocí nástroje Google Search najdi reálné firmy v tomto nově vybraném městě pro zadaný obor.
-3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi 5-10 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!).
+3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 3-5 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Omezení na 5 firem je přísné z důvodu délky výstupu!
 
 Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
 Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř textových hodnot (např. v ai_icebreaker) nesmíš používat neescapované uvozovky! Místo uvozovek používej apostrofy, aby se nerozbil JSON parser.`;
 
     let geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7 } }) 
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7, maxOutputTokens: 8192 } }) 
     });
 
     if (!geminiRes.ok && geminiRes.status === 503) {
        geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
          method: "POST", headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7 } })
+         body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7, maxOutputTokens: 8192 } })
        });
     }
 
