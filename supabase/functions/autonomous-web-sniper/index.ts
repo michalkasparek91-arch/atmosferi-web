@@ -203,6 +203,8 @@ Odpověz POUZE validním polem objektů v JSON formátu. Nic jiného nepiš.`;
 
       if (!insertErr && newLead) {
         newSavedCount++;
+      } else if (insertErr) {
+        console.error(`[WebSniper] Error inserting lead ${cleanEmail}:`, insertErr);
       }
     }
 

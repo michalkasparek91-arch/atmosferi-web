@@ -188,6 +188,7 @@ export default function AdminEmails() {
   // CRM Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [minEngagement, setMinEngagement] = useState("0");
+  const [minPremiumScore, setMinPremiumScore] = useState("0");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [subcatFilter, setSubcatFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -601,12 +602,13 @@ export default function AdminEmails() {
   }, [suitableWorkers]);
 
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, sourceFilter, subcatFilter, categoryFilter, userTypeFilter, cityFilter, radiusFilter, crmPage],
+    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, sourceFilter, subcatFilter, categoryFilter, userTypeFilter, cityFilter, radiusFilter, crmPage],
     queryFn: async () => {
       let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false });
       
       if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
+      if (minPremiumScore && parseInt(minPremiumScore) > 0) query = query.gte("premium_score", parseInt(minPremiumScore));
       if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
       else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
       else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
@@ -1241,8 +1243,9 @@ export default function AdminEmails() {
                 <AudienceManager 
                   {...{
                     searchTerm, setSearchTerm,
-                    minEngagement, setMinEngagement,
-                    sourceFilter, setSourceFilter,
+                    minEngagement: minEngagement, setMinEngagement: setMinEngagement,
+                    minPremiumScore: minPremiumScore, setMinPremiumScore: setMinPremiumScore,
+                    sourceFilter: sourceFilter, setSourceFilter: setSourceFilter,
                     leadSheet, leadsLoading,
                     leadTotalCount,
                     crmPage, setCrmPage,

@@ -102,6 +102,7 @@ export const AudienceManager = (props: any) => {
   const {
     searchTerm, setSearchTerm,
     minEngagement, setMinEngagement,
+    minPremiumScore, setMinPremiumScore,
     sourceFilter, setSourceFilter,
     leadSheet, leadsLoading,
     leadTotalCount,
@@ -468,6 +469,18 @@ export const AudienceManager = (props: any) => {
                       <SelectItem value="10">Skóre &gt; 10</SelectItem>
                       <SelectItem value="50">Skóre &gt; 50</SelectItem>
                       <SelectItem value="100">Skóre &gt; 100</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={minPremiumScore} onValueChange={setMinPremiumScore}>
+                    <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
+                      <div className="flex items-center"><Star className="h-3 w-3 mr-1.5 text-amber-500/70 shrink-0" /><SelectValue placeholder="Kvalita" /></div>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl text-[12px]">
+                      <SelectItem value="0">Premium Score: Vše</SelectItem>
+                      <SelectItem value="50">Prémiovost &gt; 50</SelectItem>
+                      <SelectItem value="80">Top firmy &gt; 80</SelectItem>
+                      <SelectItem value="90">Luxusní &gt; 90</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
