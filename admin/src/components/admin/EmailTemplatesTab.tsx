@@ -59,17 +59,18 @@ type EmailTemplate = {
 };
 
 const CATEGORY_CONFIG: Record<string, { label: string; color: string; icon: typeof Mail }> = {
-  transactional: { label: "Transakční", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Bell },
-  auth: { label: "Auth", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Shield },
-  marketing: { label: "Marketing", color: "bg-amber-100 text-amber-700 border-amber-200", icon: Mail },
-  lifecycle: { label: "Lifecycle", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: Clock },
-  sniper: { label: "Sniper", color: "bg-rose-100 text-rose-700 border-rose-200", icon: Zap },
+  marketing: { label: "B2B Kampaně", color: "bg-amber-100 text-amber-700 border-amber-200", icon: Zap },
+  transactional: { label: "Systémové (Transakční)", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Bell },
+  auth: { label: "Zabezpečení (Auth)", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Shield },
+  lifecycle: { label: "Automatizace", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: Clock },
 };
 
-const TARGET_LABELS: Record<string, { label: string; icon: typeof Users }> = {
-  all: { label: "Všichni", icon: Users },
-  worker: { label: "Profíci", icon: UserCheck },
-  customer: { label: "Zákazníci", icon: Users },
+const LANGUAGE_LABELS: Record<string, { label: string, flag: string }> = {
+  all: { label: "Všechny jazyky", flag: "🌍" },
+  cs: { label: "Čeština", flag: "🇨🇿" },
+  sk: { label: "Slovenština", flag: "🇸🇰" },
+  en: { label: "Angličtina", flag: "🇬🇧" },
+  de: { label: "Němčina", flag: "🇩🇪" },
 };
 
 const TRIGGER_LABELS: Record<string, string> = {
@@ -124,7 +125,7 @@ export default function EmailTemplatesTab() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [langFilter, setLangFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -352,13 +353,13 @@ export default function EmailTemplatesTab() {
   const filtered = useMemo(() => {
     let list = templates;
     if (categoryFilter !== "all") list = list.filter((t) => t.category === categoryFilter);
-    if (roleFilter !== "all") list = list.filter((t) => t.target_role === roleFilter);
+    if (langFilter !== "all") list = list.filter((t) => t.language === langFilter);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       list = list.filter((t) => t.name.toLowerCase().includes(q) || t.slug?.toLowerCase().includes(q) || t.subject?.toLowerCase().includes(q));
     }
     return list;
-  }, [templates, categoryFilter, roleFilter, searchQuery]);
+  }, [templates, categoryFilter, langFilter, searchQuery]);
 
   // Group lifecycle templates by series
   const grouped = useMemo(() => {
@@ -476,25 +477,21 @@ export default function EmailTemplatesTab() {
             />
           </div>
           
-          <div className="flex bg-background/50 p-1 rounded-md border border-border/30">
-            <button 
-              onClick={() => setRoleFilter("all")}
-              className={`px-3 py-1.5 text-[10px] font-bold rounded-sm transition-all ${roleFilter === "all" ? "bg-primary/15 dark:bg-primary/25 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Všichni
-            </button>
-            <button 
-              onClick={() => setRoleFilter("worker")}
-              className={`px-3 py-1.5 text-[10px] font-bold rounded-sm transition-all ${roleFilter === "worker" ? "bg-primary/15 dark:bg-primary/25 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Profíci
-            </button>
-            <button 
-              onClick={() => setRoleFilter("customer")}
-              className={`px-3 py-1.5 text-[10px] font-bold rounded-sm transition-all ${roleFilter === "customer" ? "bg-primary/15 dark:bg-primary/25 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Zákazníci
-            </button>
+          <div className="flex bg-background/50 p-1 rounded-md border border-border/30 overflow-x-auto no-scrollbar">
+            {Object.entries(LANGUAGE_LABELS).map(([key, config]) => {
+              const isActive = langFilter === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setLangFilter(key)}
+                  className={`flex-none px-3 py-1.5 text-[10px] font-bold rounded-sm transition-all whitespace-nowrap ${
+                    isActive ? "bg-primary/15 dark:bg-primary/25 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {config.flag} {config.label}
+                </button>
+              );
+            })}
           </div>
         </div>
         
