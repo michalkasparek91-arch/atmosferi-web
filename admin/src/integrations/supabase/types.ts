@@ -1382,11 +1382,13 @@ export type Database = {
       }
       marketing_leads: {
         Row: {
+          ai_icebreaker: string | null
           avatar_url: string | null
           category: string | null
           city: string | null
           company_description: string | null
           company_name: string | null
+          country: string | null
           created_at: string | null
           description: string | null
           email: string
@@ -1401,6 +1403,7 @@ export type Database = {
           google_reviews_count: number | null
           id: string
           is_pro: boolean | null
+          language: string | null
           last_activity: string | null
           latitude: number | null
           longitude: number | null
@@ -1421,11 +1424,13 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          ai_icebreaker?: string | null
           avatar_url?: string | null
           category?: string | null
           city?: string | null
           company_description?: string | null
           company_name?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
           email: string
@@ -1440,6 +1445,7 @@ export type Database = {
           google_reviews_count?: number | null
           id?: string
           is_pro?: boolean | null
+          language?: string | null
           last_activity?: string | null
           latitude?: number | null
           longitude?: number | null
@@ -1460,11 +1466,13 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          ai_icebreaker?: string | null
           avatar_url?: string | null
           category?: string | null
           city?: string | null
           company_description?: string | null
           company_name?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
           email?: string
@@ -1479,6 +1487,7 @@ export type Database = {
           google_reviews_count?: number | null
           id?: string
           is_pro?: boolean | null
+          language?: string | null
           last_activity?: string | null
           latitude?: number | null
           longitude?: number | null

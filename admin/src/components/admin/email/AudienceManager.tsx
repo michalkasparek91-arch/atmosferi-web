@@ -141,7 +141,7 @@ export const AudienceManager = (props: any) => {
 
   React.useEffect(() => {
     if (selectedContactForSheet) {
-      setSheetIcebreaker(selectedContactForSheet.icebreaker || "");
+      setSheetIcebreaker(selectedContactForSheet.ai_icebreaker || selectedContactForSheet.icebreaker || "");
       
       const fetchTimeline = async () => {
         if (!selectedContactForSheet.email) {
@@ -606,7 +606,7 @@ export const AudienceManager = (props: any) => {
                     <TableCell className="py-2 w-[120px] max-w-[120px]">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-[9px] font-bold text-foreground/80">
-                          <MapPin className="h-2.5 w-2.5 text-rose-500/40" /> {lead.city || "Nezadáno"}
+                          <MapPin className="h-2.5 w-2.5 text-rose-500/40" /> {lead.city || "Nezadáno"} {lead.country && <span className="text-muted-foreground ml-0.5">({lead.country})</span>}
                         </div>
                         {(() => {
                            const crmStatus = getMockCrmStatus(lead);
@@ -913,6 +913,12 @@ export const AudienceManager = (props: any) => {
                       {selectedContactForSheet.full_address || [selectedContactForSheet.street_name, selectedContactForSheet.street_number, selectedContactForSheet.city, selectedContactForSheet.postal_code].filter(Boolean).join(", ") || selectedContactForSheet.city || "Nezadáno"}
                     </span>
                   </div>
+                  {selectedContactForSheet.country && (
+                    <div className="flex items-center justify-between pb-2 border-b border-border/50">
+                      <span className="text-muted-foreground flex items-center gap-2 font-medium"><Globe className="h-3.5 w-3.5 text-primary" /> Země / Jazyk</span>
+                      <span className="font-bold text-foreground">{selectedContactForSheet.country} {selectedContactForSheet.language && <span className="text-muted-foreground uppercase text-[10px]">({selectedContactForSheet.language})</span>}</span>
+                    </div>
+                  )}
                   {(selectedContactForSheet.latitude !== null && selectedContactForSheet.longitude !== null && selectedContactForSheet.latitude !== undefined) && (
                     <div className="flex items-center justify-between pt-1">
                       <span className="text-muted-foreground text-[11px]">GPS souřadnice</span>

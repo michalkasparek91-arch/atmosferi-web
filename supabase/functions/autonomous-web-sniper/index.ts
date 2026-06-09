@@ -71,31 +71,44 @@ Deno.serve(async (req) => {
     const keywords = (config.keywords && config.keywords.length > 0) ? config.keywords : defaultConfig.keywords;
     const cities = (config.cities && config.cities.length > 0) ? config.cities : defaultConfig.cities;
 
-    // Pick random keyword and city
+    // Let's pass the arrays so AI can see the user's preferred cities
+    const preferredCitiesList = cities.join(", ");
+    
+    // Pick a random country and random keyword
     const targetKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-    const targetCity = cities[Math.floor(Math.random() * cities.length)];
     const targetCountry = (config.countries && config.countries.length > 0) ? config.countries[Math.floor(Math.random() * config.countries.length)] : (defaultConfig.countries ? defaultConfig.countries[0] : "Česká republika");
 
-    console.log(`[WebSniper] Initiating live web search via Google Grounding for ${targetKeyword} in ${targetCity}, ${targetCountry}...`);
+    console.log(`[WebSniper] Initiating live web search via Google Grounding for ${targetKeyword} in ${targetCountry}...`);
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) throw new Error("Chybí GEMINI_API_KEY proměnná prostředí");
     
-    const SEARCH_PROMPT = `Jsi autonomní vyhledávací agent platformy Atmosferi.com.
-Tvým úkolem je vyhledat na webu přes Google reálné a aktivní B2B firmy (konkrétně: "${targetKeyword}") působící v obci/městě ${targetCity}, ${targetCountry} (${targetCountry}) nebo v těsném okolí.
+    const SEARCH_PROMPT = `Jsi autonomní vyhledávací agent platformy Atmosferi.com pro B2B akvizici.
+Tvé aktuální zadání:
+1. Cílový stát: ${targetCountry}
+2. Hledaný obor v češtině: "${targetKeyword}"
+3. Preferovaná města: ${preferredCitiesList}
 
-Zajímají nás POUZE subjekty, u kterých na webu existuje e-mailová adresa. Vyhledej 5 až 10 takových firem z dané lokality a okolí.
+Tvé kroky:
+Krok 1: Přelož hledaný obor "${targetKeyword}" do hlavního jazyka státu ${targetCountry}.
+Krok 2: Vyber si jedno vhodné město ve státě ${targetCountry}. Zkus primárně vybrat některé z "Preferovaných měst", pokud se nachází v tomto státě. Pokud žádné z preferovaných měst neleží v ${targetCountry}, vyber si jakékoliv jiné významné ekonomické město v ${targetCountry}.
+Krok 3: Udělej přes Google vyhledávání na reálné a aktivní firmy v tomto vybraném městě a státě, pro tento lokálně přeložený obor.
 
-Pro každou firmu vytěž přesně tyto informace:
-1. "company_name": Oficiální název firmy nebo celé jméno a příjmení živnostníka
+Zajímají nás POUZE firmy, u kterých lze dohledat e-mailovou adresu. Vyhledej 5 až 10 takových B2B firem.
+
+Pro každou firmu vytěž přesně tyto informace a vrať je jako JSON pole objektů:
+1. "company_name": Oficiální lokální název firmy
 2. "email": E-mailová adresa
-3. "phone": Telefonní číslo (vlož mezinárodní předvolbu, např. +49 pro Německo)
-4. "website": Odkaz na webové stránky nebo profil v katalogu
-5. "city": Obec nebo město sídla / působiště
-6. "full_address": Kompletní poštovní adresa (ulice, č.p., město, PSČ)
-7. "description": Detailní textové shrnutí (alespoň 2-3 věty) o tom, na co se firma specializuje, jaké provádí práce a jaké má zkušenosti.
+3. "phone": Telefonní číslo s mezinárodní předvolbou (např. +49 pro Německo, +61 pro Austrálii)
+4. "website": Odkaz na webové stránky
+5. "city": Město sídla (to, které jsi vybral)
+6. "country": "${targetCountry}"
+7. "language": Hlavní jazyk tohoto státu (např. "de", "en", "cs")
+8. "full_address": Kompletní poštovní adresa
+9. "description": Krátký popis toho, co firma dělá (v češtině).
+10. "ai_icebreaker": Napiš jeden velmi osobní, přirozený a specifický otevírací odstavec (tzv. icebreaker) do cold e-mailu V JAZYCE CÍLOVÉHO STÁTU (language). Icebreaker musí vycházet z toho, co firma dělá, chválit její práci nebo projekty. Nesmí to znít jako robot. Např. pro architekty: "I was looking at your recent residential projects on your website and absolutely loved the minimalist approach..."
 
-Odpověz POUZE čistým validním JSON polem objektů. Žádný markdown, žádné zpětné uvozovky.`;
+Odpověz POUZE validním polem objektů v JSON formátu. Nic jiného nepiš.`;
 
     const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: "POST",
@@ -134,7 +147,7 @@ Odpověz POUZE čistým validním JSON polem objektů. Žádný markdown, žádn
     }
 
     if (!Array.isArray(discoveredList) || discoveredList.length === 0) {
-      await logJobSuccess(supabase, jobName, { discovered_count: 0, targetKeyword, targetCity });
+      await logJobSuccess(supabase, jobName, { discovered_count: 0, targetKeyword });
       return new Response(JSON.stringify({ 
         ok: true, 
         discovered_count: 0, 
@@ -170,8 +183,11 @@ Odpověz POUZE čistým validním JSON polem objektů. Žádný markdown, žádn
           company_name: item.company_name || "B2B Partner",
           phone: phoneNorm,
           website: item.website || "",
-          city: item.city || targetCity,
-          full_address: item.full_address || `${item.city || targetCity}, ČR`,
+          city: item.city || "Neznámé město",
+          country: item.country || targetCountry,
+          language: item.language || "cs",
+          ai_icebreaker: item.ai_icebreaker || "",
+          full_address: item.full_address || `${item.city || "Neznámé město"}, ${targetCountry}`,
           category: "B2B",
           subcategory: targetKeyword,
           description: item.description || `Autonomně nalezený kontakt v kategorii ${targetKeyword}`,
@@ -186,12 +202,14 @@ Odpověz POUZE čistým validním JSON polem objektů. Žádný markdown, žádn
       }
     }
 
+    const actualCity = discoveredList.length > 0 ? discoveredList[0].city : "Neznámé město";
+
     // Create admin notification
     if (newSavedCount > 0) {
       try {
         await supabase.from("admin_notifications").insert({
           title: "🌐 AI Sběr: Nové B2B kontakty",
-          message: `Pro lokaci ${targetCity} (${targetKeyword}) bylo objeveno a uloženo ${newSavedCount} nových firem.`,
+          message: `Pro stát ${targetCountry} (${targetKeyword}) bylo objeveno a uloženo ${newSavedCount} nových firem.`,
           link: "/admin/emaily?tab=crm",
           type: "success"
         });
@@ -200,15 +218,15 @@ Odpověz POUZE čistým validním JSON polem objektů. Žádný markdown, žádn
       }
     }
 
-    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, targetKeyword, targetCity });
+    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, targetKeyword });
 
     return new Response(JSON.stringify({ 
       ok: true, 
       discovered_count: newSavedCount,
       total_found_by_ai: discoveredList.length,
       targetKeyword,
-      targetCity,
-      message: `Úspěšně dohledáno a uloženo ${newSavedCount} firem z webu pro klíčové slovo ${targetKeyword} (${targetCity}).` 
+      targetCity: actualCity,
+      message: `Úspěšně dohledáno a uloženo ${newSavedCount} firem z webu pro klíčové slovo ${targetKeyword} (${actualCity}, ${targetCountry}).` 
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {

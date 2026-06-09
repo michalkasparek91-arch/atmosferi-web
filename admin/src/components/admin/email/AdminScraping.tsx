@@ -244,9 +244,9 @@ export const AdminScraping = () => {
           <Card className="border-border/40 shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-base flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-primary" /> Cílové lokality (Města)
+                <MapPin className="h-4 w-4 text-primary" /> Preferovaná města
               </CardTitle>
-              <CardDescription>V jakých oblastech má AI kontakty hledat?</CardDescription>
+              <CardDescription>Můžete zadat preferovaná města. AI se pokusí vybrat jedno z nich, pokud odpovídá náhodně zvolenému cílovému státu. Pokud ne, najde si samo jiné velké město v daném státě.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
