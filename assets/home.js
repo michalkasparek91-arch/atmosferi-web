@@ -9,6 +9,22 @@
   html.classList.add("js");
   var reduce = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 
+  /* ---- scroll-progress hairline ---- */
+  var bar = document.getElementById("scrollProgress");
+  if (bar && !reduce) {
+    var ticking = false;
+    function update() {
+      var h = document.documentElement;
+      var max = h.scrollHeight - h.clientHeight;
+      bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+      ticking = false;
+    }
+    window.addEventListener("scroll", function () {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  }
+
   /* ---- scroll reveals ---- */
   if ("IntersectionObserver" in window && !reduce) {
     var io = new IntersectionObserver(function (entries) {

@@ -10,12 +10,23 @@
   /* ---- Landing-only enhancements (scoped; other pages unaffected) ---- */
   html.js [data-rise]{opacity:0;transform:translateY(24px);}
   html.js [data-rise].in{opacity:1;transform:none;transition:opacity .9s var(--curve), transform 1s var(--curve);}
+  /* staggered cascade within a row */
+  html.js .cap:nth-child(2).in{transition-delay:.08s;}
+  html.js .cap:nth-child(3).in{transition-delay:.16s;}
+  html.js .workcard:nth-child(2).in{transition-delay:.07s;}
+  html.js .workcard:nth-child(3).in{transition-delay:.14s;}
+  html.js .workcard:nth-child(4).in{transition-delay:.21s;}
+
+  /* scroll-progress hairline */
+  .scrollbar{position:fixed;top:0;left:0;height:2px;width:0;background:var(--ink);z-index:60;transition:width .12s linear;}
+  @media(prefers-reduced-motion:reduce){.scrollbar{display:none;}html.js [data-rise]{opacity:1;transform:none;}}
 
   /* Proof band */
   .proof{padding-block:var(--space-6);}
   .proof__grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);}
-  .proof__item{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-5) var(--space-4) var(--space-5) 0;border-right:1px solid var(--line);}
-  .proof__item:last-child{border-right:0;}
+  .proof__item{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-5) var(--space-4);border-right:1px solid var(--line);}
+  .proof__item:first-child{padding-left:0;}
+  .proof__item:last-child{border-right:0;padding-right:0;}
   .proof__fig{font-size:clamp(46px,6vw,96px);font-weight:700;letter-spacing:-0.03em;line-height:.86;font-variant-numeric:tabular-nums;display:flex;align-items:flex-start;}
   .proof__fig .sfx{font-size:.42em;color:var(--neutral-400);margin-left:2px;line-height:1;}
   .proof__lab{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);}
@@ -37,6 +48,8 @@
 
   @media (max-width:760px){
     .proof__grid{grid-template-columns:1fr 1fr;}
+    .proof__item{padding-left:0;padding-right:var(--space-3);}
+    .proof__item:nth-child(even){padding-left:var(--space-3);padding-right:0;}
     .proof__item:nth-child(2){border-right:0;}
     .proof__item:nth-child(1),.proof__item:nth-child(2){border-bottom:1px solid var(--line);}
     .process__step{grid-template-columns:1fr;gap:var(--space-2);}
@@ -49,9 +62,61 @@
   .swx__knob{position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:0;border-radius:999px;background:color-mix(in srgb,currentColor 13%,transparent);transition:left .5s cubic-bezier(.22,1,.36,1),width .5s cubic-bezier(.22,1,.36,1);}
   .swx__seg{position:relative;z-index:1;padding:7px 13px;border-radius:999px;font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.17em;text-transform:uppercase;white-space:nowrap;opacity:.5;transition:opacity .35s cubic-bezier(.22,1,.36,1);cursor:pointer;color:var(--ink);}
   .swx__seg.is-on,.swx__seg:hover{opacity:1;}
+
+  /* ---- Device showcase (hero) ---- */
+  .devices{margin-top:var(--space-5);}
+  .devices__stage{position:relative;max-width:760px;margin:0 auto;}
+  .laptop{display:block;width:100%;}
+  .laptop__lid{display:block;background:var(--ink);border:1px solid var(--ink);padding:9px 9px 10px;}
+  .laptop__screen{display:block;aspect-ratio:16/10;overflow:hidden;background:var(--ink);}
+  .laptop__screen img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:saturate(.95);transition:filter var(--dur-standard) var(--curve),transform 3s var(--curve);}
+  .devices:hover .laptop__screen img{filter:saturate(1.05);}
+  .laptop__base{display:block;position:relative;width:113%;margin-left:-6.5%;height:13px;background:var(--canvas);border:1px solid var(--ink);border-top:0;}
+  .laptop__base::after{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:16%;height:4px;background:var(--ink);}
+  .phone{display:block;position:absolute;right:-7%;bottom:-34px;width:22%;min-width:122px;z-index:3;background:var(--ink);border:1px solid var(--ink);padding:6px;border-radius:26px;box-shadow:0 18px 50px rgba(22,20,15,.18);}
+  .phone__screen{display:block;position:relative;aspect-ratio:9/19;overflow:hidden;background:var(--ink);border-radius:18px;}
+  .phone__screen img{width:100%;height:100%;object-fit:cover;object-position:top center;}
+  .phone__speaker{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.5);z-index:4;}
+  .devices__cap{display:flex;justify-content:space-between;gap:var(--space-3);max-width:760px;margin:var(--space-4) auto 0;}
+  .devices__cap span{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);}
+
+  /* ---- Gantt timeline (process) ---- */
+  .gantt{border-top:1px solid var(--ink);}
+  .gantt__scale{display:grid;grid-template-columns:repeat(8,1fr);border-bottom:1px solid var(--line);}
+  .gantt__scale span{padding:10px 0 10px 10px;font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);border-right:1px solid var(--line);}
+  .gantt__scale span:last-child{border-right:0;}
+  .gantt__row{display:grid;grid-template-columns:repeat(8,1fr);align-items:stretch;border-bottom:1px solid var(--line);min-height:74px;}
+  .gantt__bar{display:flex;flex-direction:column;justify-content:center;gap:3px;margin:10px 0;padding:0 16px;background:var(--ink);color:var(--canvas);}
+  .gantt__bar--ghost{background:transparent;color:var(--neutral-400);border:1px dashed var(--line-2,rgba(22,20,15,.22));}
+  .gantt__phase{font-size:var(--text-lg);font-weight:var(--weight-semi);letter-spacing:-0.01em;display:flex;align-items:baseline;gap:9px;}
+  .gantt__phase small{font-family:var(--font-mono);font-size:var(--text-nano);letter-spacing:var(--track-meta);opacity:.6;font-weight:var(--weight-reg);}
+  .gantt__note{font-size:var(--text-sm);line-height:1.4;opacity:.82;}
+  .gantt__foot{display:flex;justify-content:space-between;gap:var(--space-3);padding-top:var(--space-3);flex-wrap:wrap;}
+  .gantt__foot span{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);}
+
+  /* ---- Home image band (relocated) ---- */
+  .homeband{display:block;width:100%;height:46vh;min-height:340px;overflow:hidden;}
+  .homeband img{width:100%;height:100%;object-fit:cover;}
+
+  /* ---- Capability diagrams (monoline) ---- */
+  .cap__viz{display:block;height:84px;margin-bottom:var(--space-4);color:var(--ink);}
+  .cap__viz svg{height:100%;width:auto;display:block;overflow:visible;}
+  .cap__viz svg *{vector-effect:non-scaling-stroke;}
+  .cap__viz circle{fill:currentColor;stroke:none;}
+  .cap{transition:transform var(--dur-standard) var(--curve);}
+
+  @media (max-width:760px){
+    .phone{width:30%;min-width:108px;right:-4%;bottom:-20px;border-radius:22px;}
+    .gantt__scale{display:none;}
+    .gantt__row{grid-template-columns:1fr;min-height:0;}
+    .gantt__bar{grid-column:1/-1 !important;margin:0;border-top:0;}
+    .gantt__row{border-bottom:1px solid var(--line);}
+  }
 </style>
 </head>
 <body>
+
+<div class="scrollbar" id="scrollProgress"></div>
 
 <!-- ============================ NAV ============================ -->
 <nav class="nav">
@@ -100,9 +165,21 @@
   </div>
 </header>
 
-<a href="work.html" class="reveal hero__img" aria-label="View selected work">
-  <img src="demos/volum/img/tide.webp" alt="Tidewater — tidal park, Copenhagen">
-</a>
+<div class="devices wrap" data-screen-label="Home / What we make">
+  <div class="devices__stage">
+    <a class="laptop" href="demos/volum/index.html" target="_blank" rel="noopener" aria-label="Open the VOLUM site">
+      <span class="laptop__lid"><span class="laptop__screen"><img src="img/shot-volum.png" alt="VOLUM — a website we built, shown on a laptop"></span></span>
+      <span class="laptop__base"></span>
+    </a>
+    <a class="phone" href="demos/quay/index.html" target="_blank" rel="noopener" aria-label="Open the Quay 9 site">
+      <span class="phone__screen"><span class="phone__speaker"></span><img src="img/shot-mobile.png" alt="Quay 9 — a website we built, shown on a phone"></span>
+    </a>
+  </div>
+  <div class="devices__cap">
+    <span>Real sites — designed &amp; coded by Atmosferi</span>
+    <span>Desktop → mobile · 100/100</span>
+  </div>
+</div>
 
 <!-- ============================ PROOF ============================ -->
 <section class="wrap proof" data-screen-label="Home / Proof">
@@ -133,20 +210,49 @@
     <span class="eyebrow">What the studio does</span>
   </div>
   <div class="caps">
-    <a href="services.html" class="cap">
+    <a href="services.html" class="cap" data-rise>
+      <span class="cap__viz" aria-hidden="true">
+        <svg viewBox="0 0 130 84" fill="none" stroke="currentColor" stroke-width="1.25">
+          <rect x="1" y="1" width="128" height="82"/>
+          <line x1="1" y1="15" x2="129" y2="15"/>
+          <circle cx="9" cy="8" r="1.6"/><circle cx="16" cy="8" r="1.6"/><circle cx="23" cy="8" r="1.6"/>
+          <rect x="10" y="24" width="110" height="26"/>
+          <rect x="10" y="58" width="32" height="17"/>
+          <rect x="49" y="58" width="32" height="17"/>
+          <rect x="88" y="58" width="32" height="17"/>
+        </svg>
+      </span>
       <span class="cap__num">01</span>
       <span class="cap__title">Web Design</span>
-      <span class="cap__desc">Editorial, image-led sites that frame architecture the way it deserves — typographic systems, grids, and motion designed around the work.</span>
+      <span class="cap__desc">Editorial, image-led sites — type systems, grids and motion built around the work.</span>
     </a>
-    <a href="services.html" class="cap">
+    <a href="services.html" class="cap" data-rise>
+      <span class="cap__viz" aria-hidden="true">
+        <svg viewBox="0 0 130 84" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="square" stroke-linejoin="miter">
+          <polyline points="38,20 16,42 38,64"/>
+          <polyline points="92,20 114,42 92,64"/>
+          <line x1="74" y1="14" x2="56" y2="70"/>
+        </svg>
+      </span>
       <span class="cap__num">02</span>
       <span class="cap__title">Development</span>
-      <span class="cap__desc">Implementation that holds up — fast, accessible, content-managed builds engineered to outlast a project cycle, not a trend.</span>
+      <span class="cap__desc">Fast, accessible, content-managed builds — engineered to outlast a project cycle.</span>
     </a>
-    <a href="services.html" class="cap">
+    <a href="services.html" class="cap" data-rise>
+      <span class="cap__viz" aria-hidden="true">
+        <svg viewBox="0 0 130 84" fill="none" stroke="currentColor" stroke-width="1.25">
+          <g opacity="0.3" stroke-dasharray="3 3">
+            <polyline points="40,70 58,54 96,54"/>
+            <line x1="58" y1="54" x2="58" y2="16"/>
+          </g>
+          <polygon points="40,32 78,32 78,70 40,70"/>
+          <polyline points="40,32 58,16 96,16 78,32"/>
+          <polyline points="78,32 96,16 96,54 78,70"/>
+        </svg>
+      </span>
       <span class="cap__num">03</span>
       <span class="cap__title">3D &amp; Visualisation</span>
-      <span class="cap__desc">Renders, fly-throughs and interactive models — bringing unbuilt space into the browser before the ground is broken.</span>
+      <span class="cap__desc">Renders, fly-throughs and interactive models — unbuilt space, live in the browser.</span>
     </a>
   </div>
 </section>
@@ -161,7 +267,7 @@
   </div>
   <p class="section__note" data-rise>Not client projects — <b>four complete websites we designed and built ourselves</b>, one for each kind of studio and developer we work with. Fictional brands, real working code. Click any to open the live site.</p>
   <div class="workgrid">
-    <a href="demos/volum/index.html" target="_blank" rel="noopener" class="workcard reveal-card">
+    <a href="demos/volum/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
       <span class="browser">
         <span class="browser__bar">
           <span class="browser__dots"><span></span><span></span><span></span></span>
@@ -176,7 +282,7 @@
       </span>
       <span class="workcard__blurb">A global practice site — oversized type, full-bleed project tiles, built to feel monumental.</span>
     </a>
-    <a href="demos/voss/index.html" target="_blank" rel="noopener" class="workcard reveal-card">
+    <a href="demos/voss/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
       <span class="browser">
         <span class="browser__bar">
           <span class="browser__dots"><span></span><span></span><span></span></span>
@@ -191,7 +297,7 @@
       </span>
       <span class="workcard__blurb">A boutique Nordic practice — soft, airy, serif-led, with room to breathe.</span>
     </a>
-    <a href="demos/meridian/index.html" target="_blank" rel="noopener" class="workcard reveal-card">
+    <a href="demos/meridian/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
       <span class="browser">
         <span class="browser__bar">
           <span class="browser__dots"><span></span><span></span><span></span></span>
@@ -206,7 +312,7 @@
       </span>
       <span class="workcard__blurb">A sales platform for a 41-storey tower — dark, cinematic, gold. Sold from the browser.</span>
     </a>
-    <a href="demos/quay/index.html" target="_blank" rel="noopener" class="workcard reveal-card">
+    <a href="demos/quay/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
       <span class="browser">
         <span class="browser__bar">
           <span class="browser__dots"><span></span><span></span><span></span></span>
@@ -230,41 +336,40 @@
 <section class="section wrap" data-screen-label="Home / Process">
   <div class="section__head" data-rise>
     <h2 class="section__title">How a project gets built.</h2>
-    <span class="eyebrow">The method · fixed scope</span>
+    <span class="eyebrow">8 weeks · fixed scope</span>
   </div>
-  <div class="process">
-    <div class="process__step" data-rise>
-      <span class="process__n">01</span>
-      <div class="process__body">
-        <span class="process__t">Brief</span>
-        <span class="process__d">We start from the work, not a template — a written brief, a fixed scope, a date. You know the price before we draw a line.</span>
-        <span class="process__meta">Week 1</span>
+  <div class="gantt" data-rise>
+    <div class="gantt__scale">
+      <span>W1</span><span>W2</span><span>W3</span><span>W4</span><span>W5</span><span>W6</span><span>W7</span><span>W8</span>
+    </div>
+    <div class="gantt__row">
+      <div class="gantt__bar" style="grid-column:1 / 2">
+        <span class="gantt__phase">Brief <small>01</small></span>
+        <span class="gantt__note">Scope &amp; price, fixed.</span>
       </div>
     </div>
-    <div class="process__step" data-rise>
-      <span class="process__n">02</span>
-      <div class="process__body">
-        <span class="process__t">Design</span>
-        <span class="process__d">A typographic system and art direction built around your projects — reviewed live in the browser, not flattened into slides.</span>
-        <span class="process__meta">Weeks 2–4</span>
+    <div class="gantt__row">
+      <div class="gantt__bar" style="grid-column:2 / 5">
+        <span class="gantt__phase">Design <small>02</small></span>
+        <span class="gantt__note">Type system &amp; art direction, reviewed live in the browser.</span>
       </div>
     </div>
-    <div class="process__step" data-rise>
-      <span class="process__n">03</span>
-      <div class="process__body">
-        <span class="process__t">Build</span>
-        <span class="process__d">Hand-built, accessible and fast — a content model you can run yourself, engineered to outlast the project cycle.</span>
-        <span class="process__meta">Weeks 4–7</span>
+    <div class="gantt__row">
+      <div class="gantt__bar" style="grid-column:4 / 8">
+        <span class="gantt__phase">Build <small>03</small></span>
+        <span class="gantt__note">Hand-coded, accessible, content-managed.</span>
       </div>
     </div>
-    <div class="process__step" data-rise>
-      <span class="process__n">04</span>
-      <div class="process__body">
-        <span class="process__t">Launch</span>
-        <span class="process__d">Tested, measured and shipped — 100/100 on performance, then support while it settles into the world.</span>
-        <span class="process__meta">Week 8</span>
+    <div class="gantt__row">
+      <div class="gantt__bar" style="grid-column:8 / 9">
+        <span class="gantt__phase">Launch <small>04</small></span>
+        <span class="gantt__note">Tested, measured, shipped.</span>
       </div>
     </div>
+  </div>
+  <div class="gantt__foot" data-rise>
+    <span>One price, agreed up front</span>
+    <span>Typical engagement · ~8 weeks</span>
   </div>
 </section>
 
@@ -277,13 +382,18 @@
     <span class="eyebrow">Who we work with</span>
   </div>
   <div class="audience">
-    <div class="audience__row"><span class="audience__num">01</span><span class="audience__label">Architecture studios</span></div>
-    <div class="audience__row"><span class="audience__num">02</span><span class="audience__label">Real-estate developers</span></div>
-    <div class="audience__row"><span class="audience__num">03</span><span class="audience__label">Urbanism &amp; public projects</span></div>
-    <div class="audience__row"><span class="audience__num">04</span><span class="audience__label">Interior designers</span></div>
-    <div class="audience__row"><span class="audience__num">05</span><span class="audience__label">Individual architects &amp; portfolios</span></div>
+    <div class="audience__row" data-rise><span class="audience__num">01</span><span class="audience__label">Architecture studios</span></div>
+    <div class="audience__row" data-rise><span class="audience__num">02</span><span class="audience__label">Real-estate developers</span></div>
+    <div class="audience__row" data-rise><span class="audience__num">03</span><span class="audience__label">Urbanism &amp; public projects</span></div>
+    <div class="audience__row" data-rise><span class="audience__num">04</span><span class="audience__label">Interior designers</span></div>
+    <div class="audience__row" data-rise><span class="audience__num">05</span><span class="audience__label">Individual architects &amp; portfolios</span></div>
   </div>
 </section>
+
+<!-- ============================ IMAGE BAND ============================ -->
+<a href="work.html" class="reveal homeband" aria-label="View selected work">
+  <img src="demos/volum/img/tide.webp" alt="Tidewater — tidal park, Copenhagen">
+</a>
 
 <!-- ============================ CTA ============================ -->
 <section class="cta wrap" data-screen-label="Home / CTA">

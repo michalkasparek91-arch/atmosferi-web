@@ -48,7 +48,7 @@
   .ds-ribbon a{color:#fff;border-bottom:1px solid rgba(255,255,255,.45);}
 
   /* nav */
-  header.nav{position:fixed;left:0;right:0;top:var(--rib-h,44px);z-index:50;mix-blend-mode:difference;transition:background .45s var(--ease),border-color .45s var(--ease);}
+  header.nav{position:fixed;left:0;right:0;top:0;z-index:50;mix-blend-mode:difference;transition:background .45s var(--ease),border-color .45s var(--ease);}
   header.nav.scrolled{top:0;mix-blend-mode:normal;background:rgba(244,242,236,.88);backdrop-filter:blur(13px) saturate(1.1);-webkit-backdrop-filter:blur(13px) saturate(1.1);border-bottom:1px solid var(--line);}
   header.nav.scrolled .brand,header.nav.scrolled .brand sup{color:var(--ink);}
   header.nav.scrolled .brand .tag{opacity:.6;border-left-color:var(--line-2);}
@@ -60,10 +60,20 @@
   .brand{font-weight:600;font-size:21px;letter-spacing:-.02em;color:#fff;display:flex;align-items:baseline;gap:9px;}
   .brand sup{color:#fff;font-size:.5em;top:-.7em;}
   .brand .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;opacity:.7;border-left:1px solid rgba(255,255,255,.4);padding-left:9px;}
-  .nav__links{display:flex;gap:30px;align-items:center;}
+  .nav__links{display:flex;gap:30px;align-items:center;margin-left:auto;}
   .nav__links a{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#fff;opacity:.78;transition:opacity .3s;}
   .nav__links a:hover{opacity:1;}
-  @media(max-width:720px){.nav__links a:not(.cta){display:none;}}
+  .nav__in .swx{margin-left:26px;flex:none;}
+  @media(max-width:720px){
+    .nav__links{gap:18px;margin-left:auto;}
+    .nav__links a:not(.cta){display:none;}
+    .nav__in .swx{margin-left:16px;}
+    .swx__seg{padding:6px 11px;font-size:9px;letter-spacing:.14em;}
+  }
+  @media(max-width:460px){
+    .brand .tag{display:none;}
+    .nav__links .cta{display:none;}
+  }
 
   /* hero */
   .hero{position:relative;height:100vh;min-height:620px;overflow:hidden;}
@@ -214,32 +224,36 @@
   .film .shead h2{color:#fff;}
   .film .shead .mono{color:var(--muted-2);}
   .film__stage{position:relative;width:100%;height:clamp(440px,80vh,900px);overflow:hidden;background:#000;cursor:pointer;}
-  .film__frame{position:absolute;inset:0;opacity:0;transition:opacity 1.3s var(--ease);}
-  .film__frame img{width:100%;height:100%;object-fit:cover;}
-  .film__frame.on{opacity:1;}
-  .film.playing .film__frame.on.kb img{animation:kb 9s linear forwards;}
-  @keyframes kb{from{transform:scale(1.02)}to{transform:scale(1.16)}}
+  .film__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;}
   .film__bar{position:absolute;left:0;right:0;z-index:4;height:54px;pointer-events:none;}
   .film__bar.t{top:0;background:linear-gradient(180deg,rgba(0,0,0,.6),transparent);}
   .film__bar.b{bottom:0;background:linear-gradient(0deg,rgba(0,0,0,.7),transparent);height:90px;}
   .film__hud{position:absolute;z-index:5;left:0;right:0;bottom:0;padding:22px clamp(18px,3vw,34px);display:flex;justify-content:space-between;align-items:flex-end;gap:16px;pointer-events:none;}
-  .film__title{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(22px,3vw,42px);line-height:1;transition:opacity .6s var(--ease);}
+  .film__title{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(22px,3vw,42px);line-height:1;}
   .film__tc{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.78);text-align:right;white-space:nowrap;}
   .film__rec{display:inline-block;width:7px;height:7px;border-radius:50%;background:#E5483D;margin-right:8px;vertical-align:middle;animation:blink 1.4s steps(1) infinite;}
+  .film.paused .film__rec{animation:none;background:rgba(255,255,255,.4);}
   @keyframes blink{50%{opacity:.2}}
   .film__top{position:absolute;z-index:5;top:0;left:0;right:0;padding:18px clamp(18px,3vw,34px);display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.7);pointer-events:none;}
   .film__prog{position:absolute;left:0;bottom:0;z-index:6;height:2px;background:#fff;width:0;}
-  .film__play{position:absolute;inset:0;z-index:7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(11,10,8,.34);transition:opacity .6s var(--ease);}
-  .film.playing .film__play{opacity:0;pointer-events:none;}
-  .film__btn{width:clamp(74px,8vw,104px);height:clamp(74px,8vw,104px);border:1px solid rgba(255,255,255,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .4s var(--ease),background .4s var(--ease);}
-  .film__play:hover .film__btn{transform:scale(1.07);background:rgba(255,255,255,.1);}
-  .film__btn svg{width:34%;height:34%;margin-left:14%;}
-  .film__plabel{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.85);}
-  .film__thumbs{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;}
-  .film__thumb{flex:1;min-width:90px;height:54px;overflow:hidden;position:relative;opacity:.5;cursor:pointer;transition:opacity .4s var(--ease);}
-  .film__thumb.on,.film__thumb:hover{opacity:1;}
-  .film__thumb img{width:100%;height:100%;object-fit:cover;}
-  .film__thumb::after{content:attr(data-i);position:absolute;left:6px;top:5px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);}
+  /* sound toggle — always visible */
+  .film__sound{position:absolute;z-index:8;top:14px;right:clamp(14px,3vw,30px);display:inline-flex;align-items:center;gap:9px;padding:9px 14px;background:rgba(11,10,8,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.4);color:#fff;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .3s var(--ease),border-color .3s var(--ease);}
+  .film__sound:hover{background:rgba(11,10,8,.7);border-color:#fff;}
+  .film__sound svg{width:14px;height:14px;display:block;}
+  .film__sound .ico-on{display:none;}
+  .film__sound[aria-pressed="true"] .ico-on{display:block;}
+  .film__sound[aria-pressed="true"] .ico-off{display:none;}
+  .film__sound[aria-pressed="true"]{background:#fff;color:var(--ink);border-color:#fff;}
+  /* center play/pause affordance */
+  .film__play{position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:transparent;transition:opacity .5s var(--ease);pointer-events:none;}
+  .film.paused .film__play{background:rgba(11,10,8,.34);}
+  .film__btn{width:clamp(70px,7vw,96px);height:clamp(70px,7vw,96px);border:1px solid rgba(255,255,255,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(11,10,8,.3);opacity:0;transform:scale(.9);transition:transform .4s var(--ease),background .4s var(--ease),opacity .4s var(--ease);}
+  .film.paused .film__btn{opacity:1;transform:scale(1);}
+  .film__stage:hover .film__btn{opacity:1;transform:scale(1);}
+  .film__btn svg{width:32%;height:32%;}
+  .film__btn .ico-pause{display:none;}
+  .film:not(.paused) .film__btn .ico-play{display:none;}
+  .film:not(.paused) .film__btn .ico-pause{display:block;}
 
   /* ===== 360° — step inside ===== */
   .pano__stage{position:relative;width:100%;height:clamp(440px,78vh,860px);overflow:hidden;background:#000;cursor:grab;touch-action:pan-y;user-select:none;}
@@ -317,7 +331,6 @@
 
 <div class="grain"></div>
 <div class="progress" id="progress"></div>
-<div class="ds-ribbon">Reference site by <strong>Atmosferi°</strong> — our own visualisation studio · <a href="../../index.html">Back to Atmosferi</a></div>
 
 <header class="nav">
   <div class="wrap nav__in">
@@ -328,12 +341,12 @@
       <a href="#services">Services</a>
       <a href="#threesixty">360°</a>
       <a href="#contact" class="cta">Contact</a>
-      <div class="swx" aria-label="Switch between Atmosferi sites">
-        <span class="swx__knob"></span>
-        <a class="swx__seg" href="../../index.html">Websites</a>
-        <a class="swx__seg is-on" aria-current="page" href="index.html">Visuals</a>
-      </div>
     </nav>
+    <div class="swx" aria-label="Switch between Atmosferi sites">
+      <span class="swx__knob"></span>
+      <a class="swx__seg" href="../../index.html">Websites</a>
+      <a class="swx__seg is-on" aria-current="page" href="index.html">Visuals</a>
+    </div>
   </div>
 </header>
 
@@ -361,7 +374,7 @@
 
   <article class="feature wrap" data-rise>
     <div class="feature__media bloom" data-cap="Still Hour" data-meta="Hillside Villa · Santa Barbara, CA · Stills · 2026" data-full="img/16-villa-dusk.jpg">
-      <span class="feature__num">01 / 13</span>
+      <span class="feature__num">01 / 14</span>
       <img src="img/16-villa-dusk.jpg" alt="Still Hour — Hillside Villa, Santa Barbara">
       <span class="feature__expand">Open frame ↗</span>
     </div>
@@ -374,7 +387,7 @@
 
   <article class="feature wrap" data-rise>
     <div class="feature__media bloom" data-cap="Ascension" data-meta="Helix Tower, Singapore · Film · 2027" data-full="img/02-ascension.webp">
-      <span class="feature__num">02 / 13</span>
+      <span class="feature__num">02 / 14</span>
       <img src="img/02-ascension.webp" alt="Ascension — Helix Tower">
       <span class="feature__expand">Open frame ↗</span>
     </div>
@@ -387,7 +400,7 @@
 
   <article class="feature wrap" data-rise>
     <div class="feature__media bloom" data-cap="First Light" data-meta="Tidewater Park, Copenhagen · Stills · 2026" data-full="img/04-tidewater.webp">
-      <span class="feature__num">03 / 13</span>
+      <span class="feature__num">03 / 14</span>
       <img src="img/04-tidewater.webp" alt="First Light — Tidewater">
       <span class="feature__expand">Open frame ↗</span>
     </div>
@@ -400,7 +413,7 @@
 
   <article class="feature wrap" data-rise>
     <div class="feature__media bloom" data-cap="Nightfall" data-meta="Harbour Tower · Stills · 2025" data-full="img/01-nightfall.webp">
-      <span class="feature__num">04 / 13</span>
+      <span class="feature__num">04 / 14</span>
       <img src="img/01-nightfall.webp" alt="Nightfall — Harbour Tower">
       <span class="feature__expand">Open frame ↗</span>
     </div>
@@ -413,7 +426,7 @@
 
   <article class="feature wrap" data-rise>
     <div class="feature__media bloom" data-cap="In the Trees" data-meta="University Library · Wrocław · Stills · 2026" data-full="img/13-library.jpg">
-      <span class="feature__num">05 / 13</span>
+      <span class="feature__num">05 / 14</span>
       <img src="img/13-library.jpg" alt="In the Trees — University Library, Wrocław">
       <span class="feature__expand">Open frame ↗</span>
     </div>
@@ -421,6 +434,19 @@
       <span class="id">A red library among the oaks</span>
       <h2>In the Trees</h2>
       <span class="meta">University Library · Wrocław<br>Stills · 2026</span>
+    </div>
+  </article>
+
+  <article class="feature wrap" data-rise>
+    <div class="feature__media bloom" data-cap="Breakfast" data-meta="Alpine Chalet · Paseky · Interior stills · 2026" data-full="img/chalet-dining.jpg">
+      <span class="feature__num">06 / 14</span>
+      <img src="img/chalet-dining.jpg" alt="Breakfast — Alpine chalet dining room">
+      <span class="feature__expand">Open frame ↗</span>
+    </div>
+    <div class="feature__bar">
+      <span class="id">A morning in a mountain house</span>
+      <h2>Breakfast</h2>
+      <span class="meta">Alpine Chalet · Paseky<br>Interior · 2026</span>
     </div>
   </article>
 
@@ -434,11 +460,7 @@
       <span class="mono">Animated film · showreel 2026</span>
     </div>
     <div class="film__stage" id="film" data-rise>
-      <div class="film__frame kb on"><img src="img/02-ascension.webp" alt=""></div>
-      <div class="film__frame kb"><img src="img/04-tidewater.webp" alt=""></div>
-      <div class="film__frame kb"><img src="img/07-loop.webp" alt=""></div>
-      <div class="film__frame kb"><img src="img/09-horizon.webp" alt=""></div>
-      <div class="film__frame kb"><img src="img/01-nightfall.webp" alt=""></div>
+      <video class="film__video" id="filmVideo" src="img/showreel.mp4" poster="img/02-ascension.webp" muted loop playsinline preload="metadata"></video>
 
       <div class="film__bar t"></div>
       <div class="film__bar b"></div>
@@ -446,22 +468,24 @@
         <span>Atmosferi° · Showreel</span>
         <span>2.39:1 · 4K</span>
       </div>
+
+      <button class="film__sound" id="filmSound" type="button" aria-pressed="false" aria-label="Toggle sound">
+        <svg class="ico-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="3,9 7,9 12,4 12,20 7,15 3,15" fill="currentColor" stroke="none"/><line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>
+        <svg class="ico-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="3,9 7,9 12,4 12,20 7,15 3,15" fill="currentColor" stroke="none"/><path d="M16 8.5a4 4 0 0 1 0 7"/><path d="M18.5 6a7 7 0 0 1 0 12"/></svg>
+        <span class="film__sound-lab">Sound off</span>
+      </button>
+
       <div class="film__hud">
-        <span class="film__title" id="filmTitle">Ascension — Helix Tower</span>
-        <span class="film__tc"><span class="film__rec"></span><span id="filmTC">00:00</span> / <span id="filmDur">00:45</span></span>
+        <span class="film__title" id="filmTitle">Showreel — 2026</span>
+        <span class="film__tc"><span class="film__rec"></span><span id="filmTC">00:00</span> / <span id="filmDur">00:00</span></span>
       </div>
       <div class="film__prog" id="filmProg"></div>
       <div class="film__play" id="filmPlay">
-        <span class="film__btn"><svg viewBox="0 0 100 100" fill="#fff"><polygon points="20,12 86,50 20,88"/></svg></span>
-        <span class="film__plabel">Play showreel · 00:45</span>
+        <span class="film__btn">
+          <svg class="ico-play" viewBox="0 0 100 100" fill="#fff"><polygon points="24,14 84,50 24,86"/></svg>
+          <svg class="ico-pause" viewBox="0 0 100 100" fill="#fff"><rect x="26" y="18" width="16" height="64"/><rect x="58" y="18" width="16" height="64"/></svg>
+        </span>
       </div>
-    </div>
-    <div class="film__thumbs" id="filmThumbs">
-      <button class="film__thumb on" data-i="01"><img src="img/02-ascension.webp" alt=""></button>
-      <button class="film__thumb" data-i="02"><img src="img/04-tidewater.webp" alt=""></button>
-      <button class="film__thumb" data-i="03"><img src="img/07-loop.webp" alt=""></button>
-      <button class="film__thumb" data-i="04"><img src="img/09-horizon.webp" alt=""></button>
-      <button class="film__thumb" data-i="05"><img src="img/01-nightfall.webp" alt=""></button>
     </div>
   </div>
 </section>
@@ -538,6 +562,18 @@
     <span class="mono">Click any image to enlarge</span>
   </div>
   <div class="grid" id="grid" data-rise>
+    <figure class="frame w8 wide bloom" data-cap="The Hearth" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-living.jpg">
+      <span class="frame__img"><img src="img/chalet-living.jpg" alt="Chalet living room with green tiled stove"></span>
+      <figcaption class="frame__cap"><span class="t">The Hearth</span><span class="m">Alpine Chalet · Interior</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Under the Eaves" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-bedroom.jpg">
+      <span class="frame__img"><img src="img/chalet-bedroom.jpg" alt="Chalet bedroom with tartan headboard and fireplace"></span>
+      <figcaption class="frame__cap"><span class="t">Under the Eaves</span><span class="m">Alpine Chalet · Interior</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Soak" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-bath.jpg">
+      <span class="frame__img"><img src="img/chalet-bath.jpg" alt="Chalet bathroom with freestanding tub and stone wall"></span>
+      <figcaption class="frame__cap"><span class="t">Soak</span><span class="m">Alpine Chalet · Interior</span></figcaption>
+    </figure>
     <figure class="frame w6 wide bloom" data-cap="The Reading Hall" data-meta="University Library, Wrocław · Stills" data-full="img/14-library-front.jpg">
       <span class="frame__img"><img src="img/14-library-front.jpg" alt="Library facade"></span>
       <figcaption class="frame__cap"><span class="t">The Reading Hall</span><span class="m">Wrocław · Stills</span></figcaption>

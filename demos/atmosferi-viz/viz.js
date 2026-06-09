@@ -20,7 +20,7 @@
     if (nav) {
       var rh = ribbon ? ribbon.offsetHeight : 0;
       nav.style.top = Math.max(0, rh - st) + "px";
-      nav.classList.toggle("scrolled", st >= rh - 2);
+      nav.classList.toggle("scrolled", st >= (rh ? rh - 2 : 60));
     }
   }
   window.addEventListener("scroll", onScroll, { passive: true });
@@ -201,73 +201,77 @@
   });
 
   /* =========================================================================
-     IN MOTION — animated film / showreel
-     A Ken-Burns sequence with timecode, scene titles, progress and thumbs.
+     IN MOTION — showreel video (muted autoplay, sound toggle, play/pause)
      ========================================================================= */
   (function () {
     var film = document.getElementById("film");
     if (!film) return;
-    var frames = [].slice.call(film.querySelectorAll(".film__frame"));
-    var titles = ["Ascension — Helix Tower", "First Light — Tidewater", "The Loop — Rotterdam", "Horizon — Floor 41", "Nightfall — Harbour Tower"];
-    var titleEl = document.getElementById("filmTitle");
+    var video = document.getElementById("filmVideo");
     var tcEl = document.getElementById("filmTC");
+    var durEl = document.getElementById("filmDur");
     var progEl = document.getElementById("filmProg");
     var playBtn = document.getElementById("filmPlay");
-    var thumbs = [].slice.call(document.querySelectorAll("#filmThumbs .film__thumb"));
-    var SHOT = 9; // seconds per shot
-    var total = frames.length * SHOT;
-    var cur = 0, playing = false, t0 = 0, raf = 0;
+    var soundBtn = document.getElementById("filmSound");
+    var soundLab = soundBtn ? soundBtn.querySelector(".film__sound-lab") : null;
+    if (!video) return;
 
-    document.getElementById("filmDur").textContent = fmt(total);
+    function fmt(s) { s = Math.max(0, Math.floor(s || 0)); return ("0" + Math.floor(s / 60)).slice(-2) + ":" + ("0" + (s % 60)).slice(-2); }
 
-    function fmt(s) { s = Math.max(0, Math.floor(s)); return ("0" + Math.floor(s / 60)).slice(-2) + ":" + ("0" + (s % 60)).slice(-2); }
+    // muted autoplay loop
+    video.muted = true;
+    video.loop = true;
 
-    function setShot(i, restart) {
-      cur = (i + frames.length) % frames.length;
-      frames.forEach(function (f, n) { f.classList.toggle("on", n === cur); });
-      thumbs.forEach(function (t, n) { t.classList.toggle("on", n === cur); });
-      titleEl.style.opacity = 0;
-      setTimeout(function () { titleEl.textContent = titles[cur]; titleEl.style.opacity = 1; }, 260);
-      if (restart) {
-        // restart ken-burns on the active frame
-        var img = frames[cur].querySelector("img");
-        img.style.animation = "none"; void img.offsetWidth; img.style.animation = "";
-      }
+    film.classList.add("paused");
+    function reflectState() { film.classList.toggle("paused", video.paused); }
+
+    function tryPlay() {
+      var p = video.play();
+      if (p && p.catch) p.catch(function () { /* autoplay blocked — stays paused with overlay */ });
     }
 
-    function tick(ts) {
-      if (!playing) return;
-      if (!t0) t0 = ts;
-      var elapsed = (ts - t0) / 1000;
-      var globalT = cur * SHOT + (elapsed % SHOT);
-      // advance shot
-      if (elapsed >= SHOT) { t0 = ts; setShot(cur + 1, true); }
-      var shown = (cur * SHOT) + Math.min(elapsed, SHOT);
-      tcEl.textContent = fmt(shown % total);
-      progEl.style.width = ((shown % total) / total * 100) + "%";
-      raf = requestAnimationFrame(tick);
-    }
-
-    function play() {
-      if (playing) return;
-      playing = true; t0 = 0;
-      film.classList.add("playing");
-      setShot(cur, true);
-      raf = requestAnimationFrame(tick);
-    }
-    function pause() {
-      playing = false; film.classList.remove("playing");
-      cancelAnimationFrame(raf);
-    }
-
-    playBtn.addEventListener("click", function (e) { e.stopPropagation(); play(); });
-    film.addEventListener("click", function () {
-      if (playing) pause(); else play();
+    video.addEventListener("loadedmetadata", function () { durEl.textContent = fmt(video.duration); });
+    video.addEventListener("timeupdate", function () {
+      tcEl.textContent = fmt(video.currentTime);
+      progEl.style.width = (video.duration ? (video.currentTime / video.duration) * 100 : 0) + "%";
     });
-    thumbs.forEach(function (t, i) {
-      t.addEventListener("click", function (e) { e.stopPropagation(); setShot(i, true); t0 = 0; if (!playing) play(); });
+    video.addEventListener("play", reflectState);
+    video.addEventListener("playing", reflectState);
+    video.addEventListener("pause", reflectState);
+
+    // play / pause on stage click
+    film.addEventListener("click", function (e) {
+      if (soundBtn && soundBtn.contains(e.target)) return;
+      if (video.paused) tryPlay(); else video.pause();
     });
-    if (reduce) { setShot(0, false); } // no autoplay loop under reduced motion
+    if (playBtn) playBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (video.paused) tryPlay(); else video.pause();
+    });
+
+    // sound toggle — always-visible
+    function setSound(on) {
+      video.muted = !on;
+      soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
+      if (soundLab) soundLab.textContent = on ? "Sound on" : "Sound off";
+      if (on && video.paused) tryPlay();
+    }
+    if (soundBtn) soundBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      setSound(video.muted);  // toggle
+    });
+
+    // autoplay muted when scrolled into view; pause when out (saves resources)
+    if ("IntersectionObserver" in window && !reduce) {
+      var vio = new IntersectionObserver(function (es) {
+        es.forEach(function (en) {
+          if (en.isIntersecting) { tryPlay(); }
+          else if (!video.paused) { video.pause(); }
+        });
+      }, { threshold: 0.4 });
+      vio.observe(film);
+    } else if (!reduce) {
+      tryPlay();
+    }
   })();
 
   /* =========================================================================
