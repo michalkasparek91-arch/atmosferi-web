@@ -46,6 +46,7 @@ export interface EmailEditorState {
   promo_banner_enabled?: boolean;
   promo_banner_text?: string | null;
   job_description_snippet?: string | null;
+  language?: string | null;
   ps_footer_enabled?: boolean;
   ps_footer_text?: string | null;
   show_job_widget?: boolean;
@@ -1306,6 +1307,18 @@ export function ModularEmailEditorDialogInner({
                               <SelectItem value="all">Všem (Výchozí)</SelectItem>
                               <SelectItem value="worker">Pro Řemeslníky</SelectItem>
                               <SelectItem value="customer">Pro Zákazníky</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold text-muted-foreground">Jazyk šablony (Pro Autonomní rozesílku)</Label>
+                          <Select value={form.language || "cs"} onValueChange={(v) => setVal("language", v)}>
+                            <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Jazyk..." /></SelectTrigger>
+                            <SelectContent className="z-[200]">
+                              <SelectItem value="cs">Čeština (cs)</SelectItem>
+                              <SelectItem value="en">Angličtina (en)</SelectItem>
+                              <SelectItem value="de">Němčina (de)</SelectItem>
+                              <SelectItem value="sk">Slovenština (sk)</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

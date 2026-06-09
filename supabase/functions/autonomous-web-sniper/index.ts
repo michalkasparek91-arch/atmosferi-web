@@ -106,7 +106,9 @@ Pro každou firmu vytěž přesně tyto informace a vrať je jako JSON pole obje
 7. "language": Hlavní jazyk tohoto státu (např. "de", "en", "cs")
 8. "full_address": Kompletní poštovní adresa
 9. "description": Krátký popis toho, co firma dělá (v češtině).
-10. "ai_icebreaker": Napiš jeden velmi osobní, přirozený a specifický otevírací odstavec (tzv. icebreaker) do cold e-mailu V JAZYCE CÍLOVÉHO STÁTU (language). Icebreaker musí vycházet z toho, co firma dělá, chválit její práci nebo projekty. Nesmí to znít jako robot. Např. pro architekty: "I was looking at your recent residential projects on your website and absolutely loved the minimalist approach..."
+10. "ai_icebreaker": Napiš jeden velmi osobní, přirozený a specifický otevírací odstavec (tzv. icebreaker) do cold e-mailu V JAZYCE CÍLOVÉHO STÁTU (language). Icebreaker musí vycházet z toho, co firma dělá, chválit její práci nebo projekty. Nesmí to znít jako robot.
+11. "decision_maker_name": Pokus se na webu najít jméno majitele, ředitele, CEO nebo jednatele. Pokud jméno najdeš, zapiš ho (např. "Jan Novák"). Pokud ne, nechej prázdné ("").
+12. "premium_score": Zhodnoť "prémiovost" a kvalitu firmy na základě jejího webu a prezentace (číslo od 1 do 100). Skóre 90+ dej firmám s luxusním portfoliem, velkým rozsahem služeb a profesionální prezentací. Skóre pod 40 dej firmám, které působí zastarale nebo velmi amatérsky.
 
 Odpověz POUZE validním polem objektů v JSON formátu. Nic jiného nepiš.`;
 
@@ -187,6 +189,8 @@ Odpověz POUZE validním polem objektů v JSON formátu. Nic jiného nepiš.`;
           country: item.country || targetCountry,
           language: item.language || "cs",
           ai_icebreaker: item.ai_icebreaker || "",
+          decision_maker_name: item.decision_maker_name || null,
+          premium_score: item.premium_score ? parseInt(item.premium_score) : null,
           full_address: item.full_address || `${item.city || "Neznámé město"}, ${targetCountry}`,
           category: "B2B",
           subcategory: targetKeyword,

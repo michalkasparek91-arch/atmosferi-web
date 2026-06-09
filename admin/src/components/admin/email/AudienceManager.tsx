@@ -863,27 +863,21 @@ export const AudienceManager = (props: any) => {
                 </div>
               </div>
 
-              {/* ─── Engagement Score & Activity ─── */}
+              {/* ─── Engagement & Premium Score ─── */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/40 p-4 rounded-2xl border border-border flex items-center gap-3 shadow-sm">
-                  <div className="p-2.5 bg-primary/10 rounded-xl text-primary font-black">
-                    <Activity className="h-5 w-5" />
+                <div className="bg-muted/40 p-4 rounded-2xl border border-border flex flex-col justify-center gap-1 shadow-sm relative overflow-hidden">
+                  <div className="absolute -right-3 -top-3 p-4 bg-primary/5 rounded-full text-primary/20 pointer-events-none">
+                    <Activity className="h-10 w-10" />
                   </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-black tracking-wider text-muted-foreground">Engagement skóre</p>
-                    <p className="text-lg font-extrabold text-foreground">{selectedContactForSheet.engagement_score || 0} <span className="text-xs font-medium text-muted-foreground">bodů</span></p>
-                  </div>
+                  <p className="text-[10px] uppercase font-black tracking-wider text-muted-foreground">Engagement</p>
+                  <p className="text-xl font-extrabold text-foreground">{selectedContactForSheet.engagement_score || 0} <span className="text-xs font-medium text-muted-foreground">bodů</span></p>
                 </div>
-                <div className="bg-muted/40 p-4 rounded-2xl border border-border flex items-center gap-3 shadow-sm">
-                  <div className="p-2.5 bg-primary/10 rounded-xl text-primary font-black">
-                    <Calendar className="h-5 w-5" />
+                <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 p-4 rounded-2xl border border-amber-500/20 flex flex-col justify-center gap-1 shadow-sm relative overflow-hidden">
+                  <div className="absolute -right-3 -top-3 p-4 bg-amber-500/10 rounded-full text-amber-500/20 pointer-events-none">
+                    <Star className="h-10 w-10" />
                   </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-black tracking-wider text-muted-foreground">Vytvořeno v CRM</p>
-                    <p className="text-xs font-bold text-foreground pt-0.5">
-                      {selectedContactForSheet.created_at ? format(new Date(selectedContactForSheet.created_at), "dd.MM.yyyy", { locale: cs }) : "Neznámé"}
-                    </p>
-                  </div>
+                  <p className="text-[10px] uppercase font-black tracking-wider text-amber-600/80">Premium Score (AI)</p>
+                  <p className="text-xl font-extrabold text-foreground">{selectedContactForSheet.premium_score || 0} <span className="text-xs font-medium text-muted-foreground">/ 100</span></p>
                 </div>
               </div>
 
@@ -893,6 +887,12 @@ export const AudienceManager = (props: any) => {
                   <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Kontaktní a adresní údaje
                 </h3>
                 <div className="bg-card/60 p-4 rounded-2xl border border-border/80 space-y-3 text-xs">
+                  {selectedContactForSheet.decision_maker_name && (
+                    <div className="flex items-center justify-between pb-2 border-b border-border/50">
+                      <span className="text-muted-foreground flex items-center gap-2 font-medium"><Star className="h-3.5 w-3.5 text-amber-500" /> Rozhodovatel (Majitel)</span>
+                      <span className="font-bold text-foreground">{selectedContactForSheet.decision_maker_name}</span>
+                    </div>
+                  )}
                   {selectedContactForSheet.phone && (
                     <div className="flex items-center justify-between pb-2 border-b border-border/50">
                       <span className="text-muted-foreground flex items-center gap-2 font-medium"><Phone className="h-3.5 w-3.5 text-primary" /> Telefon</span>

@@ -53,6 +53,7 @@ type EmailTemplate = {
   job_description_snippet?: string | null;
   ps_footer_enabled?: boolean;
   ps_footer_text?: string | null;
+  language?: string | null;
   show_job_widget?: boolean;
   show_cta_button?: boolean;
 };
@@ -215,6 +216,7 @@ export default function EmailTemplatesTab() {
         job_description_snippet: template.job_description_snippet,
         ps_footer_enabled: template.ps_footer_enabled ?? false,
         ps_footer_text: template.ps_footer_text,
+        language: template.language || "cs",
         show_job_widget: template.show_job_widget ?? true,
         show_cta_button: template.show_cta_button ?? true,
       };
@@ -282,9 +284,9 @@ export default function EmailTemplatesTab() {
         urgency_banner_text: template.urgency_banner_text,
         promo_banner_enabled: template.promo_banner_enabled ?? true,
         promo_banner_text: template.promo_banner_text,
-        job_description_snippet: template.job_description_snippet,
         ps_footer_enabled: template.ps_footer_enabled ?? false,
         ps_footer_text: template.ps_footer_text,
+        language: template.language || "cs",
         show_job_widget: template.show_job_widget ?? true,
       };
       const { error } = await supabase.from("email_templates").insert(payload as any);

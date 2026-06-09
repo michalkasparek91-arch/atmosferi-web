@@ -1390,6 +1390,7 @@ export type Database = {
           company_name: string | null
           country: string | null
           created_at: string | null
+          decision_maker_name: string | null
           description: string | null
           email: string
           email_notifications: boolean | null
@@ -1410,11 +1411,13 @@ export type Database = {
           marketing_notifications: boolean | null
           phone: string | null
           postal_code: string | null
+          premium_score: number | null
           push_notifications: boolean | null
           referral_code: string | null
           secondary_emails: string[] | null
           slug: string | null
           source: string | null
+          status: string | null
           street_name: string | null
           street_number: string | null
           subcategory: string | null
@@ -1432,6 +1435,7 @@ export type Database = {
           company_name?: string | null
           country?: string | null
           created_at?: string | null
+          decision_maker_name?: string | null
           description?: string | null
           email: string
           email_notifications?: boolean | null
@@ -1452,11 +1456,13 @@ export type Database = {
           marketing_notifications?: boolean | null
           phone?: string | null
           postal_code?: string | null
+          premium_score?: number | null
           push_notifications?: boolean | null
           referral_code?: string | null
           secondary_emails?: string[] | null
           slug?: string | null
           source?: string | null
+          status?: string | null
           street_name?: string | null
           street_number?: string | null
           subcategory?: string | null
@@ -1474,6 +1480,7 @@ export type Database = {
           company_name?: string | null
           country?: string | null
           created_at?: string | null
+          decision_maker_name?: string | null
           description?: string | null
           email?: string
           email_notifications?: boolean | null
@@ -1494,11 +1501,13 @@ export type Database = {
           marketing_notifications?: boolean | null
           phone?: string | null
           postal_code?: string | null
+          premium_score?: number | null
           push_notifications?: boolean | null
           referral_code?: string | null
           secondary_emails?: string[] | null
           slug?: string | null
           source?: string | null
+          status?: string | null
           street_name?: string | null
           street_number?: string | null
           subcategory?: string | null
