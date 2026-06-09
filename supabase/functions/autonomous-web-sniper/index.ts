@@ -1,6 +1,4 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { isAutomationAllowed } from "../_shared/automation-guard.ts";
-import { logJobStart, logJobSuccess, logJobFailure } from "../_shared/automation-utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +14,22 @@ function normalizePhone(p: string): string {
   return clean;
 }
 
+async function logJobStart(supabase: any, jobName: string) {
+  return await supabase.from("automation_jobs").update({ 
+      last_run_at: new Date().toISOString(), last_run_status: "running", last_run_error: null 
+  }).eq("job_name", jobName);
+}
+async function logJobSuccess(supabase: any, jobName: string, metadata: any) {
+  return await supabase.from("automation_jobs").update({ 
+      last_run_status: "success", metadata, updated_at: new Date().toISOString()
+  }).eq("job_name", jobName);
+}
+async function logJobFailure(supabase: any, jobName: string, error: string) {
+  return await supabase.from("automation_jobs").update({ 
+      last_run_status: "failure", last_run_error: error, updated_at: new Date().toISOString()
+  }).eq("job_name", jobName);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -29,161 +43,97 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const __gate = await isAutomationAllowed(supabase, "autonomous-web-sniper");
-    if (!__gate.allowed) {
-      console.log("[autonomous-web-sniper] Skipped: " + __gate.reason);
-      return new Response(JSON.stringify({ skipped: true, reason: __gate.reason }), {
-        status: 200,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      });
-    }
-
     await logJobStart(supabase, jobName);
-
     const body = await req.json().catch(() => ({}));
     const forceSearch = body.forceSearch === true;
 
-    // 1. Fetch scraper config from DB
-    const { data: configData, error: configErr } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "scraper_config")
-      .maybeSingle();
-
-    if (configErr) console.warn("Could not fetch scraper config:", configErr);
+    const { data: configData } = await supabase.from("app_settings").select("value").eq("key", "scraper_config").maybeSingle();
 
     const defaultConfig = {
       is_enabled: false,
-      keywords: ["architekt", "interiérový designér", "developer"],
-      cities: ["Praha", "Brno", "Ostrava"],
-      countries: ["Česká republika", "Německo", "Rakousko", "Austrálie", "Finsko"]
+      keywords: ["architekt", "interiérový design", "developer"],
+      cities: [],
+      countries: ["Česká republika", "Německo"]
     };
 
     const config = configData?.value || defaultConfig;
 
     if (!forceSearch && config.is_enabled !== true) {
-      await logJobSuccess(supabase, jobName, { discovered_count: 0, reason: "Autonomous mode is disabled in settings" });
       return new Response(JSON.stringify({ ok: true, message: "Autonomous scraping is disabled." }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const keywords = (config.keywords && config.keywords.length > 0) ? config.keywords : defaultConfig.keywords;
-    const cities = (config.cities && config.cities.length > 0) ? config.cities : defaultConfig.cities;
-
-    // Let's pass the arrays so AI can see the user's preferred cities
-    const preferredCitiesList = cities.join(", ");
-    
-    // Pick a random country and random keyword
     const targetKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-    const targetCountry = (config.countries && config.countries.length > 0) ? config.countries[Math.floor(Math.random() * config.countries.length)] : (defaultConfig.countries ? defaultConfig.countries[0] : "Česká republika");
-
-    console.log(`[WebSniper] Initiating live web search via Google Grounding for ${targetKeyword} in ${targetCountry}...`);
+    const targetCountry = (config.countries && config.countries.length > 0) ? config.countries[Math.floor(Math.random() * config.countries.length)] : defaultConfig.countries[0];
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) throw new Error("Chybí GEMINI_API_KEY proměnná prostředí");
+    if (!apiKey) {
+      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: "Chybí GEMINI_API_KEY v Supabase Secrets!" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     
-    const SEARCH_PROMPT = `Jsi autonomní vyhledávací agent platformy Atmosferi.com pro B2B akvizici.
-Tvé aktuální zadání:
-1. Cílový stát: ${targetCountry}
-2. Hledaný obor v češtině: "${targetKeyword}"
-3. Preferovaná města: ${preferredCitiesList}
+    // NADOPovaný prompt s automatickou rotací měst
+    const SEARCH_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: ${targetCountry}. Obor: "${targetKeyword}". 
+TVŮJ ÚKOL: 
+1. Náhodně si vymysli a vyber JEDNO středně velké město v tomto státě. Pokaždé vyber jiné město, ať nehledáme pořád to samé dookola! Vyhni se hlavnímu městu.
+2. Pomocí nástroje Google Search najdi reálné firmy v tomto nově vybraném městě pro zadaný obor.
+3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi 5-10 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!).
 
-Tvé kroky:
-Krok 1: Přelož hledaný obor "${targetKeyword}" do hlavního jazyka státu ${targetCountry}.
-Krok 2: Vyber si jedno vhodné město ve státě ${targetCountry}. Zkus primárně vybrat některé z "Preferovaných měst", pokud se nachází v tomto státě. Pokud žádné z preferovaných měst neleží v ${targetCountry}, vyber si jakékoliv jiné významné ekonomické město v ${targetCountry}.
-Krok 3: Udělej přes Google vyhledávání na reálné a aktivní firmy v tomto vybraném městě a státě, pro tento lokálně přeložený obor.
+Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
+Odpověz POUZE validním polem objektů v JSON formátu.`;
 
-Zajímají nás POUZE firmy, u kterých lze dohledat e-mailovou adresu. Vyhledej 5 až 10 takových B2B firem.
-
-Pro každou firmu vytěž přesně tyto informace a vrať je jako JSON pole objektů:
-1. "company_name": Oficiální lokální název firmy
-2. "email": E-mailová adresa
-3. "phone": Telefonní číslo s mezinárodní předvolbou (např. +49 pro Německo, +61 pro Austrálii)
-4. "website": Odkaz na webové stránky
-5. "city": Město sídla (to, které jsi vybral)
-6. "country": "${targetCountry}"
-7. "language": Hlavní jazyk tohoto státu (např. "de", "en", "cs")
-8. "full_address": Kompletní poštovní adresa
-9. "description": Krátký popis toho, co firma dělá (v češtině).
-10. "ai_icebreaker": Napiš jeden velmi osobní, přirozený a specifický otevírací odstavec (tzv. icebreaker) do cold e-mailu V JAZYCE CÍLOVÉHO STÁTU (language). Icebreaker musí vycházet z toho, co firma dělá, chválit její práci nebo projekty. Nesmí to znít jako robot.
-11. "decision_maker_name": Pokus se na webu najít jméno majitele, ředitele, CEO nebo jednatele. Pokud jméno najdeš, zapiš ho (např. "Jan Novák"). Pokud ne, nechej prázdné ("").
-12. "premium_score": Zhodnoť "prémiovost" a kvalitu firmy na základě jejího webu a prezentace (číslo od 1 do 100). Skóre 90+ dej firmám s luxusním portfoliem, velkým rozsahem služeb a profesionální prezentací. Skóre pod 40 dej firmám, které působí zastarale nebo velmi amatérsky.
-
-Odpověz POUZE validním polem objektů v JSON formátu. Nic jiného nepiš.`;
-
-    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }],
-        tools: [{ googleSearch: {} }],
-        generationConfig: { temperature: 0.2 }
-      })
+    let geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7, responseMimeType: "application/json" } }) 
     });
 
+    if (!geminiRes.ok && geminiRes.status === 503) {
+       geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
+         method: "POST", headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7, responseMimeType: "application/json" } })
+       });
+    }
+
     if (!geminiRes.ok) {
-      const errTxt = await geminiRes.text();
-      throw new Error(`Gemini Grounding API chyba: ${errTxt}`);
+       const errBody = await geminiRes.text();
+       return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `Chyba od Google API: ${errBody}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const resJson = await geminiRes.json();
     let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     
-    // Extract JSON block using regex if it's wrapped in markdown
-    const jsonMatch = textOut.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-    if (jsonMatch) {
-      textOut = jsonMatch[1].trim();
-    } else {
-      // fallback basic stripping
-      textOut = textOut.replace(/^```json/i, "").replace(/^```/, "").replace(/```$/, "").trim();
-    }
+    // Fallback čištění, ale díky application/json by už textOut měl být čistý JSON
+    textOut = textOut.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
 
     let discoveredList: any[] = [];
-    try {
-      discoveredList = JSON.parse(textOut);
-    } catch (parseErr) {
-      console.error("[WebSniper] Could not parse JSON from Gemini output:", textOut);
-      // Wait, if it failed parsing, let's just log it and act like 0 discovered instead of crashing the whole function
-      discoveredList = [];
+    try { 
+      discoveredList = JSON.parse(textOut); 
+    } catch (e) { 
+      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `Nepodařilo se přečíst JSON. Odpověď: ${textOut.substring(0, 500)}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (!Array.isArray(discoveredList) || discoveredList.length === 0) {
-      await logJobSuccess(supabase, jobName, { discovered_count: 0, targetKeyword });
-      return new Response(JSON.stringify({ 
-        ok: true, 
-        discovered_count: 0, 
-        message: "Nebyly objeveny žádné firmy s e-mailem.",
-        debug_output: textOut 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      await logJobSuccess(supabase, jobName, { discovered_count: 0 });
+      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: "Umělá inteligence nenašla žádné firmy, které by splňovaly přísná kritéria (s e-mailem)." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    console.log(`[WebSniper] Gemini discovered ${discoveredList.length} potential leads. Inserting into CRM...`);
-
     let newSavedCount = 0;
-
     for (const item of discoveredList) {
       if (!item.email || !item.email.includes("@")) continue;
       const cleanEmail = item.email.toLowerCase().trim();
 
-      // Check if email exists in profiles or leads
       const { data: pExist } = await supabase.from("profiles").select("id").eq("email", cleanEmail).maybeSingle();
       if (pExist) continue;
 
       const { data: lExist } = await supabase.from("marketing_leads").select("id").eq("email", cleanEmail).maybeSingle();
       if (lExist) continue;
 
-      const phoneNorm = normalizePhone(item.phone || "");
-
-      const { data: newLead, error: insertErr } = await supabase
-        .from("marketing_leads")
-        .insert({
+      const { data: newLead, error: insertErr } = await supabase.from("marketing_leads").insert({
           email: cleanEmail,
           full_name: item.company_name || "B2B Partner",
           company_name: item.company_name || "B2B Partner",
-          phone: phoneNorm,
+          phone: normalizePhone(item.phone || ""),
           website: item.website || "",
           city: item.city || "Neznámé město",
           country: item.country || targetCountry,
@@ -191,55 +141,33 @@ Odpověz POUZE validním polem objektů v JSON formátu. Nic jiného nepiš.`;
           ai_icebreaker: item.ai_icebreaker || "",
           decision_maker_name: item.decision_maker_name || null,
           premium_score: item.premium_score ? parseInt(item.premium_score) : null,
-          full_address: item.full_address || `${item.city || "Neznámé město"}, ${targetCountry}`,
+          full_address: item.full_address || `${item.city || ""}, ${targetCountry}`,
           category: "B2B",
           subcategory: targetKeyword,
-          description: item.description || `Autonomně nalezený kontakt v kategorii ${targetKeyword}`,
-          company_description: item.description || `Autonomně nalezený kontakt v kategorii ${targetKeyword}`,
+          description: item.description || "Nalezeno autonomně",
+          company_description: item.description || "Nalezeno autonomně",
           source: "ai_web_sniper",
-        })
-        .select()
-        .single();
+      }).select().single();
 
-      if (!insertErr && newLead) {
-        newSavedCount++;
-      } else if (insertErr) {
-        console.error(`[WebSniper] Error inserting lead ${cleanEmail}:`, insertErr);
-      }
+      if (!insertErr && newLead) newSavedCount++;
     }
 
-    const actualCity = discoveredList.length > 0 ? discoveredList[0].city : "Neznámé město";
-
-    // Create admin notification
-    if (newSavedCount > 0) {
-      try {
-        await supabase.from("admin_notifications").insert({
-          title: "🌐 AI Sběr: Nové B2B kontakty",
-          message: `Pro stát ${targetCountry} (${targetKeyword}) bylo objeveno a uloženo ${newSavedCount} nových firem.`,
-          link: "/admin/emaily?tab=crm",
-          type: "success"
-        });
-      } catch (ne) {
-        console.warn("[WebSniper] Notification error:", ne);
-      }
+    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount });
+    
+    if (newSavedCount === 0 && discoveredList.length > 0) {
+       return new Response(JSON.stringify({ 
+         ok: true, 
+         discovered_count: 0, 
+         total_found_by_ai: discoveredList.length,
+         message: "Nalezeno, ale přeskočeno (chyběl e-mail nebo už v CRM existují).",
+         debug_output: JSON.stringify(discoveredList, null, 2)
+       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, targetKeyword });
-
-    return new Response(JSON.stringify({ 
-      ok: true, 
-      discovered_count: newSavedCount,
-      total_found_by_ai: discoveredList.length,
-      targetKeyword,
-      targetCity: actualCity,
-      message: `Úspěšně dohledáno a uloženo ${newSavedCount} firem z webu pro klíčové slovo ${targetKeyword} (${actualCity}, ${targetCountry}).` 
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, discovered_count: newSavedCount, message: "Hotovo." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
     if (supabase) await logJobFailure(supabase, jobName, err.message);
-    return new Response(JSON.stringify({ error: String(err.message || err) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `INTERNÍ CHYBA FUNKCE: ${String(err.message || err)}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
