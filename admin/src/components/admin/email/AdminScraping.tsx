@@ -14,12 +14,14 @@ interface ScraperConfig {
   is_enabled: boolean;
   keywords: string[];
   cities: string[];
+  countries: string[];
 }
 
 const DEFAULT_CONFIG: ScraperConfig = {
   is_enabled: false,
   keywords: ["architekt", "interiérový designér", "realitní developer", "stavební inženýr", "stavební firma"],
-  cities: ["Praha", "Brno", "Ostrava", "Plzeň", "Liberec", "Olomouc", "České Budějovice", "Hradec Králové"]
+  cities: ["Praha", "Brno", "Ostrava", "Plzeň", "Liberec", "Olomouc", "České Budějovice", "Hradec Králové"],
+  countries: ["Česká republika", "Německo", "Rakousko", "Austrálie", "Finsko"]
 };
 
 export const AdminScraping = () => {
@@ -30,6 +32,7 @@ export const AdminScraping = () => {
   const [config, setConfig] = useState<ScraperConfig>(DEFAULT_CONFIG);
   const [newKeyword, setNewKeyword] = useState("");
   const [newCity, setNewCity] = useState("");
+  const [newCountry, setNewCountry] = useState("");
 
   const { data: serverConfig, isLoading: configLoading } = useQuery({
     queryKey: ["admin-scraper-config"],
@@ -53,7 +56,8 @@ export const AdminScraping = () => {
       setConfig({
         is_enabled: serverConfig.is_enabled ?? false,
         keywords: serverConfig.keywords || DEFAULT_CONFIG.keywords,
-        cities: serverConfig.cities || DEFAULT_CONFIG.cities
+        cities: serverConfig.cities || DEFAULT_CONFIG.cities,
+        countries: serverConfig.countries || DEFAULT_CONFIG.countries
       });
     }
   }, [serverConfig]);
@@ -120,6 +124,21 @@ export const AdminScraping = () => {
 
   const handleRemoveCity = (city: string) => {
     const updated = { ...config, cities: config.cities.filter(c => c !== city) };
+    setConfig(updated);
+    saveConfigMutation.mutate(updated);
+  };
+
+  const handleAddCountry = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCountry.trim()) return;
+    const updated = { ...config, countries: [...config.countries, newCountry.trim()] };
+    setConfig(updated);
+    setNewCountry("");
+    saveConfigMutation.mutate(updated);
+  };
+
+  const handleRemoveCountry = (ctry: string) => {
+    const updated = { ...config, countries: config.countries.filter(c => c !== ctry) };
     setConfig(updated);
     saveConfigMutation.mutate(updated);
   };
@@ -244,6 +263,39 @@ export const AdminScraping = () => {
               </form>
             </CardContent>
           </Card>
+{/* Country selector */}
+<Card className="border-border/40 shadow-sm">
+  <CardHeader className="pb-4">
+    <CardTitle className="text-base flex items-center gap-2">
+      <MapPin className="h-4 w-4 text-primary" /> Cílové země
+    </CardTitle>
+    <CardDescription>V jakých zemích má AI kontakty hledat?</CardDescription>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <div className="flex flex-wrap gap-2">
+      {config.countries.length === 0 && <span className="text-sm text-muted-foreground italic">Zatím žádné země</span>}
+      {config.countries.map(ctry => (
+        <Badge key={ctry} variant="outline" className="px-3 py-1.5 text-xs gap-2 rounded-xl border-border hover:bg-muted transition-colors">
+          {ctry}
+          <button onClick={() => handleRemoveCountry(ctry)} className="text-muted-foreground hover:text-red-500 transition-colors">
+            <X className="h-3 w-3" />
+          </button>
+        </Badge>
+      ))}
+    </div>
+    <form onSubmit={handleAddCountry} className="flex items-center gap-2 mt-4 pt-4 border-t border-border/40">
+      <Input
+        placeholder="Přidat další zemi (např. Německo)"
+        value={newCountry}
+        onChange={e => setNewCountry(e.target.value)}
+        className="h-9 rounded-xl text-sm"
+      />
+      <Button type="submit" size="sm" variant="secondary" className="h-9 rounded-xl font-semibold gap-1 shrink-0">
+        <Plus className="h-4 w-4" /> Přidat
+      </Button>
+    </form>
+  </CardContent>
+</Card>
         </div>
 
         {/* Pravý sloupec - Spouštění */}

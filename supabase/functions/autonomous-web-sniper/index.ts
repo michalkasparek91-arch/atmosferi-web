@@ -55,7 +55,8 @@ Deno.serve(async (req) => {
     const defaultConfig = {
       is_enabled: false,
       keywords: ["architekt", "interiérový designér", "developer"],
-      cities: ["Praha", "Brno", "Ostrava"]
+      cities: ["Praha", "Brno", "Ostrava"],
+      countries: ["Česká republika", "Německo", "Rakousko", "Austrálie", "Finsko"]
     };
 
     const config = configData?.value || defaultConfig;
@@ -73,21 +74,22 @@ Deno.serve(async (req) => {
     // Pick random keyword and city
     const targetKeyword = keywords[Math.floor(Math.random() * keywords.length)];
     const targetCity = cities[Math.floor(Math.random() * cities.length)];
+    const targetCountry = (config.countries && config.countries.length > 0) ? config.countries[Math.floor(Math.random() * config.countries.length)] : (defaultConfig.countries ? defaultConfig.countries[0] : "Česká republika");
 
-    console.log(`[WebSniper] Initiating live web search via Google Grounding for ${targetKeyword} in ${targetCity}...`);
+    console.log(`[WebSniper] Initiating live web search via Google Grounding for ${targetKeyword} in ${targetCity}, ${targetCountry}...`);
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) throw new Error("Chybí GEMINI_API_KEY proměnná prostředí");
     
     const SEARCH_PROMPT = `Jsi autonomní vyhledávací agent platformy Atmosferi.com.
-Tvým úkolem je vyhledat na webu přes Google reálné a aktivní B2B firmy (konkrétně: "${targetKeyword}") působící v obci/městě ${targetCity} (Česká republika) nebo v těsném okolí.
+Tvým úkolem je vyhledat na webu přes Google reálné a aktivní B2B firmy (konkrétně: "${targetKeyword}") působící v obci/městě ${targetCity}, ${targetCountry} (${targetCountry}) nebo v těsném okolí.
 
 Zajímají nás POUZE subjekty, u kterých na webu existuje e-mailová adresa. Vyhledej 5 až 10 takových firem z dané lokality a okolí.
 
 Pro každou firmu vytěž přesně tyto informace:
 1. "company_name": Oficiální název firmy nebo celé jméno a příjmení živnostníka
 2. "email": E-mailová adresa
-3. "phone": Telefonní číslo (vlož českou předvolbu +420)
+3. "phone": Telefonní číslo (vlož mezinárodní předvolbu, např. +49 pro Německo)
 4. "website": Odkaz na webové stránky nebo profil v katalogu
 5. "city": Obec nebo město sídla / působiště
 6. "full_address": Kompletní poštovní adresa (ulice, č.p., město, PSČ)
