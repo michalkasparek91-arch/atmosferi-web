@@ -85,13 +85,13 @@ Odpověz POUZE validním polem objektů v JSON formátu.`;
 
     let geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7, responseMimeType: "application/json" } }) 
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7 } }) 
     });
 
     if (!geminiRes.ok && geminiRes.status === 503) {
        geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
          method: "POST", headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7, responseMimeType: "application/json" } })
+         body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7 } })
        });
     }
 
@@ -103,8 +103,13 @@ Odpověz POUZE validním polem objektů v JSON formátu.`;
     const resJson = await geminiRes.json();
     let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     
-    // Fallback čištění, ale díky application/json by už textOut měl být čistý JSON
-    textOut = textOut.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    // Extrémně robustní čtení - najde první znak [ a poslední ] a zbytek osekne
+    const firstBracket = textOut.indexOf('[');
+    const lastBracket = textOut.lastIndexOf(']');
+    
+    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+      textOut = textOut.substring(firstBracket, lastBracket + 1);
+    }
 
     let discoveredList: any[] = [];
     try { 
