@@ -81,7 +81,7 @@ TVŮJ ÚKOL:
 3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi 5-10 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!).
 
 Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
-Odpověz POUZE validním polem objektů v JSON formátu.`;
+Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř textových hodnot (např. v ai_icebreaker) nesmíš používat neescapované uvozovky! Místo uvozovek používej apostrofy, aby se nerozbil JSON parser.`;
 
     let geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -114,8 +114,8 @@ Odpověz POUZE validním polem objektů v JSON formátu.`;
     let discoveredList: any[] = [];
     try { 
       discoveredList = JSON.parse(textOut); 
-    } catch (e) { 
-      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `Nepodařilo se přečíst JSON. Odpověď: ${textOut.substring(0, 500)}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    } catch (e: any) { 
+      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `JSON CHYBA: ${e.message}. Úryvek: ${textOut.substring(0, 500)}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (!Array.isArray(discoveredList) || discoveredList.length === 0) {
