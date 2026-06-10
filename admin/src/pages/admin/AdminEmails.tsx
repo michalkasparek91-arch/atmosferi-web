@@ -1263,7 +1263,7 @@ export default function AdminEmails() {
               <Route path="outbox" element={<AdminOutbox />} />
 
               <Route path="nastaveni" element={
-                <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="space-y-1">
                     <h2 className="text-xl font-bold">Nastavení studia</h2>
                     <p className="text-xs text-muted-foreground">Konfigurace odesílání a automatizace marketingu</p>

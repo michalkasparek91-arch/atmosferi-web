@@ -227,7 +227,7 @@ export const AdminOutbox = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 font-sans max-w-6xl pb-24">
+    <div className="space-y-6 animate-in fade-in duration-500 font-sans w-full pb-24">
       {/* Filters (Sablony style) */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
         <button 

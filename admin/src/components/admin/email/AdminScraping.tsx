@@ -229,7 +229,7 @@ export const AdminScraping = () => {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 font-sans max-w-5xl mx-auto mt-2">
+    <div className="space-y-6 animate-in fade-in duration-500 font-sans w-full mt-2">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
