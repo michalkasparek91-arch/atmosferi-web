@@ -10,7 +10,7 @@ import {
   Users, Search, Download, Upload, Filter, 
   ChevronLeft, ChevronRight, Loader2, Tag, Star, Activity, Calendar, Globe, ExternalLink,
   MousePointer2, Mail, Phone, MapPin, Building2, Trash2, Database, X, Briefcase,
-  Send, MailOpen, Clock, PenLine, CheckCircle2, XCircle, AlertCircle, MoreHorizontal
+  Send, MailOpen, Clock, PenLine, CheckCircle2, XCircle, AlertCircle, MoreHorizontal, MessageCircle
 } from "lucide-react";
 import { CITY_COORDINATES } from "@/lib/city-regions";
 import { format } from "date-fns";
@@ -114,8 +114,6 @@ export const AudienceManager = (props: any) => {
     isImporting,
     importProgress,
     importTotalCount,
-    addTagMutation,
-    removeTagMutation,
     subcatFilter, setSubcatFilter,
     countryFilter, setCountryFilter,
     languageFilter, setLanguageFilter,
