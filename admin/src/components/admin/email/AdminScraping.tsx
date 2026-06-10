@@ -15,13 +15,19 @@ interface ScraperConfig {
   keywords: string[];
   cities: string[];
   countries: string[];
+  active_keywords?: string[];
+  active_cities?: string[];
+  active_countries?: string[];
 }
 
 const DEFAULT_CONFIG: ScraperConfig = {
   is_enabled: false,
   keywords: ["architekt", "interiérový designér", "realitní developer", "stavební inženýr", "stavební firma"],
   cities: ["Praha", "Brno", "Ostrava", "Plzeň", "Liberec", "Olomouc", "České Budějovice", "Hradec Králové"],
-  countries: ["Česká republika", "Německo", "Rakousko", "Austrálie", "Finsko"]
+  countries: ["Česká republika", "Německo", "Rakousko", "Austrálie", "Finsko"],
+  active_keywords: [],
+  active_cities: [],
+  active_countries: []
 };
 
 export const AdminScraping = () => {
@@ -55,14 +61,19 @@ export const AdminScraping = () => {
     },
   });
 
-  useEffect(() => {
     if (serverConfig) {
       setConfig({
         is_enabled: serverConfig.is_enabled ?? false,
         keywords: serverConfig.keywords || DEFAULT_CONFIG.keywords,
         cities: serverConfig.cities || DEFAULT_CONFIG.cities,
-        countries: serverConfig.countries || DEFAULT_CONFIG.countries
+        countries: serverConfig.countries || DEFAULT_CONFIG.countries,
+        active_keywords: serverConfig.active_keywords || [],
+        active_cities: serverConfig.active_cities || [],
+        active_countries: serverConfig.active_countries || []
       });
+      setSelectedKeywords(serverConfig.active_keywords || []);
+      setSelectedCities(serverConfig.active_cities || []);
+      setSelectedCountries(serverConfig.active_countries || []);
     }
   }, [serverConfig]);
 
@@ -143,6 +154,30 @@ export const AdminScraping = () => {
 
   const handleRemoveCountry = (ctry: string) => {
     const updated = { ...config, countries: config.countries.filter(c => c !== ctry) };
+    setConfig(updated);
+    saveConfigMutation.mutate(updated);
+  };
+
+  const handleToggleKeywordSelection = (kw: string) => {
+    const next = selectedKeywords.includes(kw) ? selectedKeywords.filter(k => k !== kw) : [...selectedKeywords, kw];
+    setSelectedKeywords(next);
+    const updated = { ...config, active_keywords: next };
+    setConfig(updated);
+    saveConfigMutation.mutate(updated);
+  };
+
+  const handleToggleCitySelection = (city: string) => {
+    const next = selectedCities.includes(city) ? selectedCities.filter(c => c !== city) : [...selectedCities, city];
+    setSelectedCities(next);
+    const updated = { ...config, active_cities: next };
+    setConfig(updated);
+    saveConfigMutation.mutate(updated);
+  };
+
+  const handleToggleCountrySelection = (ctry: string) => {
+    const next = selectedCountries.includes(ctry) ? selectedCountries.filter(c => c !== ctry) : [...selectedCountries, ctry];
+    setSelectedCountries(next);
+    const updated = { ...config, active_countries: next };
     setConfig(updated);
     saveConfigMutation.mutate(updated);
   };
@@ -232,7 +267,7 @@ export const AdminScraping = () => {
                     key={kw} 
                     variant={selectedKeywords.includes(kw) ? "default" : "secondary"} 
                     className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedKeywords.includes(kw) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}
-                    onClick={() => setSelectedKeywords(prev => prev.includes(kw) ? prev.filter(k => k !== kw) : [...prev, kw])}
+                    onClick={() => handleToggleKeywordSelection(kw)}
                   >
                     {kw}
                     <button onClick={(e) => { e.stopPropagation(); handleRemoveKeyword(kw); }} className={`transition-colors ${selectedKeywords.includes(kw) ? "text-current opacity-70 hover:opacity-100" : "text-current hover:text-red-500"}`}>
@@ -270,7 +305,7 @@ export const AdminScraping = () => {
                     key={city} 
                     variant={selectedCities.includes(city) ? "default" : "outline"} 
                     className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCities.includes(city) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "border-border hover:bg-muted text-muted-foreground"}`}
-                    onClick={() => setSelectedCities(prev => prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city])}
+                    onClick={() => handleToggleCitySelection(city)}
                   >
                     {city}
                     <button onClick={(e) => { e.stopPropagation(); handleRemoveCity(city); }} className={`transition-colors ${selectedCities.includes(city) ? "text-current opacity-70 hover:opacity-100" : "text-muted-foreground hover:text-red-500"}`}>
@@ -308,7 +343,7 @@ export const AdminScraping = () => {
           key={ctry} 
           variant={selectedCountries.includes(ctry) ? "default" : "outline"} 
           className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCountries.includes(ctry) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "border-border hover:bg-muted text-muted-foreground"}`}
-          onClick={() => setSelectedCountries(prev => prev.includes(ctry) ? prev.filter(c => c !== ctry) : [...prev, ctry])}
+          onClick={() => handleToggleCountrySelection(ctry)}
         >
           {ctry}
           <button onClick={(e) => { e.stopPropagation(); handleRemoveCountry(ctry); }} className={`transition-colors ${selectedCountries.includes(ctry) ? "text-current opacity-70 hover:opacity-100" : "text-muted-foreground hover:text-red-500"}`}>
