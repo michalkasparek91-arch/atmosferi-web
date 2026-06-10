@@ -75,9 +75,23 @@ Deno.serve(async (req) => {
     const targetCountry = targetCountries[Math.floor(Math.random() * targetCountries.length)] || "Česká republika";
     
     const activeCities = (config.active_cities && config.active_cities.length > 0) ? config.active_cities : config.cities;
-    const targetCities = body.targetCities && body.targetCities.length > 0 ? body.targetCities : (activeCities || []);
-    const targetCity = targetCities.length > 0 ? targetCities[Math.floor(Math.random() * targetCities.length)] : "";
+    let targetCities = body.targetCities && body.targetCities.length > 0 ? body.targetCities : (activeCities || []);
+    
+    const TOP_CITIES_BY_COUNTRY: Record<string, string[]> = {
+      "Česká republika": ["Praha", "Brno", "Ostrava", "Plzeň", "Liberec", "Olomouc", "České Budějovice", "Hradec Králové", "Pardubice", "Zlín", "Ústí nad Labem", "Kladno", "Karlovy Vary", "Jihlava"],
+      "Německo": ["Berlín", "Hamburk", "Mnichov", "Kolín nad Rýnem", "Frankfurt nad Mohanem", "Stuttgart", "Düsseldorf", "Lipsko", "Dortmund", "Essen", "Brémy", "Drážďany", "Hannover", "Norimberk"],
+      "Slovensko": ["Bratislava", "Košice", "Prešov", "Žilina", "Nitra", "Banská Bystrica", "Trnava", "Martin", "Trenčín", "Poprad"],
+      "Rakousko": ["Vídeň", "Štýrský Hradec", "Linec", "Salcburk", "Innsbruck", "Klagenfurt", "Villach", "Wels", "Sankt Pölten", "Dornbirn"]
+    };
 
+    if (TOP_CITIES_BY_COUNTRY[targetCountry]) {
+        const validCitiesForCountry = TOP_CITIES_BY_COUNTRY[targetCountry];
+        targetCities = targetCities.filter((city: string) => validCitiesForCountry.includes(city));
+    } else {
+        targetCities = [];
+    }
+
+    const targetCity = targetCities.length > 0 ? targetCities[Math.floor(Math.random() * targetCities.length)] : "";
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: "Chybí GEMINI_API_KEY v Supabase Secrets!" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });

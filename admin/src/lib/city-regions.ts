@@ -278,6 +278,13 @@ export const SLUG_TO_CITY: Record<string, string> = Object.fromEntries(
 
 export const TOP_CITIES = ["Praha", "Brno", "Ostrava", "Plzeň", "Liberec", "Olomouc"];
 
+export const TOP_CITIES_BY_COUNTRY: Record<string, string[]> = {
+  "Česká republika": ["Praha", "Brno", "Ostrava", "Plzeň", "Liberec", "Olomouc", "České Budějovice", "Hradec Králové", "Pardubice", "Zlín", "Ústí nad Labem", "Kladno", "Karlovy Vary", "Jihlava"],
+  "Německo": ["Berlín", "Hamburk", "Mnichov", "Kolín nad Rýnem", "Frankfurt nad Mohanem", "Stuttgart", "Düsseldorf", "Lipsko", "Dortmund", "Essen", "Brémy", "Drážďany", "Hannover", "Norimberk"],
+  "Slovensko": ["Bratislava", "Košice", "Prešov", "Žilina", "Nitra", "Banská Bystrica", "Trnava", "Martin", "Trenčín", "Poprad"],
+  "Rakousko": ["Vídeň", "Štýrský Hradec", "Linec", "Salcburk", "Innsbruck", "Klagenfurt", "Villach", "Wels", "Sankt Pölten", "Dornbirn"]
+};
+
 export const PRIORITY_PSEO_CITIES = [
   'Praha', 'Brno', 'Ostrava', 'Plzeň', 'Liberec', 'Olomouc', 'České Budějovice', 'Hradec Králové', 'Pardubice', 'Zlín', 
   'Ústí nad Labem', 'Havířov', 'Kladno', 'Most', 'Opava', 'Frýdek-Místek', 'Karviná', 'Jihlava', 'Teplice', 'Děčín', 

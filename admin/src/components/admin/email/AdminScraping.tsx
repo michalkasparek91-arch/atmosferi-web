@@ -6,9 +6,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Zap, Target, MapPin, Search, Plus, X } from "lucide-react";
+import { Loader2, Zap, Target, MapPin, Search, Plus, X, CheckSquare, Square } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TOP_CITIES_BY_COUNTRY } from "@/lib/city-regions";
 
 interface ScraperConfig {
   is_enabled: boolean;
@@ -183,6 +184,25 @@ export const AdminScraping = () => {
     saveConfigMutation.mutate(updated);
   };
 
+  const handleToggleAllCitiesForCountry = (country: string, isSelectAll: boolean) => {
+    const countryCities = TOP_CITIES_BY_COUNTRY[country] || [];
+    let next = [...selectedCities];
+    
+    if (isSelectAll) {
+      // Add all missing cities from this country
+      const toAdd = countryCities.filter(c => !next.includes(c));
+      next = [...next, ...toAdd];
+    } else {
+      // Remove all cities from this country
+      next = next.filter(c => !countryCities.includes(c));
+    }
+    
+    setSelectedCities(next);
+    const updated = { ...config, active_cities: next };
+    setConfig(updated);
+    saveConfigMutation.mutate(updated);
+  };
+
   const handleRunManualSearch = async () => {
     setIsSearching(true);
     toast.loading("🌐 AI (Gemini) prohledává web podle aktuálního nastavení...", { id: "manual-sniper" });
@@ -291,48 +311,11 @@ export const AdminScraping = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-border/40 shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-primary" /> Preferovaná města
-              </CardTitle>
-              <CardDescription>Můžete zadat preferovaná města. AI se pokusí vybrat jedno z nich, pokud odpovídá náhodně zvolenému cílovému státu. Pokud ne, najde si samo jiné velké město v daném státě.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {config.cities.length === 0 && <span className="text-sm text-muted-foreground italic">Zatím žádná města</span>}
-                {config.cities.map(city => (
-                  <Badge 
-                    key={city} 
-                    variant={selectedCities.includes(city) ? "default" : "outline"} 
-                    className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCities.includes(city) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "border-border hover:bg-muted text-muted-foreground"}`}
-                    onClick={() => handleToggleCitySelection(city)}
-                  >
-                    {city}
-                    <button onClick={(e) => { e.stopPropagation(); handleRemoveCity(city); }} className={`transition-colors ${selectedCities.includes(city) ? "text-current opacity-70 hover:opacity-100" : "text-muted-foreground hover:text-red-500"}`}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              <form onSubmit={handleAddCity} className="flex items-center gap-2 mt-4 pt-4 border-t border-border/40">
-                <Input 
-                  placeholder="Přidat další město (např. Zlín)" 
-                  value={newCity} 
-                  onChange={e => setNewCity(e.target.value)}
-                  className="h-9 rounded-xl text-sm"
-                />
-                <Button type="submit" size="sm" variant="secondary" className="h-9 rounded-xl font-semibold gap-1 shrink-0">
-                  <Plus className="h-4 w-4" /> Přidat
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
 {/* Country selector */}
 <Card className="border-border/40 shadow-sm">
   <CardHeader className="pb-4">
     <CardTitle className="text-base flex items-center gap-2">
-      <MapPin className="h-4 w-4 text-primary" /> Cílové země
+      <Globe className="h-4 w-4 text-primary" /> Cílové země
     </CardTitle>
     <CardDescription>V jakých zemích má AI kontakty hledat?</CardDescription>
   </CardHeader>
@@ -358,6 +341,102 @@ export const AdminScraping = () => {
         placeholder="Přidat další zemi (např. Německo)"
         value={newCountry}
         onChange={e => setNewCountry(e.target.value)}
+        className="h-9 rounded-xl text-sm"
+      />
+      <Button type="submit" size="sm" variant="secondary" className="h-9 rounded-xl font-semibold gap-1 shrink-0">
+        <Plus className="h-4 w-4" /> Přidat
+      </Button>
+    </form>
+  </CardContent>
+</Card>
+
+{/* Cities selector grouped by country */}
+<Card className="border-border/40 shadow-sm">
+  <CardHeader className="pb-4">
+    <CardTitle className="text-base flex items-center gap-2">
+      <MapPin className="h-4 w-4 text-primary" /> Preferovaná města
+    </CardTitle>
+    <CardDescription>
+      Vyberte konkrétní města pro vybrané země. Pokud nevyberete žádné, AI si najde náhodné velké město sama.
+    </CardDescription>
+  </CardHeader>
+  <CardContent className="space-y-6">
+    {selectedCountries.length === 0 ? (
+      <span className="text-sm text-muted-foreground italic">Nejprve vyberte alespoň jednu cílovou zemi výše.</span>
+    ) : (
+      selectedCountries.map(country => {
+        const predefinedCities = TOP_CITIES_BY_COUNTRY[country] || [];
+        if (predefinedCities.length === 0) return null;
+
+        const allSelected = predefinedCities.every(c => selectedCities.includes(c));
+        
+        return (
+          <div key={country} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-foreground">{country}</h4>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                onClick={() => handleToggleAllCitiesForCountry(country, !allSelected)}
+              >
+                {allSelected ? (
+                  <><Square className="h-3 w-3 mr-1" /> Zrušit vše</>
+                ) : (
+                  <><CheckSquare className="h-3 w-3 mr-1" /> Vybrat vše</>
+                )}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {predefinedCities.map(city => (
+                <Badge 
+                  key={city} 
+                  variant={selectedCities.includes(city) ? "default" : "outline"} 
+                  className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCities.includes(city) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "border-border hover:bg-muted text-muted-foreground"}`}
+                  onClick={() => handleToggleCitySelection(city)}
+                >
+                  {city}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        );
+      })
+    )}
+    
+    {/* Ostatní ručně přidaná města, která nejsou v predefined seznamech */}
+    {(() => {
+      const allPredefined = Object.values(TOP_CITIES_BY_COUNTRY).flat();
+      const customCities = config.cities.filter(c => !allPredefined.includes(c));
+      if (customCities.length === 0) return null;
+      
+      return (
+        <div className="space-y-3 pt-4 border-t border-border/40">
+          <h4 className="text-sm font-semibold text-foreground">Vlastní přidaná města</h4>
+          <div className="flex flex-wrap gap-2">
+            {customCities.map(city => (
+              <Badge 
+                key={city} 
+                variant={selectedCities.includes(city) ? "default" : "outline"} 
+                className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCities.includes(city) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "border-border hover:bg-muted text-muted-foreground"}`}
+                onClick={() => handleToggleCitySelection(city)}
+              >
+                {city}
+                <button onClick={(e) => { e.stopPropagation(); handleRemoveCity(city); }} className={`transition-colors ${selectedCities.includes(city) ? "text-current opacity-70 hover:opacity-100" : "text-muted-foreground hover:text-red-500"}`}>
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      );
+    })()}
+
+    <form onSubmit={handleAddCity} className="flex items-center gap-2 mt-4 pt-4 border-t border-border/40">
+      <Input 
+        placeholder="Přidat další město ručně..." 
+        value={newCity} 
+        onChange={e => setNewCity(e.target.value)}
         className="h-9 rounded-xl text-sm"
       />
       <Button type="submit" size="sm" variant="secondary" className="h-9 rounded-xl font-semibold gap-1 shrink-0">
