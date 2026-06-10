@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Bell, Mail, Zap, Clock, Search, Plus, Pencil, Trash2, 
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Save, X, Users, UserCheck, Shield, Send, Loader2,
-  Copy, BarChart3, Bold, Italic, Underline, List, Link, Monitor, Smartphone, Sparkles
+  Copy, BarChart3, Bold, Italic, Underline, List, Link, Monitor, Smartphone, Sparkles, HardHat, Home, Building2, PaintRoller
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ModularEmailEditorDialog from "./email/ModularEmailEditor";
@@ -59,10 +59,13 @@ type EmailTemplate = {
 };
 
 const CATEGORY_CONFIG: Record<string, { label: string; color: string; icon: typeof Mail }> = {
-  marketing: { label: "B2B Kampaně", color: "bg-amber-100 text-amber-700 border-amber-200", icon: Zap },
-  transactional: { label: "Systémové (Transakční)", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Bell },
-  auth: { label: "Zabezpečení (Auth)", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Shield },
-  lifecycle: { label: "Automatizace", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: Clock },
+  architekti: { label: "Architekti", color: "bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-500/10 dark:text-stone-400 dark:border-stone-500/20", icon: PaintRoller },
+  developeri: { label: "Developeři", color: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20", icon: Building2 },
+  stavebnictvi: { label: "Stavebnictví", color: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20", icon: HardHat },
+  reality: { label: "Reality", color: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20", icon: Home },
+  marketing: { label: "Ostatní B2B", color: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20", icon: Zap },
+  transactional: { label: "Systémové", color: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-500/10 dark:text-zinc-400 dark:border-zinc-500/20", icon: Bell },
+  lifecycle: { label: "Lifecycle", color: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20", icon: Clock },
 };
 
 const LANGUAGE_LABELS: Record<string, { label: string, flag: string }> = {
