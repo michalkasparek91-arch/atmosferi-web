@@ -25,6 +25,11 @@ jobs:
         with:
           version: latest
 
+      - name: Deploy Database Migrations
+        run: supabase db push --project-ref $PROJECT_ID
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
       - name: Deploy autonomous-web-sniper
         run: supabase functions deploy autonomous-web-sniper --project-ref $PROJECT_ID
         
