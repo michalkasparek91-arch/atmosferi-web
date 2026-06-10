@@ -27,6 +27,7 @@ import { CampaignManager } from "@/components/admin/email/CampaignManager";
 import { AudienceManager } from "@/components/admin/email/AudienceManager";
 import { AdminScraping } from "@/components/admin/email/AdminScraping";
 import { AdminOutbox } from "@/components/admin/email/AdminOutbox";
+import { SmartInbox } from "@/components/admin/email/SmartInbox";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
@@ -1257,6 +1258,7 @@ export default function AdminEmails() {
 
               <Route path="sablony" element={<EmailTemplatesTab />} />
               <Route path="sber" element={<AdminScraping />} />
+              <Route path="inbox" element={<SmartInbox />} />
               <Route path="outbox" element={<AdminOutbox />} />
 
               <Route path="nastaveni" element={

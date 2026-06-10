@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   BarChart3, Send, Users, Layout, 
-  Settings2, Sparkles, Inbox, History
+  Settings2, Sparkles, Inbox as InboxIcon, History, Send as SendIcon
 } from "lucide-react";
 
 interface NavItemProps {
@@ -85,9 +85,16 @@ export const EmailTopNav = () => {
             onClick={onTabChange} 
           />
           <NavItem 
+            id="inbox" 
+            label="Inbox" 
+            icon={InboxIcon} 
+            active={activeTab === "inbox"} 
+            onClick={onTabChange} 
+          />
+          <NavItem 
             id="outbox" 
             label="Outbox" 
-            icon={Inbox} 
+            icon={SendIcon} 
             active={activeTab === "outbox"} 
             onClick={onTabChange} 
             badge={outboxReadyCount > 0 ? outboxReadyCount.toString() : undefined}
