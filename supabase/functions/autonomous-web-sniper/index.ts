@@ -65,9 +65,15 @@ Deno.serve(async (req) => {
     }
 
     const keywords = (config.keywords && config.keywords.length > 0) ? config.keywords : defaultConfig.keywords;
-    const targetKeyword = body.targetKeyword || keywords[Math.floor(Math.random() * keywords.length)];
-    const targetCountry = body.targetCountry || ((config.countries && config.countries.length > 0) ? config.countries[Math.floor(Math.random() * config.countries.length)] : defaultConfig.countries[0]);
-    const targetCity = body.targetCity || "";
+    const targetKeywords = body.targetKeywords && body.targetKeywords.length > 0 ? body.targetKeywords : keywords;
+    const targetKeyword = targetKeywords[Math.floor(Math.random() * targetKeywords.length)];
+    
+    const countries = (config.countries && config.countries.length > 0) ? config.countries : defaultConfig.countries;
+    const targetCountries = body.targetCountries && body.targetCountries.length > 0 ? body.targetCountries : countries;
+    const targetCountry = targetCountries[Math.floor(Math.random() * targetCountries.length)] || "Česká republika";
+    
+    const targetCities = body.targetCities && body.targetCities.length > 0 ? body.targetCities : [];
+    const targetCity = targetCities.length > 0 ? targetCities[Math.floor(Math.random() * targetCities.length)] : "";
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
