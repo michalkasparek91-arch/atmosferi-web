@@ -166,7 +166,7 @@ export default function EmailTemplatesTab() {
     },
   });
 
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: templates = [], isLoading, error: queryError } = useQuery({
     queryKey: ["email-templates-all"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -577,9 +577,16 @@ export default function EmailTemplatesTab() {
         </Card>
       )}
 
-      {filtered.length === 0 && !isLoading && (
+      {filtered.length === 0 && !isLoading && !queryError && (
         <div className="text-center py-12 text-muted-foreground text-sm italic">
           Žádné šablony k zobrazení.
+        </div>
+      )}
+
+      {queryError && (
+        <div className="text-center py-12 text-red-500 font-bold bg-red-500/10 rounded-xl border border-red-500/20">
+          <p>Chyba načítání šablon z databáze:</p>
+          <p className="font-mono text-xs mt-2 opacity-80">{queryError.message}</p>
         </div>
       )}
 
