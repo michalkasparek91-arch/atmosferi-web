@@ -191,8 +191,8 @@ export default function AdminEmails() {
   const [minPremiumScore, setMinPremiumScore] = useState("0");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [subcatFilter, setSubcatFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [userTypeFilter, setUserTypeFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [languageFilter, setLanguageFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
   const [radiusFilter, setRadiusFilter] = useState("50");
   const [crmPage, setCrmPage] = useState(0);
@@ -614,22 +614,15 @@ export default function AdminEmails() {
       else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
       
       if (subcatFilter !== "all") {
-        const subcatName = allSubcategories?.find(s => s.id === subcatFilter)?.name;
-        if (subcatName) {
-          query = query.or(`subcategory.ilike.%${subcatFilter}%,subcategory.ilike.%${subcatName}%`);
-        } else {
-          query = query.ilike("subcategory", `%${subcatFilter}%`);
-        }
-      } else if (categoryFilter !== "all") {
-        const subcats = allSubcategories?.filter(s => s.category_id === categoryFilter);
-        if (subcats && subcats.length > 0) {
-          const conditions = subcats.map(s => `subcategory.ilike.%${s.name}%`).join(",");
-          query = query.or(conditions);
-        }
+        query = query.ilike("subcategory", `%${subcatFilter}%`);
       }
 
-      if (userTypeFilter !== "all") {
-        query = query.eq("user_type", userTypeFilter);
+      if (countryFilter !== "all") {
+        query = query.eq("country", countryFilter);
+      }
+
+      if (languageFilter !== "all") {
+        query = query.eq("language", languageFilter);
       }
 
       // City & Distance Filter
@@ -668,22 +661,15 @@ export default function AdminEmails() {
     else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
     
     if (subcatFilter !== "all") {
-      const subcatName = allSubcategories?.find(s => s.id === subcatFilter)?.name;
-      if (subcatName) {
-        query = query.or(`subcategory.ilike.%${subcatFilter}%,subcategory.ilike.%${subcatName}%`);
-      } else {
-        query = query.ilike("subcategory", `%${subcatFilter}%`);
-      }
-    } else if (categoryFilter !== "all") {
-      const subcats = allSubcategories?.filter(s => s.category_id === categoryFilter);
-      if (subcats && subcats.length > 0) {
-        const conditions = subcats.map(s => `subcategory.ilike.%${s.name}%`).join(",");
-        query = query.or(conditions);
-      }
+      query = query.ilike("subcategory", `%${subcatFilter}%`);
     }
 
-    if (userTypeFilter !== "all") {
-      query = query.eq("user_type", userTypeFilter);
+    if (countryFilter !== "all") {
+      query = query.eq("country", countryFilter);
+    }
+
+    if (languageFilter !== "all") {
+      query = query.eq("language", languageFilter);
     }
 
     if (cityFilter !== "all") {
@@ -1251,12 +1237,18 @@ export default function AdminEmails() {
                     crmPage, setCrmPage,
                     totalPages,
                     handleExportCSV,
+                    updateSubcategoriesMutation,
+                    subcatFilter, setSubcatFilter,
+                    countryFilter, setCountryFilter,
+                    languageFilter, setLanguageFilter,
+                    cityFilter, setCityFilter,
+                    radiusFilter, setRadiusFilter,
+                    allSubcategories,
                     importFileRef,
                     handleFileUpload,
                     isImporting,
                     importProgress,
                     importTotalCount,
-                    subcatFilter, setSubcatFilter,
                     categoryFilter, setCategoryFilter,
                     userTypeFilter, setUserTypeFilter,
                     cityFilter, setCityFilter,

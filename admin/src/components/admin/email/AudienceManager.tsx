@@ -118,13 +118,11 @@ export const AudienceManager = (props: any) => {
     removeTagMutation,
     updateSubcategoriesMutation,
     subcatFilter, setSubcatFilter,
-    categoryFilter, setCategoryFilter,
-    userTypeFilter, setUserTypeFilter,
+    countryFilter, setCountryFilter,
+    languageFilter, setLanguageFilter,
     cityFilter, setCityFilter,
     radiusFilter, setRadiusFilter,
     allSubcategories,
-    allCategories
-  } = props;
 
   const isMobile = useIsMobile();
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
@@ -393,43 +391,41 @@ export const AudienceManager = (props: any) => {
                     </SelectContent>
                   </Select>
 
-                  <Select value={categoryFilter} onValueChange={(val) => {
-                    setCategoryFilter(val);
-                    setSubcatFilter("all");
-                  }}>
+                  <div className="relative">
+                    <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary/70" />
+                    <Input 
+                      placeholder="Klíčové slovo (Obor)..." 
+                      className="pl-8 h-9 text-[12px] rounded-xl bg-background border-border/60"
+                      value={subcatFilter === "all" ? "" : subcatFilter}
+                      onChange={e => setSubcatFilter(e.target.value || "all")}
+                    />
+                  </div>
+
+                  <Select value={countryFilter} onValueChange={setCountryFilter}>
                     <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><Briefcase className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Kategorie" /></div>
+                      <div className="flex items-center"><Globe className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Země" /></div>
                     </SelectTrigger>
                     <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="all">Všechny kategorie</SelectItem>
-                      {allCategories?.map((cat: any) => (
-                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={subcatFilter} onValueChange={setSubcatFilter}>
-                    <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><Tag className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Podkategorie" /></div>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px] rounded-xl text-[12px]">
-                      <SelectItem value="all">Všechny podkategorie</SelectItem>
-                      {allSubcategories
-                        ?.filter((sub: any) => categoryFilter === "all" || sub.category_id === categoryFilter)
-                        .map((sub: any) => (
-                        <SelectItem key={sub.id} value={sub.id}>{sub.name}</SelectItem>
-                      ))}
+                      <SelectItem value="all">Všechny země</SelectItem>
+                      <SelectItem value="Česká republika">Česká republika</SelectItem>
+                      <SelectItem value="Slovensko">Slovensko</SelectItem>
+                      <SelectItem value="Německo">Německo</SelectItem>
+                      <SelectItem value="Rakousko">Rakousko</SelectItem>
+                      <SelectItem value="Polsko">Polsko</SelectItem>
                     </SelectContent>
                   </Select>
 
-                  <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
+                  <Select value={languageFilter} onValueChange={setLanguageFilter}>
                     <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><Users className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Typ" /></div>
+                      <div className="flex items-center"><MessageCircle className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Jazyk" /></div>
                     </SelectTrigger>
                     <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="all">Všichni</SelectItem>
-                      <SelectItem value="worker">Firma/Profil</SelectItem>
-                      <SelectItem value="customer">Zákazník</SelectItem>
+                      <SelectItem value="all">Všechny jazyky</SelectItem>
+                      <SelectItem value="cs">Čeština (cs)</SelectItem>
+                      <SelectItem value="sk">Slovenština (sk)</SelectItem>
+                      <SelectItem value="de">Němčina (de)</SelectItem>
+                      <SelectItem value="en">Angličtina (en)</SelectItem>
+                      <SelectItem value="pl">Polština (pl)</SelectItem>
                     </SelectContent>
                   </Select>
                   
@@ -621,6 +617,13 @@ export const AudienceManager = (props: any) => {
                         <div className="flex items-center gap-1 text-[9px] font-bold text-foreground/80">
                           <MapPin className="h-2.5 w-2.5 text-rose-500/40" /> {lead.city || "Nezadáno"} {lead.country && <span className="text-muted-foreground ml-0.5">({lead.country})</span>}
                         </div>
+                        {lead.subcategory && (
+                          <div className="flex items-center gap-1 text-[9px] text-muted-foreground/80 font-medium truncate mt-0.5">
+                            <Badge variant="outline" className="text-[8px] h-4 px-1.5 py-0 font-bold tracking-tight rounded-md flex items-center gap-1 w-max bg-primary/5 text-primary border-primary/20">
+                              <Tag className="h-2.5 w-2.5 shrink-0" /> {lead.subcategory}
+                            </Badge>
+                          </div>
+                        )}
                         {(() => {
                            const crmStatus = getMockCrmStatus(lead);
                            const statusConf = CRM_STATUS_CONFIG[crmStatus];
