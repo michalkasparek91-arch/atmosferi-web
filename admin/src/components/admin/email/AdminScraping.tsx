@@ -34,9 +34,9 @@ export const AdminScraping = () => {
   const [newCity, setNewCity] = useState("");
   const [newCountry, setNewCountry] = useState("");
 
-  const [selectedKeyword, setSelectedKeyword] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
 
   const { data: serverConfig, isLoading: configLoading } = useQuery({
     queryKey: ["admin-scraper-config"],
@@ -154,9 +154,9 @@ export const AdminScraping = () => {
       const res = await supabase.functions.invoke("autonomous-web-sniper", {
         body: { 
           forceSearch: true,
-          targetKeyword: selectedKeyword || undefined,
-          targetCity: selectedCity || undefined,
-          targetCountry: selectedCountry || undefined
+          targetKeywords: selectedKeywords.length > 0 ? selectedKeywords : undefined,
+          targetCities: selectedCities.length > 0 ? selectedCities : undefined,
+          targetCountries: selectedCountries.length > 0 ? selectedCountries : undefined
         }
       });
       if (res.error) throw new Error(res.error.message || "Neznámá chyba");
@@ -230,12 +230,12 @@ export const AdminScraping = () => {
                 {config.keywords.map(kw => (
                   <Badge 
                     key={kw} 
-                    variant={selectedKeyword === kw ? "default" : "secondary"} 
-                    className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedKeyword === kw ? "bg-primary text-primary-foreground shadow-sm" : "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20"}`}
-                    onClick={() => setSelectedKeyword(selectedKeyword === kw ? null : kw)}
+                    variant={selectedKeywords.includes(kw) ? "default" : "secondary"} 
+                    className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedKeywords.includes(kw) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}
+                    onClick={() => setSelectedKeywords(prev => prev.includes(kw) ? prev.filter(k => k !== kw) : [...prev, kw])}
                   >
                     {kw}
-                    <button onClick={(e) => { e.stopPropagation(); handleRemoveKeyword(kw); }} className={`transition-colors ${selectedKeyword === kw ? "text-primary-foreground/70 hover:text-white" : "text-primary hover:text-red-500"}`}>
+                    <button onClick={(e) => { e.stopPropagation(); handleRemoveKeyword(kw); }} className={`transition-colors ${selectedKeywords.includes(kw) ? "text-current opacity-70 hover:opacity-100" : "text-current hover:text-red-500"}`}>
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -268,12 +268,12 @@ export const AdminScraping = () => {
                 {config.cities.map(city => (
                   <Badge 
                     key={city} 
-                    variant={selectedCity === city ? "default" : "outline"} 
-                    className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCity === city ? "bg-primary text-primary-foreground shadow-sm border-primary" : "border-border hover:bg-muted"}`}
-                    onClick={() => setSelectedCity(selectedCity === city ? null : city)}
+                    variant={selectedCities.includes(city) ? "default" : "outline"} 
+                    className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCities.includes(city) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "border-border hover:bg-muted text-muted-foreground"}`}
+                    onClick={() => setSelectedCities(prev => prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city])}
                   >
                     {city}
-                    <button onClick={(e) => { e.stopPropagation(); handleRemoveCity(city); }} className={`transition-colors ${selectedCity === city ? "text-primary-foreground/70 hover:text-white" : "text-muted-foreground hover:text-red-500"}`}>
+                    <button onClick={(e) => { e.stopPropagation(); handleRemoveCity(city); }} className={`transition-colors ${selectedCities.includes(city) ? "text-current opacity-70 hover:opacity-100" : "text-muted-foreground hover:text-red-500"}`}>
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -306,12 +306,12 @@ export const AdminScraping = () => {
       {config.countries.map(ctry => (
         <Badge 
           key={ctry} 
-          variant={selectedCountry === ctry ? "default" : "outline"} 
-          className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCountry === ctry ? "bg-primary text-primary-foreground shadow-sm border-primary" : "border-border hover:bg-muted"}`}
-          onClick={() => setSelectedCountry(selectedCountry === ctry ? null : ctry)}
+          variant={selectedCountries.includes(ctry) ? "default" : "outline"} 
+          className={`px-3 py-1.5 text-xs gap-2 rounded-xl cursor-pointer transition-colors ${selectedCountries.includes(ctry) ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 shadow-sm" : "border-border hover:bg-muted text-muted-foreground"}`}
+          onClick={() => setSelectedCountries(prev => prev.includes(ctry) ? prev.filter(c => c !== ctry) : [...prev, ctry])}
         >
           {ctry}
-          <button onClick={(e) => { e.stopPropagation(); handleRemoveCountry(ctry); }} className={`transition-colors ${selectedCountry === ctry ? "text-primary-foreground/70 hover:text-white" : "text-muted-foreground hover:text-red-500"}`}>
+          <button onClick={(e) => { e.stopPropagation(); handleRemoveCountry(ctry); }} className={`transition-colors ${selectedCountries.includes(ctry) ? "text-current opacity-70 hover:opacity-100" : "text-muted-foreground hover:text-red-500"}`}>
             <X className="h-3 w-3" />
           </button>
         </Badge>
