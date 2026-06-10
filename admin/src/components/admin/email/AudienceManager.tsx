@@ -124,8 +124,6 @@ export const AudienceManager = (props: any) => {
     radiusFilter, setRadiusFilter,
     allSubcategories,
     allCategories,
-    categoryFilter, setCategoryFilter,
-    userTypeFilter, setUserTypeFilter,
   } = props;
 
   const isMobile = useIsMobile();

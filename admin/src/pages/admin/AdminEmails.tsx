@@ -602,7 +602,7 @@ export default function AdminEmails() {
   }, [suitableWorkers]);
 
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, sourceFilter, subcatFilter, categoryFilter, userTypeFilter, cityFilter, radiusFilter, crmPage],
+    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, sourceFilter, subcatFilter, cityFilter, radiusFilter, crmPage],
     queryFn: async () => {
       let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false });
       
@@ -1249,8 +1249,6 @@ export default function AdminEmails() {
                     isImporting,
                     importProgress,
                     importTotalCount,
-                    categoryFilter, setCategoryFilter,
-                    userTypeFilter, setUserTypeFilter,
                     allCategories,
                     fetchAllMatchingContacts,
                     refetchLeads: () => queryClient.invalidateQueries({ queryKey: ["admin-lead-sheet"] })
