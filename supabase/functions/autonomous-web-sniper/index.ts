@@ -64,15 +64,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    const keywords = (config.keywords && config.keywords.length > 0) ? config.keywords : defaultConfig.keywords;
+    const activeKeywords = (config.active_keywords && config.active_keywords.length > 0) ? config.active_keywords : config.keywords;
+    const keywords = (activeKeywords && activeKeywords.length > 0) ? activeKeywords : defaultConfig.keywords;
     const targetKeywords = body.targetKeywords && body.targetKeywords.length > 0 ? body.targetKeywords : keywords;
     const targetKeyword = targetKeywords[Math.floor(Math.random() * targetKeywords.length)];
     
-    const countries = (config.countries && config.countries.length > 0) ? config.countries : defaultConfig.countries;
+    const activeCountries = (config.active_countries && config.active_countries.length > 0) ? config.active_countries : config.countries;
+    const countries = (activeCountries && activeCountries.length > 0) ? activeCountries : defaultConfig.countries;
     const targetCountries = body.targetCountries && body.targetCountries.length > 0 ? body.targetCountries : countries;
     const targetCountry = targetCountries[Math.floor(Math.random() * targetCountries.length)] || "Česká republika";
     
-    const targetCities = body.targetCities && body.targetCities.length > 0 ? body.targetCities : [];
+    const activeCities = (config.active_cities && config.active_cities.length > 0) ? config.active_cities : config.cities;
+    const targetCities = body.targetCities && body.targetCities.length > 0 ? body.targetCities : (activeCities || []);
     const targetCity = targetCities.length > 0 ? targetCities[Math.floor(Math.random() * targetCities.length)] : "";
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
