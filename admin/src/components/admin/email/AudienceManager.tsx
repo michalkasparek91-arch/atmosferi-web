@@ -430,34 +430,7 @@ export const AudienceManager = (props: any) => {
               </SelectContent>
             </Select>
 
-            <Select value={cityFilter} onValueChange={setCityFilter}>
-              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${cityFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
-                <MapPin className="h-4 w-4 shrink-0" />
-                <span className="sr-only">Místo</span>
-              </SelectTrigger>
-              <SelectContent className="rounded-xl text-[12px]">
-                <SelectItem value="all">Celá ČR</SelectItem>
-                {Object.keys(CITY_COORDINATES || {}).sort().map(city => (
-                  <SelectItem key={city} value={city}>{city}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
-            {cityFilter !== "all" && (
-              <Select value={radiusFilter} onValueChange={setRadiusFilter}>
-                <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${radiusFilter !== "25" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
-                  <Circle className="h-4 w-4 shrink-0" />
-                  <span className="sr-only">Okolí</span>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl text-[12px]">
-                  <SelectItem value="10">+10 km</SelectItem>
-                  <SelectItem value="25">+25 km</SelectItem>
-                  <SelectItem value="50">+50 km</SelectItem>
-                  <SelectItem value="100">+100 km</SelectItem>
-                  <SelectItem value="200">+200 km</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
 
             <Select value={minEngagement} onValueChange={setMinEngagement}>
               <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${minEngagement !== "0" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
