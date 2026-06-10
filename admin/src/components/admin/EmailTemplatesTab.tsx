@@ -73,6 +73,12 @@ const LANGUAGE_LABELS: Record<string, { label: string, flag: string }> = {
   de: { label: "Němčina", flag: "🇩🇪" },
 };
 
+const TARGET_LABELS: Record<string, { label: string, icon?: any }> = {
+  all: { label: "Všichni uživatelé", icon: Users },
+  worker: { label: "Řemeslníci", icon: UserCheck },
+  customer: { label: "Zákazníci", icon: UserCheck },
+};
+
 const TRIGGER_LABELS: Record<string, string> = {
   event: "Událost",
   cron: "Plánovaný",
