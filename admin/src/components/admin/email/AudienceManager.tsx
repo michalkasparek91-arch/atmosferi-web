@@ -362,121 +362,125 @@ export const AudienceManager = (props: any) => {
             <Input 
               placeholder="Hledat kontakt..." 
               className="pl-8 h-9 text-[12px] rounded-xl bg-background border-border/60"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
+              valu          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors ${sourceFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Database className="h-4 w-4 shrink-0" />
+                <span className="sr-only">Zdroje</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="all">Všechny zdroje</SelectItem>
+                <SelectItem value="organic">Registrovaní</SelectItem>
+                <SelectItem value="scraped">Importovaní / Scrap</SelectItem>
+                <SelectItem value="ai_web_sniper">🤖 AI Web Sniper</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="h-9 rounded-xl gap-2 font-bold px-4">
-                <Filter className="h-4 w-4" />
-                Filtry
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4 rounded-2xl shadow-xl border-border/60" align="start">
-              <div className="space-y-4">
-                <h4 className="font-bold text-sm text-foreground">Rozšířené filtry</h4>
-                <div className="grid grid-cols-1 gap-3">
-                  <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                    <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><Database className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Zdroje" /></div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="all">Všechny zdroje</SelectItem>
-                      <SelectItem value="organic">Registrovaní</SelectItem>
-                      <SelectItem value="scraped">Importovaní / Scrap</SelectItem>
-                      <SelectItem value="ai_web_sniper">🎯 AI Web Sniper</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors ${subcatFilter !== "all" && subcatFilter !== "" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                  <Tag className="h-4 w-4 shrink-0" />
+                  <span className="sr-only">Obor</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3 rounded-2xl shadow-xl border-border/60">
+                <div className="relative">
+                  <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary/70" />
+                  <Input 
+                    placeholder="Klíčové slovo (Obor)..." 
+                    className="pl-8 h-9 text-[12px] rounded-xl bg-background border-border/60"
+                    value={subcatFilter === "all" ? "" : subcatFilter}
+                    onChange={e => setSubcatFilter(e.target.value || "all")}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
 
-                  <div className="relative">
-                    <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary/70" />
-                    <Input 
-                      placeholder="Klíčové slovo (Obor)..." 
-                      className="pl-8 h-9 text-[12px] rounded-xl bg-background border-border/60"
-                      value={subcatFilter === "all" ? "" : subcatFilter}
-                      onChange={e => setSubcatFilter(e.target.value || "all")}
-                    />
-                  </div>
+            <Select value={countryFilter} onValueChange={setCountryFilter}>
+              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${countryFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Globe className="h-4 w-4 shrink-0" />
+                <span className="sr-only">Země</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="all">Všechny země</SelectItem>
+                <SelectItem value="Česká republika">Česká republika</SelectItem>
+                <SelectItem value="Slovensko">Slovensko</SelectItem>
+                <SelectItem value="Německo">Německo</SelectItem>
+                <SelectItem value="Rakousko">Rakousko</SelectItem>
+                <SelectItem value="Polsko">Polsko</SelectItem>
+              </SelectContent>
+            </Select>
 
-                  <Select value={countryFilter} onValueChange={setCountryFilter}>
-                    <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><Globe className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Země" /></div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="all">Všechny země</SelectItem>
-                      <SelectItem value="Česká republika">Česká republika</SelectItem>
-                      <SelectItem value="Slovensko">Slovensko</SelectItem>
-                      <SelectItem value="Německo">Německo</SelectItem>
-                      <SelectItem value="Rakousko">Rakousko</SelectItem>
-                      <SelectItem value="Polsko">Polsko</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <Select value={languageFilter} onValueChange={setLanguageFilter}>
+              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${languageFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <MessageCircle className="h-4 w-4 shrink-0" />
+                <span className="sr-only">Jazyk</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="all">Všechny jazyky</SelectItem>
+                <SelectItem value="cs">Čeština (cs)</SelectItem>
+                <SelectItem value="sk">Slovenština (sk)</SelectItem>
+                <SelectItem value="de">Němčina (de)</SelectItem>
+                <SelectItem value="en">Angličtina (en)</SelectItem>
+                <SelectItem value="pl">Polština (pl)</SelectItem>
+              </SelectContent>
+            </Select>
 
-                  <Select value={languageFilter} onValueChange={setLanguageFilter}>
-                    <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><MessageCircle className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Jazyk" /></div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="all">Všechny jazyky</SelectItem>
-                      <SelectItem value="cs">Čeština (cs)</SelectItem>
-                      <SelectItem value="sk">Slovenština (sk)</SelectItem>
-                      <SelectItem value="de">Němčina (de)</SelectItem>
-                      <SelectItem value="en">Angličtina (en)</SelectItem>
-                      <SelectItem value="pl">Polština (pl)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={cityFilter} onValueChange={setCityFilter}>
-                    <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><MapPin className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Místo" /></div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="all">Celá ČR</SelectItem>
-                      {Object.keys(CITY_COORDINATES || {}).sort().map(city => (
-                        <SelectItem key={city} value={city}>{city}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <Select value={cityFilter} onValueChange={setCityFilter}>
+              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${cityFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <MapPin className="h-4 w-4 shrink-0" />
+                <span className="sr-only">Místo</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="all">Celá ČR</SelectItem>
+                {Object.keys(CITY_COORDINATES || {}).sort().map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-                  {cityFilter !== "all" && (
-                    <Select value={radiusFilter} onValueChange={setRadiusFilter}>
-                      <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                        <SelectValue placeholder="Okolí" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl text-[12px]">
-                        <SelectItem value="10">+10 km</SelectItem>
-                        <SelectItem value="25">+25 km</SelectItem>
-                        <SelectItem value="50">+50 km</SelectItem>
-                        <SelectItem value="100">+100 km</SelectItem>
-                        <SelectItem value="200">+200 km</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
+            {cityFilter !== "all" && (
+              <Select value={radiusFilter} onValueChange={setRadiusFilter}>
+                <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${radiusFilter !== "25" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                  <Circle className="h-4 w-4 shrink-0" />
+                  <span className="sr-only">Okolí</span>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl text-[12px]">
+                  <SelectItem value="10">+10 km</SelectItem>
+                  <SelectItem value="25">+25 km</SelectItem>
+                  <SelectItem value="50">+50 km</SelectItem>
+                  <SelectItem value="100">+100 km</SelectItem>
+                  <SelectItem value="200">+200 km</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
 
-                  <Select value={minEngagement} onValueChange={setMinEngagement}>
-                    <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><Activity className="h-3 w-3 mr-1.5 text-primary/70 shrink-0" /><SelectValue placeholder="Aktivita" /></div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="0">Aktivita: Vše</SelectItem>
-                      <SelectItem value="10">Skóre &gt; 10</SelectItem>
-                      <SelectItem value="50">Skóre &gt; 50</SelectItem>
-                      <SelectItem value="100">Skóre &gt; 100</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <Select value={minEngagement} onValueChange={setMinEngagement}>
+              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${minEngagement !== "0" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Activity className="h-4 w-4 shrink-0" />
+                <span className="sr-only">Aktivita</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="0">Aktivita: Vše</SelectItem>
+                <SelectItem value="10">Skóre &gt; 10</SelectItem>
+                <SelectItem value="50">Skóre &gt; 50</SelectItem>
+                <SelectItem value="100">Skóre &gt; 100</SelectItem>
+              </SelectContent>
+            </Select>
 
-                  <Select value={minPremiumScore} onValueChange={setMinPremiumScore}>
-                    <SelectTrigger className="h-9 rounded-xl bg-background border-border/60 font-medium text-[12px]">
-                      <div className="flex items-center"><Star className="h-3 w-3 mr-1.5 text-amber-500/70 shrink-0" /><SelectValue placeholder="Kvalita" /></div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="0">Premium Score: Vše</SelectItem>
-                      <SelectItem value="50">Prémiovost &gt; 50</SelectItem>
-                      <SelectItem value="80">Top firmy &gt; 80</SelectItem>
-                      <SelectItem value="90">Luxusní &gt; 90</SelectItem>
-                    </SelectContent>
+            <Select value={minPremiumScore} onValueChange={setMinPremiumScore}>
+              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${minPremiumScore !== "0" ? "bg-amber-500 text-white border-amber-500" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Star className="h-4 w-4 shrink-0" />
+                <span className="sr-only">Kvalita</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="0">Premium Score: Vše</SelectItem>
+                <SelectItem value="50">Prémiovost &gt; 50</SelectItem>
+                <SelectItem value="80">Top firmy &gt; 80</SelectItem>
+                <SelectItem value="90">Luxusní &gt; 90</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>          </SelectContent>
                   </Select>
                 </div>
               </div>
@@ -625,6 +629,7 @@ export const AudienceManager = (props: any) => {
                         )}
                         {(() => {
                            const crmStatus = getMockCrmStatus(lead);
+                           if (crmStatus === 'lead') return null;
                            const statusConf = CRM_STATUS_CONFIG[crmStatus];
                            const StatusIcon = statusConf.icon;
                            return (
@@ -806,13 +811,17 @@ export const AudienceManager = (props: any) => {
                   )}
                   {/* Status Badges Row */}
                   <div className="flex items-center gap-2 pt-1.5 flex-wrap">
-                    <Badge variant="outline" className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 ${statusConf.color}`}>
-                      <StatusIcon className="h-3 w-3" />
-                      {statusConf.label}
-                    </Badge>
-                    <Badge variant="outline" className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border shadow-sm ${selectedContactForSheet.contact_source === 'registered' ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" : selectedContactForSheet.contact_source === 'ai_web_sniper' ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"}`}>
-                      {selectedContactForSheet.contact_source === 'registered' ? "REGISTROVANÝ" : selectedContactForSheet.contact_source === 'ai_web_sniper' ? "🌐 AI WEB SNIPER" : "MARKETING LEAD"}
-                    </Badge>
+                    {crmStatus !== 'lead' && (
+                      <Badge variant="outline" className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 ${statusConf.color}`}>
+                        <StatusIcon className="h-3 w-3" />
+                        {statusConf.label}
+                      </Badge>
+                    )}
+                    {selectedContactForSheet.contact_source !== 'lead' && (
+                      <Badge variant="outline" className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border shadow-sm ${selectedContactForSheet.contact_source === 'registered' ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"}`}>
+                        {selectedContactForSheet.contact_source === 'registered' ? "REGISTROVANÝ" : "🤖 AI WEB SNIPER"}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
