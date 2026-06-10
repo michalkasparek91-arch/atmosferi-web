@@ -1237,7 +1237,6 @@ export default function AdminEmails() {
                     crmPage, setCrmPage,
                     totalPages,
                     handleExportCSV,
-                    updateSubcategoriesMutation,
                     subcatFilter, setSubcatFilter,
                     countryFilter, setCountryFilter,
                     languageFilter, setLanguageFilter,

@@ -116,7 +116,6 @@ export const AudienceManager = (props: any) => {
     importTotalCount,
     addTagMutation,
     removeTagMutation,
-    updateSubcategoriesMutation,
     subcatFilter, setSubcatFilter,
     countryFilter, setCountryFilter,
     languageFilter, setLanguageFilter,
