@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Mail, MessageCircle, RefreshCw, Send, CheckCircle2, AlertCircle, HelpCircle, Archive, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
