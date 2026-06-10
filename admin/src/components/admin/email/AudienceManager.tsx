@@ -361,8 +361,12 @@ export const AudienceManager = (props: any) => {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input 
               placeholder="Hledat kontakt..." 
-              className="pl-8 h-9 text-[12px] rounded-xl bg-background border-border/60"
-              valu          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
               <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors ${sourceFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
                 <Database className="h-4 w-4 shrink-0" />
