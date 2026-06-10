@@ -484,12 +484,7 @@ export const AudienceManager = (props: any) => {
                 <SelectItem value="90">Luxusní &gt; 90</SelectItem>
               </SelectContent>
             </Select>
-          </div>          </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+          </div>
         </div>
 
         <div className="flex gap-2 shrink-0">
