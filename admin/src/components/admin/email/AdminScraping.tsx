@@ -61,6 +61,7 @@ export const AdminScraping = () => {
     },
   });
 
+  useEffect(() => {
     if (serverConfig) {
       setConfig({
         is_enabled: serverConfig.is_enabled ?? false,

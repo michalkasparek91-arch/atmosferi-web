@@ -1251,9 +1251,6 @@ export default function AdminEmails() {
                     importTotalCount,
                     categoryFilter, setCategoryFilter,
                     userTypeFilter, setUserTypeFilter,
-                    cityFilter, setCityFilter,
-                    radiusFilter, setRadiusFilter,
-                    allSubcategories,
                     allCategories,
                     fetchAllMatchingContacts,
                     refetchLeads: () => queryClient.invalidateQueries({ queryKey: ["admin-lead-sheet"] })
