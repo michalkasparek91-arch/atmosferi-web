@@ -498,8 +498,10 @@ export function ModularLivePreview({
 
       {(form.show_cta_button ?? true) && form.cta_text && form.cta_text !== "none" && (
         <div className="pt-2 text-center">
-          <div className="inline-block bg-[#a6d16f] hover:bg-[#95c05e] text-[#213319] font-bold px-8 py-3 rounded-full text-center text-[13px] shadow-sm cursor-pointer transition-all hover:scale-105 active:scale-98">
-            {previewReplace(form.cta_text || "Zobrazit a podat nabĂ­dku")}
+          <div className={`inline-flex items-center justify-center gap-3 px-[28px] py-[18px] border font-mono text-[13px] uppercase tracking-[0.08em] cursor-pointer transition-colors ${
+            isDark ? "bg-white text-black border-white hover:bg-black hover:text-white" : "bg-black text-white border-black hover:bg-white hover:text-black"
+          }`}>
+            {previewReplace(form.cta_text || "Zobrazit a podat nabídku")} <span className="transition-transform hover:translate-x-1.5">→</span>
           </div>
           {form.secondary_text && (
             <div 
