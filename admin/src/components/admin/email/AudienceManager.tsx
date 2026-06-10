@@ -123,6 +123,7 @@ export const AudienceManager = (props: any) => {
     cityFilter, setCityFilter,
     radiusFilter, setRadiusFilter,
     allSubcategories,
+  } = props;
 
   const isMobile = useIsMobile();
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
