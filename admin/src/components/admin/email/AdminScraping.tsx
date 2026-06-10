@@ -334,11 +334,11 @@ export const AdminScraping = () => {
 
         {/* Pravý sloupec - Spouštění */}
         <div className="space-y-6">
-          <Card className={`border-border/40 shadow-sm overflow-hidden transition-colors ${config.is_enabled ? 'border-emerald-500/30 shadow-[0_0_20px_-10px_rgba(16,185,129,0.3)]' : ''}`}>
-            <CardHeader className={`pb-4 ${config.is_enabled ? 'bg-emerald-500/5' : 'bg-muted/10'}`}>
+          <Card className={`border-border/40 shadow-sm overflow-hidden transition-colors ${config.is_enabled ? 'border-zinc-500/30 shadow-[0_0_20px_-10px_rgba(24,24,27,0.15)]' : ''}`}>
+            <CardHeader className={`pb-4 ${config.is_enabled ? 'bg-zinc-100/50 dark:bg-zinc-800/20' : 'bg-muted/10'}`}>
               <CardTitle className="text-base flex items-center gap-2">
                 Automatický běh
-                {config.is_enabled && <span className="relative flex h-2 w-2 ml-auto"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>}
+                {config.is_enabled && <span className="relative flex h-2 w-2 ml-auto"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-600 dark:bg-zinc-300"></span></span>}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
@@ -352,7 +352,7 @@ export const AdminScraping = () => {
                 <Switch 
                   checked={config.is_enabled} 
                   onCheckedChange={handleToggleEnabled}
-                  className="data-[state=checked]:bg-emerald-500"
+                  className="data-[state=checked]:bg-zinc-900 dark:data-[state=checked]:bg-zinc-100"
                 />
               </div>
             </CardContent>

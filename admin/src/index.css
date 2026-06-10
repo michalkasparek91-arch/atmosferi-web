@@ -31,16 +31,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 60 8% 7%;
 
-    --primary: 90 50% 63%;
-    --primary-foreground: 60 8% 7%;
-    --primary-hover: 90 55% 55%;
+    --primary: 0 0% 9%; /* Zinc-950 for primary (almost black) */
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 0 0% 15%;
     
-    --highlight: 90 50% 63%;
+    --highlight: 0 0% 90%;
     
-    --dark-green: 105 35% 15%;
+    --dark-green: 0 0% 9%;
     
-    --sidebar-active-bg: 90 50% 63%;
-    --sidebar-active-text: 105 35% 15%;
+    --sidebar-active-bg: 0 0% 96%; /* zinc-100 */
+    --sidebar-active-text: 0 0% 9%;
 
     --secondary: 0 0% 100%;
     --secondary-foreground: 60 8% 7%;
@@ -56,21 +56,21 @@
 
     --border: 0 0% 92%;
     --input: 0 0% 92%;
-    --ring: 90 50% 63%;
+    --ring: 0 0% 9%;
     
     --input-fill: 0 0% 100%;
     --input-fill-foreground: 60 8% 7%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 105 35% 10%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 90 50% 63%;
-    --sidebar-primary-foreground: 60 8% 7%;
-    --sidebar-accent: 90 50% 63%;
-    --sidebar-accent-foreground: 60 8% 7%;
-    --sidebar-border: 105 35% 18%;
-    --sidebar-ring: 90 50% 63%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 9%;
+    --sidebar-primary: 0 0% 9%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 92%;
+    --sidebar-ring: 0 0% 9%;
   }
 
   .dark {
@@ -88,14 +88,14 @@
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 90 50% 63%;
-    --primary-foreground: 60 8% 7%;
-    --primary-hover: 90 55% 55%;
+    --primary: 0 0% 98%; /* white */
+    --primary-foreground: 0 0% 9%;
+    --primary-hover: 0 0% 90%;
     
-    --dark-green: 105 35% 15%;
+    --dark-green: 0 0% 98%;
     
-    --sidebar-active-bg: 90 40% 20%;
-    --sidebar-active-text: 90 50% 63%;
+    --sidebar-active-bg: 0 0% 15%;
+    --sidebar-active-text: 0 0% 98%;
 
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
@@ -111,19 +111,19 @@
 
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 90 50% 63%;
+    --ring: 0 0% 98%;
     
     --input-fill: 0 0% 18%;
     --input-fill-foreground: 0 0% 98%;
     
     --sidebar-background: 0 0% 8%;
     --sidebar-foreground: 0 0% 93%;
-    --sidebar-primary: 90 50% 63%;
-    --sidebar-primary-foreground: 60 8% 7%;
-    --sidebar-accent: 90 50% 63%;
-    --sidebar-accent-foreground: 60 8% 7%;
-    --sidebar-border: 105 35% 15%;
-    --sidebar-ring: 90 50% 63%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 0 0% 98%;
   }
 }
 
@@ -160,16 +160,16 @@ body[data-conversation-open="true"] .route-fade-enter {
 }
 
 :root:not(.dark) .worker-green-tint {
-  background-color: color-mix(in srgb, hsl(var(--background)), hsl(100 40% 50%) 10%);
+  background-color: color-mix(in srgb, hsl(var(--background)), hsl(0 0% 90%) 10%);
 }
 
 :root:not(.dark) .worker-green-tint .bg-card,
 :root:not(.dark) .worker-green-tint .bg-list-item-bg {
-  background-color: color-mix(in srgb, hsl(var(--card)), hsl(100 40% 50%) 5%);
+  background-color: color-mix(in srgb, hsl(var(--card)), hsl(0 0% 90%) 5%);
 }
 
 :root:not(.dark) .worker-green-tint .bg-list-item-header {
-  background-color: color-mix(in srgb, hsl(var(--list-item-header)), hsl(100 40% 50%) 8%);
+  background-color: color-mix(in srgb, hsl(var(--list-item-header)), hsl(0 0% 90%) 8%);
 }
 
 @layer base {
@@ -278,11 +278,11 @@ body[data-conversation-open="true"] .route-fade-enter {
   }
 
   .offer-btn-fixed {
-    background-color: hsl(90 50% 63%);
-    color: hsl(60 8% 7%);
+    background-color: hsl(0 0% 9%);
+    color: hsl(0 0% 98%);
   }
   .offer-btn-fixed:hover {
-    background-color: hsl(90 55% 55%);
+    background-color: hsl(0 0% 15%);
   }
 }
 
@@ -411,7 +411,7 @@ body[data-conversation-open="true"] .route-fade-enter {
 .admin-mode [role=tab][data-state=active] {
   background-color: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
-  border-color: #cbd5e1 !important;
+  border-color: hsl(var(--primary)) !important;
   border-width: 1px !important;
 }
 

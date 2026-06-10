@@ -95,7 +95,7 @@ export function AdminLayout() {
                 className="flex flex-col items-start lg:items-end hover:opacity-80 transition-opacity translate-y-2 lg:-translate-x-2"
               >
                 <span className="text-lg font-black tracking-widest text-foreground dark:text-white uppercase">Atmosferi</span>
-                <span className="text-[9px] font-black tracking-[0.2em] text-foreground/50 dark:text-primary leading-none mt-1 uppercase">Admin</span>
+                <span className="text-[9px] font-black tracking-[0.2em] text-muted-foreground dark:text-zinc-400 leading-none mt-1 uppercase">Admin</span>
               </Link>
               <Button 
                 variant="ghost" 
@@ -178,7 +178,7 @@ export function AdminLayout() {
           <div className="flex items-center justify-between">
             <div className="flex flex-col items-start translate-y-1">
               <span className="text-sm font-black tracking-widest text-foreground dark:text-white uppercase">Atmosferi</span>
-              <span className="text-[8px] font-medium tracking-wider text-[#213319] dark:text-primary leading-none mt-0.5">ADMIN</span>
+              <span className="text-[8px] font-medium tracking-wider text-muted-foreground dark:text-zinc-400 leading-none mt-0.5">ADMIN</span>
             </div>
             <Button 
               variant="ghost" 
