@@ -19,15 +19,23 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     
-    // Resend Inbound Payload
-    const fromStr = body.from || "Neznámý Odesílatel <unknown@example.com>";
-    const subject = body.subject || "Bez předmětu";
-    const textBody = body.text || body.html || "Žádný text";
+    // Generic robust payload extraction (supports Resend, Brevo, Sendgrid, etc.)
+    const fromRaw = body.from || body.From || body.sender || "Neznámý Odesílatel <unknown@example.com>";
+    const fromStr = typeof fromRaw === 'object' ? (fromRaw.Address || fromRaw.email || fromRaw.address || JSON.stringify(fromRaw)) : fromRaw;
+    const subject = body.subject || body.Subject || "Bez předmětu";
+    
+    // Brevo sometimes uses 'text', 'extracted_text', 'TextBody', 'content'
+    let textBody = body.text || body.TextBody || body.extracted_text || body.html || body.HtmlBody || "Žádný text";
+    if (body.items && Array.isArray(body.items) && body.items.length > 0) {
+        // Fallback for some Brevo/Postmark nested formats
+        const item = body.items[0];
+        textBody = textBody === "Žádný text" ? (item.TextBody || item.text || item.content || textBody) : textBody;
+    }
 
     // Extract email from "Name <email>" string
     let fromEmail = fromStr;
     let fromName = fromStr;
-    const emailMatch = fromStr.match(/<([^>]+)>/);
+    const emailMatch = typeof fromStr === 'string' ? fromStr.match(/<([^>]+)>/) : null;
     if (emailMatch) {
         fromEmail = emailMatch[1];
         fromName = fromStr.replace(/<[^>]+>/, "").trim() || fromEmail;
