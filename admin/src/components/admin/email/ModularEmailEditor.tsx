@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { generateAtmosferiEmailHtml, EmailTemplateData } from "./EmailTemplateGenerator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ export interface EmailEditorState {
 }
 
 const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
-  transactional: { label: "Transak�TnA�", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  transactional: { label: "Transakďż˝TnAďż˝", color: "bg-blue-100 text-blue-700 border-blue-200" },
   auth: { label: "Auth", color: "bg-purple-100 text-purple-700 border-purple-200" },
   marketing: { label: "Marketing", color: "bg-amber-100 text-amber-700 border-amber-200" },
   lifecycle: { label: "Lifecycle", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
@@ -69,19 +70,19 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 export const TEMPLATE_VARIABLES = [
-  { key: "{{osloveni}}", label: "OslovenA� (Vokativ)", desc: "OslovenA� v 5. pA?du (napL�. PetL�e)" },
-  { key: "{{jmeno}}", label: "JmA�no", desc: "JmA�no pL�A�jemce v 1. pA?du" },
-  { key: "{{mesto}}", label: "Město", desc: "Město zakA?zky nebo profA�ka (1. pA?d)" },
-  { key: "{{mesto_v_meste}}", label: "Město (v/ve)", desc: "Město s pL�edloLlkou v/ve (napL�. v Praze)" },
+  { key: "{{osloveni}}", label: "OslovenAďż˝ (Vokativ)", desc: "OslovenAďż˝ v 5. pA?du (napLďż˝. PetLďż˝e)" },
+  { key: "{{jmeno}}", label: "JmAďż˝no", desc: "JmAďż˝no pLďż˝Aďż˝jemce v 1. pA?du" },
+  { key: "{{mesto}}", label: "MÄ›sto", desc: "MÄ›sto zakA?zky nebo profAďż˝ka (1. pA?d)" },
+  { key: "{{mesto_v_meste}}", label: "MÄ›sto (v/ve)", desc: "MÄ›sto s pLďż˝edloLlkou v/ve (napLďż˝. v Praze)" },
   { key: "{{obor}}", label: "Obor", desc: "Obor / Specializace (1. pA?d)" },
-  { key: "{{obor_2pad}}", label: "Obor (2./4. pA?d)", desc: "Obor / Specializace (2./4. pA?d, napL�. instalatA�ra)" },
+  { key: "{{obor_2pad}}", label: "Obor (2./4. pA?d)", desc: "Obor / Specializace (2./4. pA?d, napLďż˝. instalatAďż˝ra)" },
   { key: "{{nazev_zakazky}}", label: "ZakA?zka", desc: "NA?zev zakA?zky" },
-  { key: "{{popis_zakazky}}", label: "Popis", desc: "DetailnA� popis zadA?nA�" },
-  { key: "{{rozpocet}}", label: "Rozpo�Tet", desc: "Rozpo�Tet nebo cenovA? poznA?mka" },
-  { key: "{{zakaznik}}", label: "ZA?kaznA�k", desc: "JmA�no poptA?vajA�cA�ho" },
+  { key: "{{popis_zakazky}}", label: "Popis", desc: "DetailnAďż˝ popis zadA?nAďż˝" },
+  { key: "{{rozpocet}}", label: "Rozpoďż˝Tet", desc: "Rozpoďż˝Tet nebo cenovA? poznA?mka" },
+  { key: "{{zakaznik}}", label: "ZA?kaznAďż˝k", desc: "JmAďż˝no poptA?vajAďż˝cAďż˝ho" },
   { key: "{{odkaz_zakazky}}", label: "Odkaz", desc: "URL na detail zakA?zky" },
-  { key: "{{icebreaker}}", label: "Icebreaker", desc: "IndividuA?lnA� oslovenA� na mA�ru" },
-  { key: "{{podkategorie_2pad}}", label: "Podkategorie - SkloněnA? tvar", desc: "SkloněnA? tvar podkategorie" }
+  { key: "{{icebreaker}}", label: "Icebreaker", desc: "IndividuA?lnAďż˝ oslovenAďż˝ na mAďż˝ru" },
+  { key: "{{podkategorie_2pad}}", label: "Podkategorie - SklonÄ›nA? tvar", desc: "SklonÄ›nA? tvar podkategorie" }
 ];
 
 export function parseRichTextToHtml(text?: string | null, textAlign: string = "left", isDark: boolean = false) {
@@ -99,7 +100,7 @@ export function parseRichTextToHtml(text?: string | null, textAlign: string = "l
   let newLines: string[] = [];
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (line.startsWith('�? ') || line.startsWith('- ') || line.startsWith('* ')) {
+    if (line.startsWith('ďż˝? ') || line.startsWith('- ') || line.startsWith('* ')) {
       if (!inList) {
         inList = true;
         newLines.push(`<ul style="margin: 12px 0; padding-left: 20px; list-style-type: disc; font-size: 15px; color: ${color}; line-height: 1.6; text-align: ${align};">`);
@@ -133,7 +134,7 @@ export function RichTextToolbar({ onInsert }: { onInsert: (before: string, after
         size="sm"
         className="h-7 px-2 text-xs font-bold hover:bg-primary/10 hover:text-primary gap-1 rounded"
         onClick={() => onInsert("**", "**")}
-        title="Tu�Tně (**text**)"
+        title="Tuďż˝TnÄ› (**text**)"
       >
         <Bold className="h-3 w-3" /> B
       </Button>
@@ -143,7 +144,7 @@ export function RichTextToolbar({ onInsert }: { onInsert: (before: string, after
         size="sm"
         className="h-7 px-2 text-xs italic hover:bg-primary/10 hover:text-primary gap-1 rounded"
         onClick={() => onInsert("_", "_")}
-        title="KurzA�va (_text_)"
+        title="KurzAďż˝va (_text_)"
       >
         <Italic className="h-3 w-3" /> I
       </Button>
@@ -152,8 +153,8 @@ export function RichTextToolbar({ onInsert }: { onInsert: (before: string, after
         variant="ghost"
         size="sm"
         className="h-7 px-2 text-xs hover:bg-primary/10 hover:text-primary gap-1 rounded"
-        onClick={() => onInsert("�? ", "")}
-        title="OdrA?Llka (�? poloLlka)"
+        onClick={() => onInsert("ďż˝? ", "")}
+        title="OdrA?Llka (ďż˝? poloLlka)"
       >
         <List className="h-3 w-3" /> OdrA?Llka
       </Button>
@@ -219,7 +220,32 @@ export function ModularLivePreview({
 
   const isPlainLayout = form.layout_type === "plain";
   const isStandardLayout = form.layout_type === "standard";
+  const isAtmosferiLayout = form.layout_type === "atmosferi_studio" || !form.layout_type; // Default to Atmosferi
   
+  if (isAtmosferiLayout) {
+    const emailData: EmailTemplateData = {
+      subject: previewReplace(form.subject) || "PĹ™edmÄ›t e-mailu",
+      body: previewReplace(form.body) || "",
+      heroImageEnabled: form.hero_image_url ? true : false,
+      heroImageUrl: previewReplace(form.hero_image_url) || "https://atmosferi.com/demos/atmosferi-viz/img/02-ascension.webp",
+      portfolioEnabled: carouselImages.length > 0 ? true : false,
+      portfolioImages: carouselImages,
+      icebreakerEnabled: form.greeting ? true : false,
+      icebreakerText: previewReplace(form.greeting) || "VĹˇimli jsme si vaĹˇĂ­ nedĂˇvnĂ© prĂˇce...",
+      signatureEnabled: true,
+      signatureName: "Ing. arch. Michal KaĹˇpĂˇrek",
+      signatureRole: "ArchitektonickĂ© studio",
+      signatureEmail: "info@atmosferi.com",
+      psEnabled: form.ps_footer_enabled ?? true,
+      psText: previewReplace(form.ps_footer_text) || "Pokud nynĂ­ nemĂˇte kapacitu, staÄŤĂ­ odepsat...",
+      themeColor: "#D97757"
+    };
+    const html = generateAtmosferiEmailHtml(emailData);
+    return (
+      <iframe srcDoc={html} className="w-full h-[600px] border-none bg-white rounded-md" title="Preview" />
+    );
+  }
+
   if (isStandardLayout) {
     const isDark = previewTheme === "dark";
     return (
@@ -230,7 +256,7 @@ export function ModularLivePreview({
         {/* 1. Header (Logo) */}
         <div className="pb-8 text-center">
           <div className={`font-sans font-bold text-2xl tracking-tight leading-none ${isDark ? "text-white" : "text-black"}`}>
-            Atmosferi<sup className="text-[0.5em] font-medium" style={{ top: "-0.7em", position: "relative" }}>�</sup>
+            Atmosferi<sup className="text-[0.5em] font-medium" style={{ top: "-0.7em", position: "relative" }}>ďż˝</sup>
           </div>
         </div>
 
@@ -281,9 +307,9 @@ export function ModularLivePreview({
 
         {/* 7. Footer */}
         <div className={`text-[12px] leading-[1.5] text-center ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>
-          Tento e-mail byl odeslA?n automaticky. NastavenA� notifikacA� mLZLlete změnit ve svA�m profilu.
+          Tento e-mail byl odeslA?n automaticky. NastavenAďż˝ notifikacAďż˝ mLZLlete zmÄ›nit ve svAďż˝m profilu.
           <br />
-          © {new Date().getFullYear()} Atmosferi. VL?echna prA?va vyhrazena.
+          Â© {new Date().getFullYear()} Atmosferi. VL?echna prA?va vyhrazena.
         </div>
       </div>
     );
@@ -295,7 +321,7 @@ export function ModularLivePreview({
         isDark ? "bg-zinc-950 text-zinc-300 border border-zinc-800" : "bg-white text-zinc-800"
       }`}>
         <div className="border-b border-border/40 pb-2 mb-2 font-bold text-muted-foreground uppercase text-[10px]">
-          �SistA? e-mail (�SistA? text)
+          ďż˝SistA? e-mail (ďż˝SistA? text)
         </div>
         <div className="whitespace-pre-wrap leading-relaxed">
           {previewReplace(form.greeting || "Ahoj {{osloveni}},")}\n\n
@@ -315,14 +341,14 @@ export function ModularLivePreview({
       {/* 1. Header (Logo Zrobee with exact HEX color Masking) */}
       <div className={`pb-4 text-center border-b ${isDark ? "border-zinc-800" : "border-border/60"}`}>
         <div className={`font-sans font-bold text-2xl tracking-tight leading-none ${isDark ? "text-white" : "text-black"}`}>
-          Atmosferi<sup className="text-[0.5em] font-medium" style={{ top: "-0.7em", position: "relative" }}>�</sup>
+          Atmosferi<sup className="text-[0.5em] font-medium" style={{ top: "-0.7em", position: "relative" }}>ďż˝</sup>
         </div>
       </div>
 
       {/* 2. Emoji & Greeting */}
       <div className="space-y-3 pt-2 text-left">
         {!!form.segment_filters?.show_subject_in_body && (
-          <div className="text-4xl animate-bounce duration-1000">{form.emoji || "dz��"}</div>
+          <div className="text-4xl animate-bounce duration-1000">{form.emoji || "dzďż˝ďż˝"}</div>
         )}
         {form.greeting !== "" && (
           form.segment_filters?.graphic_greeting_enabled ? (
@@ -350,7 +376,7 @@ export function ModularLivePreview({
         <h1 className={`text-2xl md:text-3xl font-extrabold leading-[1.1] tracking-tight max-w-[500px] mx-auto transition-colors ${
           isDark ? "text-white" : "text-zinc-900"
         }`}>
-          {previewReplace(form.subject || "PL�edmět e-mailu")}
+          {previewReplace(form.subject || "PLďż˝edmÄ›t e-mailu")}
         </h1>
       )}
 
@@ -375,7 +401,7 @@ export function ModularLivePreview({
                   <img
                     key={img}
                     src={img}
-                    alt={`SnA�mek ${idx + 1}`}
+                    alt={`SnAďż˝mek ${idx + 1}`}
                     className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${idx === activeSlide ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}`}
                   />
                 ))}
@@ -386,14 +412,14 @@ export function ModularLivePreview({
                   <button
                     onClick={handlePrevSlide}
                     className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-xs border border-white/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer shadow-sm"
-                    title="PL�edchozA�"
+                    title="PLďż˝edchozAďż˝"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     onClick={handleNextSlide}
                     className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-xs border border-white/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer shadow-sm"
-                    title="NA?sledujA�cA�"
+                    title="NA?sledujAďż˝cAďż˝"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -413,13 +439,13 @@ export function ModularLivePreview({
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50 gap-2">
               <Smartphone className="h-8 w-8 opacity-40 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Karusel aktivnA� (VloLlte URL adresy oddělenA� �TA?rkou)</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Karusel aktivnAďż˝ (VloLlte URL adresy oddÄ›lenAďż˝ ďż˝TA?rkou)</span>
             </div>
           )}
         </div>
       )}
 
-      {/* 6. HlavnA� tělo e-mailu */}
+      {/* 6. HlavnAďż˝ tÄ›lo e-mailu */}
       <div 
         className={`text-[15px] leading-relaxed max-w-[520px] mx-auto py-2 font-normal transition-colors ${
           isDark ? "text-zinc-300" : "text-zinc-700"
@@ -437,7 +463,7 @@ export function ModularLivePreview({
             <div className={`px-4 py-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
               isDark ? "bg-zinc-800 text-primary" : "bg-[#EAF4E9] text-[#213319]"
             }`}>
-              <span>dz��</span>
+              <span>dzďż˝ďż˝</span>
               <span>{previewReplace("{{obor}}")}</span>
             </div>
             
@@ -445,8 +471,8 @@ export function ModularLivePreview({
               <div className={`flex flex-wrap items-center gap-4 text-xs font-medium ${
                 isDark ? "text-zinc-400" : "text-muted-foreground"
               }`}>
-                <span className="flex items-center gap-1">dz�T {previewReplace("{{mesto}}")} — 15 km</span>
-                <span className="flex items-center gap-1">dz�� Co nejdL�A�ve</span>
+                <span className="flex items-center gap-1">dzďż˝T {previewReplace("{{mesto}}")} â€” 15 km</span>
+                <span className="flex items-center gap-1">dzďż˝ďż˝ Co nejdLďż˝Aďż˝ve</span>
               </div>
               
               <h3 className={`text-lg font-bold leading-snug ${
@@ -487,12 +513,12 @@ export function ModularLivePreview({
           </div>
       )}
 
-      {/* 8. UrgentnA� banner */}
+      {/* 8. UrgentnAďż˝ banner */}
       {(form.urgency_banner_enabled ?? true) && (
         <div className={`p-4 text-xs font-semibold text-left max-w-[500px] mx-auto shadow-2xs ${
           isDark ? "bg-amber-950/20 border border-amber-900/30 text-amber-400" : "bg-amber-100/60 border border-amber-200/80 text-amber-800"
         }`}>
-          �Zl {previewReplace(form.urgency_banner_text || "SpěchA?: ZA?kaznA�k �TekA? na rychlou reakci. Tuto zakA?zku jsme prA?vě odeslali pouze vybranA?m specialistLZm ve vaL?em okolA�.")}
+          ďż˝Zl {previewReplace(form.urgency_banner_text || "SpÄ›chA?: ZA?kaznAďż˝k ďż˝TekA? na rychlou reakci. Tuto zakA?zku jsme prA?vÄ› odeslali pouze vybranA?m specialistLZm ve vaL?em okolAďż˝.")}
         </div>
       )}
 
@@ -501,7 +527,7 @@ export function ModularLivePreview({
           <div className={`inline-flex items-center justify-center gap-3 px-[28px] py-[18px] border font-mono text-[13px] uppercase tracking-[0.08em] cursor-pointer transition-colors ${
             isDark ? "bg-white text-black border-white hover:bg-black hover:text-white" : "bg-black text-white border-black hover:bg-white hover:text-black"
           }`}>
-            {previewReplace(form.cta_text || "Zobrazit a podat nab�dku")} <span className="transition-transform hover:translate-x-1.5">?</span>
+            {previewReplace(form.cta_text || "Zobrazit a podat nabďż˝dku")} <span className="transition-transform hover:translate-x-1.5">?</span>
           </div>
           {form.secondary_text && (
             <div 
@@ -533,18 +559,18 @@ export function ModularLivePreview({
         <div className={`border border-dashed p-4 text-xs text-left max-w-[500px] mx-auto ${
           isDark ? "bg-[#e8f4da]/5 border-[#a6d16f]/40 text-zinc-300" : "bg-[#e8f4da] border-[#a6d16f] text-[#213319]"
         }`}>
-          dz�  <strong>{previewReplace(form.promo_banner_text || "ZavA?děcA� akce: ProtoLle Zrobee prA?vě spouL?tA�me...").split(':')[0] || "ZavA?děcA� akce"}:</strong> {previewReplace(form.promo_banner_text || "ZavA?děcA� akce: ProtoLle Zrobee prA?vě spouL?tA�me...").split(':').slice(1).join(':')}
+          dzďż˝  <strong>{previewReplace(form.promo_banner_text || "ZavA?dÄ›cAďż˝ akce: ProtoLle Zrobee prA?vÄ› spouL?tAďż˝me...").split(':')[0] || "ZavA?dÄ›cAďż˝ akce"}:</strong> {previewReplace(form.promo_banner_text || "ZavA?dÄ›cAďż˝ akce: ProtoLle Zrobee prA?vÄ› spouL?tAďż˝me...").split(':').slice(1).join(':')}
         </div>
       )}
 
-      {/* 11. SouvisejA�cA� �TlA?nky (Magazine Grid) */}
+      {/* 11. SouvisejAďż˝cAďż˝ ďż˝TlA?nky (Magazine Grid) */}
       {!!form.segment_filters?.articles_enabled && (
         <div className={`pt-6 border-t text-left space-y-4 max-w-[500px] mx-auto ${
           isDark ? "border-zinc-800" : "border-border/50"
         }`}>
           <div className="flex items-center justify-between border-b border-border/60 pb-2">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">AktuA?lně z magazA�nu</span>
-            <span className="text-[11px] text-primary font-bold hover:underline cursor-pointer">Zobrazit vL?e →</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">AktuA?lnÄ› z magazAďż˝nu</span>
+            <span className="text-[11px] text-primary font-bold hover:underline cursor-pointer">Zobrazit vL?e â†’</span>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
@@ -552,23 +578,23 @@ export function ModularLivePreview({
               <div className={`aspect-[4/3] overflow-hidden relative border shadow-2xs ${
                 isDark ? "border-zinc-800 bg-zinc-950" : "border-border/60 bg-muted/50"
               }`}>
-                <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=300&q=80" alt="�SlA?nek 1" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=300&q=80" alt="ďż˝SlA?nek 1" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
-                  <div className="text-[8px] text-white font-bold px-2 py-0.5 bg-black/40 backdrop-blur-xs uppercase">Nej�TtenějL?A�</div>
+                  <div className="text-[8px] text-white font-bold px-2 py-0.5 bg-black/40 backdrop-blur-xs uppercase">Nejďż˝TtenÄ›jL?Aďż˝</div>
                 </div>
               </div>
               <div className="space-y-1">
                 <h4 className={`text-xs font-bold leading-tight group-hover:text-primary transition-colors ${
                   isDark ? "text-zinc-200" : "text-foreground"
-                }`}>Jak vybrat sprA?vnA�ho L�emeslnA�ka a neuhoL�et</h4>
-                <p className="text-[10px] text-muted-foreground leading-snug">5 klA��TovA?ch tipLZ, jak poznat profA�ka...</p>
+                }`}>Jak vybrat sprA?vnAďż˝ho Lďż˝emeslnAďż˝ka a neuhoLďż˝et</h4>
+                <p className="text-[10px] text-muted-foreground leading-snug">5 klAďż˝ďż˝TovA?ch tipLZ, jak poznat profAďż˝ka...</p>
               </div>
             </div>
             <div className="space-y-2 group cursor-pointer">
               <div className={`aspect-[4/3] overflow-hidden relative border shadow-2xs ${
                 isDark ? "border-zinc-800 bg-zinc-950" : "border-border/60 bg-muted/50"
               }`}>
-                <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80" alt="�SlA?nek 2" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80" alt="ďż˝SlA?nek 2" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
                   <div className="text-[8px] text-white font-bold px-2 py-0.5 bg-black/40 backdrop-blur-xs uppercase font-sans">Novinka</div>
                 </div>
@@ -577,20 +603,20 @@ export function ModularLivePreview({
                 <h4 className={`text-xs font-bold leading-tight group-hover:text-primary transition-colors ${
                   isDark ? "text-zinc-200" : "text-foreground"
                 }`}>Rekonstrukce koupelny krok za krokem</h4>
-                <p className="text-[10px] text-muted-foreground leading-snug">KompletnA� prLZvodce od plA?nu po realizaci...</p>
+                <p className="text-[10px] text-muted-foreground leading-snug">KompletnAďż˝ prLZvodce od plA?nu po realizaci...</p>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 13. P.S. Pati�Tka / OdhlA?L?enA� */}
+      {/* 13. P.S. Patiďż˝Tka / OdhlA?L?enAďż˝ */}
       {form.ps_footer_enabled ? (
         <div className={`pt-6 border-t text-xs text-left italic leading-relaxed max-w-[500px] mx-auto ${
           isDark ? "border-zinc-800 text-zinc-400" : "border-border/60 text-muted-foreground"
         }`}>
           <p className={form.segment_filters?.text_align === "center" ? "text-center" : "text-left"}>
-            {previewReplace(form.ps_footer_text || "P.S. Pokud uLl mA?te plno a dalL?A� zakA?zky te�Z nepotL�ebujete, sta�TA� mi odepsat 'Ne' a uLl VA?s nebudu nabA�dkami ruL?it.")}
+            {previewReplace(form.ps_footer_text || "P.S. Pokud uLl mA?te plno a dalL?Aďż˝ zakA?zky teďż˝Z nepotLďż˝ebujete, staďż˝TAďż˝ mi odepsat 'Ne' a uLl VA?s nebudu nabAďż˝dkami ruL?it.")}
           </p>
         </div>
       ) : (
@@ -598,8 +624,8 @@ export function ModularLivePreview({
           isDark ? "border-zinc-800 text-zinc-500" : "border-border/60 text-muted-foreground"
         }`}>
           <p>Tento e-mail byl odeslA?n automaticky z platformy Atmosferi.</p>
-          <p>Nechcete od nA?s dostA?vat dalL?A� podobnA� nabA�dky? <span className="underline text-primary hover:text-primary/80 cursor-pointer">OdhlA?sit z odběru</span></p>
-          <p>© 2026 Atmosferi �? VL?echna prA?va vyhrazena.</p>
+          <p>Nechcete od nA?s dostA?vat dalL?Aďż˝ podobnAďż˝ nabAďż˝dky? <span className="underline text-primary hover:text-primary/80 cursor-pointer">OdhlA?sit z odbÄ›ru</span></p>
+          <p>Â© 2026 Atmosferi ďż˝? VL?echna prA?va vyhrazena.</p>
         </div>
       )}
     </div>
@@ -661,7 +687,7 @@ export function ModularEmailEditorDialogInner({
         slug: initialData.slug || "",
         category: initialData.category || "marketing",
         subject: initialData.subject || "",
-        emoji: initialData.emoji || "dz��",
+        emoji: initialData.emoji || "dzďż˝ďż˝",
         greeting: initialData.greeting !== undefined ? initialData.greeting : "DobrA? den {{osloveni}},",
         body: bodyVal,
         cta_text: initialData.cta_text || "",
@@ -678,12 +704,12 @@ export function ModularEmailEditorDialogInner({
         layout_type: initialData.layout_type || "standard",
         hero_image_url: initialData.hero_image_url || "",
         urgency_banner_enabled: initialData.urgency_banner_enabled !== undefined ? initialData.urgency_banner_enabled : true,
-        urgency_banner_text: initialData.urgency_banner_text || "SpěchA?: ZA?kaznA�k �TekA? na rychlou reakci. Tuto zakA?zku jsme prA?vě odeslali pouze vybranA?m specialistLZm ve vaL?em okolA�.",
+        urgency_banner_text: initialData.urgency_banner_text || "SpÄ›chA?: ZA?kaznAďż˝k ďż˝TekA? na rychlou reakci. Tuto zakA?zku jsme prA?vÄ› odeslali pouze vybranA?m specialistLZm ve vaL?em okolAďż˝.",
         promo_banner_enabled: initialData.promo_banner_enabled !== undefined ? initialData.promo_banner_enabled : true,
-        promo_banner_text: initialData.promo_banner_text || "ZavA?děcA� akce: ProtoLle Zrobee prA?vě spouL?tA�me, neplatA�te za kontakt LlA?dnou provizi.",
+        promo_banner_text: initialData.promo_banner_text || "ZavA?dÄ›cAďż˝ akce: ProtoLle Zrobee prA?vÄ› spouL?tAďż˝me, neplatAďż˝te za kontakt LlA?dnou provizi.",
         job_description_snippet: initialData.job_description_snippet || "",
         ps_footer_enabled: initialData.ps_footer_enabled !== undefined ? initialData.ps_footer_enabled : false,
-        ps_footer_text: initialData.ps_footer_text || "P.S. Pokud uLl mA?te plno a dalL?A� zakA?zky te�Z nepotL�ebujete, sta�TA� mi odepsat 'Ne' a uLl VA?s nebudu nabA�dkami ruL?it.",
+        ps_footer_text: initialData.ps_footer_text || "P.S. Pokud uLl mA?te plno a dalL?Aďż˝ zakA?zky teďż˝Z nepotLďż˝ebujete, staďż˝TAďż˝ mi odepsat 'Ne' a uLl VA?s nebudu nabAďż˝dkami ruL?it.",
         show_job_widget: initialData.show_job_widget !== undefined ? initialData.show_job_widget : true,
         show_cta_button: initialData.show_cta_button !== undefined ? initialData.show_cta_button : true,
         icebreaker: initialData.icebreaker || "",
@@ -719,7 +745,7 @@ export function ModularEmailEditorDialogInner({
         const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
         return jobs?.map(j => ({
           ...j,
-          customer_name: profileMap.get(j.customer_id) || "ZA?kaznA�k"
+          customer_name: profileMap.get(j.customer_id) || "ZA?kaznAďż˝k"
         })) || [];
       }
       return jobs || [];
@@ -761,7 +787,7 @@ export function ModularEmailEditorDialogInner({
       segment_filters: { ...form.segment_filters, ...filters },
     };
     setForm(nextState);
-    toast.success(`L�ablona „${templateData.name}�s na�Ttena.`);
+    toast.success(`Lďż˝ablona â€ž${templateData.name}ďż˝s naďż˝Ttena.`);
   };
 
   const selectedJob = useMemo(() => {
@@ -772,26 +798,26 @@ export function ModularEmailEditorDialogInner({
 
   const previewData = useMemo(() => {
     const defaultData = {
-      osloveni: "PetL�e", jmeno: "Petr NovA?k", mesto: "Praha", mesto_v_meste: "v Praze",
-      obor: "L?emeslnA� prA?ce", obor_2pad: "L�emeslnA�ka", nazev_zakazky: "Rekonstrukce bytovA�ho jA?dra",
-      popis_zakazky: "HledA?m spolehlivA�ho L�emeslnA�ka na kompletnA� obklad koupelny...",
-      cena_rozpocet: "15 000 K�T", zakaznik: "Jan", odkaz_zakazky: "https://zrobee.cz",
-      icebreaker: form?.icebreaker || "VL?imli jsme si vaL?eho skvělA�ho profilu."
+      osloveni: "PetLďż˝e", jmeno: "Petr NovA?k", mesto: "Praha", mesto_v_meste: "v Praze",
+      obor: "L?emeslnAďż˝ prA?ce", obor_2pad: "Lďż˝emeslnAďż˝ka", nazev_zakazky: "Rekonstrukce bytovAďż˝ho jA?dra",
+      popis_zakazky: "HledA?m spolehlivAďż˝ho Lďż˝emeslnAďż˝ka na kompletnAďż˝ obklad koupelny...",
+      cena_rozpocet: "15 000 Kďż˝T", zakaznik: "Jan", odkaz_zakazky: "https://zrobee.cz",
+      icebreaker: form?.icebreaker || "VL?imli jsme si vaL?eho skvÄ›lAďż˝ho profilu."
     };
     
     const getCityIn = (city?: string) => {
-      if (!city) return "v okolA�";
+      if (!city) return "v okolAďż˝";
       const cityLower = city.toLowerCase().trim();
       if (cityLower === "praha") return "v Praze";
-      if (cityLower === "brno") return "v Brně";
-      if (cityLower === "ostrava") return "v Ostravě";
+      if (cityLower === "brno") return "v BrnÄ›";
+      if (cityLower === "ostrava") return "v OstravÄ›";
       if (cityLower === "plzeL?") return "v Plzni";
       if (cityLower === "liberec") return "v Liberci";
       if (cityLower === "olomouc") return "v Olomouci";
-      if (cityLower === "hradec krA?lovA�") return "v Hradci KrA?lovA�";
-      if (cityLower === "�TeskA� budějovice") return "v �SeskA?ch BudějovicA�ch";
-      if (cityLower === "pardubice") return "v PardubicA�ch";
-      if (cityLower === "AsstA� nad labem") return "v A�stA� nad Labem";
+      if (cityLower === "hradec krA?lovAďż˝") return "v Hradci KrA?lovAďż˝";
+      if (cityLower === "ďż˝TeskAďż˝ budÄ›jovice") return "v ďż˝SeskA?ch BudÄ›jovicAďż˝ch";
+      if (cityLower === "pardubice") return "v PardubicAďż˝ch";
+      if (cityLower === "AsstAďż˝ nad labem") return "v Aďż˝stAďż˝ nad Labem";
       return `v ${city}`;
     };
     
@@ -806,7 +832,7 @@ export function ModularEmailEditorDialogInner({
         defaultData.mesto = job.city || defaultData.mesto;
         defaultData.mesto_v_meste = getCityIn(job.city);
         defaultData.popis_zakazky = job.description || defaultData.popis_zakazky;
-        defaultData.cena_rozpocet = job.price_note || (job.budget_min ? `${job.budget_min.toLocaleString('cs-CZ')} K�T` : "NenA� stanovena");
+        defaultData.cena_rozpocet = job.price_note || (job.budget_min ? `${job.budget_min.toLocaleString('cs-CZ')} Kďż˝T` : "NenAďż˝ stanovena");
         if (job.service_subcategories) {
           defaultData.obor = job.service_subcategories.name || defaultData.obor;
           defaultData.obor_2pad = job.service_subcategories.category_form || job.service_subcategories.name || defaultData.obor_2pad;
@@ -817,7 +843,7 @@ export function ModularEmailEditorDialogInner({
       defaultData.mesto_v_meste = getCityIn(selectedJob.city);
       defaultData.nazev_zakazky = selectedJob.title || defaultData.nazev_zakazky;
       defaultData.popis_zakazky = selectedJob.description || defaultData.popis_zakazky;
-      defaultData.cena_rozpocet = selectedJob.price_note || (selectedJob.budget_min ? `${selectedJob.budget_min.toLocaleString('cs-CZ')} K�T` : "NenA� stanovena");
+      defaultData.cena_rozpocet = selectedJob.price_note || (selectedJob.budget_min ? `${selectedJob.budget_min.toLocaleString('cs-CZ')} Kďż˝T` : "NenAďż˝ stanovena");
       if (selectedJob.service_subcategories) {
         defaultData.obor = selectedJob.service_subcategories.name || defaultData.obor;
         defaultData.obor_2pad = selectedJob.service_subcategories.category_form || selectedJob.service_subcategories.name || defaultData.obor_2pad;
@@ -946,8 +972,8 @@ export function ModularEmailEditorDialogInner({
             </Button>
             <h2 className="text-base font-bold flex items-center gap-2 truncate shrink-0 text-zinc-800 dark:text-zinc-200">
               <span className="truncate hidden md:inline">
-                {mode === "template" && `L�ablona: ${form.name || "NovA?"}`}
-                {mode === "campaign" && `KampaL?: ${form.name || "VizuA?lnA� Editor"}`}
+                {mode === "template" && `Lďż˝ablona: ${form.name || "NovA?"}`}
+                {mode === "campaign" && `KampaL?: ${form.name || "VizuA?lnAďż˝ Editor"}`}
                 {mode === "outbox" && `Revize zprA?vy pro: ${form.recipient_name || form.recipient_email}`}
               </span>
             </h2>
@@ -975,7 +1001,7 @@ export function ModularEmailEditorDialogInner({
                   checked={form.is_enabled} 
                   onCheckedChange={(checked) => setVal("is_enabled", checked)}
                   className="h-5 w-9 shrink-0 cursor-pointer data-[state=checked]:bg-zinc-800 dark:data-[state=checked]:bg-zinc-200 data-[state=unchecked]:bg-zinc-200 dark:data-[state=unchecked]:bg-zinc-800"
-                  title={form.is_enabled ? "AktivnA�" : "VypnutA?"}
+                  title={form.is_enabled ? "AktivnAďż˝" : "VypnutA?"}
                 />
               </div>
             )}
@@ -1008,7 +1034,7 @@ export function ModularEmailEditorDialogInner({
                 variant="outline" 
                 size="sm" 
                 onClick={() => {
-                  const email = window.prompt("Zadejte e-mail pro testovacA� zprA?vu:", "michal.kasparek91@gmail.com");
+                  const email = window.prompt("Zadejte e-mail pro testovacAďż˝ zprA?vu:", "michal.kasparek91@gmail.com");
                   if (email) {
                     onTestSend(form.slug!, form, selectedJobId || null, email);
                   }
@@ -1031,7 +1057,7 @@ export function ModularEmailEditorDialogInner({
               onClick={() => onSave(form)}
             >
               {isSaving ? <Loader2 className="h-3 w-3 animate-spin shrink-0" /> : <Save className="h-3 w-3 shrink-0" />}
-              <span className="hidden sm:inline">{mode === "campaign" ? "UloLlit a pouLlA�t" : "UloLlit"}</span>
+              <span className="hidden sm:inline">{mode === "campaign" ? "UloLlit a pouLlAďż˝t" : "UloLlit"}</span>
               <span className="inline sm:hidden">UloLlit</span>
             </Button>
 
@@ -1041,14 +1067,14 @@ export function ModularEmailEditorDialogInner({
                 size="sm" 
                 className="h-8 px-3 text-[11px] font-bold gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/40 cursor-pointer shrink-0"
                 onClick={() => {
-                  if (confirm("Opravdu chcete tyto koncepty pL�esunout k odeslA?nA� do Outboxu?")) {
+                  if (confirm("Opravdu chcete tyto koncepty pLďż˝esunout k odeslA?nAďż˝ do Outboxu?")) {
                     onBroadcast();
                   }
                 }}
                 disabled={isBroadcasting}
               >
                 {isBroadcasting ? <Loader2 className="h-3 w-3 animate-spin shrink-0" /> : <Send className="h-3 w-3 shrink-0" />}
-                <span className="truncate hidden sm:inline font-bold">PL�esunout do Outboxu</span>
+                <span className="truncate hidden sm:inline font-bold">PLďż˝esunout do Outboxu</span>
               </Button>
             )}
           </div>
@@ -1069,7 +1095,7 @@ export function ModularEmailEditorDialogInner({
                     activeTab === "content" ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
-                  dz�t Obsah
+                  dzďż˝t Obsah
                 </button>
                 <button 
                   onClick={() => setActiveTab("widgets")}
@@ -1077,19 +1103,19 @@ export function ModularEmailEditorDialogInner({
                     activeTab === "widgets" ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
-                  dz�� Widgety
+                  dzďż˝ďż˝ Widgety
                 </button>
                   <button 
                     onClick={() => setActiveTab("settings")}
                     className={`flex-1 py-2 px-1 text-[10px] uppercase tracking-wider font-bold rounded-xl transition-all ${activeTab === "settings" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
                   >
-                    dz�A Publikum
+                    dzďż˝A Publikum
                   </button>
               </div>
 
               {activeTab === "content" && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  {/* Panel formA?tovA?nA� a proměnnA?ch */}
+                  {/* Panel formA?tovA?nAďż˝ a promÄ›nnA?ch */}
                   <div className="flex flex-col gap-2 p-2 bg-muted/30 rounded-xl border border-border/50">
                     <div className="flex items-center gap-1 border-b border-border/50 pb-2 mb-1">
                       <Button variant="ghost" size="sm" className="h-7 px-2 font-bold" onClick={(e) => { e.preventDefault(); formatText("b"); }}>B</Button>
@@ -1118,16 +1144,16 @@ export function ModularEmailEditorDialogInner({
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">OslovenA� (smaLlte pro vypnutA�)</Label>
+                    <Label className="text-[11px] font-medium text-muted-foreground/80">OslovenAďż˝ (smaLlte pro vypnutAďż˝)</Label>
                     <Input value={form.greeting ?? ""} onChange={(e) => setVal("greeting", e.target.value)} onFocus={() => setActiveField("greeting")} placeholder="DobrA? den {{osloveni}}," className="h-9 text-xs" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">PL�edmět e-mailu</Label>
-                    <Input value={form.subject || ""} onChange={(e) => setVal("subject", e.target.value)} onFocus={() => setActiveField("subject")} placeholder="PL�edmět e-mailu..." className="h-9 text-xs" />
+                    <Label className="text-[11px] font-medium text-muted-foreground/80">PLďż˝edmÄ›t e-mailu</Label>
+                    <Input value={form.subject || ""} onChange={(e) => setVal("subject", e.target.value)} onFocus={() => setActiveField("subject")} placeholder="PLďż˝edmÄ›t e-mailu..." className="h-9 text-xs" />
                   </div>
                   <Textarea ref={textareaRef} value={form.body || ""} onChange={(e) => setVal("body", e.target.value)} onFocus={() => setActiveField("body")} className="min-h-[120px] text-xs" />
                   
-                  {/* SekundA?rnA� text */}
+                  {/* SekundA?rnAďż˝ text */}
                   <div className="space-y-1">
                     <Label className="text-[11px] font-medium text-muted-foreground/80">CTA doplL?kovA? text</Label>
                     <Textarea value={form.secondary_text || ""} onChange={(e) => setVal("secondary_text", e.target.value)} onFocus={() => setActiveField("secondary_text")} placeholder="..." className="min-h-[60px] text-xs mt-1" />
@@ -1135,30 +1161,30 @@ export function ModularEmailEditorDialogInner({
 
                   {/* DoplL?kovA? text pod e-mailem */}
                   <div className="space-y-1 mt-4">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">DoplL?kovA? text pod e-mailem (volitelnA�)</Label>
+                    <Label className="text-[11px] font-medium text-muted-foreground/80">DoplL?kovA? text pod e-mailem (volitelnAďż˝)</Label>
                     <Textarea value={form.segment_filters?.secondary_text_below_job || ""} onChange={(e) => setSegmentFilter("secondary_text_below_job", e.target.value)} onFocus={() => setActiveField("secondary_text_below_job")} placeholder="..." className="min-h-[60px] text-xs mt-1" />
                   </div>
 
-                  {/* GrafickA� oslovenA� */}
+                  {/* GrafickAďż˝ oslovenAďż˝ */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">GrafickA� oslovenA�</Label>
+                      <Label className="text-xs font-medium text-foreground/80">GrafickAďż˝ oslovenAďż˝</Label>
                       <Switch checked={!!form.segment_filters?.graphic_greeting_enabled} onCheckedChange={(c) => setSegmentFilter("graphic_greeting_enabled", c)} />
                     </div>
                   </div>
 
-                  {/* ZarovnA?nA� na stL�ed */}
+                  {/* ZarovnA?nAďż˝ na stLďż˝ed */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">ZarovnA?nA� na stL�ed</Label>
+                      <Label className="text-xs font-medium text-foreground/80">ZarovnA?nAďż˝ na stLďż˝ed</Label>
                       <Switch checked={form.segment_filters?.text_align === "center"} onCheckedChange={(c) => setSegmentFilter("text_align", c ? "center" : "left")} />
                     </div>
                   </div>
 
-                  {/* Emoji a pL�edmět v obsahu */}
+                  {/* Emoji a pLďż˝edmÄ›t v obsahu */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Emoji a pL�edmět v obsahu</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Emoji a pLďż˝edmÄ›t v obsahu</Label>
                       <Switch checked={!!form.segment_filters?.show_subject_in_body} onCheckedChange={(c) => setSegmentFilter("show_subject_in_body", c)} />
                     </div>
                   </div>
@@ -1168,33 +1194,33 @@ export function ModularEmailEditorDialogInner({
               {activeTab === "widgets" && (
                 <div className="space-y-0.5 animate-in fade-in duration-200 p-1">
                   
-                  {/* GrafickA� oslovenA� */}
+                  {/* GrafickAďż˝ oslovenAďż˝ */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">GrafickA� oslovenA�</Label>
+                      <Label className="text-xs font-medium text-foreground/80">GrafickAďż˝ oslovenAďż˝</Label>
                       <Switch checked={!!form.segment_filters?.graphic_greeting_enabled} onCheckedChange={(c) => setSegmentFilter("graphic_greeting_enabled", c)} />
                     </div>
                   </div>
 
-                  {/* HlavnA� ObrA?zek */}
+                  {/* HlavnAďż˝ ObrA?zek */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">HlavnA� ObrA?zek (Hero)</Label>
+                      <Label className="text-xs font-medium text-foreground/80">HlavnAďż˝ ObrA?zek (Hero)</Label>
                       <Switch checked={!!form.hero_image_url} onCheckedChange={(c) => setVal("hero_image_url", c ? "https://" : "")} />
                     </div>
                     {form.hero_image_url !== "" && form.hero_image_url !== null && (
                       <Input value={form.hero_image_url || ""} onChange={(e) => setVal("hero_image_url", e.target.value)} onFocus={() => setActiveField("hero_image_url")} placeholder="https://url-obrazku.jpg" className="h-8 text-xs mt-2" />
                     )}
                   </div>
-                  {/* Tla�TA�tko akce (CTA) */}
+                  {/* Tlaďż˝TAďż˝tko akce (CTA) */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Tla�TA�tko akce (CTA)</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Tlaďż˝TAďż˝tko akce (CTA)</Label>
                       <Switch checked={form.show_cta_button ?? true} onCheckedChange={(c) => setVal("show_cta_button", c)} />
                     </div>
                     {form.show_cta_button !== false && (
                       <div className="space-y-2 mt-2">
-                        <Input value={form.cta_text || ""} onChange={(e) => setVal("cta_text", e.target.value)} onFocus={() => setActiveField("cta_text")} placeholder="Text tla�TA�tka (napL�. Zobrazit detail)" className="h-8 text-xs" />
+                        <Input value={form.cta_text || ""} onChange={(e) => setVal("cta_text", e.target.value)} onFocus={() => setActiveField("cta_text")} placeholder="Text tlaďż˝TAďż˝tka (napLďż˝. Zobrazit detail)" className="h-8 text-xs" />
                         <Input value={form.cta_url || ""} onChange={(e) => setVal("cta_url", e.target.value)} onFocus={() => setActiveField("cta_url")} placeholder="https://..." className="h-8 text-xs" />
                       </div>
                     )}
@@ -1203,15 +1229,15 @@ export function ModularEmailEditorDialogInner({
                   {/* Informace o zakA?zce */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">ShrnutA� zakA?zky (Job Snippet)</Label>
+                      <Label className="text-xs font-medium text-foreground/80">ShrnutAďż˝ zakA?zky (Job Snippet)</Label>
                     </div>
-                    <Textarea value={form.job_description_snippet || ""} onChange={(e) => setVal("job_description_snippet", e.target.value)} onFocus={() => setActiveField("job_description_snippet")} placeholder="Stru�TnA? popis zakA?zky..." className="min-h-[60px] text-xs mt-2" />
+                    <Textarea value={form.job_description_snippet || ""} onChange={(e) => setVal("job_description_snippet", e.target.value)} onFocus={() => setActiveField("job_description_snippet")} placeholder="Struďż˝TnA? popis zakA?zky..." className="min-h-[60px] text-xs mt-2" />
                   </div>
 
-                  {/* SouvisejA�cA� �TlA?nky */}
+                  {/* SouvisejAďż˝cAďż˝ ďż˝TlA?nky */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">�SlA?nky z magazA�nu</Label>
+                      <Label className="text-xs font-medium text-foreground/80">ďż˝SlA?nky z magazAďż˝nu</Label>
                       <Switch checked={!!form.segment_filters?.articles_enabled} onCheckedChange={(c) => setSegmentFilter("articles_enabled", c)} />
                     </div>
                   </div>
@@ -1241,11 +1267,11 @@ export function ModularEmailEditorDialogInner({
                   {/* PS Footer */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">P.S. Pati�Tka</Label>
+                      <Label className="text-xs font-medium text-foreground/80">P.S. Patiďż˝Tka</Label>
                       <Switch checked={form.ps_footer_enabled ?? false} onCheckedChange={(c) => setVal("ps_footer_enabled", c)} />
                     </div>
                     {form.ps_footer_enabled && (
-                      <Input value={form.ps_footer_text || ""} onChange={(e) => setVal("ps_footer_text", e.target.value)} onFocus={() => setActiveField("ps_footer_text")} placeholder="Text pati�Tky..." className="h-8 text-xs mt-2" />
+                      <Input value={form.ps_footer_text || ""} onChange={(e) => setVal("ps_footer_text", e.target.value)} onFocus={() => setActiveField("ps_footer_text")} placeholder="Text patiďż˝Tky..." className="h-8 text-xs mt-2" />
                     )}
                   </div>
 
@@ -1258,9 +1284,9 @@ export function ModularEmailEditorDialogInner({
                   {/* Settings section */}
                   <div className="space-y-5">
                     <div className="space-y-4">
-                      <h3 className="text-sm font-bold border-b border-border/50 pb-2">ZA?kladnA� chovA?nA�</h3>
+                      <h3 className="text-sm font-bold border-b border-border/50 pb-2">ZA?kladnAďż˝ chovA?nAďż˝</h3>
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs font-medium text-foreground/80 cursor-pointer">Povoleno k odesA�lA?nA�</Label>
+                        <Label className="text-xs font-medium text-foreground/80 cursor-pointer">Povoleno k odesAďż˝lA?nAďż˝</Label>
                         <Switch checked={form.is_enabled ?? true} onCheckedChange={(c) => setVal("is_enabled", c)} />
                       </div>
                       
@@ -1271,7 +1297,7 @@ export function ModularEmailEditorDialogInner({
                             <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Kategorie..." /></SelectTrigger>
                             <SelectContent className="z-[200]">
                               <SelectItem value="marketing">Marketing (Akvizice)</SelectItem>
-                              <SelectItem value="transactional">Transak�TnA� (SystA�movA�)</SelectItem>
+                              <SelectItem value="transactional">Transakďż˝TnAďż˝ (SystAďż˝movAďż˝)</SelectItem>
                               <SelectItem value="drip">Drip KampaL? (Sekvence)</SelectItem>
                               <SelectItem value="newsletter">Newsletter</SelectItem>
                             </SelectContent>
@@ -1282,20 +1308,20 @@ export function ModularEmailEditorDialogInner({
                           <Select value={form.target_role || "all"} onValueChange={(v) => setVal("target_role", v)}>
                             <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Role..." /></SelectTrigger>
                             <SelectContent className="z-[200]">
-                              <SelectItem value="all">VL?em (VA?chozA�)</SelectItem>
-                              <SelectItem value="worker">Pro L?emeslnA�ky</SelectItem>
-                              <SelectItem value="customer">Pro ZA?kaznA�ky</SelectItem>
+                              <SelectItem value="all">VL?em (VA?chozAďż˝)</SelectItem>
+                              <SelectItem value="worker">Pro L?emeslnAďż˝ky</SelectItem>
+                              <SelectItem value="customer">Pro ZA?kaznAďż˝ky</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Jazyk L?ablony (Pro AutonomnA� rozesA�lku)</Label>
+                          <Label className="text-xs font-semibold text-muted-foreground">Jazyk L?ablony (Pro AutonomnAďż˝ rozesAďż˝lku)</Label>
                           <Select value={form.language || "cs"} onValueChange={(v) => setVal("language", v)}>
                             <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Jazyk..." /></SelectTrigger>
                             <SelectContent className="z-[200]">
-                              <SelectItem value="cs">�SeL?tina (cs)</SelectItem>
-                              <SelectItem value="en">Angli�Ttina (en)</SelectItem>
-                              <SelectItem value="de">Něm�Tina (de)</SelectItem>
+                              <SelectItem value="cs">ďż˝SeL?tina (cs)</SelectItem>
+                              <SelectItem value="en">Angliďż˝Ttina (en)</SelectItem>
+                              <SelectItem value="de">NÄ›mďż˝Tina (de)</SelectItem>
                               <SelectItem value="sk">SlovenL?tina (sk)</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1315,7 +1341,7 @@ export function ModularEmailEditorDialogInner({
                           <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="VL?echny zdroje" /></SelectTrigger>
                           <SelectContent className="z-[200]">
                             <SelectItem value="all">VL?echny zdroje</SelectItem>
-                            <SelectItem value="organic">RegistrovanA� (Organic)</SelectItem>
+                            <SelectItem value="organic">RegistrovanAďż˝ (Organic)</SelectItem>
                             <SelectItem value="scraped">Scraping (Lead)</SelectItem>
                             <SelectItem value="ai_web_sniper">AI Web Sniper</SelectItem>
                           </SelectContent>
@@ -1327,17 +1353,17 @@ export function ModularEmailEditorDialogInner({
                         <Select value={form.segment_filters?.userTypeFilter || "all"} onValueChange={(v) => setSegmentFilter("userTypeFilter", v)}>
                           <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="VL?ichni" /></SelectTrigger>
                           <SelectContent className="z-[200]">
-                            <SelectItem value="all">ZA?kaznA�ci i L?emeslnA�ci</SelectItem>
-                            <SelectItem value="worker">Pouze L?emeslnA�ci</SelectItem>
-                            <SelectItem value="customer">Pouze ZA?kaznA�ci</SelectItem>
+                            <SelectItem value="all">ZA?kaznAďż˝ci i L?emeslnAďż˝ci</SelectItem>
+                            <SelectItem value="worker">Pouze L?emeslnAďż˝ci</SelectItem>
+                            <SelectItem value="customer">Pouze ZA?kaznAďż˝ci</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                     <div>
-                      <Label className="text-xs font-semibold text-muted-foreground">Lokalita (Město)</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground">Lokalita (MÄ›sto)</Label>
                       <Input 
-                        placeholder="NapL�. Praha, Brno..." 
+                        placeholder="NapLďż˝. Praha, Brno..." 
                         value={form.segment_filters?.cityFilter || ""} 
                         onChange={(e) => setSegmentFilter("cityFilter", e.target.value)} 
                         className="mt-1 h-9 text-xs rounded-xl"
@@ -1354,21 +1380,21 @@ export function ModularEmailEditorDialogInner({
                             <SelectItem value="25">Do 25 km</SelectItem>
                             <SelectItem value="50">Do 50 km</SelectItem>
                             <SelectItem value="100">Do 100 km</SelectItem>
-                            <SelectItem value="999">CelA? �SR</SelectItem>
+                            <SelectItem value="999">CelA? ďż˝SR</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     )}
                     
                     <div>
-                      <Label className="text-xs font-semibold text-muted-foreground">MinimA?lnA� Engagement SkAlre</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground">MinimA?lnAďż˝ Engagement SkAlre</Label>
                       <Select value={form.segment_filters?.minEngagement || "0"} onValueChange={(v) => setSegmentFilter("minEngagement", v)}>
                         <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="JakA?koliv aktivita" /></SelectTrigger>
                         <SelectContent className="z-[200]">
                           <SelectItem value="0">VL?ichni (i bez aktivity)</SelectItem>
                           <SelectItem value="15">AlespoL? kontaktovA?ni (15+)</SelectItem>
-                          <SelectItem value="40">OtevL�eli e-mail (40+)</SelectItem>
-                          <SelectItem value="70">Odpověděli (70+)</SelectItem>
+                          <SelectItem value="40">OtevLďż˝eli e-mail (40+)</SelectItem>
+                          <SelectItem value="70">OdpovÄ›dÄ›li (70+)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1377,28 +1403,41 @@ export function ModularEmailEditorDialogInner({
 
                 <div className="space-y-5 animate-in fade-in duration-200 p-1">
                   <div className="p-4 bg-muted/10 rounded-2xl border border-border/40 space-y-4">
-                    <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">CA�lenA� & Trigger spouL?těnA�</p>
+                    <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">CAďż˝lenAďż˝ & Trigger spouL?tÄ›nAďż˝</p>
                     
                     <div className="space-y-1">
-                      <Label className="text-[11px] font-medium text-muted-foreground/80">CA�lovA� role</Label>
+                      <Label className="text-[11px] font-medium text-muted-foreground/80">CAlovA role</Label>
                       <Select value={form.target_role || "all"} onValueChange={(v) => setVal("target_role", v)}>
                         <SelectTrigger className="mt-1 h-9 text-xs rounded-xl"><SelectValue /></SelectTrigger>
                         <SelectContent className="z-[200]">
                           <SelectItem value="all">VL?ichni</SelectItem>
-                          <SelectItem value="worker">L?emeslnA�ci</SelectItem>
-                          <SelectItem value="customer">ZA?kaznA�ci</SelectItem>
+                          <SelectItem value="worker">L?emeslnAci</SelectItem>
+                          <SelectItem value="customer">ZA?kaznAci</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-[11px] font-medium text-muted-foreground/80">Typ spouL?tě�Te</Label>
+                      <Label className="text-[11px] font-medium text-muted-foreground/80">Layout</Label>
+                      <Select value={form.layout_type || "atmosferi_studio"} onValueChange={(v) => setVal("layout_type", v)}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Vyberte layout..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="atmosferi_studio" className="text-xs">Atmosferi Studio</SelectItem>
+                          <SelectItem value="sniper_recruitment" className="text-xs">Profil dodavatele (Recruitment)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-medium text-muted-foreground/80">Typ spouL?tÄ›Te</Label>
                       <Select value={form.trigger_type || "manual"} onValueChange={(v) => setVal("trigger_type", v)}>
                         <SelectTrigger className="mt-1 h-9 text-xs rounded-xl"><SelectValue /></SelectTrigger>
                         <SelectContent className="z-[200]">
-                          <SelectItem value="event">UdA?lost v systA�mu</SelectItem>
-                          <SelectItem value="cron">AutomatickA? sA�rie (cron)</SelectItem>
-                          <SelectItem value="manual">ManuA?lnA� rozesA�lka</SelectItem>
+                          <SelectItem value="event">UdA?lost v systAďż˝mu</SelectItem>
+                          <SelectItem value="cron">AutomatickA? sAďż˝rie (cron)</SelectItem>
+                          <SelectItem value="manual">ManuA?lnAďż˝ rozesAďż˝lka</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1406,7 +1445,7 @@ export function ModularEmailEditorDialogInner({
                     {form.trigger_type === "cron" && (
                       <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/30 animate-in slide-in-from-top-2">
                         <div>
-                          <Label className="text-[11px] font-medium text-muted-foreground/80">ZpoLlděnA� (dny)</Label>
+                          <Label className="text-[11px] font-medium text-muted-foreground/80">ZpoLldÄ›nAďż˝ (dny)</Label>
                           <Input 
                             type="number" 
                             value={form.drip_delay_days ?? 0} 
@@ -1415,7 +1454,7 @@ export function ModularEmailEditorDialogInner({
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] font-medium text-muted-foreground/80">SA�rie (Drip)</Label>
+                          <Label className="text-[11px] font-medium text-muted-foreground/80">SAďż˝rie (Drip)</Label>
                           <Input 
                             value={form.drip_series || ""} 
                             onChange={(e) => setVal("drip_series", e.target.value)} 
@@ -1427,13 +1466,13 @@ export function ModularEmailEditorDialogInner({
                   </div>
 
                   <div className="space-y-4 pt-4 border-t border-border/40 mt-4">
-                    <h3 className="text-sm font-bold border-b border-border/50 pb-2">OdesA�lacA� Asdaje</h3>
+                    <h3 className="text-sm font-bold border-b border-border/50 pb-2">OdesAďż˝lacAďż˝ Asdaje</h3>
                     <div>
-                      <Label className="text-xs font-semibold text-muted-foreground">OdesA�latel (Z koho)</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground">OdesAďż˝latel (Z koho)</Label>
                       <Select value={form.sender_email || "default"} onValueChange={(v) => setVal("sender_email", v === "default" ? null : v)}>
-                        <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="VA?chozA� (Atmosferi <info@atmosferi.com>)" /></SelectTrigger>
+                        <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="VA?chozAďż˝ (Atmosferi <info@atmosferi.com>)" /></SelectTrigger>
                         <SelectContent className="z-[200]">
-                          <SelectItem value="default">VA?chozA� (info@atmosferi.com)</SelectItem>
+                          <SelectItem value="default">VA?chozAďż˝ (info@atmosferi.com)</SelectItem>
                           <SelectItem value="michal@atmosferi.com">Michal Kasparek (michal@atmosferi.com)</SelectItem>
                           <SelectItem value="info@atmosferi.com">Atmosferi Info (info@atmosferi.com)</SelectItem>
                           <SelectItem value="support@atmosferi.com">Atmosferi Podpora (support@atmosferi.com)</SelectItem>
@@ -1456,7 +1495,7 @@ export function ModularEmailEditorDialogInner({
               <div className="flex items-center justify-between px-4 text-muted-foreground text-[10px] uppercase tracking-[0.2em] font-bold">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  VizuA?lnA� nA?hled
+                  VizuA?lnAďż˝ nA?hled
                 </div>
                 
                 {/* Desktop / Mobile segmented toggler */}
@@ -1487,17 +1526,17 @@ export function ModularEmailEditorDialogInner({
               {/* Job Selector for dynamic previews */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-4 py-2.5 bg-card dark:bg-zinc-900/50 rounded-2xl border border-border/60 shadow-xs text-xs">
                 <span className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                  dz�Z TestovacA� data zakA?zky:
+                  dzďż˝Z TestovacAďż˝ data zakA?zky:
                 </span>
                 <Select value={selectedJobId} onValueChange={setSelectedJobId}>
                   <SelectTrigger className="w-full sm:w-[320px] h-8 text-xs rounded-xl bg-background border-border/50 shadow-2xs font-medium">
-                    <SelectValue placeholder="VA?chozA� ukA?zkovA? data" />
+                    <SelectValue placeholder="VA?chozAďż˝ ukA?zkovA? data" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[250px] z-[200]">
-                    <SelectItem value="default" className="text-xs font-semibold">�s� VA?chozA� ukA?zkovA? data</SelectItem>
+                    <SelectItem value="default" className="text-xs font-semibold">ďż˝sďż˝ VA?chozAďż˝ ukA?zkovA? data</SelectItem>
                     {openJobs?.map((job: any) => (
                       <SelectItem key={job.id} value={job.id} className="text-xs">
-                        {job.title} ({job.city || "CelA? �SR"})
+                        {job.title} ({job.city || "CelA? ďż˝SR"})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1522,7 +1561,7 @@ export function ModularEmailEditorDialogInner({
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/80" />
                         </div>
                         <div className="bg-background dark:bg-zinc-900 text-foreground rounded-md border border-border px-2 py-0.5 text-[9px] font-medium flex-1 truncate shadow-2xs">
-                          {previewReplace(form.subject || form.name) || "Bez pL�edmětu"}
+                          {previewReplace(form.subject || form.name) || "Bez pLďż˝edmÄ›tu"}
                         </div>
                       </div>
                       
@@ -1543,7 +1582,7 @@ export function ModularEmailEditorDialogInner({
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                       </div>
                       <div className="bg-background dark:bg-zinc-900 text-foreground rounded-md border border-border px-3 py-0.5 text-[10px] font-medium flex-1 truncate shadow-sm">
-                        PL�edmět: {previewReplace(form.subject || form.name) || "Bez pL�edmětu"}
+                        PLďż˝edmÄ›t: {previewReplace(form.subject || form.name) || "Bez pLďż˝edmÄ›tu"}
                       </div>
                     </div>
                     <ModularLivePreview form={form} previewReplace={previewReplace} previewTheme={previewTheme} />
@@ -1552,7 +1591,7 @@ export function ModularEmailEditorDialogInner({
               </div>
 
               <p className="text-center text-[10px] text-muted-foreground italic">
-                PoznA?mka: Skute�TnA? e-mail se mLZLle v rLZznA?ch klientech (Outlook, Gmail) mA�rně liL?it.
+                PoznA?mka: Skuteďż˝TnA? e-mail se mLZLle v rLZznA?ch klientech (Outlook, Gmail) mAďż˝rnÄ› liL?it.
               </p>
             </div>
           </div>
@@ -1594,4 +1633,5 @@ class EditorErrorBoundary extends React.Component<{children: any}, {hasError: bo
 export default function ModularEmailEditorDialog(props: any) {
   return <EditorErrorBoundary><ModularEmailEditorDialogInner {...props} /></EditorErrorBoundary>;
 }
+
 
