@@ -19,7 +19,7 @@ import {
   Copy, BarChart3, Bold, Italic, Underline, List, Link, Monitor, Smartphone, Sparkles, HardHat, Home, Building2, PaintRoller
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import ModularEmailEditorDialog from "./email/ModularEmailEditor";
+import AtmosferiEmailEditor from "./email/AtmosferiEmailEditor";
 
 type EmailTemplate = {
   id: string;
@@ -593,19 +593,14 @@ export default function EmailTemplatesTab() {
         </div>
       )}
 
-      {/* Edit/Create Dialog */}
-      <ModularEmailEditorDialog
-        mode="template"
-        isOpen={!!editingTemplate}
-        initialData={editingTemplate}
-        onClose={() => { setEditingTemplate(null); setIsCreating(false); }}
-        onSave={(t) => saveMutation.mutate(t as any)}
-        onDelete={() => editingTemplate && deleteMutation.mutate(editingTemplate.id)}
-        isSaving={saveMutation.isPending}
-        onTestSend={(slug, overrideData, jobId) => testSendMutation.mutate({ slug, overrideData: overrideData as any, jobId })}
-        isSendingTest={testSendMutation.isPending}
-        onMoveToOutbox={(t) => moveToOutboxMutation.mutate(t as any)}
-      />
+      {editingTemplate && (
+        <AtmosferiEmailEditor
+          initialData={editingTemplate}
+          onClose={() => { setEditingTemplate(null); setIsCreating(false); }}
+          onSave={(t) => saveMutation.mutate(t as any)}
+          isSaving={saveMutation.isPending}
+        />
+      )}
 
     </div>
   );

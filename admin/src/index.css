@@ -1,129 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* TT Norms Pro Variable Font - Refined for Safari support */
-@font-face {
-  font-family: 'TT Norms Pro';
-  src: url('/fonts/TTNormsProVariable.woff2') format('woff2'),
-       url('/fonts/TTNormsProVariable.ttf') format('truetype');
-  font-weight: 100 950;
-  font-style: normal;
-  font-display: swap;
-  font-synthesis: none;
-  font-variation-settings: "slnt" 0, "ital" 0;
-  -webkit-font-smoothing: antialiased;
+/* Fallback for global vars from Atmosferi HTML */
+:root {
+  --bg: #EFEDE6; 
+  --panel: #FBFAF6; 
+  --panel-2: #F4F2EC; 
+  --ink: #16140F; 
+  --ink-2: #33302A;
+  --muted-text: #807C72; 
+  --muted-2: #A8A398; 
+  --line: rgba(22,20,15,.12); 
+  --line-2: rgba(22,20,15,.22);
+  --acc: #D97757; 
+  --ok: #1F8A5B;
+  --sans: 'Geist', system-ui, sans-serif; 
+  --mono: 'Geist Mono', ui-monospace, monospace;
 }
 
 @layer base {
-  :root {
-    --background: 240 5% 98.2%; /* Very light grey background */
-    --foreground: 60 8% 7%;
+  :root, .dark {
+    --background: 46 22% 92%; /* #EFEDE6 */
+    --foreground: 43 19% 7%;  /* #16140F */
     
-    --list-item-bg: 0 0% 100%;
-    --list-item-header: 240 5% 92%; /* Slightly darker grey header */
-    --list-header: 0 0% 100%;
-    --job-image-placeholder: 90 35% 88%;
-    --menu-inactive: 60 4% 45%;
-    --card: 0 0% 100%;
-    --card-foreground: 60 8% 7%;
+    --list-item-bg: 48 38% 97%;
+    --list-item-header: 45 25% 94%;
+    --list-header: 48 38% 97%;
+    --job-image-placeholder: 45 25% 94%;
+    --menu-inactive: 43 7% 47%;
+    --card: 48 38% 97%;       /* #FBFAF6 */
+    --card-foreground: 43 19% 7%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 60 8% 7%;
+    --popover: 48 38% 97%;
+    --popover-foreground: 43 19% 7%;
 
-    --primary: 0 0% 9%; /* Zinc-950 for primary (almost black) */
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 0 0% 15%;
+    --primary: 15 64% 60%;    /* #D97757 */
+    --primary-foreground: 48 38% 97%;
+    --primary-hover: 15 64% 50%;
     
-    --highlight: 0 0% 90%;
+    --highlight: 45 25% 94%;
     
-    --dark-green: 0 0% 9%;
+    --dark-green: 154 63% 33%; /* #1F8A5B */
     
-    --sidebar-active-bg: 0 0% 96%; /* zinc-100 */
-    --sidebar-active-text: 0 0% 9%;
+    --sidebar-active-bg: 45 25% 94%;
+    --sidebar-active-text: 43 19% 7%;
 
-    --secondary: 0 0% 100%;
-    --secondary-foreground: 60 8% 7%;
+    --secondary: 45 25% 94%;  /* #F4F2EC */
+    --secondary-foreground: 43 19% 7%;
 
-    --muted: 0 0% 100%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 45 25% 94%;
+    --muted-foreground: 43 7% 47%; /* #807C72 */
 
-    --accent: 90 50% 63%;
-    --accent-foreground: 60 8% 7%;
+    --accent: 15 64% 60%;
+    --accent-foreground: 48 38% 97%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 92%;
-    --input: 0 0% 92%;
-    --ring: 0 0% 9%;
+    --border: 43 19% 88%; /* approx for 12% opacity ink */
+    --input: 43 19% 88%;
+    --ring: 15 64% 60%;
     
-    --input-fill: 0 0% 100%;
-    --input-fill-foreground: 60 8% 7%;
+    --input-fill: 48 38% 97%;
+    --input-fill-foreground: 43 19% 7%;
 
-    --radius: 0.5rem;
+    --radius: 0.375rem; /* 6px */
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 0 0% 9%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 9%;
-    --sidebar-border: 0 0% 92%;
-    --sidebar-ring: 0 0% 9%;
-  }
-
-  .dark {
-    --background: 0 0% 8%;
-    --foreground: 0 0% 98%;
-    
-    --list-item-bg: 0 0% 12%;
-    --list-item-header: 105 25% 18%;
-    --list-header: 0 0% 12%;
-    --job-image-placeholder: 0 0% 16%;
-    --menu-inactive: 0 0% 77%;
-    --card: 0 0% 14%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 0 0% 98%; /* white */
-    --primary-foreground: 0 0% 9%;
-    --primary-hover: 0 0% 90%;
-    
-    --dark-green: 0 0% 98%;
-    
-    --sidebar-active-bg: 0 0% 15%;
-    --sidebar-active-text: 0 0% 98%;
-
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 90 50% 63%;
-    --accent-foreground: 60 8% 7%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 0% 98%;
-    
-    --input-fill: 0 0% 18%;
-    --input-fill-foreground: 0 0% 98%;
-    
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 93%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 0 0% 98%;
+    --sidebar-background: 46 22% 92%;
+    --sidebar-foreground: 43 19% 7%;
+    --sidebar-primary: 15 64% 60%;
+    --sidebar-primary-foreground: 48 38% 97%;
+    --sidebar-accent: 45 25% 94%;
+    --sidebar-accent-foreground: 43 19% 7%;
+    --sidebar-border: 43 19% 88%;
+    --sidebar-ring: 15 64% 60%;
   }
 }
 
@@ -180,7 +133,7 @@ body[data-conversation-open="true"] .route-fade-enter {
 
   html, body {
     @apply bg-background text-foreground;
-    font-family: 'TT Norms Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 400;
     font-style: normal !important;
     font-synthesis: none !important;
@@ -195,7 +148,7 @@ body[data-conversation-open="true"] .route-fade-enter {
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'TT Norms Pro', system-ui, -apple-system, sans-serif;
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
     font-weight: 900;
   }
 }
@@ -350,9 +303,9 @@ body[data-conversation-open="true"] .route-fade-enter {
 .admin-mode [role="searchbox"] {
   background-color: white !important;
   border: 1px solid #e2e8f0 !important; /* slate-200 */
-  border-radius: 0.5rem !important;
+  border-radius: 0.375rem !important; /* 6px radius */
   box-shadow: none !important;
-  font-family: 'TT Norms Pro', sans-serif !important;
+  font-family: 'Geist', sans-serif !important;
   font-size: 0.8125rem !important;
   font-weight: 350 !important;
   letter-spacing: -0.01em !important;

@@ -4,6 +4,7 @@ import { StandardAlert } from "./email-templates/StandardAlert.tsx";
 import { MagazineTemplate } from "./email-templates/MagazineTemplate.tsx";
 import { SniperTemplate } from "./email-templates/SniperTemplate.tsx";
 import { SniperRecruitmentEmail } from "./email-templates/SniperRecruitmentEmail.tsx";
+import { generateAtmosferiEmailHtml, EmailTemplateData } from "./EmailTemplateGenerator.ts";
 
 // Lazily initialized to prevent Edge Function worker crashes on boot if secret is missing
 let resendClient: InstanceType<typeof Resend> | null = null;
@@ -115,6 +116,25 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         secondaryTextBelowJob: payload.secondaryTextBelowJob,
         previewTheme: payload.previewTheme,
       }));
+    } else if (payload.layoutType === "atmosferi_studio" || payload.layoutType as string === "atmosferi_studio") {
+      const emailData: EmailTemplateData = {
+        subject: payload.subject,
+        body: payload.body || "",
+        heroImageEnabled: payload.heroImageUrl ? true : false,
+        heroImageUrl: payload.heroImageUrl || "https://atmosferi.com/demos/atmosferi-viz/img/02-ascension.webp",
+        portfolioEnabled: payload.carouselImages && payload.carouselImages.length > 0 ? true : false,
+        portfolioImages: payload.carouselImages || [],
+        icebreakerEnabled: payload.greeting ? true : false,
+        icebreakerText: payload.greeting || "",
+        signatureEnabled: true,
+        signatureName: "Ing. arch. Michal Kašpárek",
+        signatureRole: "Architektonické studio",
+        signatureEmail: "info@atmosferi.com",
+        psEnabled: payload.psFooterEnabled ?? true,
+        psText: payload.psFooterText || "Pokud nyní nemáte kapacitu, stačí odepsat \"Ne\" a už vás nebudeme kontaktovat.",
+        themeColor: "#D97757"
+      };
+      html = generateAtmosferiEmailHtml(emailData);
     } else if (payload.layoutType === "plain") {
       html = render(SniperTemplate({
         subject: payload.subject,

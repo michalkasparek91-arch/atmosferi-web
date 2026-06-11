@@ -107,7 +107,7 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'TT Norms Pro',
+  				'Geist',
   				'system-ui',
   				'-apple-system',
   				'BlinkMacSystemFont',
