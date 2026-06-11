@@ -109,7 +109,7 @@ function parseBodyText(text: string): string {
   html = html.replace(/(?<!\\*)\\*(?!\\*)(.*?)\\*/g, '<em>$1</em>');
   
   // Style variables like {{zakaznik}}
-  html = html.replace(/\\{\\{(.*?)\\}\\}/g, '<span style="background-color: #F4F2EC; padding: 2px 4px; border-radius: 4px; font-family: \\'Geist Mono\\', ui-monospace, monospace; font-size: 11px; color: #D97757;">{{$1}}</span>');
+  html = html.replace(/\\{\\{(.*?)\\}\\}/g, `<span style="background-color: #F4F2EC; padding: 2px 4px; border-radius: 4px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; color: #D97757;">{{$1}}</span>`);
   
   const paragraphs = html.split(/\\n\\s*\\n/);
   return paragraphs.map(p => {
