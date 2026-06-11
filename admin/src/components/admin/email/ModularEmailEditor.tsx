@@ -43,6 +43,7 @@ export interface EmailEditorState {
   hero_image_url?: string | null;
   hero_caption?: string | null;
   signature_avatar_url?: string | null;
+  stealth_tracking_enabled?: boolean;
   urgency_banner_enabled?: boolean;
   urgency_banner_text?: string | null;
   promo_banner_enabled?: boolean;
