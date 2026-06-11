@@ -46,8 +46,12 @@ export interface EmailEditorState {
   promo_banner_enabled?: boolean;
   promo_banner_text?: string | null;
   job_description_snippet?: string | null;
+  language?: string | null;
   ps_footer_enabled?: boolean;
   ps_footer_text?: string | null;
+  signature_name?: string | null;
+  signature_role?: string | null;
+  signature_email?: string | null;
   show_job_widget?: boolean;
   show_cta_button?: boolean;
   // Outbox specific
@@ -218,6 +222,56 @@ export function ModularLivePreview({
 
   const isPlainLayout = form.layout_type === "plain";
   const isStandardLayout = form.layout_type === "standard";
+  const isAtmosferiLayout = form.layout_type === "atmosferi_studio" || !form.layout_type;
+
+  if (isAtmosferiLayout) {
+    const isDark = previewTheme === "dark";
+    const bg = isDark ? "#16140F" : "#EFEDE6";
+    const panel = isDark ? "#2A2720" : "#FBFAF6";
+    const ink = isDark ? "#EFEDE6" : "#16140F";
+    const muted = isDark ? "#A8A398" : "#807C72";
+    const acc = "#D97757";
+
+    return (
+      <div style={{ backgroundColor: bg, padding: "40px 20px", width: "100%", minHeight: "100%", fontFamily: "'Geist', system-ui, sans-serif" }}>
+        <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: panel, borderRadius: "6px", overflow: "hidden", color: ink, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+          {form.hero_image_url && (
+             <img src={previewReplace(form.hero_image_url)} alt="Hero" style={{ width: "100%", height: "auto", display: "block" }} />
+          )}
+          
+          <div style={{ padding: "40px 30px" }}>
+            {carouselImages.length > 0 && (
+              <div style={{ display: "flex", gap: "8px", marginBottom: "30px", overflowX: "auto" }}>
+                {carouselImages.map((img, i) => (
+                  <img key={i} src={img} alt={`Portfolio ${i}`} style={{ height: "120px", objectFit: "cover", flex: 1, borderRadius: "4px" }} />
+                ))}
+              </div>
+            )}
+            
+            {form.greeting && (
+              <div style={{ fontStyle: "italic", marginBottom: "24px", color: ink, fontSize: "15px", lineHeight: "1.6" }}>
+                {previewReplace(form.greeting)}
+              </div>
+            )}
+            
+            <div style={{ fontSize: "15px", lineHeight: "1.6", color: ink, marginBottom: "30px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || ""), "left", isDark) }} />
+            
+            <div style={{ borderTop: `1px solid ${isDark ? "#444" : "#EAEAEA"}`, paddingTop: "24px", color: muted, fontSize: "13px", lineHeight: "1.5" }}>
+              <strong style={{ color: ink }}>{previewReplace(form.signature_name || "Ing. arch. Michal Kašpárek")}</strong><br/>
+              Atmosferi° — {previewReplace(form.signature_role || "Architektonické studio")}<br/>
+              <span style={{ color: acc }}>{previewReplace(form.signature_email || "info@atmosferi.com")}</span>
+            </div>
+
+            {form.ps_footer_enabled && form.ps_footer_text && (
+              <div style={{ fontStyle: "italic", marginTop: "24px", color: muted, fontSize: "12px" }}>
+                P.S. {previewReplace(form.ps_footer_text)}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   if (isStandardLayout) {
     const isDark = previewTheme === "dark";
@@ -696,7 +750,7 @@ export function ModularEmailEditorDialogInner({
         drip_series: initialData.drip_series || "",
         is_enabled: initialData.is_enabled !== undefined ? initialData.is_enabled : true,
         segment_filters: filters,
-        layout_type: initialData.layout_type || "standard",
+        layout_type: initialData.layout_type || "atmosferi_studio",
         hero_image_url: initialData.hero_image_url || "",
         urgency_banner_enabled: initialData.urgency_banner_enabled !== undefined ? initialData.urgency_banner_enabled : true,
         urgency_banner_text: initialData.urgency_banner_text || "Spěchá: Zákazník čeká na rychlou reakci. Tuto zakázku jsme právě odeslali pouze vybraným specialistům ve vašem okolí.",
@@ -1197,6 +1251,33 @@ export function ModularEmailEditorDialogInner({
                     </div>
                   </div>
 
+                  {/* Layout Selector */}
+                  <div className="py-2 mb-2">
+                    <Label className="text-xs font-medium text-foreground/80">Layout šablony</Label>
+                    <Select value={form.layout_type || "atmosferi_studio"} onValueChange={(v) => setVal("layout_type", v)}>
+                      <SelectTrigger className="h-8 text-xs mt-1">
+                        <SelectValue placeholder="Vyberte layout..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="atmosferi_studio" className="text-xs">Atmosferi Studio</SelectItem>
+                        <SelectItem value="standard" className="text-xs">Standardní oznámení</SelectItem>
+                        <SelectItem value="magazine" className="text-xs">Magazín / Newsletter</SelectItem>
+                        <SelectItem value="sniper_recruitment" className="text-xs">Profil dodavatele</SelectItem>
+                        <SelectItem value="plain" className="text-xs">Jen prostý text (Plain)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Atmosferi Signature */}
+                  <div className="py-2 border-t border-border/50 mt-4 mb-2">
+                    <h4 className="text-xs font-bold mb-2">Podpis (Atmosferi Studio)</h4>
+                    <div className="space-y-2">
+                      <Input value={form.signature_name || ""} onChange={(e) => setVal("signature_name", e.target.value)} placeholder="Jméno (např. Ing. arch. Michal Kašpárek)" className="h-8 text-xs" />
+                      <Input value={form.signature_role || ""} onChange={(e) => setVal("signature_role", e.target.value)} placeholder="Role (např. Architektonické studio)" className="h-8 text-xs" />
+                      <Input value={form.signature_email || ""} onChange={(e) => setVal("signature_email", e.target.value)} placeholder="E-mail (např. info@atmosferi.com)" className="h-8 text-xs" />
+                    </div>
+                  </div>
+
                   {/* Hlavní Obrázek */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
@@ -1306,6 +1387,18 @@ export function ModularEmailEditorDialogInner({
                               <SelectItem value="all">Všem (Výchozí)</SelectItem>
                               <SelectItem value="worker">Pro Řemeslníky</SelectItem>
                               <SelectItem value="customer">Pro Zákazníky</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold text-muted-foreground">Jazyk šablony (Pro Autonomní rozesílku)</Label>
+                          <Select value={form.language || "cs"} onValueChange={(v) => setVal("language", v)}>
+                            <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Jazyk..." /></SelectTrigger>
+                            <SelectContent className="z-[200]">
+                              <SelectItem value="cs">Čeština (cs)</SelectItem>
+                              <SelectItem value="en">Angličtina (en)</SelectItem>
+                              <SelectItem value="de">Němčina (de)</SelectItem>
+                              <SelectItem value="sk">Slovenština (sk)</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
