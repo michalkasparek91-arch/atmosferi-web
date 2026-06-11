@@ -1426,6 +1426,9 @@ export function ModularEmailEditorDialogInner({
                         <SelectContent>
                           <SelectItem value="atmosferi_studio" className="text-xs">Atmosferi Studio</SelectItem>
                           <SelectItem value="sniper_recruitment" className="text-xs">Profil dodavatele (Recruitment)</SelectItem>
+                          <SelectItem value="magazine" className="text-xs">MagazA?n / Newsletter</SelectItem>
+                          <SelectItem value="standard" className="text-xs">StandardnA? oznA?menA?</SelectItem>
+                          <SelectItem value="plain" className="text-xs">Jen prostA? text (Plain)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
