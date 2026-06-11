@@ -4,174 +4,328 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VOLUM — Architecture at the scale of cities</title>
-<meta name="description" content="VOLUM is a global architecture and urbanism practice working on buildings, masterplans and infrastructure.">
+<meta name="description" content="VOLUM is a global practice of Landscape, Engineering, Architecture, Planning and Products — building at the scale of cities.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#FFFFFF; --ink:#0B0B0C; --paper:#F2F2EF; --muted:#7A7A7E;
     --acc:#FF3D00; --line:rgba(11,11,12,.14); --line-d:rgba(255,255,255,.18);
     --sans:'Archivo', Helvetica, Arial, sans-serif; --cond:'Archivo Narrow','Archivo',sans-serif;
+    --curve:cubic-bezier(.76,0,.24,1); --easeout:cubic-bezier(.2,.7,.1,1);
+    --gut:clamp(20px,3.4vw,48px);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
-  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;overflow-x:hidden;}
   img{display:block;max-width:100%;}
   a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;}
   ::selection{background:var(--acc);color:#fff;}
-  .wrap{max-width:1480px;margin:0 auto;padding:0 32px;}
-  .meta{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;}
+  .wrap{max-width:1560px;margin:0 auto;padding:0 var(--gut);}
+  .meta{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;}
   .acc{color:var(--acc);}
 
-  /* nav */
-  header.nav{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:2px solid var(--ink);}
-  .nav__in{display:flex;align-items:center;justify-content:space-between;height:68px;}
-  .logo{font-weight:900;font-size:30px;letter-spacing:-.04em;line-height:1;}
-  .logo sup{color:var(--acc);font-size:.5em;vertical-align:.9em;}
-  .nav__links{display:flex;gap:34px;}
-  .nav__links a{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;position:relative;}
-  .nav__links a::after{content:"";position:absolute;left:0;right:100%;bottom:-6px;height:2px;background:var(--acc);transition:right .3s cubic-bezier(.76,0,.24,1);}
-  .nav__links a:hover::after{right:0;}
+  /* ───────── ribbon ───────── */
+  .ds-ribbon{background:var(--acc);color:#fff;font-family:var(--cond);font-size:12px;text-align:center;padding:11px 20px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;position:relative;z-index:60;}
+  .ds-ribbon a{color:#fff;border-bottom:1px solid rgba(255,255,255,.6);}
 
-  /* hero */
-  .hero{padding:70px 0 40px;}
-  .hero h1{font-weight:900;font-size:clamp(54px,11vw,168px);line-height:.86;letter-spacing:-.035em;text-transform:uppercase;}
+  /* ───────── nav ───────── */
+  header.nav{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--ink);}
+  .nav__in{display:flex;align-items:center;justify-content:space-between;height:64px;gap:24px;}
+  .logo{font-weight:900;font-size:27px;letter-spacing:-.04em;line-height:1;flex:none;}
+  .logo sup{color:var(--acc);font-size:.42em;vertical-align:.95em;}
+  .nav__links{display:flex;gap:30px;align-items:center;}
+  .nav__links > a, .nav__trigger{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;position:relative;padding:6px 0;display:inline-flex;align-items:center;gap:7px;}
+  .nav__links > a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--acc);transition:right .35s var(--curve);}
+  .nav__links > a:hover::after{right:0;}
+  .nav__trigger .chev{width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .3s var(--curve);margin-bottom:3px;}
+  .nav.menu-open .nav__trigger .chev{transform:rotate(-135deg);margin-bottom:-2px;}
+  .nav__right{display:flex;align-items:center;gap:18px;}
+  .clock{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+  .idx-btn{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--ink);padding:9px 15px;display:inline-flex;gap:9px;align-items:center;transition:background .25s var(--curve),color .25s var(--curve);}
+  .idx-btn:hover{background:var(--ink);color:#fff;}
+  .idx-btn .b{display:flex;flex-direction:column;gap:2px;}
+  .idx-btn .b i{width:13px;height:2px;background:currentColor;display:block;}
+  .burger{display:none;flex-direction:column;gap:5px;width:30px;height:30px;justify-content:center;align-items:center;}
+  .burger i{width:22px;height:2px;background:var(--ink);transition:transform .3s var(--curve),opacity .2s;}
+
+  /* mega menu */
+  .mega{position:absolute;left:0;right:0;top:100%;background:var(--bg);border-bottom:1px solid var(--ink);overflow:hidden;max-height:0;transition:max-height .5s var(--curve);}
+  .nav.menu-open .mega{max-height:70vh;}
+  .mega__in{display:grid;grid-template-columns:repeat(5,1fr);gap:0;}
+  .mega__col{padding:34px var(--gut) 40px;border-right:1px solid var(--line);}
+  .mega__col:last-child{border-right:0;}
+  .mega__col h4{font-weight:900;font-size:20px;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:baseline;gap:8px;}
+  .mega__col h4 b{color:var(--acc);font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.1em;}
+  .mega__col a{display:block;font-size:14px;font-weight:500;color:var(--muted);padding:7px 0;border-bottom:1px solid var(--line);transition:color .2s,padding-left .25s var(--curve);}
+  .mega__col a:hover{color:var(--ink);padding-left:8px;}
+  .mega__col a.all{color:var(--ink);font-weight:700;}
+
+  /* ───────── hero ───────── */
+  .hero{position:relative;min-height:calc(100vh - 64px - 40px);display:flex;flex-direction:column;justify-content:space-between;padding-top:clamp(40px,7vh,90px);padding-bottom:30px;}
+  .hero h1{font-weight:900;font-size:clamp(54px,12.5vw,210px);line-height:.84;letter-spacing:-.04em;text-transform:uppercase;}
   .hero h1 .o{color:var(--acc);}
-  .hero__sub{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;margin-top:36px;border-top:2px solid var(--ink);padding-top:22px;}
-  .hero__sub p{max-width:52ch;font-size:19px;font-weight:500;}
-  .hero__sub .meta{color:var(--muted);}
+  .hero__sub{display:grid;grid-template-columns:1.4fr 1fr auto;gap:32px;align-items:end;border-top:1px solid var(--ink);padding-top:22px;}
+  .hero__sub p{max-width:46ch;font-size:clamp(16px,1.3vw,20px);font-weight:500;}
+  .hero__sub .meta{color:var(--muted);line-height:1.9;}
+  .scrollcue{display:inline-flex;align-items:center;gap:10px;font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+  .scrollcue .ar{width:1px;height:34px;background:var(--ink);position:relative;overflow:hidden;}
+  .scrollcue .ar::after{content:"";position:absolute;left:0;top:-100%;width:1px;height:100%;background:var(--acc);animation:drip 2.2s var(--curve) infinite;}
+  @keyframes drip{0%{top:-100%}60%,100%{top:100%}}
 
-  /* featured */
-  .feature{position:relative;margin-top:48px;height:78vh;min-height:520px;overflow:hidden;background:#000;}
-  .feature img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s cubic-bezier(.2,.7,.1,1);}
-  .feature:hover img{transform:scale(1.04);}
-  .feature__tag{position:absolute;left:0;bottom:0;background:var(--ink);color:#fff;padding:20px 30px;display:flex;gap:28px;align-items:baseline;flex-wrap:wrap;}
-  .feature__tag .t{font-weight:800;font-size:26px;letter-spacing:-.02em;}
-  .feature__no{position:absolute;top:24px;right:30px;color:#fff;font-weight:800;font-size:14px;letter-spacing:.1em;mix-blend-mode:difference;}
+  /* ───────── filter bar ───────── */
+  .filter{position:sticky;top:64px;z-index:30;background:var(--bg);border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);}
+  .filter__in{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;height:54px;}
+  .filter__in::-webkit-scrollbar{display:none;}
+  .filter__lab{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-right:18px;flex:none;}
+  .chip{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:9px 16px;border:1px solid var(--line);white-space:nowrap;flex:none;transition:background .25s var(--curve),color .25s var(--curve),border-color .25s var(--curve);}
+  .chip:hover{border-color:var(--ink);}
+  .chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .chip .ct{color:var(--acc);margin-left:7px;font-size:10px;vertical-align:top;}
+  .chip[aria-pressed="true"] .ct{color:#fff;}
 
-  /* index grid */
-  .index{padding:90px 0;}
-  .index__head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:48px;}
-  .index__head h2{font-weight:900;font-size:clamp(30px,4vw,54px);letter-spacing:-.03em;text-transform:uppercase;}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:56px 40px;}
-  .tile{cursor:pointer;}
-  .tile__img{position:relative;overflow:hidden;background:#000;aspect-ratio:5/4;}
-  .tile__img img{width:100%;height:100%;object-fit:cover;transition:transform 1s cubic-bezier(.2,.7,.1,1), filter .5s ease;}
-  .tile:hover .tile__img img{transform:scale(1.05);}
-  .tile__no{position:absolute;top:16px;left:18px;color:#fff;font-weight:800;font-size:13px;letter-spacing:.12em;mix-blend-mode:difference;}
-  .tile__bar{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);margin-top:18px;padding-top:14px;gap:20px;}
-  .tile__t{font-weight:800;font-size:25px;letter-spacing:-.02em;text-transform:uppercase;}
-  .tile__loc{color:var(--muted);font-weight:600;}
-  .tile p{margin-top:10px;color:var(--muted);font-size:15px;max-width:46ch;}
-  .tile.big{grid-column:1/-1;}
-  .tile.big .tile__img{aspect-ratio:16/8;}
+  /* ───────── project stack (the matrix · vertical) ───────── */
+  .stack{position:relative;}
+  .panel{position:relative;height:100vh;min-height:600px;overflow:hidden;scroll-snap-align:start;}
+  .panel.hide{display:none;}
+  .panel__img{position:absolute;inset:0;}
+  .panel__img img{width:100%;height:118%;object-fit:cover;will-change:transform;}
+  .panel::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,0) 52%,rgba(0,0,0,.66) 100%);}
+  .panel__c{position:absolute;inset:0;z-index:2;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:0 var(--gut) clamp(40px,6vh,84px);}
+  .panel__no{position:absolute;top:clamp(26px,5vh,54px);left:var(--gut);font-weight:900;font-size:clamp(60px,9vw,150px);line-height:.8;letter-spacing:-.04em;color:#fff;opacity:.92;}
+  .panel__no sup{font-family:var(--cond);font-size:.18em;font-weight:700;letter-spacing:.1em;vertical-align:top;opacity:.8;}
+  .panel__disc{position:absolute;top:clamp(34px,6vh,66px);right:var(--gut);text-align:right;}
+  .panel__disc .d{display:inline-block;font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;background:var(--acc);color:#fff;padding:7px 12px;}
+  .panel__name{font-weight:900;font-size:clamp(44px,8.5vw,150px);line-height:.86;letter-spacing:-.04em;text-transform:uppercase;}
+  .panel__row{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.35);margin-top:24px;padding-top:18px;}
+  .panel__row p{max-width:48ch;font-size:clamp(15px,1.2vw,18px);font-weight:500;}
+  .panel__row .specs{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;text-align:right;line-height:2;opacity:.92;flex:none;}
+  /* reveal on entry */
+  .panel__no,.panel__disc,.panel__name,.panel__row{opacity:0;transform:translateY(34px);transition:opacity .7s var(--easeout),transform .9s var(--easeout);}
+  .panel.in .panel__no{opacity:.92;transform:none;transition-delay:.05s;}
+  .panel.in .panel__disc{opacity:1;transform:none;transition-delay:.1s;}
+  .panel.in .panel__name{opacity:1;transform:none;transition-delay:.14s;}
+  .panel.in .panel__row{opacity:1;transform:none;transition-delay:.22s;}
+  .panel__explore{position:absolute;left:var(--gut);bottom:clamp(40px,6vh,84px);}
 
-  /* stats (dark) */
-  .stats{background:var(--ink);color:#fff;padding:96px 0;}
+  /* fixed counter HUD */
+  .hud{position:fixed;left:var(--gut);bottom:26px;z-index:40;display:flex;align-items:flex-end;gap:14px;color:#fff;mix-blend-mode:difference;pointer-events:none;opacity:0;transform:translateY(10px);transition:opacity .4s var(--curve),transform .4s var(--curve);}
+  .hud.on{opacity:1;transform:none;}
+  .hud .big{font-weight:900;font-size:48px;line-height:.8;letter-spacing:-.04em;}
+  .hud .small{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding-bottom:5px;}
+  .hud .track{position:fixed;right:var(--gut);bottom:30px;width:160px;height:2px;background:rgba(255,255,255,.4);}
+  .hud .track i{position:absolute;left:0;top:0;height:100%;background:#fff;width:0;transition:width .4s var(--curve);}
+
+  /* ───────── horizontal explore ───────── */
+  .explore{padding:clamp(60px,9vh,120px) 0 clamp(50px,7vh,90px);background:var(--paper);overflow:hidden;}
+  .explore__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:32px;}
+  .explore__head h2{font-weight:900;font-size:clamp(30px,4.6vw,64px);letter-spacing:-.03em;text-transform:uppercase;line-height:.95;}
+  .explore__head .hint{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:inline-flex;align-items:center;gap:10px;}
+  .explore__head .hint .dash{width:40px;height:1px;background:var(--ink);}
+  .hscroll{display:flex;gap:20px;overflow-x:auto;padding:0 var(--gut);scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab;}
+  .hscroll::-webkit-scrollbar{display:none;}
+  .hscroll.drag{cursor:grabbing;}
+  .hslide{flex:0 0 min(78vw,920px);scroll-snap-align:center;}
+  .hslide__img{aspect-ratio:16/10;overflow:hidden;background:#000;}
+  .hslide__img img{width:100%;height:100%;object-fit:cover;transition:transform 1s var(--easeout);}
+  .hslide:hover .hslide__img img{transform:scale(1.04);}
+  .hslide__bar{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);margin-top:14px;padding-top:12px;gap:18px;}
+  .hslide__t{font-weight:800;font-size:20px;letter-spacing:-.02em;text-transform:uppercase;}
+  .hslide__m{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+
+  /* ───────── stats ───────── */
+  .stats{background:var(--ink);color:#fff;padding:clamp(70px,11vh,130px) 0;}
+  .stats__lead{font-weight:900;font-size:clamp(28px,4vw,58px);letter-spacing:-.03em;line-height:1.02;max-width:20ch;margin-bottom:64px;text-transform:uppercase;}
   .stats__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;}
-  .stat .n{font-weight:900;font-size:clamp(48px,7vw,96px);line-height:.9;letter-spacing:-.04em;}
-  .stat .n sup{color:var(--acc);font-size:.4em;vertical-align:top;}
-  .stat .l{margin-top:16px;color:rgba(255,255,255,.6);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
-  .stats__lead{font-weight:800;font-size:clamp(26px,3.4vw,44px);letter-spacing:-.02em;line-height:1.1;max-width:20ch;margin-bottom:60px;text-transform:uppercase;}
-  .stats__lead .acc{color:var(--acc);}
+  .stat .n{font-weight:900;font-size:clamp(46px,7vw,104px);line-height:.86;letter-spacing:-.05em;}
+  .stat .n sup{color:var(--acc);font-size:.36em;vertical-align:top;}
+  .stat .l{margin-top:14px;color:rgba(255,255,255,.55);font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
 
-  /* manifesto */
-  .mani{padding:100px 0;}
-  .mani__grid{display:grid;grid-template-columns:1fr 1.2fr;gap:80px;align-items:start;}
-  .mani h2{font-weight:900;font-size:clamp(34px,5vw,68px);letter-spacing:-.03em;line-height:.98;text-transform:uppercase;}
-  .mani p{font-size:20px;font-weight:500;margin-bottom:24px;}
+  /* ───────── manifesto ───────── */
+  .mani{padding-block:clamp(70px,11vh,130px);}
+  .mani__grid{display:grid;grid-template-columns:1fr 1.25fr;gap:clamp(40px,7vw,90px);align-items:start;}
+  .mani h2{font-weight:900;font-size:clamp(34px,5.2vw,74px);letter-spacing:-.03em;line-height:.95;text-transform:uppercase;}
+  .mani p{font-size:clamp(17px,1.4vw,21px);font-weight:500;margin-bottom:22px;}
   .mani p:last-child{margin-bottom:0;}
   .mani p .acc{font-weight:800;}
 
-  /* footer */
-  footer{background:var(--ink);color:#fff;padding:80px 0 40px;}
-  .foot__top{display:flex;justify-content:space-between;gap:48px;flex-wrap:wrap;border-bottom:1px solid var(--line-d);padding-bottom:48px;}
-  .foot__logo{font-weight:900;font-size:64px;letter-spacing:-.05em;line-height:1;}
-  .foot__logo sup{color:var(--acc);font-size:.4em;vertical-align:1.4em;}
-  .offices{display:flex;gap:64px;flex-wrap:wrap;}
-  .offices .col h4{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:14px;}
-  .offices .col span{display:block;font-weight:600;font-size:15px;margin-bottom:8px;}
-  .foot__bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:28px;color:rgba(255,255,255,.5);font-size:13px;}
-  .ds-ribbon{background:var(--acc);color:#fff;font-size:12.5px;text-align:center;padding:13px 20px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
-  .ds-ribbon a{color:#fff;border-bottom:1px solid rgba(255,255,255,.6);}
+  /* ───────── archive index ───────── */
+  .archive{padding-block:0 clamp(60px,9vh,120px);}
+  .archive__head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding:0 0 16px;margin-bottom:6px;flex-wrap:wrap;gap:14px;}
+  .archive__head h2{font-weight:900;font-size:clamp(28px,4vw,56px);letter-spacing:-.03em;text-transform:uppercase;}
+  .arow{display:grid;grid-template-columns:64px 1.6fr 1fr 1fr 90px;gap:20px;align-items:center;padding:20px 8px;border-bottom:1px solid var(--line);position:relative;transition:background .25s var(--curve),padding-left .3s var(--curve),color .25s;}
+  .arow.hide{display:none;}
+  .arow:hover{background:var(--ink);color:#fff;padding-left:22px;}
+  .arow__no{font-family:var(--cond);font-weight:700;font-size:13px;letter-spacing:.1em;color:var(--muted);}
+  .arow:hover .arow__no{color:rgba(255,255,255,.6);}
+  .arow__t{font-weight:800;font-size:clamp(19px,2vw,30px);letter-spacing:-.02em;text-transform:uppercase;}
+  .arow__d,.arow__l{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .arow:hover .arow__d,.arow:hover .arow__l{color:rgba(255,255,255,.75);}
+  .arow__d b{color:var(--acc);}
+  .arow__y{font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.08em;text-align:right;}
+  .arow__prev{position:fixed;width:230px;height:160px;object-fit:cover;pointer-events:none;opacity:0;z-index:45;transform:translate(-50%,-50%) scale(.92);transition:opacity .25s var(--curve),transform .35s var(--curve);box-shadow:0 20px 50px rgba(0,0,0,.3);}
+  .arow__prev.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  @media(hover:none){.arow__prev{display:none;}}
 
-  @media(max-width:900px){
-    .nav__links{display:none;}
-    .grid{grid-template-columns:1fr;gap:44px;}
-    .stats__grid{grid-template-columns:1fr 1fr;gap:48px 24px;}
-    .mani__grid{grid-template-columns:1fr;gap:32px;}
-    .feature{height:60vh;}
+  /* ───────── footer ───────── */
+  footer{background:var(--ink);color:#fff;padding:clamp(56px,8vh,90px) 0 36px;}
+  .foot__cta{font-weight:900;font-size:clamp(40px,8vw,128px);letter-spacing:-.04em;line-height:.9;text-transform:uppercase;margin-bottom:54px;}
+  .foot__cta a{display:inline-flex;align-items:center;gap:.2em;}
+  .foot__cta a .arr{color:var(--acc);transition:transform .4s var(--curve);display:inline-block;}
+  .foot__cta a:hover .arr{transform:translateX(.15em);}
+  .foot__top{display:flex;justify-content:space-between;gap:48px;flex-wrap:wrap;border-top:1px solid var(--line-d);padding-top:44px;}
+  .foot__disc{display:flex;gap:10px;flex-wrap:wrap;max-width:520px;}
+  .foot__disc span{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line-d);padding:8px 13px;color:rgba(255,255,255,.8);}
+  .offices{display:flex;gap:54px;flex-wrap:wrap;}
+  .offices .col h4{font-family:var(--cond);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:13px;}
+  .offices .col span{display:block;font-weight:600;font-size:14px;margin-bottom:7px;}
+  .foot__bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:40px;margin-top:40px;border-top:1px solid var(--line-d);color:rgba(255,255,255,.5);font-family:var(--cond);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
+  .foot__logo{font-weight:900;font-size:clamp(64px,11vw,150px);letter-spacing:-.05em;line-height:.8;}
+  .foot__logo sup{color:var(--acc);font-size:.36em;vertical-align:1.5em;}
+
+  /* ───────── responsive ───────── */
+  @media(max-width:1000px){
+    .mega__in{grid-template-columns:1fr 1fr;}
+    .mega__col:nth-child(2n){border-right:0;}
+    .mani__grid{grid-template-columns:1fr;gap:28px;}
+    .stats__grid{grid-template-columns:1fr 1fr;gap:44px 24px;}
   }
-  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;}}
+  @media(max-width:760px){
+    .nav__links,.clock{display:none;}
+    .burger{display:flex;}
+    .nav.menu-open .burger i:nth-child(1){transform:translateY(7px) rotate(45deg);}
+    .nav.menu-open .burger i:nth-child(2){opacity:0;}
+    .nav.menu-open .burger i:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+    .mega__in{grid-template-columns:1fr;}
+    .mega__col{border-right:0;border-bottom:1px solid var(--line);padding:22px var(--gut);}
+    .hero__sub{grid-template-columns:1fr;gap:18px;}
+    .arow{grid-template-columns:42px 1fr 64px;}
+    .arow__d,.arow__l{display:none;}
+    .panel{height:88vh;}
+    .hud .big{font-size:36px;}
+    .hud .track{width:90px;}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{scroll-behavior:auto!important;}
+    .panel__no,.panel__disc,.panel__name,.panel__row{opacity:1!important;transform:none!important;}
+    .scrollcue .ar::after{animation:none;}
+  }
 </style>
 </head>
 <body>
 
 <div class="ds-ribbon">Reference site by Atmosferi° — large-scale architecture studio · <a href="../../index.html">Back to Atmosferi</a></div>
 
-<header class="nav">
+<header class="nav" id="nav">
   <div class="wrap nav__in">
-    <a href="#" class="logo">VOLUM<sup>●</sup></a>
+    <a href="#top" class="logo">VOLUM<sup>●</sup></a>
     <nav class="nav__links">
-      <a href="#work">Work</a>
+      <button class="nav__trigger" id="megaTrigger" aria-expanded="false">Work <span class="chev"></span></button>
       <a href="#mani">Studio</a>
       <a href="#stats">Practice</a>
       <a href="#contact">Contact</a>
     </nav>
+    <div class="nav__right">
+      <span class="clock" id="clock">CPH —:—</span>
+      <a href="#archive" class="idx-btn"><span class="b"><i></i><i></i><i></i></span> Index</a>
+      <button class="burger" id="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+    </div>
+  </div>
+  <!-- mega menu -->
+  <div class="mega" id="mega">
+    <div class="mega__in">
+      <div class="mega__col">
+        <h4>Architecture <b>A</b></h4>
+        <a class="all" href="#stack" data-disc="Architecture">View all →</a>
+        <a href="#stack" data-disc="Architecture">Culture</a>
+        <a href="#stack" data-disc="Architecture">Residential</a>
+        <a href="#stack" data-disc="Architecture">Education</a>
+      </div>
+      <div class="mega__col">
+        <h4>Landscape <b>L</b></h4>
+        <a class="all" href="#stack" data-disc="Landscape">View all →</a>
+        <a href="#stack" data-disc="Landscape">Parks</a>
+        <a href="#stack" data-disc="Landscape">Civic space</a>
+        <a href="#stack" data-disc="Landscape">Waterfront</a>
+      </div>
+      <div class="mega__col">
+        <h4>Engineering <b>E</b></h4>
+        <a class="all" href="#stack" data-disc="Engineering">View all →</a>
+        <a href="#stack" data-disc="Engineering">Infrastructure</a>
+        <a href="#stack" data-disc="Engineering">Transit</a>
+        <a href="#stack" data-disc="Engineering">Climate</a>
+      </div>
+      <div class="mega__col">
+        <h4>Planning <b>P</b></h4>
+        <a class="all" href="#stack" data-disc="Planning">View all →</a>
+        <a href="#stack" data-disc="Planning">Masterplans</a>
+        <a href="#stack" data-disc="Planning">Districts</a>
+        <a href="#stack" data-disc="Planning">Research</a>
+      </div>
+      <div class="mega__col">
+        <h4>Products <b>P</b></h4>
+        <a class="all" href="#stack" data-disc="Products">View all →</a>
+        <a href="#stack" data-disc="Products">Facade systems</a>
+        <a href="#stack" data-disc="Products">Modular</a>
+        <a href="#stack" data-disc="Products">Objects</a>
+      </div>
+    </div>
   </div>
 </header>
 
-<section class="hero wrap">
-  <h1>We build at<br>the scale of<br>citie<span class="o">s.</span></h1>
-  <div class="hero__sub">
-    <p>VOLUM is a global practice of 240 architects, engineers and urbanists. Towers, masterplans, transit and the public ground between them.</p>
-    <span class="meta">Copenhagen · New York · Singapore<br>240 people · 38 countries</span>
+<!-- ───────── hero ───────── -->
+<section class="hero wrap" id="top">
+  <div></div>
+  <div>
+    <h1>We build at<br>the scale of<br>citie<span class="o">s.</span></h1>
+    <div class="hero__sub">
+      <p>VOLUM is a global practice of 240 architects, landscape designers, engineers and planners. We work along a single axis — from a chair to a coastline.</p>
+      <span class="meta">L · E · A · P<br>Landscape · Engineering<br>Architecture · Planning<br>Products</span>
+      <span class="scrollcue">Scroll <span class="ar"></span></span>
+    </div>
   </div>
 </section>
 
-<div class="wrap">
-  <a class="feature">
-    <img src="https://picsum.photos/seed/volum-feature/2000/1100" alt="Flagship project">
-    <span class="feature__no">Featured · 015</span>
-    <span class="feature__tag"><span class="t">HELIX TOWER</span><span class="meta">Mixed-use · Singapore · 2027 · 64 floors</span></span>
-  </a>
+<!-- ───────── filter ───────── -->
+<div class="filter" id="filter">
+  <div class="wrap filter__in" id="chips">
+    <span class="filter__lab">Filter — Discipline</span>
+    <button class="chip" data-disc="all" aria-pressed="true">All <span class="ct">08</span></button>
+    <button class="chip" data-disc="Architecture" aria-pressed="false">Architecture</button>
+    <button class="chip" data-disc="Landscape" aria-pressed="false">Landscape</button>
+    <button class="chip" data-disc="Engineering" aria-pressed="false">Engineering</button>
+    <button class="chip" data-disc="Planning" aria-pressed="false">Planning</button>
+    <button class="chip" data-disc="Products" aria-pressed="false">Products</button>
+  </div>
 </div>
 
-<section class="index wrap" id="work">
-  <div class="index__head">
-    <h2>Selected work</h2>
-    <span class="meta acc">28 active projects</span>
+<!-- ───────── project stack ───────── -->
+<section class="stack" id="stack"></section>
+
+<!-- fixed HUD -->
+<div class="hud" id="hud">
+  <span class="big" id="hudNo">01</span>
+  <span class="small" id="hudName">The Loop — Rotterdam</span>
+  <span class="track"><i id="hudBar"></i></span>
+</div>
+
+<!-- ───────── horizontal explore ───────── -->
+<section class="explore">
+  <div class="wrap explore__head">
+    <h2>Inside Helix Tower<br><span class="acc">→ explore the section</span></h2>
+    <span class="hint"><span class="dash"></span> Drag · Singapore · 64 floors · 2027</span>
   </div>
-  <div class="grid">
-    <article class="tile big">
-      <div class="tile__img"><img src="https://picsum.photos/seed/volum-loop/2000/1000" alt="The Loop"><span class="tile__no">01</span></div>
-      <div class="tile__bar"><span class="tile__t">The Loop</span><span class="tile__loc">Masterplan · Rotterdam</span></div>
-      <p>A 1.2 km circular park-bridge stitching four severed districts back into one continuous public ground.</p>
-    </article>
-    <article class="tile">
-      <div class="tile__img"><img src="https://picsum.photos/seed/volum-delta/1200/1000" alt="Delta Hall"><span class="tile__no">02</span></div>
-      <div class="tile__bar"><span class="tile__t">Delta Hall</span><span class="tile__loc">Culture · Oslo</span></div>
-      <p>A 1,800-seat concert hall folded from a single timber roof.</p>
-    </article>
-    <article class="tile">
-      <div class="tile__img"><img src="https://picsum.photos/seed/volum-grid/1200/1000" alt="Grid Quarter"><span class="tile__no">03</span></div>
-      <div class="tile__bar"><span class="tile__t">Grid Quarter</span><span class="tile__loc">Housing · Berlin</span></div>
-      <p>900 carbon-negative homes on a reclaimed rail yard.</p>
-    </article>
-    <article class="tile">
-      <div class="tile__img"><img src="https://picsum.photos/seed/volum-port/1200/1000" alt="Port Spine"><span class="tile__no">04</span></div>
-      <div class="tile__bar"><span class="tile__t">Port Spine</span><span class="tile__loc">Transit · Lisbon</span></div>
-      <p>A transit interchange that doubles as a flood barrier.</p>
-    </article>
-    <article class="tile">
-      <div class="tile__img"><img src="https://picsum.photos/seed/volum-canopy/1200/1000" alt="Canopy"><span class="tile__no">05</span></div>
-      <div class="tile__bar"><span class="tile__t">Canopy</span><span class="tile__loc">Campus · Austin</span></div>
-      <p>A research campus under one continuous shaded roof.</p>
-    </article>
+  <div class="hscroll" id="hscroll">
+    <div class="hslide"><div class="hslide__img"><img src="img/helix-a.webp" alt=""></div><div class="hslide__bar"><span class="hslide__t">The Spiral Core</span><span class="hslide__m">Level 00 · Lobby</span></div></div>
+    <div class="hslide"><div class="hslide__img"><img src="img/helix-b.webp" alt=""></div><div class="hslide__bar"><span class="hslide__t">Sky Gardens</span><span class="hslide__m">Level 22 · Public</span></div></div>
+    <div class="hslide"><div class="hslide__img"><img src="img/helix-c.webp" alt=""></div><div class="hslide__bar"><span class="hslide__t">The Bridge</span><span class="hslide__m">Level 40 · Crossing</span></div></div>
+    <div class="hslide"><div class="hslide__img"><img src="img/helix-d.webp" alt=""></div><div class="hslide__bar"><span class="hslide__t">Crown Terrace</span><span class="hslide__m">Level 64 · Summit</span></div></div>
   </div>
 </section>
 
+<!-- ───────── stats ───────── -->
 <section class="stats" id="stats">
   <div class="wrap">
     <p class="stats__lead">A practice measured in <span class="acc">scale,</span> not style.</p>
@@ -184,33 +338,221 @@
   </div>
 </section>
 
+<!-- ───────── manifesto ───────── -->
 <section class="mani wrap" id="mani">
   <div class="mani__grid">
     <h2>The brief<br>is a city.</h2>
     <div>
       <p>We start every project by zooming out. A tower is a question about a skyline; a school is a question about a neighbourhood; a station is a question about a region.</p>
       <p>Our work is <span class="acc">pragmatic utopianism</span> — ambitious enough to change how a place works, grounded enough to be built on budget and on time.</p>
-      <p>Across 38 countries, the constant is method: research, test, model, build. We design the systems, the people make them a place.</p>
+      <p>Across 38 countries the constant is method: research, test, model, build. We design the systems; the people make them a place.</p>
     </div>
   </div>
 </section>
 
+<!-- ───────── archive ───────── -->
+<section class="archive wrap" id="archive">
+  <div class="archive__head">
+    <h2>Index — all projects</h2>
+    <span class="meta acc" id="archCount">08 projects</span>
+  </div>
+  <div id="arows"></div>
+</section>
+<img class="arow__prev" id="prev" alt="">
+
+<!-- ───────── footer ───────── -->
 <footer id="contact">
   <div class="wrap">
+    <div class="foot__cta"><a href="mailto:hello@volum.studio">Let's build something <span class="arr">→</span></a></div>
     <div class="foot__top">
-      <div class="foot__logo">VOLUM<sup>●</sup></div>
+      <div class="foot__disc">
+        <span>Landscape</span><span>Engineering</span><span>Architecture</span><span>Planning</span><span>Products</span>
+      </div>
       <div class="offices">
         <div class="col"><h4>Copenhagen HQ</h4><span>Refshalevej 147</span><span>hello@volum.studio</span></div>
         <div class="col"><h4>New York</h4><span>110 Greene St</span><span>+1 212 000 0000</span></div>
         <div class="col"><h4>Singapore</h4><span>9 Raffles Place</span><span>+65 6000 0000</span></div>
       </div>
     </div>
-    <div class="foot__bot">
-      <span>© 2026 VOLUM Architecture &amp; Urbanism</span>
-      <span>Pragmatic utopianism, since 2007.</span>
+    <div class="foot__top" style="border:0;padding-top:46px;align-items:flex-end">
+      <div class="foot__logo">VOLUM<sup>●</sup></div>
+      <div class="foot__bot" style="border:0;padding:0;margin:0;flex:1;justify-content:flex-end;gap:40px">
+        <span>© 2026 VOLUM</span><span>Pragmatic utopianism, since 2007</span>
+      </div>
     </div>
   </div>
 </footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ───── project data ───── */
+  var PROJECTS = [
+    {no:"01", name:"The Loop",     disc:"Planning",     loc:"Rotterdam",  yr:"2026", type:"Masterplan",   size:"1.2 km park-bridge", img:"img/loop.webp",   blurb:"A circular park-bridge stitching four severed districts back into one continuous public ground."},
+    {no:"02", name:"Helix Tower",  disc:"Architecture", loc:"Singapore",  yr:"2027", type:"Mixed-use",    size:"64 floors · 280 m",  img:"img/helix.webp",  blurb:"A spiralling vertical neighbourhood — homes, offices and three storeys of public sky-garden."},
+    {no:"03", name:"Delta Hall",   disc:"Architecture", loc:"Oslo",       yr:"2025", type:"Culture",      size:"1,800 seats",        img:"img/delta.webp",  blurb:"An 1,800-seat concert hall folded from a single mass-timber roof."},
+    {no:"04", name:"Tidewater",    disc:"Landscape",    loc:"Copenhagen", yr:"2026", type:"Park · Climate",size:"34 hectares",       img:"img/tide.webp",   blurb:"A tidal park that floods on purpose — flood defence doubling as the city's largest green room."},
+    {no:"05", name:"Port Spine",   disc:"Engineering",  loc:"Lisbon",     yr:"2024", type:"Transit",      size:"6-line interchange", img:"img/port.webp",   blurb:"A transit interchange engineered to double as the waterfront's flood barrier."},
+    {no:"06", name:"Grid Quarter", disc:"Architecture", loc:"Berlin",     yr:"2026", type:"Residential",  size:"900 homes",          img:"img/grid.webp",   blurb:"900 carbon-negative homes on a reclaimed rail yard, organised around a kilometre of shared courtyards."},
+    {no:"07", name:"Canopy",       disc:"Planning",     loc:"Austin",     yr:"2025", type:"Campus",       size:"22 buildings",       img:"img/canopy.webp", blurb:"A research campus gathered under one continuous shaded roof tuned to the Texas sun."},
+    {no:"08", name:"Mono",         disc:"Products",     loc:"In production",yr:"2024",type:"Facade system",size:"Modular · scalable", img:"img/mono.webp",   blurb:"A demountable, fully-recyclable facade system — architecture shipped as a kit of parts."}
+  ];
+
+  /* ───── build stack ───── */
+  var stack = document.getElementById('stack');
+  PROJECTS.forEach(function(p){
+    var el = document.createElement('article');
+    el.className = 'panel';
+    el.setAttribute('data-disc', p.disc);
+    el.innerHTML =
+      '<div class="panel__img"><img src="'+p.img+'" alt="'+p.name+'" loading="lazy"></div>'+
+      '<span class="panel__no">'+p.no+'<sup>'+p.disc.charAt(0)+'</sup></span>'+
+      '<span class="panel__disc"><span class="d">'+p.disc+'</span></span>'+
+      '<div class="panel__c">'+
+        '<h2 class="panel__name">'+p.name+'</h2>'+
+        '<div class="panel__row"><p>'+p.blurb+'</p>'+
+        '<span class="specs">'+p.type+'<br>'+p.loc+'<br>'+p.size+' · '+p.yr+'</span></div>'+
+      '</div>';
+    stack.appendChild(el);
+  });
+
+  /* ───── build archive ───── */
+  var arows = document.getElementById('arows');
+  PROJECTS.forEach(function(p){
+    var r = document.createElement('a');
+    r.href = '#stack';
+    r.className = 'arow';
+    r.setAttribute('data-disc', p.disc);
+    r.setAttribute('data-img', p.img);
+    r.innerHTML =
+      '<span class="arow__no">'+p.no+'</span>'+
+      '<span class="arow__t">'+p.name+'</span>'+
+      '<span class="arow__d"><b>'+p.disc.charAt(0)+'</b> · '+p.disc+'</span>'+
+      '<span class="arow__l">'+p.loc+' · '+p.type+'</span>'+
+      '<span class="arow__y">'+p.yr+'</span>';
+    arows.appendChild(r);
+  });
+
+  /* ───── mega menu ───── */
+  var nav = document.getElementById('nav'),
+      trigger = document.getElementById('megaTrigger'),
+      burger = document.getElementById('burger');
+  function toggleMenu(open){
+    nav.classList.toggle('menu-open', open);
+    trigger.setAttribute('aria-expanded', open ? 'true':'false');
+  }
+  trigger.addEventListener('click', function(){ toggleMenu(!nav.classList.contains('menu-open')); });
+  burger.addEventListener('click', function(){ toggleMenu(!nav.classList.contains('menu-open')); });
+  document.querySelectorAll('.mega a').forEach(function(a){
+    a.addEventListener('click', function(){
+      var d = a.getAttribute('data-disc');
+      setFilter(d); toggleMenu(false);
+    });
+  });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') toggleMenu(false); });
+
+  /* ───── filter ───── */
+  var chips = document.querySelectorAll('.chip'),
+      panels = function(){ return document.querySelectorAll('.panel'); },
+      archRows = function(){ return document.querySelectorAll('.arow'); },
+      archCount = document.getElementById('archCount');
+  function setFilter(disc){
+    chips.forEach(function(c){ c.setAttribute('aria-pressed', c.getAttribute('data-disc')===disc ? 'true':'false'); });
+    var n = 0;
+    panels().forEach(function(p){
+      var show = disc==='all' || p.getAttribute('data-disc')===disc;
+      p.classList.toggle('hide', !show);
+      if(show) n++;
+    });
+    archRows().forEach(function(r){
+      var show = disc==='all' || r.getAttribute('data-disc')===disc;
+      r.classList.toggle('hide', !show);
+    });
+    archCount.textContent = (n<10?'0'+n:n) + (n===1?' project':' projects');
+    refreshObserver();
+  }
+  chips.forEach(function(c){ c.addEventListener('click', function(){ setFilter(c.getAttribute('data-disc')); }); });
+
+  /* ───── reveal + HUD counter ───── */
+  var hud = document.getElementById('hud'),
+      hudNo = document.getElementById('hudNo'),
+      hudName = document.getElementById('hudName'),
+      hudBar = document.getElementById('hudBar'),
+      stackSection = document.getElementById('stack');
+  var io;
+  function refreshObserver(){
+    if(io) io.disconnect();
+    io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting && e.intersectionRatio>0.5){
+          e.target.classList.add('in');
+          var i = [].indexOf.call(stackSection.querySelectorAll('.panel:not(.hide)'), e.target);
+          var vis = stackSection.querySelectorAll('.panel:not(.hide)').length;
+          var no = e.target.querySelector('.panel__no').childNodes[0].nodeValue;
+          var name = e.target.querySelector('.panel__name').textContent;
+          var loc = e.target.querySelector('.specs').textContent;
+          hudNo.textContent = no;
+          hudName.textContent = name;
+          hudBar.style.width = (vis? ((i+1)/vis*100):0) + '%';
+        }
+      });
+    }, {threshold:[0.5]});
+    panels().forEach(function(p){ if(!p.classList.contains('hide')) io.observe(p); });
+  }
+  refreshObserver();
+  // show HUD only while stack is in viewport
+  new IntersectionObserver(function(es){
+    es.forEach(function(e){ hud.classList.toggle('on', e.isIntersecting); });
+  }, {threshold:0.04}).observe(stackSection);
+
+  /* ───── parallax on stack images ───── */
+  var ticking=false;
+  function parallax(){
+    panels().forEach(function(p){
+      if(p.classList.contains('hide')) return;
+      var r = p.getBoundingClientRect();
+      if(r.bottom<0 || r.top>window.innerHeight) return;
+      var img = p.querySelector('.panel__img img');
+      var prog = (r.top + r.height/2 - window.innerHeight/2) / window.innerHeight; // -1..1
+      img.style.transform = 'translateY(' + (prog * -7) + '%)';
+    });
+    ticking=false;
+  }
+  window.addEventListener('scroll', function(){ if(!ticking){ requestAnimationFrame(parallax); ticking=true; } }, {passive:true});
+  parallax();
+
+  /* ───── horizontal drag scroll ───── */
+  var hs = document.getElementById('hscroll'), down=false, sx=0, sl=0, moved=0;
+  hs.addEventListener('pointerdown', function(e){ down=true; moved=0; sx=e.clientX; sl=hs.scrollLeft; hs.classList.add('drag'); hs.setPointerCapture(e.pointerId); });
+  hs.addEventListener('pointermove', function(e){ if(!down) return; var dx=e.clientX-sx; moved=Math.max(moved,Math.abs(dx)); hs.scrollLeft = sl - dx; });
+  function up(){ down=false; hs.classList.remove('drag'); }
+  hs.addEventListener('pointerup', up); hs.addEventListener('pointercancel', up); hs.addEventListener('pointerleave', up);
+  hs.addEventListener('click', function(e){ if(moved>6) e.preventDefault(); }, true);
+
+  /* ───── archive hover preview ───── */
+  var prev = document.getElementById('prev');
+  document.querySelectorAll('.arow').forEach(function(r){
+    r.addEventListener('pointerenter', function(){
+      if(window.matchMedia('(hover:none)').matches) return;
+      prev.src = r.getAttribute('data-img');
+      prev.classList.add('show');
+    });
+    r.addEventListener('pointermove', function(e){ prev.style.left=e.clientX+'px'; prev.style.top=e.clientY+'px'; });
+    r.addEventListener('pointerleave', function(){ prev.classList.remove('show'); });
+  });
+
+  /* ───── live clock (Copenhagen) ───── */
+  var clock = document.getElementById('clock');
+  function tick(){
+    try{
+      var t = new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/Copenhagen',hour:'2-digit',minute:'2-digit'});
+      clock.textContent = 'CPH ' + t;
+    }catch(e){ clock.textContent='CPH'; }
+  }
+  tick(); setInterval(tick, 15000);
+})();
+</script>
 
 </body>
 </html>

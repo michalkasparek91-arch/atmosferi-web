@@ -1299,43 +1299,6 @@ export function ModularEmailEditorDialogInner({
                     )}
                   </div>
 
-                  {/* Informace o zakázce */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Shrnutí zakázky (Job Snippet)</Label>
-                    </div>
-                    <Textarea value={form.job_description_snippet || ""} onChange={(e) => setVal("job_description_snippet", e.target.value)} onFocus={() => setActiveField("job_description_snippet")} placeholder="Stručný popis zakázky..." className="min-h-[60px] text-xs mt-2" />
-                  </div>
-
-                  {/* Související články */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Články z magazínu</Label>
-                      <Switch checked={!!form.segment_filters?.articles_enabled} onCheckedChange={(c) => setSegmentFilter("articles_enabled", c)} />
-                    </div>
-                  </div>
-
-                  {/* Urgency Banner */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Urgency Banner</Label>
-                      <Switch checked={form.urgency_banner_enabled ?? false} onCheckedChange={(c) => setVal("urgency_banner_enabled", c)} />
-                    </div>
-                    {form.urgency_banner_enabled && (
-                      <Input value={form.urgency_banner_text || ""} onChange={(e) => setVal("urgency_banner_text", e.target.value)} onFocus={() => setActiveField("urgency_banner_text")} placeholder="Text urgence..." className="h-8 text-xs mt-2" />
-                    )}
-                  </div>
-
-                  {/* Promo Banner */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Promo Banner</Label>
-                      <Switch checked={form.promo_banner_enabled ?? false} onCheckedChange={(c) => setVal("promo_banner_enabled", c)} />
-                    </div>
-                    {form.promo_banner_enabled && (
-                      <Input value={form.promo_banner_text || ""} onChange={(e) => setVal("promo_banner_text", e.target.value)} onFocus={() => setActiveField("promo_banner_text")} placeholder="Text proma..." className="h-8 text-xs mt-2" />
-                    )}
-                  </div>
 
                   {/* PS Footer */}
                   <div className="py-1">

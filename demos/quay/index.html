@@ -168,6 +168,22 @@
   .hbar{height:8px;border-radius:100px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:10px;}
   .hbar i{display:block;height:100%;background:var(--sun);border-radius:100px;transition:width .6s var(--curve);}
   .hbar-lab{display:flex;justify-content:space-between;font-size:13px;color:rgba(251,250,245,.7);margin-top:10px;font-weight:600;}
+  /* affordability calculator */
+  .afford{margin-top:24px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14);}
+  .afford__head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px;}
+  .afford__head .t{font-weight:600;font-size:14px;color:rgba(251,250,245,.9);display:flex;align-items:center;gap:8px;}
+  .afford__head .t .ic{width:15px;height:15px;color:var(--sun);flex:none;}
+  .afford__dep{font-family:var(--disp);font-weight:800;font-size:17px;color:var(--sun);}
+  .afford__slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:100px;background:rgba(255,255,255,.16);outline:none;cursor:pointer;}
+  .afford__slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:var(--sun);border:3px solid var(--sea);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:grab;transition:transform .2s var(--curve);}
+  .afford__slider::-webkit-slider-thumb:active{transform:scale(1.15);cursor:grabbing;}
+  .afford__slider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--sun);border:3px solid var(--sea);cursor:grab;}
+  .afford__out{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;}
+  .afford__out .o{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);padding:16px 18px;}
+  .afford__out .o .v{font-family:var(--disp);font-weight:800;font-size:clamp(24px,2.6vw,32px);color:#fff;line-height:1;font-variant-numeric:tabular-nums;}
+  .afford__out .o .v small{font-size:.5em;font-weight:600;color:rgba(251,250,245,.55);font-family:var(--sans);}
+  .afford__out .o .k{font-size:12px;color:rgba(251,250,245,.6);text-transform:uppercase;letter-spacing:.08em;margin-top:7px;}
+  .afford__note{font-size:12.5px;color:rgba(251,250,245,.5);margin-top:14px;line-height:1.5;}
   @media(max-width:760px){.hpanel{grid-template-columns:1fr;gap:24px;}}
 
   /* ───────── what's on ───────── */
@@ -352,7 +368,7 @@
   </div>
   <div class="htabs" id="htabs"><!-- injected --></div>
   <div class="hpanel">
-    <div class="hplan"><img id="hplanImg" src="https://picsum.photos/seed/quay-plan-studio/900/700" alt="Home plan"></div>
+    <div class="hplan"><img id="hplanImg" src="img/plan-studio.webp" alt="Home plan"></div>
     <div class="hinfo">
       <div class="price"><span class="from">From</span><span class="fig" id="hPrice">£245k</span></div>
       <h3 id="hName">The Studio</h3>
@@ -364,6 +380,18 @@
       </div>
       <div class="hbar"><i id="hBar" style="width:30%"></i></div>
       <div class="hbar-lab"><span id="hSold">70% reserved in Phase 1</span><a href="#join" style="color:var(--sun)">Enquire →</a></div>
+      <div class="afford">
+        <div class="afford__head">
+          <span class="t"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12H3z"></path><path d="M3 11h18"></path><circle cx="7.5" cy="15" r="1"></circle></svg>Estimate your monthly cost</span>
+          <span class="afford__dep" id="depLabel">10% deposit</span>
+        </div>
+        <input type="range" class="afford__slider" id="depSlider" min="5" max="40" value="10" step="5" aria-label="Deposit percentage">
+        <div class="afford__out">
+          <div class="o"><div class="v" id="depAmt">£24,500</div><div class="k">Deposit</div></div>
+          <div class="o"><div class="v" id="moAmt">£1,117 <small>/mo</small></div><div class="k">Est. mortgage</div></div>
+        </div>
+        <p class="afford__note">Indicative only · 30-year term at 4.5%. A third of every phase is offered through shared ownership — ask us how it lowers the deposit.</p>
+      </div>
     </div>
   </div>
 </section>

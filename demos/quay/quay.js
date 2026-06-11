@@ -149,10 +149,10 @@
 
   /* ───── find your home ───── */
   var HOMES=[
-    {key:"Studio",  name:"The Studio",     price:"£245k", beds:"Studio", size:"38 m²", count:24, sold:70, blurb:"Compact, light and clever — a complete first home opening straight onto the boardwalk.", img:"img/plan-studio.webp"},
-    {key:"1 bed",   name:"The One-Bed",    price:"£330k", beds:"1 bed",  size:"52 m²", count:38, sold:54, blurb:"A proper one-bedroom with a galley kitchen and a balcony facing the water.", img:"img/plan-1bed.webp"},
-    {key:"2 bed",   name:"The Two-Bed",    price:"£465k", beds:"2 bed",  size:"74 m²", count:31, sold:42, blurb:"Dual-aspect living, two double bedrooms and a wide terrace for the long evenings.", img:"img/plan-2bed.webp"},
-    {key:"Townhouse",name:"The Townhouse", price:"£720k", beds:"3–4 bed",size:"128 m²",count:12, sold:25, blurb:"A three-storey family home with a roof garden and its own door onto the green.", img:"img/plan-townhouse.webp"}
+    {key:"Studio",  name:"The Studio",     price:"£245k", priceNum:245000, beds:"Studio", size:"38 m²", count:24, sold:70, blurb:"Compact, light and clever — a complete first home opening straight onto the boardwalk.", img:"img/plan-studio.webp"},
+    {key:"1 bed",   name:"The One-Bed",    price:"£330k", priceNum:330000, beds:"1 bed",  size:"52 m²", count:38, sold:54, blurb:"A proper one-bedroom with a galley kitchen and a balcony facing the water.", img:"img/plan-1bed.webp"},
+    {key:"2 bed",   name:"The Two-Bed",    price:"£465k", priceNum:465000, beds:"2 bed",  size:"74 m²", count:31, sold:42, blurb:"Dual-aspect living, two double bedrooms and a wide terrace for the long evenings.", img:"img/plan-2bed.webp"},
+    {key:"Townhouse",name:"The Townhouse", price:"£720k", priceNum:720000, beds:"3–4 bed",size:"128 m²",count:12, sold:25, blurb:"A three-storey family home with a roof garden and its own door onto the green.", img:"img/plan-townhouse.webp"}
   ];
   var htabs=document.getElementById('htabs');
   HOMES.forEach(function(h,i){
@@ -162,7 +162,28 @@
     htabs.appendChild(b);
   });
   var htabBtns=htabs.querySelectorAll('.htab');
+  var activeHome=0;
+  /* affordability calculator */
+  var depSlider=document.getElementById('depSlider'),
+      depLabel=document.getElementById('depLabel'),
+      depAmt=document.getElementById('depAmt'),
+      moAmt=document.getElementById('moAmt');
+  function gbp(n){ return '£'+Math.round(n).toLocaleString('en-GB'); }
+  function calcAfford(){
+    if(!depSlider) return;
+    var price=HOMES[activeHome].priceNum;
+    var pct=parseInt(depSlider.value,10);
+    var deposit=price*pct/100;
+    var principal=price-deposit;
+    var r=0.045/12, n=360;
+    var m=principal*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+    depLabel.textContent=pct+'% deposit';
+    depAmt.textContent=gbp(deposit);
+    moAmt.innerHTML=gbp(m)+' <small>/mo</small>';
+  }
+  if(depSlider) depSlider.addEventListener('input', calcAfford);
   function setHome(i){
+    activeHome=i;
     var h=HOMES[i];
     htabBtns.forEach(function(b,j){ b.setAttribute('aria-pressed', j===i?'true':'false'); });
     document.getElementById('hPrice').textContent=h.price;
@@ -173,10 +194,12 @@
     document.getElementById('hCount').textContent=h.count;
     document.getElementById('hSold').textContent=h.sold+'% reserved in Phase 1';
     document.getElementById('hBar').style.width=h.sold+'%';
+    calcAfford();
     var img=document.getElementById('hplanImg');
     img.style.opacity='0';
     setTimeout(function(){ img.src=h.img||('https://picsum.photos/seed/'+h.seed+'/900/700'); img.onload=function(){ img.style.opacity='.9'; }; }, 120);
   }
+  setHome(0);
 
   /* ───── what's on ───── */
   var EVENTS=[

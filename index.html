@@ -113,6 +113,121 @@
     .gantt__row{border-bottom:1px solid var(--line);}
   }
 </style>
+
+<!-- SEO / social -->
+<link rel="canonical" href="https://atmosferi.com/">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Atmosferi°">
+<meta name="theme-color" content="#16140F">
+<link rel="icon" type="image/png" sizes="32x32" href="https://atmosferi.com/favicon-32.png">
+<link rel="apple-touch-icon" href="https://atmosferi.com/apple-touch-icon.png">
+<link rel="manifest" href="https://atmosferi.com/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atmosferi°">
+<meta property="og:locale" content="en">
+<meta property="og:locale:alternate" content="de">
+<meta property="og:locale:alternate" content="cs">
+<meta property="og:title" content="Atmosferi° — Websites for architecture">
+<meta property="og:description" content="Atmosferi designs and builds websites and 3D visualisation for architecture studios, developers, urbanism and interiors.">
+<meta property="og:url" content="https://atmosferi.com/">
+<meta property="og:image" content="https://atmosferi.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Atmosferi° — websites & 3D visualisation for architecture">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atmosferi° — Websites for architecture">
+<meta name="twitter:description" content="Atmosferi designs and builds websites and 3D visualisation for architecture studios, developers, urbanism and interiors.">
+<meta name="twitter:image" content="https://atmosferi.com/og.png">
+<link rel="alternate" hreflang="en" href="https://atmosferi.com/">
+<link rel="alternate" hreflang="de" href="https://atmosferi.com/?lang=de">
+<link rel="alternate" hreflang="cs" href="https://atmosferi.com/?lang=cs">
+<link rel="alternate" hreflang="x-default" href="https://atmosferi.com/">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://atmosferi.com/#org",
+   "name": "Atmosferi°",
+   "url": "https://atmosferi.com/",
+   "logo": "https://atmosferi.com/icon-512.png",
+   "image": "https://atmosferi.com/og.png",
+   "description": "Atmosferi designs and builds websites and 3D visualisation for architecture studios, developers, urbanism and interiors.",
+   "email": "info@atmosferi.com",
+   "founder": {
+    "@type": "Person",
+    "name": "Ing. arch. Michal Kašpárek"
+   },
+   "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Prague",
+    "addressCountry": "CZ"
+   },
+   "areaServed": [
+    "CZ",
+    "DE",
+    "AT",
+    "CH",
+    "FI",
+    "NO",
+    "US",
+    "AU",
+    "EU"
+   ],
+   "sameAs": []
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://atmosferi.com/#website",
+   "url": "https://atmosferi.com/",
+   "name": "Atmosferi°",
+   "publisher": {
+    "@id": "https://atmosferi.com/#org"
+   },
+   "inLanguage": "en"
+  },
+  {
+   "@type": "ProfessionalService",
+   "@id": "https://atmosferi.com/#service",
+   "name": "Atmosferi°",
+   "image": "https://atmosferi.com/og.png",
+   "url": "https://atmosferi.com/",
+   "email": "info@atmosferi.com",
+   "priceRange": "€€",
+   "areaServed": "Worldwide",
+   "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Prague",
+    "addressCountry": "CZ"
+   },
+   "makesOffer": [
+    {
+     "@type": "Offer",
+     "itemOffered": {
+      "@type": "Service",
+      "name": "Web design for architecture"
+     }
+    },
+    {
+     "@type": "Offer",
+     "itemOffered": {
+      "@type": "Service",
+      "name": "Web development"
+     }
+    },
+    {
+     "@type": "Offer",
+     "itemOffered": {
+      "@type": "Service",
+      "name": "3D architectural visualisation"
+     }
+    }
+   ]
+  }
+ ]
+}
+</script>
 </head>
 <body>
 
@@ -266,7 +381,12 @@
     <a href="work.html" class="arrow-link">Full index <span class="arrow">→</span></a>
   </div>
   <p class="section__note" data-rise>Not client projects — <b>four complete websites we designed and built ourselves</b>, one for each kind of studio and developer we work with. Fictional brands, real working code. Click any to open the live site.</p>
-  <div class="workgrid">
+  <div class="workgroup">
+    <div class="workgroup__head" data-rise>
+      <span class="workgroup__title"><span class="n">01</span>Architecture portfolios</span>
+      <span class="workgroup__note">Sites that present a studio's body of work</span>
+    </div>
+    <div class="workgrid">
     <a href="demos/volum/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
       <span class="browser">
         <span class="browser__bar">
@@ -278,7 +398,7 @@
       </span>
       <span class="workcard__meta">
         <span class="workcard__title">VOLUM&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Website · Global architecture studio</span>
+        <span class="workcard__cat">Global practice</span>
       </span>
       <span class="workcard__blurb">A global practice site — oversized type, full-bleed project tiles, built to feel monumental.</span>
     </a>
@@ -293,10 +413,19 @@
       </span>
       <span class="workcard__meta">
         <span class="workcard__title">Atelier Voss&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Website · Boutique Nordic practice</span>
+        <span class="workcard__cat">Boutique studio</span>
       </span>
       <span class="workcard__blurb">A boutique Nordic practice — soft, airy, serif-led, with room to breathe.</span>
     </a>
+    </div>
+  </div>
+
+  <div class="workgroup">
+    <div class="workgroup__head" data-rise>
+      <span class="workgroup__title"><span class="n">02</span>Project presentations</span>
+      <span class="workgroup__note">Sites that launch and sell a single development</span>
+    </div>
+    <div class="workgrid">
     <a href="demos/meridian/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
       <span class="browser">
         <span class="browser__bar">
@@ -308,7 +437,7 @@
       </span>
       <span class="workcard__meta">
         <span class="workcard__title">Meridian&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Website · Residential tower, sales</span>
+        <span class="workcard__cat">Residential tower</span>
       </span>
       <span class="workcard__blurb">A sales platform for a 41-storey tower — dark, cinematic, gold. Sold from the browser.</span>
     </a>
@@ -323,10 +452,11 @@
       </span>
       <span class="workcard__meta">
         <span class="workcard__title">Quay 9&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Website · Waterfront mixed-use</span>
+        <span class="workcard__cat">Waterfront district</span>
       </span>
       <span class="workcard__blurb">A waterfront neighbourhood — fresh, friendly, community-led, full of colour.</span>
     </a>
+    </div>
   </div>
 </section>
 
@@ -382,11 +512,11 @@
     <span class="eyebrow">Who we work with</span>
   </div>
   <div class="audience">
-    <div class="audience__row" data-rise><span class="audience__num">01</span><span class="audience__label">Architecture studios</span></div>
-    <div class="audience__row" data-rise><span class="audience__num">02</span><span class="audience__label">Real-estate developers</span></div>
-    <div class="audience__row" data-rise><span class="audience__num">03</span><span class="audience__label">Urbanism &amp; public projects</span></div>
-    <div class="audience__row" data-rise><span class="audience__num">04</span><span class="audience__label">Interior designers</span></div>
-    <div class="audience__row" data-rise><span class="audience__num">05</span><span class="audience__label">Individual architects &amp; portfolios</span></div>
+    <div class="audience__row" data-rise><span class="audience__num">01</span><span class="audience__label">Architecture studios</span><span class="audience__sym" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25"><rect x="7.5" y="3.5" width="13" height="21"></rect><line x1="7.5" y1="9" x2="20.5" y2="9"></line><line x1="7.5" y1="14" x2="20.5" y2="14"></line><line x1="7.5" y1="19" x2="20.5" y2="19"></line><rect x="12" y="20.5" width="4" height="4"></rect></svg></span></div>
+    <div class="audience__row" data-rise><span class="audience__num">02</span><span class="audience__label">Real-estate developers</span><span class="audience__sym" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25"><rect x="3.5" y="11" width="6" height="13.5"></rect><rect x="11" y="5.5" width="6" height="19"></rect><rect x="18.5" y="14" width="6" height="10.5"></rect></svg></span></div>
+    <div class="audience__row" data-rise><span class="audience__num">03</span><span class="audience__label">Urbanism &amp; public projects</span><span class="audience__sym" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25"><rect x="3.5" y="3.5" width="21" height="21"></rect><line x1="3.5" y1="10.5" x2="24.5" y2="10.5"></line><line x1="3.5" y1="17.5" x2="24.5" y2="17.5"></line><line x1="10.5" y1="3.5" x2="10.5" y2="24.5"></line><line x1="17.5" y1="3.5" x2="17.5" y2="24.5"></line></svg></span></div>
+    <div class="audience__row" data-rise><span class="audience__num">04</span><span class="audience__label">Interior designers</span><span class="audience__sym" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25"><path d="M7 13v-3a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"></path><rect x="5" y="13" width="18" height="5"></rect><line x1="7" y1="18" x2="7" y2="22.5"></line><line x1="21" y1="18" x2="21" y2="22.5"></line></svg></span></div>
+    <div class="audience__row" data-rise><span class="audience__num">05</span><span class="audience__label">Individual architects &amp; portfolios</span><span class="audience__sym" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"><path d="M5 5 L21 21 L5 21 Z"></path><line x1="5" y1="11" x2="11" y2="11"></line></svg></span></div>
   </div>
 </section>
 
@@ -439,5 +569,7 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/home.js"></script>
+<script src="assets/i18n-dict.js"></script>
+<script src="assets/i18n.js"></script>
 </body>
 </html>

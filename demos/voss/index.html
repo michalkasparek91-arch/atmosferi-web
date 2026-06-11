@@ -246,6 +246,48 @@
   .foot__col a:hover{color:var(--paper);}
   .foot__base{border-top:1px solid rgba(245,243,238,.12);padding:22px 0;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--muted-2);}
 
+  /* recognition / press */
+  .press{padding-block:clamp(60px,8vw,104px);border-top:1px solid var(--line);}
+  .press__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(30px,4vw,44px);}
+  .press__head h2{font-family:var(--serif);font-weight:300;font-size:clamp(28px,3.6vw,46px);line-height:1.06;}
+  .press__head h2 em{font-style:italic;color:var(--sage);}
+  .press__head .note{font-size:13.5px;color:var(--muted);max-width:30ch;text-align:right;}
+  .press__marks{display:flex;flex-wrap:wrap;align-items:center;gap:clamp(24px,4.4vw,64px);padding-block:clamp(26px,3.4vw,40px);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .pmark{font-family:var(--serif);font-weight:400;font-size:clamp(18px,2.1vw,29px);color:var(--muted-2);letter-spacing:.005em;opacity:.72;transition:color .35s var(--ease),opacity .35s var(--ease);white-space:nowrap;cursor:default;}
+  .pmark:hover{color:var(--ink);opacity:1;}
+  .pmark em{font-style:italic;}
+  .pmark sup{font-size:.5em;vertical-align:.6em;color:var(--sage);}
+  .awards{margin-top:clamp(34px,4.6vw,56px);}
+  .award{display:grid;grid-template-columns:84px 1fr auto;gap:18px 28px;align-items:baseline;padding:20px 4px;border-bottom:1px solid var(--line);transition:padding-left .45s var(--ease),background .3s;}
+  .award:first-child{border-top:1px solid var(--line);}
+  .award:hover{padding-left:14px;background:linear-gradient(90deg,rgba(126,138,110,.06),transparent 60%);}
+  .award__yr{font-size:14px;font-weight:500;color:var(--sage-d);font-variant-numeric:tabular-nums;}
+  .award__name{font-family:var(--serif);font-weight:400;font-size:clamp(18px,2vw,25px);line-height:1.15;}
+  .award__name b{font-weight:400;color:var(--muted);font-size:.7em;font-family:var(--sans);letter-spacing:.04em;margin-left:8px;}
+  .award__proj{font-size:13px;color:var(--muted);text-align:right;letter-spacing:.03em;white-space:nowrap;}
+  @media(max-width:640px){.award{grid-template-columns:60px 1fr;}.award__proj{grid-column:2;text-align:left;color:var(--muted-2);}}
+
+  /* journal */
+  .journal{padding-block:clamp(70px,9vw,120px);border-top:1px solid var(--line);background:var(--paper-2);}
+  .journal__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(28px,4vw,44px);}
+  .journal__head h2{font-family:var(--serif);font-weight:300;font-size:clamp(28px,3.6vw,46px);}
+  .journal__head h2 em{font-style:italic;color:var(--sage);}
+  .journal__head .all{font-size:13px;letter-spacing:.04em;color:var(--muted);display:inline-flex;align-items:center;gap:9px;transition:gap .35s var(--ease),color .25s;}
+  .journal__head .all:hover{color:var(--ink);gap:15px;}
+  .journal__head .all .ar{color:var(--sage-d);}
+  .jrow{display:grid;grid-template-columns:160px 1fr 26px;gap:24px;align-items:baseline;padding:26px 4px;border-top:1px solid var(--line);cursor:pointer;transition:padding-left .45s var(--ease);}
+  .jrow:last-child{border-bottom:1px solid var(--line);}
+  .jrow:hover{padding-left:16px;}
+  .jrow__date{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2);display:flex;flex-direction:column;gap:5px;}
+  .jrow__date b{color:var(--sage-d);font-weight:500;font-size:13px;}
+  .jrow__tag{display:inline-block;width:max-content;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;padding:3px 10px;}
+  .jrow__body h3{font-family:var(--serif);font-weight:400;font-size:clamp(20px,2.3vw,29px);line-height:1.16;letter-spacing:-.01em;transition:color .3s;}
+  .jrow:hover .jrow__body h3{color:var(--sage-d);}
+  .jrow__body p{font-size:14.5px;color:var(--muted);max-width:58ch;margin-top:8px;}
+  .jrow__ar{font-size:18px;color:var(--muted-2);align-self:center;transition:transform .4s var(--ease),color .3s;}
+  .jrow:hover .jrow__ar{transform:translate(4px,-4px);color:var(--sage-d);}
+  @media(max-width:640px){.jrow{grid-template-columns:1fr 22px;}.jrow__date{grid-column:1;flex-direction:row;align-items:center;gap:10px;margin-bottom:2px;}}
+
   @media(max-width:820px){.wrap,.wrap-wide{padding:0 22px;}}
   @media(prefers-reduced-motion:reduce){
     *{scroll-behavior:auto;}
@@ -267,6 +309,7 @@
       <a href="#work">Work</a>
       <a href="#light">Light</a>
       <a href="#materials">Materials</a>
+      <a href="#journal">Journal</a>
       <a href="#studio">Studio</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -321,6 +364,44 @@
   <div class="index">
     <div class="index__list" id="plist"></div>
     <div class="index__preview" id="ppreview"></div>
+  </div>
+</section>
+
+<!-- recognition -->
+<section class="press wrap-wide" id="press">
+  <div class="press__head" data-reveal>
+    <h2 class="serif">Quietly <em>noticed</em>.</h2>
+    <p class="note">We don't chase publication, but the work has been kind enough to travel.</p>
+  </div>
+  <div class="press__marks" data-reveal>
+    <span class="pmark"><em>Dezeen</em></span>
+    <span class="pmark">ArchDaily</span>
+    <span class="pmark">Wallpaper<sup>*</sup></span>
+    <span class="pmark"><em>Domus</em></span>
+    <span class="pmark">Arkitektur&nbsp;N</span>
+    <span class="pmark"><em>A+U</em></span>
+  </div>
+  <div class="awards" data-reveal>
+    <div class="award">
+      <span class="award__yr">2025</span>
+      <span class="award__name">Treprisen — The Norwegian Wood Prize <b>Winner</b></span>
+      <span class="award__proj">Fjord House · Vestland</span>
+    </div>
+    <div class="award">
+      <span class="award__yr">2024</span>
+      <span class="award__name">EU Mies van der Rohe Award <b>Nominated</b></span>
+      <span class="award__proj">Lys Chapel · Hordaland</span>
+    </div>
+    <div class="award">
+      <span class="award__yr">2023</span>
+      <span class="award__name">AR House Awards <b>Highly commended</b></span>
+      <span class="award__proj">Stone Boathouse · Sognefjord</span>
+    </div>
+    <div class="award">
+      <span class="award__yr">2021</span>
+      <span class="award__name">Statens Byggeskikkpris <b>Shortlist</b></span>
+      <span class="award__proj">Two-Roofs House · Bergen</span>
+    </div>
   </div>
 </section>
 
@@ -391,6 +472,42 @@
     <figure class="studio__fig rimg" data-reveal-img>
       <img class="ph" src="img/face4.webp" alt="The studio at work">
     </figure>
+  </div>
+</section>
+
+<!-- journal -->
+<section class="journal" id="journal">
+  <div class="wrap-wide">
+    <div class="journal__head" data-reveal>
+      <h2 class="serif">From the <em>studio</em></h2>
+      <a href="#" class="all">All notes <span class="ar">→</span></a>
+    </div>
+    <div class="jlist" data-reveal>
+      <article class="jrow">
+        <span class="jrow__date"><b>May 2026</b><span class="jrow__tag">Award</span></span>
+        <div class="jrow__body">
+          <h3>Fjord House receives the Norwegian Wood Prize</h3>
+          <p>The jury praised “a house that disappears into its slope” — a quiet recognition of three years of work in larch and slate above the Lustrafjord.</p>
+        </div>
+        <span class="jrow__ar">↗</span>
+      </article>
+      <article class="jrow">
+        <span class="jrow__date"><b>March 2026</b><span class="jrow__tag">Lecture</span></span>
+        <div class="jrow__body">
+          <h3>On slowness — a winter talk at Bergen School of Architecture</h3>
+          <p>Ingrid spoke to the second-year studio about designing around the year of light, and why we still begin every project in pencil.</p>
+        </div>
+        <span class="jrow__ar">↗</span>
+      </article>
+      <article class="jrow">
+        <span class="jrow__date"><b>Nov 2025</b><span class="jrow__tag">Exhibition</span></span>
+        <div class="jrow__body">
+          <h3>Skog Cabin shown at the Oslo Architecture Triennale</h3>
+          <p>A 1:20 model and a wall of site photographs, exhibited under the theme of building lightly in fragile landscapes.</p>
+        </div>
+        <span class="jrow__ar">↗</span>
+      </article>
+    </div>
   </div>
 </section>
 

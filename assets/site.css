@@ -373,6 +373,42 @@ button { font-family: inherit; }
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-6) var(--space-5);
 }
+/* ---- Work groups (category headings above each pair) --------------- */
+.workgroup { margin-bottom: var(--space-7); }
+.workgroup:last-child { margin-bottom: 0; }
+.workgroup__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  border-top: 1px solid var(--ink);
+  padding-top: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.workgroup__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semi);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+.workgroup__title .n {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: var(--track-meta);
+  color: var(--neutral-500);
+  font-weight: var(--weight-reg);
+}
+.workgroup__note {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: var(--track-meta);
+  text-transform: uppercase;
+  color: var(--neutral-500);
+  text-align: right;
+}
 .workcard { display: flex; flex-direction: column; gap: var(--space-3); }
 .workcard__img { display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; }
 .workcard__img img { width: 100%; height: 100%; object-fit: cover; }
@@ -458,7 +494,7 @@ button { font-family: inherit; }
 
 /* ---- Contact portrait ----------------------------------------------- */
 .contact-portrait { display: flex; gap: var(--space-3); align-items: center; }
-.contact-portrait__img { width: 92px; height: 92px; flex: none; object-fit: cover; object-position: center 18%; filter: saturate(0.92); }
+.contact-portrait__img { width: 132px; height: 132px; flex: none; object-fit: cover; object-position: center 18%; filter: saturate(0.92); }
 .contact-portrait__text { display: flex; flex-direction: column; gap: 5px; }
 .contact-portrait__name { font-size: var(--text-2xl); font-weight: var(--weight-semi); letter-spacing: -0.02em; line-height: 1; }
 .contact-portrait__role { font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--track-meta); text-transform: uppercase; color: var(--neutral-500); }
@@ -500,6 +536,18 @@ button { font-family: inherit; }
   min-width: 3ch;
 }
 .audience__label { font-size: var(--text-4xl); font-weight: var(--weight-med); letter-spacing: -0.02em; }
+.audience__sym {
+  margin-left: auto;
+  align-self: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  color: var(--neutral-400);
+  transition: color var(--dur-standard) var(--curve);
+}
+.audience__row:hover .audience__sym { color: var(--ink); }
+.audience__sym svg { width: 100%; height: 100%; display: block; }
+.audience__sym svg * { vector-effect: non-scaling-stroke; }
 
 /* ==========================================================================
    CTA

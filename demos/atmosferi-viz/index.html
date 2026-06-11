@@ -51,15 +51,16 @@
   header.nav{position:fixed;left:0;right:0;top:0;z-index:50;mix-blend-mode:difference;transition:background .45s var(--ease),border-color .45s var(--ease);}
   header.nav.scrolled{top:0;mix-blend-mode:normal;background:rgba(244,242,236,.88);backdrop-filter:blur(13px) saturate(1.1);-webkit-backdrop-filter:blur(13px) saturate(1.1);border-bottom:1px solid var(--line);}
   header.nav.scrolled .brand,header.nav.scrolled .brand sup{color:var(--ink);}
-  header.nav.scrolled .brand .tag{opacity:.6;border-left-color:var(--line-2);}
+  header.nav.scrolled .brand .tag{opacity:.55;}
   header.nav.scrolled .nav__links a{color:var(--ink);opacity:.62;}
   header.nav.scrolled .nav__links a:hover{opacity:1;}
   header.nav.scrolled .swx{border-color:color-mix(in srgb,var(--ink) 26%,transparent);}
   header.nav.scrolled .swx__seg{color:var(--ink);}
   .nav__in{display:flex;align-items:center;justify-content:space-between;height:78px;}
-  .brand{font-weight:600;font-size:21px;letter-spacing:-.02em;color:#fff;display:flex;align-items:baseline;gap:9px;}
+  .brand{font-weight:600;font-size:21px;letter-spacing:-.02em;color:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:3px;line-height:1;}
+  .brand__name{display:inline-flex;align-items:baseline;}
   .brand sup{color:#fff;font-size:.5em;top:-.7em;}
-  .brand .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;opacity:.7;border-left:1px solid rgba(255,255,255,.4);padding-left:9px;}
+  .brand .tag{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;opacity:.62;}
   .nav__links{display:flex;gap:30px;align-items:center;margin-left:auto;}
   .nav__links a{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#fff;opacity:.78;transition:opacity .3s;}
   .nav__links a:hover{opacity:1;}
@@ -71,7 +72,6 @@
     .swx__seg{padding:6px 11px;font-size:9px;letter-spacing:.14em;}
   }
   @media(max-width:460px){
-    .brand .tag{display:none;}
     .nav__links .cta{display:none;}
   }
 
@@ -171,7 +171,7 @@
   .contact__grid{display:grid;grid-template-columns:.82fr 1.18fr;gap:clamp(40px,6vw,96px);align-items:start;}
   .contact .mono{color:var(--muted);}
   .contact h2{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(38px,5vw,78px);line-height:.98;margin:18px 0 20px;}
-  .contact__portrait{width:96px;height:96px;border-radius:50%;object-fit:cover;object-position:center 18%;margin:0 0 24px;display:block;filter:saturate(.95);box-shadow:0 14px 40px rgba(11,10,8,.14);}
+  .contact__portrait{width:148px;height:148px;border-radius:50%;object-fit:cover;object-position:center 18%;margin:0 0 26px;display:block;filter:saturate(.95);box-shadow:0 18px 50px rgba(11,10,8,.18);}
   .contact__lead{font-size:15.5px;line-height:1.62;color:var(--ink-2);max-width:36ch;margin:0 0 24px;}
   .contact__by{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:22px;}
   .contact a.mail{display:inline-block;font-size:clamp(16px,1.6vw,21px);border-bottom:1px solid var(--ink);padding-bottom:4px;transition:opacity .3s;}
@@ -255,27 +255,78 @@
   .film:not(.paused) .film__btn .ico-play{display:none;}
   .film:not(.paused) .film__btn .ico-pause{display:block;}
 
-  /* ===== 360° — step inside ===== */
-  .pano__stage{position:relative;width:100%;height:clamp(440px,78vh,860px);overflow:hidden;background:#000;cursor:grab;touch-action:pan-y;user-select:none;}
-  .pano__stage.grabbing{cursor:grabbing;}
-  .pano__track{position:absolute;top:0;left:0;height:100%;width:260%;will-change:transform;}
-  .pano__track img{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.03);}
-  .pano__vig{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 160px 30px rgba(0,0,0,.55);}
-  .pano__badge{position:absolute;top:18px;left:clamp(18px,3vw,34px);z-index:4;font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:#fff;display:flex;align-items:center;gap:10px;pointer-events:none;}
-  .pano__badge .ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;letter-spacing:.05em;}
-  .pano__head{position:absolute;top:18px;right:clamp(18px,3vw,34px);z-index:4;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.82);pointer-events:none;}
-  .pano__hint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:4;font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:12px;pointer-events:none;transition:opacity .6s var(--ease);}
-  .pano__hint .ar{font-size:15px;opacity:.8;}
-  .pano__stage.touched .pano__hint{opacity:0;}
-  .pano__compass{position:absolute;left:50%;bottom:0;transform:translateX(-50%);z-index:4;width:min(60%,460px);height:30px;pointer-events:none;overflow:hidden;}
-  .pano__compass .tick{position:absolute;bottom:8px;width:1px;height:8px;background:rgba(255,255,255,.4);}
-  .pano__hot{position:absolute;z-index:5;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:1px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(0,0,0,.25);backdrop-filter:blur(3px);transition:transform .35s var(--ease);}
-  .pano__hot::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;}
-  .pano__hot::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1px solid rgba(255,255,255,.45);animation:ping 2.6s var(--ease) infinite;}
-  @keyframes ping{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.5);opacity:0}}
-  .pano__hot:hover{transform:scale(1.18);}
-  .pano__tip{position:absolute;left:50%;bottom:64px;transform:translateX(-50%) translateY(8px);z-index:6;background:rgba(11,10,8,.82);backdrop-filter:blur(6px);color:#fff;padding:11px 16px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .4s var(--ease),transform .4s var(--ease);white-space:nowrap;}
-  .pano__tip.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  /* ===== 360° virtual tour ===== */
+  .tour{position:relative;width:100%;height:clamp(460px,82vh,900px);overflow:hidden;background:#0b0a08;cursor:grab;touch-action:none;user-select:none;}
+  .tour.grabbing{cursor:grabbing;}
+  .tour.fs{height:100vh;}
+  .tour__canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .tour__vig{position:absolute;inset:0;pointer-events:none;z-index:2;box-shadow:inset 0 0 180px 40px rgba(0,0,0,.5);}
+  .tour__fade{position:absolute;inset:0;z-index:6;background:#0b0a08;opacity:0;pointer-events:none;transition:opacity .55s var(--ease);}
+  .tour__fade.on{opacity:1;}
+  .tour__markers{position:absolute;inset:0;z-index:4;pointer-events:none;}
+
+  /* hotspots */
+  .hot{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;will-change:transform,left,top;}
+  .hot__ring{position:relative;width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.9);background:rgba(8,7,5,.32);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;transition:transform .35s var(--ease),background .35s var(--ease);}
+  .hot__ring::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(255,255,255,.4);animation:hotping 2.8s var(--ease) infinite;}
+  .hot:hover .hot__ring{transform:scale(1.16);background:rgba(8,7,5,.55);}
+  .hot__ring svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.6;}
+  .hot--info .hot__ring{width:30px;height:30px;}
+  .hot--info .hot__ring::after{animation-duration:3.4s;}
+  .hot__lab{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:rgba(8,7,5,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:5px 10px;white-space:nowrap;opacity:0;transform:translateY(-4px);transition:opacity .3s var(--ease),transform .3s var(--ease);}
+  .hot:hover .hot__lab{opacity:1;transform:none;}
+  @keyframes hotping{0%{transform:scale(.7);opacity:.85}100%{transform:scale(1.5);opacity:0}}
+
+  /* info popover */
+  .tour__info{position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(10px);z-index:7;max-width:min(86vw,420px);background:rgba(11,10,8,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;padding:18px 22px;opacity:0;pointer-events:none;transition:opacity .4s var(--ease),transform .4s var(--ease);}
+  .tour__info.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .tour__info h4{font-family:var(--serif);font-style:normal;font-weight:600;font-size:19px;letter-spacing:-.01em;margin-bottom:6px;}
+  .tour__info p{font-size:13.5px;line-height:1.5;color:rgba(255,255,255,.74);}
+
+  /* top HUD */
+  .tour__top{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:clamp(16px,2.4vw,26px) clamp(16px,3vw,34px);pointer-events:none;}
+  .tour__badge{display:flex;align-items:center;gap:11px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#fff;}
+  .tour__badge .ring{width:32px;height:32px;border:1px solid rgba(255,255,255,.6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;letter-spacing:.04em;flex:none;}
+  .tour__tools{display:flex;gap:9px;pointer-events:auto;}
+  .tour__tool{width:38px;height:38px;border:1px solid rgba(255,255,255,.36);background:rgba(8,7,5,.3);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;transition:background .3s var(--ease),border-color .3s var(--ease);}
+  .tour__tool:hover{background:rgba(8,7,5,.6);border-color:rgba(255,255,255,.7);}
+  .tour__tool svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.6;}
+  .tour__tool.on{background:#fff;border-color:#fff;}
+  .tour__tool.on svg{stroke:#0b0a08;}
+  .tour__tool .ico-pause,.tour__tool .ico-exit{display:none;}
+  .tour__tool.on .ico-play{display:none;}.tour__tool.on .ico-pause{display:block;}
+  .tour.fs .tour__fs .ico-enter{display:none;}.tour.fs .tour__fs .ico-exit{display:block;}
+
+  /* bottom HUD: compass + hint */
+  .tour__bottom{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;flex-direction:column;align-items:center;gap:14px;padding-bottom:clamp(16px,2.4vw,26px);pointer-events:none;}
+  .tour__compass{position:relative;width:min(58%,420px);height:26px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);}
+  .tour__compass .strip{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;will-change:transform;}
+  .tour__compass .t{flex:none;width:48px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.55);}
+  .tour__compass .t b{color:#fff;font-weight:500;}
+  .tour__compass::after{content:"";position:absolute;left:50%;top:2px;bottom:2px;width:1px;background:var(--acc,#D97757);transform:translateX(-50%);}
+  .tour__deg{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:#fff;}
+  .tour__hint{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.78);display:flex;align-items:center;gap:11px;transition:opacity .6s var(--ease);}
+  .tour__hint .ar{font-size:14px;opacity:.75;}
+  .tour.touched .tour__hint{opacity:0;}
+
+  /* scene rail */
+  .tour__rail{position:absolute;left:50%;bottom:clamp(58px,7vw,76px);transform:translateX(-50%);z-index:5;display:flex;gap:9px;padding:8px 10px;background:rgba(8,7,5,.42);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+  .tour.touched .tour__rail{opacity:1;}
+  .rcell{position:relative;width:64px;height:42px;overflow:hidden;cursor:pointer;opacity:.5;filter:grayscale(.5);transition:opacity .35s var(--ease),filter .35s var(--ease);}
+  .rcell img{width:100%;height:100%;object-fit:cover;}
+  .rcell.on,.rcell:hover{opacity:1;filter:none;}
+  .rcell.on::after{content:"";position:absolute;inset:0;border:1.5px solid #fff;}
+  .rcell__n{position:absolute;left:5px;bottom:3px;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);}
+
+  /* loading */
+  .tour__load{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:#0b0a08;transition:opacity .5s var(--ease);}
+  .tour__load.gone{opacity:0;pointer-events:none;}
+  .tour__load .sp{width:38px;height:38px;border:1.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:tspin .9s linear infinite;}
+  @keyframes tspin{to{transform:rotate(360deg)}}
+  @media(max-width:640px){
+    .tour__rail{bottom:54px;}.rcell{width:50px;height:34px;}
+    .tour__compass{width:74%;}
+  }
 
   /* display type — Schibsted Grotesk, upright & architectural */
   .hero h1,.statement p,.statement em,.feature__bar h2,.shead h2,.cap__lead,.clients__row span,.contact h2,.film__title,.frame__cap .t,.lb__cap .t{font-style:normal;}
@@ -314,12 +365,43 @@
     .hero__scroll .ln::after{animation:none;}
     .film.playing .film__frame.on.kb img{animation:none!important;}
     .pano__hot::after{animation:none;}
+    .hot__ring::after{animation:none;}
+    .tour__load .sp{animation:none;}
     .grain{display:none;}
     .vz .feature__media::after,.vz .frame__img::after{display:none;}
     .vcur{display:none;}
     .vload{animation:none;display:none;}
   }
 </style>
+
+<!-- SEO / social -->
+<link rel="canonical" href="https://atmosferi.com/demos/atmosferi-viz/index.html">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Atmosferi°">
+<meta name="theme-color" content="#16140F">
+<link rel="icon" type="image/png" sizes="32x32" href="https://atmosferi.com/favicon-32.png">
+<link rel="apple-touch-icon" href="https://atmosferi.com/apple-touch-icon.png">
+<link rel="manifest" href="https://atmosferi.com/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atmosferi°">
+<meta property="og:locale" content="en">
+<meta property="og:locale:alternate" content="de">
+<meta property="og:locale:alternate" content="cs">
+<meta property="og:title" content="Atmosferi° Visualisation — Pictures of architecture before it exists">
+<meta property="og:description" content="Atmosferi Visualisation is an architectural image studio. Stills, films and interactive scenes of buildings that aren't built yet.">
+<meta property="og:url" content="https://atmosferi.com/demos/atmosferi-viz/index.html">
+<meta property="og:image" content="https://atmosferi.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Atmosferi° — websites & 3D visualisation for architecture">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atmosferi° Visualisation — Pictures of architecture before it exists">
+<meta name="twitter:description" content="Atmosferi Visualisation is an architectural image studio. Stills, films and interactive scenes of buildings that aren't built yet.">
+<meta name="twitter:image" content="https://atmosferi.com/og.png">
+<link rel="alternate" hreflang="en" href="https://atmosferi.com/demos/atmosferi-viz/index.html">
+<link rel="alternate" hreflang="de" href="https://atmosferi.com/demos/atmosferi-viz/index.html?lang=de">
+<link rel="alternate" hreflang="cs" href="https://atmosferi.com/demos/atmosferi-viz/index.html?lang=cs">
+<link rel="alternate" hreflang="x-default" href="https://atmosferi.com/demos/atmosferi-viz/index.html">
 </head>
 <body>
 
@@ -334,7 +416,7 @@
 
 <header class="nav">
   <div class="wrap nav__in">
-    <a href="#top" class="brand">Atmosferi<sup>°</sup><span class="tag">Visualisation</span></a>
+    <a href="#top" class="brand"><span class="brand__name">Atmosferi<sup>°</sup></span><span class="tag">Visualisation</span></a>
     <nav class="nav__links">
       <a href="#work">Work</a>
       <a href="#motion">Motion</a>
@@ -500,28 +582,28 @@
     <div class="svc">
       <span class="svc__n">01</span>
       <span class="svc__t">Stills</span>
-      <span class="svc__price"><span class="f">From</span><b>€1,250</b></span>
+      <span class="svc__price"><span class="f">From</span><b>€400</b></span>
       <span class="svc__d">Large-format architectural images — composed, lit and graded like photography, not output like a render.</span>
       <span class="svc__list"><span>Exterior · Interior</span><span>Aerial · Eye-level</span><span>Up to 8K · print-ready</span></span>
     </div>
     <div class="svc">
       <span class="svc__n">02</span>
       <span class="svc__t">Films</span>
-      <span class="svc__price"><span class="f">From</span><b>€3,000</b></span>
+      <span class="svc__price"><span class="f">From</span><b>€1,200</b></span>
       <span class="svc__d">Cinematic fly-throughs and narrative sequences — camera, sound and edit, built to move a room.</span>
       <span class="svc__list"><span>30—90 seconds</span><span>Score &amp; sound design</span><span>4K · 60fps</span></span>
     </div>
     <div class="svc">
       <span class="svc__n">03</span>
       <span class="svc__t">360° Tours</span>
-      <span class="svc__price"><span class="f">From</span><b>€2,000</b></span>
+      <span class="svc__price"><span class="f">From</span><b>€650</b></span>
       <span class="svc__d">Step-inside panoramas stitched at full resolution — drag to look around, jump room to room, on any screen or headset.</span>
       <span class="svc__list"><span>Equirectangular 8K+</span><span>Multi-node tours</span><span>Web · mobile · VR</span></span>
     </div>
     <div class="svc">
       <span class="svc__n">04</span>
       <span class="svc__t">Interactive</span>
-      <span class="svc__price"><span class="f">From</span><b>€4,000</b></span>
+      <span class="svc__price"><span class="f">From</span><b>€1,600</b></span>
       <span class="svc__d">Real-time scenes you explore in the browser — orbit, change the light, walk the floors, configure a unit.</span>
       <span class="svc__list"><span>WebGL · real-time</span><span>Configurators</span><span>Floor &amp; unit explorers</span></span>
     </div>
@@ -537,21 +619,37 @@
   <div class="wrap">
     <div class="shead" data-rise>
       <h2>Step inside.</h2>
-      <span class="mono">360° · drag to look around</span>
+      <span class="mono">360° tour · drag to look · click a doorway to walk through</span>
     </div>
   </div>
-  <div class="pano__stage" id="pano" data-rise>
-    <div class="pano__track" id="panoTrack">
-      <img src="img/09-horizon.webp" alt="360 panorama from floor 41" id="panoImg" draggable="false">
+  <div class="tour" id="tour" data-rise>
+    <canvas class="tour__canvas" id="tourCanvas"></canvas>
+    <div class="tour__vig"></div>
+    <div class="tour__markers" id="tourMarkers"></div>
+    <div class="tour__fade" id="tourFade"></div>
+    <div class="tour__info" id="tourInfo"><h4 id="tourInfoT"></h4><p id="tourInfoP"></p></div>
+
+    <div class="tour__top">
+      <span class="tour__badge"><span class="ring">360°</span><span id="tourName">Living room</span></span>
+      <div class="tour__tools">
+        <button class="tour__tool on" id="tourAuto" aria-label="Auto-rotate" title="Auto-rotate">
+          <svg class="ico-play" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-8 8"/><path d="M4 4v5h5"/></svg>
+          <svg class="ico-pause" viewBox="0 0 24 24"><line x1="9" y1="5" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/></svg>
+        </button>
+        <button class="tour__tool tour__fs" id="tourFs" aria-label="Fullscreen" title="Fullscreen">
+          <svg class="ico-enter" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+          <svg class="ico-exit" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
+        </button>
+      </div>
     </div>
-    <div class="pano__vig"></div>
-    <div class="pano__badge"><span class="ring">360°</span><span>Floor 41 · Sky Lobby</span></div>
-    <div class="pano__head" id="panoHead">000° · N</div>
-    <div class="pano__hint"><span class="ar">←</span><span>Drag to explore</span><span class="ar">→</span></div>
-    <div class="pano__tip" id="panoTip"></div>
-    <button class="pano__hot" data-x="0.22" data-tip="The Sky Lounge — level 41" style="top:54%"></button>
-    <button class="pano__hot" data-x="0.54" data-tip="Harbour view — due east" style="top:46%"></button>
-    <button class="pano__hot" data-x="0.82" data-tip="Private terrace" style="top:60%"></button>
+
+    <div class="tour__bottom">
+      <div class="tour__compass"><div class="strip" id="tourStrip"></div></div>
+      <div class="tour__rail" id="tourRail"></div>
+      <div class="tour__hint" id="tourHint"><span class="ar">←</span><span>Drag to look around</span><span class="ar">→</span></div>
+    </div>
+
+    <div class="tour__load" id="tourLoad"><span class="sp"></span></div>
   </div>
 </section>
 
@@ -669,12 +767,12 @@
 <section class="contact wrap" id="contact">
   <div class="contact__grid">
     <div class="contact__intro" data-rise>
-      <img src="img/michal.jpg" alt="Michal Kašpárek" class="contact__portrait">
+      <img src="img/michal.jpg" alt="Ing. arch. Michal Kašpárek" class="contact__portrait">
       <span class="mono">Commissions open · 2026—2027</span>
       <h2>Let's picture it.</h2>
       <p class="contact__lead">Tell me about the project — the building, the deadline, what you need to show. I read every message myself and reply within two working days.</p>
       <a class="mail" href="mailto:info@atmosferi.com">info@atmosferi.com</a>
-      <span class="contact__by">Michal Kašpárek · Founder, Atmosferi°</span>
+      <span class="contact__by">Ing. arch. Michal Kašpárek · Founder, Atmosferi°</span>
     </div>
 
     <form class="vform" id="viz-form" data-rise novalidate>
@@ -734,5 +832,9 @@
 <div class="vcur" id="vcur">View</div>
 
 <script src="viz.js"></script>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
+<script src="pano.js"></script>
+<script src="../../assets/i18n-dict.js"></script>
+<script src="../../assets/i18n.js"></script>
 </body>
 </html>

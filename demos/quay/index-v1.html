@@ -10,246 +10,424 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#FBFAF5; --ink:#15302C; --muted:#5C7068;
-    --teal:#0E9C8C; --coral:#FF6A45; --sun:#F4B740; --sky:#DCEFEA;
+    --bg:#FBFAF5; --ink:#10302B; --sea:#0B2E2A; --muted:#5C7068;
+    --teal:#0E9C8C; --teal-d:#0a7c70; --coral:#FF6A45; --sun:#F4B740; --sky:#DCEFEA; --sky-d:#BEE2DA;
     --line:rgba(21,48,44,.12);
     --disp:'Bricolage Grotesque', system-ui, sans-serif; --sans:'Figtree', system-ui, sans-serif;
+    --curve:cubic-bezier(.2,.7,.1,1); --gut:clamp(18px,4vw,40px);
+    --r:24px; --r-lg:36px;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
-  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden;}
   img{display:block;max-width:100%;}
   a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;}
   ::selection{background:var(--teal);color:#fff;}
-  .wrap{max-width:1280px;margin:0 auto;padding:0 36px;}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 var(--gut);}
   .disp{font-family:var(--disp);font-weight:800;letter-spacing:-.02em;line-height:.98;}
   .tag{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);}
+  .pill{display:inline-flex;align-items:center;gap:9px;background:var(--ink);color:var(--bg);border-radius:100px;padding:13px 24px;font-size:14px;font-weight:600;white-space:nowrap;transition:background .3s var(--curve),transform .3s var(--curve);}
+  .pill:hover{background:var(--teal);transform:translateY(-2px);}
+  .pill .arr{transition:transform .3s var(--curve);}
+  .pill:hover .arr{transform:translateX(3px);}
+  .pill--coral{background:var(--coral);} .pill--coral:hover{background:#ff5230;}
+  .pill--teal{background:var(--teal);} .pill--teal:hover{background:var(--teal-d);}
 
-  /* nav */
-  header.nav{position:sticky;top:0;z-index:40;background:rgba(251,250,245,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
-  .nav__in{display:flex;align-items:center;justify-content:space-between;height:74px;}
-  .brand{font-family:var(--disp);font-weight:800;font-size:24px;display:flex;align-items:center;gap:9px;}
-  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--coral);}
-  .nav__links{display:flex;gap:32px;align-items:center;}
-  .nav__links a{font-size:14px;font-weight:500;color:var(--muted);transition:color .25s;white-space:nowrap;}
-  .nav__links a:hover{color:var(--ink);}
-  .pill{background:var(--ink);color:var(--bg);border-radius:100px;padding:11px 22px;font-size:13px;font-weight:600;transition:background .3s,transform .3s;white-space:nowrap;}
-  .pill:hover{background:var(--teal);transform:translateY(-1px);}
+  /* reveal */
+  [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s var(--curve),transform .8s var(--curve);}
+  [data-reveal].in{opacity:1;transform:none;}
+  @media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1!important;transform:none!important;}}
 
-  /* hero */
-  .hero{padding:74px 0 36px;}
-  .hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(48px,9vw,128px);letter-spacing:-.03em;}
-  .hero h1 .u{color:var(--teal);}
+  /* ribbon */
+  .ds-ribbon{background:var(--teal);color:#fff;font-size:12.5px;text-align:center;padding:12px 20px;font-weight:600;letter-spacing:.04em;position:relative;z-index:60;}
+  .ds-ribbon a{color:#fff;border-bottom:1px solid rgba(255,255,255,.6);}
+
+  /* ───────── nav ───────── */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(251,250,245,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+  .nav__in{display:flex;align-items:center;justify-content:space-between;height:72px;gap:20px;}
+  .brand{font-family:var(--disp);font-weight:800;font-size:24px;display:flex;align-items:center;gap:9px;flex:none;}
+  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--coral);animation:bob 3s var(--curve) infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  .nav__links{display:flex;gap:30px;align-items:center;}
+  .nav__links a{font-size:14px;font-weight:500;color:var(--muted);transition:color .25s;white-space:nowrap;position:relative;}
+  .nav__links a:not(.pill):hover{color:var(--ink);}
+  .nav__tide{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--teal);background:var(--sky);padding:8px 14px;border-radius:100px;white-space:nowrap;}
+  .nav__tide .wv{font-size:13px;}
+  .burger{display:none;flex-direction:column;gap:5px;width:30px;height:30px;justify-content:center;align-items:center;}
+  .burger i{width:22px;height:2px;background:var(--ink);border-radius:2px;transition:transform .3s var(--curve),opacity .2s;}
+  .mobile{display:none;flex-direction:column;gap:4px;padding:10px var(--gut) 22px;border-bottom:1px solid var(--line);background:var(--bg);}
+  .mobile a{padding:14px 0;font-weight:600;font-size:17px;border-bottom:1px solid var(--line);}
+  .nav.open .mobile{display:flex;}
+  .nav.open .burger i:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .nav.open .burger i:nth-child(2){opacity:0;}
+  .nav.open .burger i:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  /* ───────── hero ───────── */
+  .hero{padding-block:clamp(30px,5vw,60px) 0;position:relative;}
+  .hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(46px,9.4vw,140px);letter-spacing:-.03em;line-height:.92;}
+  .hero h1 .u{color:var(--teal);position:relative;white-space:nowrap;}
+  .hero h1 .u .ink{position:absolute;left:0;right:0;bottom:.1em;height:.09em;background:var(--teal);border-radius:4px;transform:scaleX(0);transform-origin:left;animation:wipe 1s var(--curve) .5s forwards;}
+  @keyframes wipe{to{transform:scaleX(1)}}
   .hero h1 .cor{color:var(--coral);}
-  .hero__row{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;flex-wrap:wrap;margin-top:30px;}
-  .hero p{max-width:44ch;font-size:19px;color:var(--muted);}
-  .hero__img{margin-top:46px;border-radius:28px;overflow:hidden;position:relative;}
-  .hero__img img{width:100%;aspect-ratio:16/8;object-fit:cover;}
-  .hero__chip{position:absolute;left:24px;bottom:24px;background:var(--bg);border-radius:100px;padding:12px 22px;font-weight:600;font-size:14px;display:flex;gap:10px;align-items:center;}
-  .hero__chip .dot{width:9px;height:9px;border-radius:50%;background:var(--teal);}
+  .hero__row{display:flex;justify-content:space-between;align-items:flex-end;gap:36px;flex-wrap:wrap;margin-top:28px;}
+  .hero p{max-width:46ch;font-size:clamp(17px,1.5vw,21px);color:var(--muted);}
+  .hero__media{margin-top:42px;border-radius:var(--r-lg);overflow:hidden;position:relative;background:var(--sky);}
+  .hero__media img{width:100%;aspect-ratio:16/8;object-fit:cover;transform:scale(1.04);transition:transform 8s ease;}
+  .hero__media.seen img{transform:scale(1);}
+  .chip{position:absolute;background:rgba(251,250,245,.95);backdrop-filter:blur(4px);border-radius:100px;padding:11px 18px;font-weight:600;font-size:14px;display:flex;gap:9px;align-items:center;box-shadow:0 8px 26px rgba(16,48,43,.16);animation:float 6s ease-in-out infinite;}
+  .chip .d{width:9px;height:9px;border-radius:50%;background:var(--teal);}
+  .chip .d.live{background:var(--coral);box-shadow:0 0 0 0 rgba(255,106,69,.6);animation:pulse 2s infinite;}
+  .chip.c1{left:22px;bottom:24px;}
+  .chip.c2{right:22px;top:24px;animation-delay:1.2s;}
+  .chip.c3{right:14%;bottom:30px;animation-delay:2.4s;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,106,69,.55)}70%{box-shadow:0 0 0 12px rgba(255,106,69,0)}100%{box-shadow:0 0 0 0 rgba(255,106,69,0)}}
 
-  /* stat strip */
-  .strip{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding:64px 0;border-bottom:1px solid var(--line);}
-  .strip .s .n{font-family:var(--disp);font-weight:800;font-size:clamp(34px,4.4vw,56px);}
+  /* wave divider */
+  .wavewrap{line-height:0;color:var(--sky);margin-top:-2px;}
+  .wavewrap svg{width:100%;height:clamp(40px,6vw,80px);display:block;}
+  .wave-band{background:var(--sky);}
+
+  /* count-up strip */
+  .strip{background:var(--sky);border-radius:0;}
+  .strip__in{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding:clamp(30px,4vw,52px) 0 clamp(40px,5vw,64px);}
+  .strip .s .n{font-family:var(--disp);font-weight:800;font-size:clamp(38px,5vw,68px);line-height:1;}
   .strip .s:nth-child(1) .n{color:var(--teal);}
   .strip .s:nth-child(2) .n{color:var(--coral);}
   .strip .s:nth-child(3) .n{color:var(--sun);}
   .strip .s:nth-child(4) .n{color:var(--ink);}
-  .strip .s .l{margin-top:6px;color:var(--muted);font-size:14px;}
+  .strip .s .l{margin-top:8px;color:var(--muted);font-size:14px;font-weight:500;}
 
   /* intro */
-  .intro{padding:110px 0;}
-  .intro p{font-family:var(--disp);font-weight:500;font-size:clamp(26px,3.6vw,46px);line-height:1.18;max-width:24ch;letter-spacing:-.02em;}
+  .intro{padding-block:clamp(64px,9vw,120px);}
+  .intro p{font-family:var(--disp);font-weight:500;font-size:clamp(26px,3.7vw,50px);line-height:1.16;max-width:22ch;letter-spacing:-.02em;}
   .intro p b{color:var(--teal);font-weight:800;}
 
-  /* whats here */
-  .here{padding:20px 0 110px;}
-  .here__head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:46px;flex-wrap:wrap;gap:14px;}
-  .here__head h2{font-family:var(--disp);font-weight:800;font-size:clamp(32px,4.4vw,58px);}
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
-  .c{border-radius:22px;overflow:hidden;background:#fff;border:1px solid var(--line);transition:transform .5s cubic-bezier(.2,.7,.1,1);}
-  .c:hover{transform:translateY(-6px);}
-  .c img{width:100%;aspect-ratio:4/3;object-fit:cover;}
-  .c__b{padding:26px 26px 30px;}
-  .c__b .tag{display:block;margin-bottom:10px;}
-  .c:nth-child(2) .tag{color:var(--coral);}
-  .c:nth-child(3) .tag{color:var(--sun);}
-  .c__b h3{font-family:var(--disp);font-weight:700;font-size:25px;margin-bottom:10px;}
-  .c__b p{color:var(--muted);font-size:15px;}
+  /* ───────── interactive map ───────── */
+  .explore{padding-block:0 clamp(60px,9vw,120px);}
+  .explore__head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:30px;}
+  .explore__head h2{font-family:var(--disp);font-weight:800;font-size:clamp(32px,4.6vw,64px);line-height:.96;}
+  .explore__head .lead{color:var(--muted);max-width:34ch;font-size:16px;margin-top:8px;}
+  .maprow{display:grid;grid-template-columns:1.55fr 1fr;gap:22px;align-items:stretch;}
+  .map{position:relative;border-radius:var(--r-lg);overflow:hidden;background:var(--sea);min-height:420px;}
+  .map img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;filter:saturate(1.08);}
+  .map__tint{position:absolute;inset:0;background:linear-gradient(160deg,rgba(14,156,140,.18),rgba(11,46,42,.42));}
+  .shimmer{position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,0) 0 22px,rgba(255,255,255,.05) 22px 24px);mix-blend-mode:overlay;animation:sh 9s linear infinite;}
+  @keyframes sh{to{transform:translateX(-48px)}}
+  .pin{position:absolute;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:#fff;color:var(--ink);font-family:var(--disp);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(11,46,42,.4);transition:transform .3s var(--curve);z-index:3;}
+  .pin::before{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid #fff;opacity:.0;transition:opacity .3s,transform .3s var(--curve);}
+  .pin::after{content:"";position:absolute;width:100%;height:100%;border-radius:50%;background:inherit;opacity:.5;animation:ring 2.6s var(--curve) infinite;z-index:-1;}
+  @keyframes ring{0%{transform:scale(1);opacity:.5}70%,100%{transform:scale(2.4);opacity:0}}
+  .pin[data-cat="live"]{background:var(--teal);color:#fff;}
+  .pin[data-cat="work"]{background:var(--sun);color:var(--ink);}
+  .pin[data-cat="gather"]{background:var(--coral);color:#fff;}
+  .pin[data-cat="play"]{background:#fff;color:var(--ink);}
+  .pin:hover,.pin.active{transform:translate(-50%,-50%) scale(1.18);}
+  .pin.active::before{opacity:1;transform:scale(1.05);}
+  /* detail card */
+  .spot{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:0;overflow:hidden;display:flex;flex-direction:column;}
+  .spot__img{aspect-ratio:16/10;overflow:hidden;background:var(--sky);position:relative;}
+  .spot__img img{width:100%;height:100%;object-fit:cover;transition:opacity .4s;}
+  .spot__no{position:absolute;left:18px;top:18px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:800;color:#fff;background:var(--teal);box-shadow:0 6px 16px rgba(11,46,42,.3);}
+  .spot__b{padding:26px 28px 28px;display:flex;flex-direction:column;flex:1;}
+  .spot__cat{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:100px;margin-bottom:14px;}
+  .spot__b h3{font-family:var(--disp);font-weight:800;font-size:clamp(24px,2.4vw,32px);margin-bottom:10px;line-height:1.02;}
+  .spot__b p{color:var(--muted);font-size:15.5px;}
+  .spot__meta{margin-top:auto;padding-top:18px;display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-weight:600;}
+  .spot__meta b{color:var(--ink);}
+  .spot__nav{display:flex;gap:8px;margin-top:18px;}
+  .spot__nav button{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);font-size:18px;color:var(--ink);transition:background .25s,color .25s,border-color .25s;}
+  .spot__nav button:hover{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;}
+  .legend button{font-size:13px;font-weight:600;padding:9px 15px;border-radius:100px;border:1px solid var(--line);color:var(--muted);transition:all .25s var(--curve);display:flex;align-items:center;gap:8px;}
+  .legend button .ld{width:9px;height:9px;border-radius:50%;}
+  .legend button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  @media(max-width:880px){.maprow{grid-template-columns:1fr;}.map{aspect-ratio:16/11;min-height:0;}}
 
-  /* place band (teal) */
-  .place{background:var(--ink);color:var(--bg);border-radius:36px;margin:0 18px;overflow:hidden;}
-  .place__grid{display:grid;grid-template-columns:1fr 1fr;}
-  .place__txt{padding:84px 64px;}
-  .place__txt h2{font-family:var(--disp);font-weight:800;font-size:clamp(34px,4.4vw,62px);line-height:1;}
-  .place__txt h2 .u{color:var(--teal);}
-  .place__txt p{margin-top:24px;color:rgba(251,250,245,.7);max-width:40ch;}
-  .place__list{margin-top:34px;display:flex;flex-direction:column;gap:0;}
-  .place__list li{list-style:none;display:flex;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(251,250,245,.16);font-size:15px;}
-  .place__list li span{color:var(--sun);}
-  .place__img{background:#000;}
-  .place__img img{width:100%;height:100%;object-fit:cover;min-height:420px;filter:saturate(1.05);}
+  /* ───────── find your home ───────── */
+  .homes{background:var(--sea);color:var(--bg);border-radius:var(--r-lg);margin:0 var(--gut);padding:clamp(48px,6vw,84px) clamp(24px,4vw,64px);}
+  .homes__head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:34px;}
+  .homes__head h2{font-family:var(--disp);font-weight:800;font-size:clamp(30px,4.4vw,60px);line-height:.96;}
+  .homes__head h2 .u{color:var(--sun);}
+  .homes__head p{color:rgba(251,250,245,.7);max-width:34ch;margin-top:8px;}
+  .htabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:30px;}
+  .htab{font-family:var(--sans);font-weight:600;font-size:15px;padding:13px 22px;border-radius:100px;background:rgba(255,255,255,.08);color:var(--bg);transition:background .25s var(--curve),color .25s;}
+  .htab[aria-pressed="true"]{background:var(--sun);color:var(--sea);}
+  .hpanel{display:grid;grid-template-columns:1fr 1.1fr;gap:34px;align-items:center;}
+  .hplan{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:var(--r);aspect-ratio:4/3;overflow:hidden;position:relative;}
+  .hplan img{width:100%;height:100%;object-fit:cover;opacity:.9;transition:opacity .35s;}
+  .hinfo .price{display:flex;align-items:baseline;gap:10px;}
+  .hinfo .price .from{color:rgba(251,250,245,.6);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;}
+  .hinfo .price .fig{font-family:var(--disp);font-weight:800;font-size:clamp(40px,5vw,64px);color:#fff;line-height:1;}
+  .hinfo h3{font-family:var(--disp);font-weight:700;font-size:24px;margin:18px 0 6px;}
+  .hinfo .blurb{color:rgba(251,250,245,.72);font-size:15.5px;max-width:42ch;}
+  .hspecs{display:flex;gap:26px;flex-wrap:wrap;margin:24px 0;padding:20px 0;border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(255,255,255,.14);}
+  .hspecs .sp .v{font-family:var(--disp);font-weight:800;font-size:26px;color:var(--sun);}
+  .hspecs .sp .k{font-size:12px;color:rgba(251,250,245,.6);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+  .hbar{height:8px;border-radius:100px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:10px;}
+  .hbar i{display:block;height:100%;background:var(--sun);border-radius:100px;transition:width .6s var(--curve);}
+  .hbar-lab{display:flex;justify-content:space-between;font-size:13px;color:rgba(251,250,245,.7);margin-top:10px;font-weight:600;}
+  @media(max-width:760px){.hpanel{grid-template-columns:1fr;gap:24px;}}
 
-  /* phases */
-  .phases{padding:110px 0;}
-  .phases h2{font-family:var(--disp);font-weight:800;font-size:clamp(32px,4.4vw,58px);margin-bottom:46px;}
-  .ph{display:grid;grid-template-columns:120px 1fr auto;gap:30px;align-items:center;padding:26px 0;border-top:1px solid var(--line);}
-  .ph:last-child{border-bottom:1px solid var(--line);}
-  .ph .yr{font-family:var(--disp);font-weight:800;font-size:26px;color:var(--teal);}
-  .ph h3{font-weight:600;font-size:20px;}
-  .ph p{color:var(--muted);font-size:15px;margin-top:4px;}
-  .badge{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:7px 14px;border-radius:100px;white-space:nowrap;}
+  /* ───────── what's on ───────── */
+  .whatson{padding-block:clamp(64px,9vw,120px) clamp(50px,7vw,90px);}
+  .whatson__head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:26px;}
+  .whatson__head h2{font-family:var(--disp);font-weight:800;font-size:clamp(32px,4.6vw,64px);line-height:.96;}
+  .efilter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:30px;}
+  .efilter button{font-size:13px;font-weight:600;padding:10px 18px;border-radius:100px;border:1px solid var(--line);color:var(--muted);transition:all .25s var(--curve);}
+  .efilter button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .events{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .ev{border-radius:var(--r);border:1px solid var(--line);background:#fff;padding:24px;display:flex;flex-direction:column;gap:12px;transition:transform .4s var(--curve),box-shadow .4s var(--curve);min-height:200px;}
+  .ev:hover{transform:translateY(-5px);box-shadow:0 18px 40px rgba(16,48,43,.1);}
+  .ev.hide{display:none;}
+  .ev__top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .ev__date{font-family:var(--disp);font-weight:800;font-size:22px;line-height:1;}
+  .ev__date span{display:block;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:5px;}
+  .ev__cat{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 11px;border-radius:100px;white-space:nowrap;}
+  .ev h3{font-family:var(--disp);font-weight:700;font-size:21px;margin-top:auto;line-height:1.05;}
+  .ev .loc{font-size:14px;color:var(--muted);}
+  @media(max-width:880px){.events{grid-template-columns:1fr 1fr;}}
+  @media(max-width:560px){.events{grid-template-columns:1fr;}}
+
+  /* ───────── phases ───────── */
+  .phases{background:var(--sky);padding:clamp(60px,8vw,110px) 0;}
+  .phases h2{font-family:var(--disp);font-weight:800;font-size:clamp(32px,4.6vw,60px);margin-bottom:14px;}
+  .phases .sub{color:var(--muted);margin-bottom:44px;}
+  .ptrack{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .ptrack::before{content:"";position:absolute;left:0;right:0;top:30px;height:4px;background:var(--sky-d);border-radius:100px;}
+  .ptrack .fill{position:absolute;left:0;top:30px;height:4px;background:var(--teal);border-radius:100px;width:0;transition:width 1.1s var(--curve);}
+  .pcard{position:relative;padding-top:64px;}
+  .pdot{position:absolute;top:18px;left:0;width:26px;height:26px;border-radius:50%;background:#fff;border:4px solid var(--sky-d);transition:border-color .4s,background .4s;}
+  .pcard.done .pdot,.pcard.active .pdot{border-color:var(--teal);background:var(--teal);}
+  .pcard .yr{font-family:var(--disp);font-weight:800;font-size:30px;color:var(--teal);}
+  .pcard h3{font-weight:700;font-size:20px;margin:6px 0 6px;}
+  .pcard p{color:var(--muted);font-size:15px;max-width:30ch;}
+  .badge{display:inline-block;margin-top:14px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;border-radius:100px;}
   .badge.now{background:var(--teal);color:#fff;}
-  .badge.soon{background:var(--sky);color:var(--teal);}
-  .badge.next{background:#EFece2;color:var(--muted);}
+  .badge.soon{background:#fff;color:var(--teal);}
+  .badge.next{background:transparent;border:1px solid var(--muted);color:var(--muted);}
+  @media(max-width:760px){
+    .ptrack{grid-template-columns:1fr;gap:34px;}
+    .ptrack::before,.ptrack .fill{left:11px;right:auto;top:0;bottom:0;width:4px;height:auto;}
+    .ptrack .fill{height:0;width:4px;transition:height 1.1s var(--curve);}
+    .pcard{padding-top:0;padding-left:48px;}
+    .pdot{top:2px;left:0;}
+  }
 
-  /* join */
-  .join{background:var(--sky);border-radius:36px;margin:0 18px 60px;padding:84px 36px;text-align:center;}
-  .join h2{font-family:var(--disp);font-weight:800;font-size:clamp(36px,6vw,84px);line-height:1;}
-  .join h2 .cor{color:var(--coral);}
-  .join p{color:var(--muted);max-width:42ch;margin:22px auto 36px;}
+  /* ───────── voices ───────── */
+  .voices{padding-block:clamp(64px,9vw,110px);overflow:hidden;}
+  .voices__head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:30px;}
+  .voices__head h2{font-family:var(--disp);font-weight:800;font-size:clamp(32px,4.6vw,60px);}
+  .voices__head .hint{font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:10px;}
+  .voices__head .hint .dash{width:34px;height:1px;background:var(--ink);}
+  .vscroll{display:flex;gap:20px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab;}
+  .vscroll::-webkit-scrollbar{display:none;}
+  .vscroll.drag{cursor:grabbing;}
+  .vcard{flex:0 0 min(82vw,440px);scroll-snap-align:start;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:34px;display:flex;flex-direction:column;}
+  .vcard:nth-child(3n+1){background:var(--sky);border-color:transparent;}
+  .vcard:nth-child(3n+2){background:#fff;}
+  .vcard .quote{font-family:var(--disp);font-weight:500;font-size:clamp(20px,2vw,26px);line-height:1.25;letter-spacing:-.01em;}
+  .vcard .who{margin-top:auto;padding-top:28px;display:flex;align-items:center;gap:14px;}
+  .vcard .who img{width:50px;height:50px;border-radius:50%;object-fit:cover;flex:none;}
+  .vcard .who .nm{font-weight:700;}
+  .vcard .who .rl{font-size:13px;color:var(--muted);}
+
+  /* ───────── join ───────── */
+  .join{background:var(--coral);color:#fff;border-radius:var(--r-lg);margin:0 var(--gut) clamp(40px,6vw,70px);padding:clamp(56px,8vw,110px) var(--gut);text-align:center;position:relative;overflow:hidden;}
+  .join .tag{color:rgba(255,255,255,.85);}
+  .join h2{font-family:var(--disp);font-weight:800;font-size:clamp(38px,6.4vw,90px);line-height:.96;margin-top:14px;}
+  .join h2 .s{color:var(--sun);}
+  .join p{color:rgba(255,255,255,.9);max-width:42ch;margin:20px auto 34px;}
   .join form{display:flex;gap:12px;max-width:520px;margin:0 auto;flex-wrap:wrap;}
-  .join input{flex:1;min-width:220px;border:1px solid var(--line);background:#fff;border-radius:100px;padding:16px 24px;font-family:var(--sans);font-size:16px;outline:none;}
-  .join input:focus{border-color:var(--teal);}
-  .join button{border:0;cursor:pointer;}
-  .join .status{margin-top:18px;font-size:14px;color:var(--teal);font-weight:600;min-height:18px;}
+  .join input{flex:1;min-width:220px;border:0;background:#fff;color:var(--ink);border-radius:100px;padding:17px 26px;font-family:var(--sans);font-size:16px;outline:none;}
+  .join input::placeholder{color:var(--muted);}
+  .join .submit{background:var(--ink);color:#fff;border-radius:100px;padding:17px 30px;font-size:15px;font-weight:600;transition:background .3s var(--curve),transform .3s var(--curve);}
+  .join .submit:hover{background:var(--sea);transform:translateY(-2px);}
+  .join .status{margin-top:18px;font-size:15px;color:#fff;font-weight:600;min-height:20px;}
+  .confetti{position:absolute;width:11px;height:11px;border-radius:2px;top:-20px;opacity:0;pointer-events:none;}
 
-  footer{padding:50px 0 70px;}
-  .foot{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;color:var(--muted);font-size:14px;align-items:center;}
-  .foot .brand{color:var(--ink);}
-  .ds-ribbon{background:var(--teal);color:#fff;font-size:12.5px;text-align:center;padding:13px 20px;font-weight:600;letter-spacing:.04em;}
-  .ds-ribbon a{color:#fff;border-bottom:1px solid rgba(255,255,255,.6);}
+  /* footer */
+  footer{padding:clamp(40px,6vw,70px) 0 clamp(50px,7vw,80px);}
+  .foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;color:var(--muted);font-size:14px;align-items:center;}
+  .foot .brand{color:var(--ink);font-size:20px;}
+  .foot a:hover{color:var(--ink);}
 
   @media(max-width:900px){
-    .wrap{padding:0 20px;}
-    .nav__links a:not(.pill){display:none;}
-    .strip{grid-template-columns:1fr 1fr;gap:36px 20px;}
-    .cards{grid-template-columns:1fr;}
-    .place__grid{grid-template-columns:1fr;}
-    .place__txt{padding:54px 30px;}
-    .place__img img{min-height:300px;}
-    .ph{grid-template-columns:70px 1fr;gap:14px 18px;}
-    .ph .badge{grid-column:2;justify-self:start;}
-    .intro,.phases{padding:74px 0;}
+    .nav__links,.nav__tide{display:none;}
+    .nav__links.pillonly{display:flex;}
+    .burger{display:flex;}
+    .strip__in{grid-template-columns:1fr 1fr;gap:36px 20px;}
+    .intro{padding-block:64px;}
   }
-  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;}}
 </style>
 </head>
 <body>
 
 <div class="ds-ribbon">Reference site by Atmosferi° — waterfront mixed-use developer · <a href="../../index.html">Back to Atmosferi</a></div>
 
-<header class="nav">
+<header class="nav" id="nav">
   <div class="wrap nav__in">
-    <a href="#" class="brand">Quay&nbsp;9<span class="dot"></span></a>
+    <a href="#top" class="brand">Quay&nbsp;9<span class="dot"></span></a>
     <nav class="nav__links">
-      <a href="#here">What's here</a>
-      <a href="#place">The place</a>
+      <a href="#explore">Explore</a>
+      <a href="#homes">Homes</a>
+      <a href="#whatson">What's on</a>
       <a href="#phases">Phases</a>
-      <a href="#join" class="pill">Join the list</a>
+      <span class="nav__tide"><span class="wv">~</span> High tide <b id="tideTime">14:20</b></span>
+      <a href="#join" class="pill pill--coral">Join the list <span class="arr">→</span></a>
     </nav>
+    <button class="burger" id="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+  </div>
+  <div class="mobile" id="mobile">
+    <a href="#explore">Explore the wharf</a>
+    <a href="#homes">Find your home</a>
+    <a href="#whatson">What's on</a>
+    <a href="#phases">Phases</a>
+    <a href="#join">Join the list →</a>
   </div>
 </header>
 
-<section class="hero wrap">
-  <span class="tag">Old grain wharf · Opening 2027</span>
-  <h1 class="disp" style="margin-top:20px">A <span class="u">neighbourhood</span><br>on the <span class="cor">water.</span></h1>
-  <div class="hero__row">
+<!-- ───────── hero ───────── -->
+<section class="hero wrap" id="top">
+  <span class="tag" data-reveal>Old grain wharf · Opening 2027</span>
+  <h1 class="disp" style="margin-top:18px" data-reveal>A <span class="u">neighbourhood<span class="ink"></span></span><br>on the <span class="cor">water.</span></h1>
+  <div class="hero__row" data-reveal>
     <p>Homes, makers, food and open water on the old grain wharf — built slowly, with the people who'll live here.</p>
-    <a href="#join" class="pill">Register your interest →</a>
+    <a href="#explore" class="pill pill--teal">Explore the wharf <span class="arr">→</span></a>
   </div>
-  <div class="hero__img">
-    <img src="https://picsum.photos/seed/quay-hero/1900/950" alt="Waterfront neighbourhood">
-    <span class="hero__chip"><span class="dot"></span>Phase 1 now selling</span>
+  <div class="hero__media" id="heroMedia" data-reveal>
+    <img src="img/hero.webp" alt="Waterfront neighbourhood">
+    <span class="chip c1"><span class="d live"></span>Phase 1 now selling</span>
+    <span class="chip c2"><span class="d"></span>Saturday market · 9–2</span>
+    <span class="chip c3"><span class="d"></span>Lido open May–Sep</span>
   </div>
 </section>
 
-<div class="wrap">
-  <div class="strip">
-    <div class="s"><div class="n disp">480</div><div class="l">New homes</div></div>
-    <div class="s"><div class="n disp">35</div><div class="l">Independent makers &amp; shops</div></div>
-    <div class="s"><div class="n disp">1.2km</div><div class="l">Public waterfront</div></div>
-    <div class="s"><div class="n disp">6 ha</div><div class="l">Of new parks</div></div>
-  </div>
+<div class="wavewrap"><svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,40 C240,90 480,0 720,40 C960,80 1200,10 1440,40 L1440,80 L0,80 Z" fill="currentColor"></path></svg></div>
+
+<!-- count-up -->
+<div class="strip wave-band">
+  <div class="wrap"><div class="strip__in" id="strip">
+    <div class="s"><div class="n disp" data-count="480">0</div><div class="l">New homes</div></div>
+    <div class="s"><div class="n disp" data-count="35">0</div><div class="l">Makers &amp; independent shops</div></div>
+    <div class="s"><div class="n disp" data-count="1.2" data-dec="1" data-suffix="km">0</div><div class="l">Public waterfront</div></div>
+    <div class="s"><div class="n disp" data-count="6" data-suffix=" ha">0</div><div class="l">Of new parks</div></div>
+  </div></div>
 </div>
 
+<!-- intro -->
 <section class="intro wrap">
-  <p class="disp">More than flats with a view — a working waterfront where <b>you can live, make and meet</b> on the same square.</p>
+  <p class="disp" data-reveal>More than flats with a view — a working waterfront where <b>you can live, make and meet</b> on the same square.</p>
 </section>
 
-<section class="here wrap" id="here">
-  <div class="here__head">
-    <h2 class="disp">What's here</h2>
-    <span class="tag">Live · Work · Gather</span>
-  </div>
-  <div class="cards">
-    <article class="c">
-      <img src="https://picsum.photos/seed/quay-homes/1200/900" alt="Homes">
-      <div class="c__b"><span class="tag">Live</span><h3 class="disp">Homes for everyone</h3><p>Studios to family townhouses, with a third set aside as affordable and shared-ownership.</p></div>
-    </article>
-    <article class="c">
-      <img src="https://picsum.photos/seed/quay-makers/1200/900" alt="Makers">
-      <div class="c__b"><span class="tag">Work</span><h3 class="disp">The makers' wharf</h3><p>Affordable studios for 35 small makers, a food hall and a co-working loft in the old grain store.</p></div>
-    </article>
-    <article class="c">
-      <img src="https://picsum.photos/seed/quay-parks/1200/900" alt="Public realm">
-      <div class="c__b"><span class="tag">Gather</span><h3 class="disp">Open to the water</h3><p>A tidal pool, a lido, a weekly market and 1.2 km of boardwalk that stays public, always.</p></div>
-    </article>
-  </div>
-</section>
-
-<section class="place" id="place">
-  <div class="place__grid">
-    <div class="place__txt">
-      <span class="tag" style="color:var(--sun)">The place</span>
-      <h2 class="disp" style="margin-top:14px">Ten minutes<br>from <span class="u">everywhere.</span></h2>
-      <p>On the harbour line, where the river meets the sea. Walk to the old town, hop the ferry, or just stay by the water.</p>
-      <ul class="place__list">
-        <li>Harbour line station <span>4 min walk</span></li>
-        <li>Ferry to old town <span>9 min</span></li>
-        <li>City centre <span>14 min</span></li>
-        <li>The open sea <span>at your door</span></li>
-      </ul>
+<!-- ───────── interactive map ───────── -->
+<section class="explore wrap" id="explore">
+  <div class="explore__head" data-reveal>
+    <div>
+      <h2 class="disp">Explore the wharf</h2>
+      <p class="lead">Tap a spot to wander Quay 9 — from the food hall to the tidal pool.</p>
     </div>
-    <div class="place__img"><img src="https://picsum.photos/seed/quay-place/1100/1200" alt="Waterfront aerial"></div>
+    <span class="tag">Live · Work · Gather · Play</span>
+  </div>
+  <div class="maprow" data-reveal>
+    <div class="map" id="map">
+      <img src="img/aerial.webp" alt="Quay 9 aerial map">
+      <div class="map__tint"></div>
+      <div class="shimmer"></div>
+      <!-- pins injected -->
+    </div>
+    <div class="spot" id="spot" aria-live="polite"><!-- injected --></div>
+  </div>
+  <div class="legend" id="legend"><!-- injected --></div>
+</section>
+
+<!-- ───────── find your home ───────── -->
+<section class="homes" id="homes" data-reveal>
+  <div class="homes__head">
+    <div>
+      <h2 class="disp">Find <span class="u">your</span> home</h2>
+      <p>From a first studio to a family townhouse — a third of every phase is affordable.</p>
+    </div>
+  </div>
+  <div class="htabs" id="htabs"><!-- injected --></div>
+  <div class="hpanel">
+    <div class="hplan"><img id="hplanImg" src="https://picsum.photos/seed/quay-plan-studio/900/700" alt="Home plan"></div>
+    <div class="hinfo">
+      <div class="price"><span class="from">From</span><span class="fig" id="hPrice">£245k</span></div>
+      <h3 id="hName">The Studio</h3>
+      <p class="blurb" id="hBlurb">Compact, light and clever — a complete first home opening straight onto the boardwalk.</p>
+      <div class="hspecs">
+        <div class="sp"><div class="v" id="hBeds">Studio</div><div class="k">Layout</div></div>
+        <div class="sp"><div class="v" id="hSize">38 m²</div><div class="k">Size from</div></div>
+        <div class="sp"><div class="v" id="hCount">24</div><div class="k">Available</div></div>
+      </div>
+      <div class="hbar"><i id="hBar" style="width:30%"></i></div>
+      <div class="hbar-lab"><span id="hSold">70% reserved in Phase 1</span><a href="#join" style="color:var(--sun)">Enquire →</a></div>
+    </div>
   </div>
 </section>
 
-<section class="phases wrap" id="phases">
-  <h2 class="disp">Built in phases</h2>
-  <div class="ph"><span class="yr disp">2027</span><div><h3>Phase 1 — The Wharf</h3><p>180 homes, the food hall and the first stretch of boardwalk.</p></div><span class="badge now">Now selling</span></div>
-  <div class="ph"><span class="yr disp">2029</span><div><h3>Phase 2 — The Green</h3><p>Townhouses, the park, the lido and the makers' studios.</p></div><span class="badge soon">Coming soon</span></div>
-  <div class="ph"><span class="yr disp">2031</span><div><h3>Phase 3 — The Point</h3><p>The tidal pool, the last homes and the community sail club.</p></div><span class="badge next">In planning</span></div>
+<!-- ───────── what's on ───────── -->
+<section class="whatson wrap" id="whatson">
+  <div class="whatson__head" data-reveal>
+    <h2 class="disp">This season<br>at the Quay</h2>
+    <span class="tag" style="color:var(--coral)">Free · open to all</span>
+  </div>
+  <div class="efilter" id="efilter" data-reveal>
+    <button data-cat="all" aria-pressed="true">Everything</button>
+    <button data-cat="Market" aria-pressed="false">Market</button>
+    <button data-cat="Music" aria-pressed="false">Music</button>
+    <button data-cat="Food" aria-pressed="false">Food</button>
+    <button data-cat="Family" aria-pressed="false">Family</button>
+    <button data-cat="Community" aria-pressed="false">Community</button>
+  </div>
+  <div class="events" id="events" data-reveal><!-- injected --></div>
 </section>
 
+<!-- ───────── phases ───────── -->
+<section class="phases" id="phases">
+  <div class="wrap">
+    <h2 class="disp" data-reveal>Built in phases</h2>
+    <p class="sub" data-reveal>One wharf, opening a piece at a time — with the people who live here shaping each one.</p>
+    <div class="ptrack" id="ptrack" data-reveal>
+      <span class="fill" id="pfill"></span>
+      <div class="pcard active"><span class="pdot"></span><div class="yr disp">2027</div><h3>The Wharf</h3><p>180 homes, the food hall and the first stretch of boardwalk.</p><span class="badge now">Now selling</span></div>
+      <div class="pcard"><span class="pdot"></span><div class="yr disp">2029</div><h3>The Green</h3><p>Townhouses, the park, the lido and the makers' studios.</p><span class="badge soon">Coming soon</span></div>
+      <div class="pcard"><span class="pdot"></span><div class="yr disp">2031</div><h3>The Point</h3><p>The tidal pool, the last homes and the community sail club.</p><span class="badge next">In planning</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── voices ───────── -->
+<section class="voices wrap" id="voices">
+  <div class="voices__head" data-reveal>
+    <h2 class="disp">Voices from<br>the waterside</h2>
+    <span class="hint"><span class="dash"></span> Drag to read more</span>
+  </div>
+  <div class="vscroll" id="vscroll" data-reveal><!-- injected --></div>
+</section>
+
+<!-- ───────── join ───────── -->
 <section class="join" id="join">
-  <span class="tag" style="color:var(--coral)">Join the community</span>
-  <h2 class="disp" style="margin-top:14px">Be part of<br>Quay <span class="cor">9.</span></h2>
+  <span class="tag">Join the community</span>
+  <h2 class="disp">Be part of<br>Quay <span class="s">9.</span></h2>
   <p>Drop your email for first access to Phase 1 homes, market days and open studios on the wharf.</p>
-  <form id="join-form" novalidate>
-    <input type="email" name="email" placeholder="your@email.com" required>
-    <button type="submit" class="pill" style="padding:16px 28px;font-size:15px">Keep me posted →</button>
+  <form id="joinForm" novalidate>
+    <input type="email" name="email" placeholder="your@email.com" required aria-label="Email">
+    <button type="submit" class="submit">Keep me posted →</button>
   </form>
   <p class="status" role="status" aria-live="polite"></p>
 </section>
 
 <footer>
   <div class="wrap foot">
-    <span class="brand disp" style="font-size:20px;display:flex;align-items:center;gap:8px">Quay 9 <span style="width:10px;height:10px;border-radius:50%;background:var(--coral);display:inline-block"></span></span>
-    <span>The Grain Wharf · hello@quay9.co · weekly site tours, Saturdays</span>
+    <span class="brand disp" style="display:flex;align-items:center;gap:8px">Quay 9 <span style="width:10px;height:10px;border-radius:50%;background:var(--coral);display:inline-block"></span></span>
+    <span>The Grain Wharf · <a href="mailto:hello@quay9.co">hello@quay9.co</a> · site tours Saturdays</span>
     <span>© 2026 Quay 9 · A Harbourside Regeneration project</span>
   </div>
 </footer>
 
-<script>
-  document.getElementById('join-form').addEventListener('submit',function(e){
-    e.preventDefault();
-    var email=this.querySelector('input[name=email]');
-    var s=document.querySelector('.join .status');
-    if(!email.value){s.textContent='Pop in an email and we\u2019ll keep you posted.';email.focus();return;}
-    this.querySelectorAll('input,button').forEach(function(el){el.disabled=true;});
-    s.textContent='You\u2019re on the list — see you on the wharf. \u2693';
-  });
-</script>
+<script src="quay.js"></script>
 </body>
 </html>

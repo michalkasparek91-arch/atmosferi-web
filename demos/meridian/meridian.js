@@ -136,6 +136,19 @@
   // present on a 280 scale
   var remainOn280 = Math.round(availUnits / totalUnits * 280);
 
+  // unit lookup for the shortlist
+  var UNIT_BY_ID = {};
+  FLOORS.forEach(function (fl) {
+    fl.units.forEach(function (u) { UNIT_BY_ID[u.id] = { u: u, floor: fl.f, tierName: fl.tier.name }; });
+  });
+
+  // shortlist state (persisted)
+  var SHORT_KEY = "meridian-shortlist";
+  var shortlist = [];
+  try { shortlist = JSON.parse(localStorage.getItem(SHORT_KEY) || "[]"); } catch (e) { shortlist = []; }
+  shortlist = shortlist.filter(function (id) { return UNIT_BY_ID[id] && UNIT_BY_ID[id].u.state === "available"; });
+  function saveShort() { try { localStorage.setItem(SHORT_KEY, JSON.stringify(shortlist)); } catch (e) {} }
+
   /* =========================================================================
      RENDER TOWER  (floor 41 at top → floor 1 at bottom)
      ========================================================================= */
@@ -235,11 +248,15 @@
       var availOnFloor = fl.units.filter(function (u) { return u.state === "available"; }).length;
       var rows = fl.units.map(function (u) {
         var price = u.poa ? "On application" : priceFmt(u.price);
+        var saveCell = u.state === "available"
+          ? '<button class="unit__save' + (shortlist.indexOf(u.id) >= 0 ? " on" : "") + '" data-save="' + u.id + '" aria-label="Save residence ' + u.id + '" title="Save to shortlist"><svg viewBox="0 0 24 24"><path d="M6 3 h12 a1 1 0 0 1 1 1 v17 l-7-5 -7 5 v-17 a1 1 0 0 1 1-1 z"/></svg></button>'
+          : '<span class="unit__spacer"></span>';
         return '<div class="unit ' + u.state + '">' +
           '<span class="unit__id serif">' + u.id + "</span>" +
           '<span class="unit__spec"><b>' + u.beds + "</b> · " + u.size + " m² · " + u.aspect + "</span>" +
           '<span class="unit__right"><span class="unit__price">' + price + "</span>" +
             '<span class="unit__status ' + u.state + '">' + u.state + "</span></span>" +
+          saveCell +
           "</div>";
       }).join("");
       body = '<div class="panel__body">' +
@@ -258,6 +275,59 @@
     if (rb) rb.addEventListener("click", function () {
       selectResidence(rb.getAttribute("data-reserve"), fl);
     });
+    panel.querySelectorAll("[data-save]").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.stopPropagation();
+        toggleShort(b.getAttribute("data-save"));
+      });
+    });
+  }
+
+  /* ---------- shortlist ---------- */
+  var toastEl = document.getElementById("toast");
+  var toastMsg = document.getElementById("toastMsg");
+  var toastTimer = null;
+  function toast(msg) {
+    if (!toastEl) return;
+    toastMsg.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2200);
+  }
+  var regShort = document.getElementById("regShort");
+  var slList = document.getElementById("slList");
+  var slCount = document.getElementById("slCount");
+  function renderShortlist() {
+    if (slCount) slCount.textContent = shortlist.length;
+    if (regShort) regShort.classList.toggle("show", shortlist.length > 0);
+    if (!slList) return;
+    slList.innerHTML = shortlist.map(function (id) {
+      var rec = UNIT_BY_ID[id]; if (!rec) return "";
+      var u = rec.u;
+      var price = u.poa ? "On application" : priceFmt(u.price);
+      return "<li>" +
+        '<span class="u-id serif">' + u.id + "</span>" +
+        '<span class="u-spec"><b>' + u.beds + "</b> · " + u.size + " m² · Floor " + rec.floor + "</span>" +
+        '<span class="u-price">' + price + "</span>" +
+        '<button class="u-remove" data-remove="' + u.id + '" aria-label="Remove ' + u.id + '">×</button>' +
+        "</li>";
+    }).join("");
+    slList.querySelectorAll("[data-remove]").forEach(function (b) {
+      b.addEventListener("click", function () { toggleShort(b.getAttribute("data-remove")); });
+    });
+  }
+  function refreshSaveButtons() {
+    panel.querySelectorAll("[data-save]").forEach(function (b) {
+      b.classList.toggle("on", shortlist.indexOf(b.getAttribute("data-save")) >= 0);
+    });
+  }
+  function toggleShort(id) {
+    var i = shortlist.indexOf(id);
+    if (i >= 0) { shortlist.splice(i, 1); toast("Removed from shortlist"); }
+    else { shortlist.push(id); toast("Added · " + (shortlist.length) + " in shortlist"); }
+    saveShort();
+    renderShortlist();
+    refreshSaveButtons();
   }
 
   function selectFloor(f) { renderPanel(FLOORS[f - 1], false); }
@@ -306,6 +376,29 @@
   // default selection: the lowest available residence (a real "entry" home)
   var firstAvail = FLOORS.filter(function (fl) { return fl.tier.key !== "amenity" && fl.state === "available"; })[0] || sellable[0];
   renderPanel(firstAvail, false);
+  renderShortlist();
+
+  /* ---------- keyboard navigation of the tower ---------- */
+  var sellableAsc = FLOORS.filter(function (fl) { return fl.tier.key !== "amenity"; }).map(function (fl) { return fl.f; });
+  tower.setAttribute("tabindex", "0");
+  tower.addEventListener("keydown", function (e) {
+    var visible = sellableAsc.filter(function (f) { return currentFilter === "all" || FLOORS[f - 1].tier.key === currentFilter; });
+    if (!visible.length) return;
+    var idx = visible.indexOf(selectedFloor);
+    if (idx < 0) idx = 0;
+    var handled = true;
+    if (e.key === "ArrowUp") idx = Math.min(visible.length - 1, idx + 1);
+    else if (e.key === "ArrowDown") idx = Math.max(0, idx - 1);
+    else if (e.key === "Home") idx = 0;
+    else if (e.key === "End") idx = visible.length - 1;
+    else handled = false;
+    if (handled) {
+      e.preventDefault();
+      tower.classList.add("kb");
+      selectFloor(visible[idx]);
+    }
+  });
+  tower.addEventListener("blur", function () { tower.classList.remove("kb"); });
 
   /* ---------- register form ---------- */
   var form = document.getElementById("reg-form");
@@ -317,6 +410,6 @@
       s.textContent = "— A valid email is required."; email.focus(); return;
     }
     form.querySelectorAll("input,select,button").forEach(function (el) { el.disabled = true; });
-    s.textContent = "— Received. Our sales team will be in touch shortly.";
+    s.textContent = "— Received" + (shortlist.length ? ", " + shortlist.length + " residence" + (shortlist.length > 1 ? "s" : "") + " shortlisted" : "") + ". Our sales team will be in touch shortly.";
   });
 })();
