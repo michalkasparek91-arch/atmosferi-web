@@ -1240,42 +1240,13 @@ export function ModularEmailEditorDialogInner({
                     <Textarea value={form.segment_filters?.secondary_text_below_job || ""} onChange={(e) => setSegmentFilter("secondary_text_below_job", e.target.value)} onFocus={() => setActiveField("secondary_text_below_job")} placeholder="..." className="min-h-[60px] text-xs mt-1" />
                   </div>
 
-                  {/* Grafické oslovení */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Grafické oslovení</Label>
-                      <Switch checked={!!form.segment_filters?.graphic_greeting_enabled} onCheckedChange={(c) => setSegmentFilter("graphic_greeting_enabled", c)} />
-                    </div>
-                  </div>
 
-                  {/* Zarovnání na střed */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Zarovnání na střed</Label>
-                      <Switch checked={form.segment_filters?.text_align === "center"} onCheckedChange={(c) => setSegmentFilter("text_align", c ? "center" : "left")} />
-                    </div>
-                  </div>
-
-                  {/* Emoji a předmět v obsahu */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Emoji a předmět v obsahu</Label>
-                      <Switch checked={!!form.segment_filters?.show_subject_in_body} onCheckedChange={(c) => setSegmentFilter("show_subject_in_body", c)} />
-                    </div>
-                  </div>
                 </div>
               )}
 
               {activeTab === "widgets" && (
                 <div className="space-y-0.5 animate-in fade-in duration-200 p-1">
                   
-                  {/* Grafické oslovení */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Grafické oslovení</Label>
-                      <Switch checked={!!form.segment_filters?.graphic_greeting_enabled} onCheckedChange={(c) => setSegmentFilter("graphic_greeting_enabled", c)} />
-                    </div>
-                  </div>
 
                   {/* Layout Selector */}
                   <div className="py-2 mb-2">
