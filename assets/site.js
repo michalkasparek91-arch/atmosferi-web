@@ -1,3 +1,38 @@
+
+// --- Atmosferi Analytics ---
+(function() {
+  try {
+    const s_url = "https://paryiowezqlnffanxtnt.supabase.co/rest/v1/page_views";
+    const s_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhcnlpb3dlenFsbmZmYW54dG50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MzM3MzYsImV4cCI6MjA5NjQwOTczNn0.yyd-pRRXds1o8lU9mVWk21zu-5l_dcdxiBjDSKfKw5o";
+    
+    // Generate simple session id (lasts for current browser session)
+    let sessionId = sessionStorage.getItem("atm_sid");
+    if (!sessionId) {
+      sessionId = Math.random().toString(36).substring(2, 15);
+      sessionStorage.setItem("atm_sid", sessionId);
+    }
+
+    const payload = {
+      path: window.location.pathname,
+      referrer: document.referrer || null,
+      user_agent: navigator.userAgent,
+      session_id: sessionId
+    };
+
+    fetch(s_url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": s_key,
+        "Authorization": "Bearer " + s_key,
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify(payload),
+      keepalive: true
+    }).catch(e => {});
+  } catch (e) {}
+})();
+// ---------------------------
 /* ==========================================================================
    ATMOSFERI — site.js
    Colour toggle (persisted), mobile menu, choice groups, contact form.

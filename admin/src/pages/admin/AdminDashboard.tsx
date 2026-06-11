@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, ArrowRight, LayoutDashboard, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminAnalyticsWidget } from "@/components/admin/AdminAnalyticsWidget";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function AdminDashboard() {
       />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <AdminAnalyticsWidget />
         {/* Email Campaigns Card */}
         <Card className="rounded-xl border border-border shadow-sm hover:shadow-md transition-all group">
           <CardHeader className="pb-3">
