@@ -72,6 +72,7 @@ const App = () => {
                     <Routes>
                       {/* Public routes */}
                       <Route path="/prihlaseni" element={<Auth />} />
+                        <Route path="/nabidka/:id" element={<ProposalView />} />
                       
                       {/* Admin routes */}
                       <Route element={<ProtectedAdminRoute />}>

@@ -27,6 +27,7 @@ import { CampaignManager } from "@/components/admin/email/CampaignManager";
 import { AudienceManager } from "@/components/admin/email/AudienceManager";
 import { AdminScraping } from "@/components/admin/email/AdminScraping";
 import { AdminOutbox } from "@/components/admin/email/AdminOutbox";
+import { ProposalsManager } from "@/components/admin/email/ProposalsManager";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
@@ -819,6 +820,8 @@ export default function AdminEmails() {
         show_job_widget: showJobWidget,
         show_cta_button: showCtaButton,
         job_description_snippet: jobDescriptionSnippet,
+        stealth_tracking_enabled: stealthTrackingEnabled,
+            stealth_tracking_enabled: stealthTrackingEnabled,
         segment_filters: segmentFilters,
       };
 
@@ -929,8 +932,9 @@ export default function AdminEmails() {
           cta_text: ctaText,
           cta_url: ctaUrl,
           layout_type: templateType === "sniper" ? "sniper_recruitment" : templateType,
-          status: "pending"
-        }));
+            status: "pending",
+            segment_filters: { stealth_tracking_enabled: stealthTrackingEnabled }
+          }));
 
         const { error } = await supabase.from("email_outbox").insert(outboxRows);
         if (error) throw error;
@@ -1258,6 +1262,7 @@ export default function AdminEmails() {
               <Route path="sablony" element={<EmailTemplatesTab />} />
               <Route path="sber" element={<AdminScraping />} />
               <Route path="outbox" element={<AdminOutbox />} />
+              <Route path="nabidky" element={<ProposalsManager />} />
 
               <Route path="nastaveni" element={
                 <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1332,6 +1337,8 @@ export default function AdminEmails() {
           show_job_widget: showJobWidget,
           show_cta_button: showCtaButton,
           job_description_snippet: jobDescriptionSnippet,
+        stealth_tracking_enabled: stealthTrackingEnabled,
+            stealth_tracking_enabled: stealthTrackingEnabled,
         }}
         onClose={() => setEditorOpen(false)}
         onSave={(data) => {
@@ -1352,6 +1359,7 @@ export default function AdminEmails() {
           setShowJobWidget(data.show_job_widget ?? true);
           setShowCtaButton(data.show_cta_button ?? true);
           setJobDescriptionSnippet(data.job_description_snippet || "");
+          setStealthTrackingEnabled(data.stealth_tracking_enabled ?? true);
           if (data.segment_filters) {
             setSegmentFilters(data.segment_filters);
           } else {

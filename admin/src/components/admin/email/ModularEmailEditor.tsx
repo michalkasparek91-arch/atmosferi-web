@@ -1249,6 +1249,17 @@ export function ModularEmailEditorDialogInner({
                 <div className="space-y-0.5 animate-in fade-in duration-200 p-1">
                   
 
+                  {/* Stealth Tracking */}
+                  <div className="py-2 mb-2 bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/20">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-xs font-bold text-foreground">Aktivovat chytré měření</Label>
+                        <p className="text-[10px] text-muted-foreground">Sleduje otevření přes maskovaný obrázek (Stealth Tracking).</p>
+                      </div>
+                      <Switch checked={form.stealth_tracking_enabled ?? true} onCheckedChange={(c) => setVal("stealth_tracking_enabled", c)} />
+                    </div>
+                  </div>
+
                   {/* Layout Selector */}
                   <div className="py-2 mb-2">
                     <Label className="text-xs font-medium text-foreground/80">Layout šablony</Label>

@@ -1,4 +1,6 @@
-﻿export interface EmailTemplateData {
+export interface EmailTemplateData {
+  trackingId?: string;
+  stealthTrackingEnabled?: boolean;
   subject: string;
   body: string;
   heroImageEnabled: boolean;
@@ -23,10 +25,18 @@
 export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
   const parsedBody = parseBodyText(data.body);
 
+  const finalHeroUrl = (data.stealthTrackingEnabled && data.trackingId && data.heroImageUrl) 
+    ? `https://atmosferi.com/api/track?id=${data.trackingId}&url=${encodeURIComponent(data.heroImageUrl)}` 
+    : data.heroImageUrl;
+
+  const finalCtaUrl = (data.stealthTrackingEnabled && data.trackingId && data.ctaUrl) 
+    ? `https://atmosferi.com/api/track?id=${data.trackingId}&url=${encodeURIComponent(data.ctaUrl)}` 
+    : data.ctaUrl;
+
   const heroHtml = data.heroImageEnabled && data.heroImageUrl ? `
     <tr>
       <td align="center" style="padding: 0;">
-        <img src="${data.heroImageUrl}" alt="Hero" width="100%" style="display: block; width: 100%; height: auto;" />
+        <img src="${finalHeroUrl}" alt="Hero" width="100%" style="display: block; width: 100%; height: auto;" />
       </td>
     </tr>
     <tr>
@@ -56,7 +66,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
 
   const ctaHtml = data.ctaText && data.ctaUrl ? `
     <div style="margin-bottom: 32px;">
-      <a href="${data.ctaUrl}" style="display: inline-block; background-color: #16140F; color: #FBFAF6; padding: 12px 24px; text-decoration: none; font-size: 10.5px; font-weight: 600; font-family: 'Geist Mono', ui-monospace, monospace; letter-spacing: 0.16em; text-transform: uppercase;">
+      <a href="${finalCtaUrl}" style="display: inline-block; background-color: #16140F; color: #FBFAF6; padding: 12px 24px; text-decoration: none; font-size: 10.5px; font-weight: 600; font-family: 'Geist Mono', ui-monospace, monospace; letter-spacing: 0.16em; text-transform: uppercase;">
         ${data.ctaText} &rarr;
       </a>
     </div>
