@@ -85,13 +85,6 @@ export const EmailTopNav = () => {
             onClick={onTabChange} 
           />
           <NavItem 
-            id="inbox" 
-            label="Inbox" 
-            icon={InboxIcon} 
-            active={activeTab === "inbox"} 
-            onClick={onTabChange} 
-          />
-          <NavItem 
             id="outbox" 
             label="Outbox" 
             icon={SendIcon} 
