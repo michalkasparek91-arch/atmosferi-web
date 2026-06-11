@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atmosferi° — Cold-outreach email studio (internal)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EFEDE6; --panel:#FBFAF6; --panel-2:#F4F2EC; --ink:#16140F; --ink-2:#33302A;
+    --muted:#807C72; --muted-2:#A8A398; --line:rgba(22,20,15,.12); --line-2:rgba(22,20,15,.22);
+    --acc:#D97757; --ok:#1F8A5B;
+    --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',ui-monospace,monospace;
+    --r:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .mono{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;}
+
+  /* top bar */
+  .top{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--bg);border-bottom:1px solid #000;}
+  .top__in{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;padding:14px clamp(16px,3vw,30px);}
+  .top h1{font-size:18px;font-weight:600;letter-spacing:-.02em;display:flex;align-items:baseline;gap:9px;}
+  .top h1 sup{font-size:.5em;}
+  .top h1 .tab{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;opacity:.6;border-left:1px solid rgba(244,242,236,.3);padding-left:9px;}
+  .top__r{display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+  .top .badge{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;border:1px solid rgba(244,242,236,.34);padding:6px 10px;color:rgba(244,242,236,.8);border-radius:var(--r);}
+  .tbtn{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:9px 13px;border:1px solid rgba(244,242,236,.5);background:transparent;color:var(--bg);cursor:pointer;border-radius:var(--r);transition:background .2s,color .2s;}
+  .tbtn:hover{background:var(--bg);color:var(--ink);}
+  .tbtn.primary{background:var(--acc);border-color:var(--acc);color:#fff;}
+  .tbtn.primary:hover{background:#c0623f;}
+  .tbtn.copied{background:var(--ok);border-color:var(--ok);color:#fff;}
+
+  /* layout */
+  .app{display:grid;grid-template-columns:minmax(340px,440px) 1fr;gap:0;min-height:calc(100vh - 53px);}
+  @media(max-width:900px){.app{grid-template-columns:1fr;}}
+  .editor{padding:clamp(16px,2vw,26px);border-right:1px solid var(--line);overflow-y:auto;}
+  .preview{padding:clamp(16px,2vw,26px);background:var(--panel-2);display:flex;flex-direction:column;gap:16px;}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:16px;}
+  .card > .mono{color:var(--muted);display:block;margin-bottom:11px;}
+  .opts{display:flex;flex-wrap:wrap;gap:7px;}
+  .opt{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:9px 12px;border:1px solid var(--line);background:var(--panel-2);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:border-color .2s,background .2s,color .2s;border-radius:var(--r);}
+  .opt:hover{border-color:var(--line-2);}
+  .opt[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+  .opt .flag{font-size:14px;line-height:1;}
+  .opt .lg{font-size:9px;opacity:.55;}
+  .opt[aria-pressed="true"] .lg{opacity:.7;}
+
+  .field{margin-bottom:13px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .field input,.field textarea{width:100%;font-family:var(--sans);font-size:13.5px;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;line-height:1.5;resize:vertical;}
+  .field textarea{min-height:128px;}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--acc);}
+  .hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45;}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);}
+  .toggle-row:first-of-type{border-top:0;}
+  .toggle-row span{font-size:13px;}
+  .sw{position:relative;width:40px;height:22px;border-radius:99px;background:var(--muted-2);cursor:pointer;transition:background .25s;flex:none;border:0;}
+  .sw.on{background:var(--acc);}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .25s;}
+  .sw.on::after{transform:translateX(18px);}
+
+  .vars{display:flex;flex-wrap:wrap;gap:6px;}
+  .var{font-family:var(--mono);font-size:10px;letter-spacing:.02em;text-transform:none;padding:5px 9px;border:1px dashed var(--line-2);border-radius:99px;color:var(--ink-2);background:var(--panel-2);cursor:pointer;transition:background .2s,color .2s;}
+  .var:hover{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+
+  /* preview toolbar */
+  .ptools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;}
+  .seg button{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:8px 13px;background:var(--panel);color:var(--ink-2);cursor:pointer;border:0;border-left:1px solid var(--line);}
+  .seg button:first-child{border-left:0;}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);}
+  .ptools .meta{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+
+  /* preview frame */
+  .stage{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:8px 0 30px;overflow:auto;}
+  .device{background:#fff;box-shadow:0 18px 50px rgba(22,20,15,.14);transition:width .35s cubic-bezier(.76,0,.24,1);width:640px;max-width:100%;}
+  .device.mobile{width:380px;}
+  .device iframe{width:100%;height:1180px;border:0;display:block;}
+
+  .subjbar{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 14px;display:grid;grid-template-columns:auto 1fr;gap:0 14px;align-items:center;}
+  .subjbar .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+  .subjbar .v{font-weight:600;font-size:14.5px;letter-spacing:-.01em;}
+  .subjbar .row2{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr;gap:0 14px;border-top:1px solid var(--line);margin-top:9px;padding-top:9px;}
+  .subjbar .row2 .v{font-weight:400;font-size:12.5px;color:var(--muted);}
+
+  .note{font-size:12px;color:var(--ink-2);padding:13px 15px;border:1px dashed var(--line-2);border-radius:var(--r);background:var(--panel);line-height:1.55;}
+  .note b{color:var(--ink);font-weight:600;}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top__in">
+    <h1>Atmosferi<sup>°</sup> Outreach studio <span class="tab">Emails › Templates</span></h1>
+    <div class="top__r">
+      <span class="badge" id="count"></span>
+      <button class="tbtn" id="copyText">Copy text</button>
+      <button class="tbtn" id="copyHtml">Copy HTML</button>
+      <button class="tbtn primary" id="dlHtml">Download .html</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- EDITOR -->
+  <div class="editor">
+    <div class="card">
+      <span class="mono">Market</span>
+      <div class="opts" id="countries"></div>
+    </div>
+    <div class="card">
+      <span class="mono">Client type</span>
+      <div class="opts" id="clients"></div>
+    </div>
+
+    <div class="card">
+      <span class="mono">Subject</span>
+      <div class="field"><input type="text" id="fSubject"></div>
+      <span class="mono" style="color:var(--muted);display:block;margin:4px 0 11px">Body</span>
+      <div class="field"><textarea id="fBody"></textarea></div>
+      <div class="vars" id="vars"></div>
+      <p class="hint">Click a variable to insert it at the cursor. These merge fields match the admin system, so the template drops straight into <b>Emails › Templates</b>.</p>
+    </div>
+
+    <div class="card">
+      <span class="mono">Blocks</span>
+      <div class="toggle-row"><span>Hero image (architectural render)</span><button class="sw on" id="tHero" aria-pressed="true"></button></div>
+      <div class="toggle-row"><span>Portfolio strip (3 thumbnails)</span><button class="sw on" id="tStrip" aria-pressed="true"></button></div>
+      <div class="toggle-row"><span>Icebreaker line (personalised)</span><button class="sw on" id="tIce" aria-pressed="true"></button></div>
+      <div class="toggle-row"><span>Signature portrait</span><button class="sw on" id="tPortrait" aria-pressed="true"></button></div>
+      <div class="toggle-row"><span>P.S. footer</span><button class="sw on" id="tPs" aria-pressed="true"></button></div>
+      <div class="toggle-row"><span>Variables: filled preview</span><button class="sw on" id="tFilled" aria-pressed="true"></button></div>
+    </div>
+
+    <div class="note" id="note"></div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview">
+    <div class="ptools">
+      <div class="seg" id="device">
+        <button data-d="desktop" aria-pressed="true">Desktop</button>
+        <button data-d="mobile" aria-pressed="false">Mobile</button>
+      </div>
+      <a class="tbtn" id="openMail" href="#" style="border-color:var(--line-2);color:var(--ink)">Open in mail ↗</a>
+      <span class="meta" id="langMeta"></span>
+    </div>
+    <div class="subjbar">
+      <span class="k">From</span><span class="v" style="font-weight:500">Ing. arch. Michal Kašpárek &lt;info@atmosferi.com&gt;</span>
+      <div class="row2"><span class="k">Subj</span><span class="v" id="subjOut"></span></div>
+      <div class="row2"><span class="k">To</span><span class="v" id="toOut"></span></div>
+    </div>
+    <div class="stage">
+      <div class="device" id="device-frame"><iframe id="frame" title="Email preview"></iframe></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- language blocks (with merge variables) ---------------- */
+  var LANG = {
+    cs:{ tag:"Čeština",
+      greet:"Dobrý den, {{osloveni}},",
+      ice:"{{icebreaker}}",
+      open:"jmenuji se Michal Kašpárek a vedu studio Atmosferi — navrhujeme, programujeme a vizualizujeme weby výhradně pro lidi, kteří tvoří prostor.",
+      cta:"Zobrazit ukázky",
+      ctaAfter:"Rád vám během dvaceti minut ukážu pár konkrétních směrů, jak by web pro {{studio}} mohl vypadat. Hodil by se vám příští týden krátký hovor?",
+      signoff:"S pozdravem",
+      role:"web a vizualizace pro architekturu",
+      ps:"P.S. Pokud teď web neřešíte, stačí odepsat „ne“ a víc rušit nebudu.",
+      heroCap:"Ukázka naší vizualizace — Atmosferi°" },
+    de:{ tag:"Deutsch",
+      greet:"Guten Tag {{jmeno}},",
+      ice:"{{icebreaker}}",
+      open:"mein Name ist Michal Kašpárek, ich leite das Studio Atmosferi — wir gestalten, entwickeln und visualisieren Websites ausschließlich für Menschen, die mit Raum arbeiten.",
+      cta:"Arbeiten ansehen",
+      ctaAfter:"Gerne zeige ich Ihnen in zwanzig Minuten ein paar konkrete Ansätze für die Website von {{studio}}. Hätten Sie nächste Woche Zeit für ein kurzes Gespräch?",
+      signoff:"Mit freundlichen Grüßen",
+      role:"Web & Visualisierung für Architektur",
+      ps:"P.S. Falls eine Website gerade kein Thema ist, genügt ein kurzes „nein“ — ich melde mich dann nicht wieder.",
+      heroCap:"Beispiel unserer Visualisierung — Atmosferi°" },
+    en:{ tag:"English",
+      greet:"Hello {{jmeno}},",
+      ice:"{{icebreaker}}",
+      open:"my name is Michal Kašpárek and I run Atmosferi — a small studio that designs, builds and visualises websites exclusively for people who work in space.",
+      cta:"See the work",
+      ctaAfter:"I'd be glad to show you a few concrete directions for {{studio}}'s website in twenty minutes. Would you have time for a short call next week?",
+      signoff:"Kind regards",
+      role:"web & visualisation for architecture",
+      ps:"P.S. If a website isn't on your mind right now, just reply “no” and I won't write again.",
+      heroCap:"A sample of our visualisation work — Atmosferi°" }
+  };
+
+  /* ---------------- client types ---------------- */
+  var HERO = "https://atmosferi.com/demos/atmosferi-viz/img/";
+  var CLIENTS = [
+    { key:"arch", icon:"▤", hero:HERO+"02-ascension.webp",
+      strip:[HERO+"07-loop.webp",HERO+"08-courtyards.webp",HERO+"01-nightfall.webp"],
+      label:{cs:"Architektonické studio",de:"Architekturbüro",en:"Architecture studio"},
+      subj:{cs:"Web pro {{studio}} — portfolio na úrovni vaší architektury",
+            de:"Website für {{studio}} — ein Portfolio auf Augenhöhe mit Ihrer Architektur",
+            en:"A website for {{studio}} — a portfolio worthy of your architecture"},
+      value:{cs:"Specializuji se na portfolia architektonických studií — editoriální, obrazem vedené weby s redakčním systémem, ve kterém si projekty spravujete sami. K tomu umíme dodat i vizualizace nepostavených staveb.",
+             de:"Ich bin auf Portfolios von Architekturbüros spezialisiert — editoriale, bildgeführte Websites mit einem CMS, das Sie selbst pflegen. Dazu liefern wir auf Wunsch Visualisierungen noch ungebauter Projekte.",
+             en:"I specialise in portfolios for architecture studios — editorial, image-led websites with a CMS you run yourself. We can also produce visualisations of your unbuilt projects."} },
+    { key:"interior", icon:"◫", hero:HERO+"chalet-living.jpg",
+      strip:[HERO+"chalet-dining.jpg",HERO+"chalet-bedroom.jpg",HERO+"10-penthouse.webp"],
+      label:{cs:"Interiérové studio",de:"Innenarchitektur-Studio",en:"Interior design studio"},
+      subj:{cs:"Web a vizualizace pro {{studio}}",
+            de:"Website und Visualisierung für {{studio}}",
+            en:"A website and visualisation for {{studio}}"},
+      value:{cs:"Pro interiérová studia stavíme weby, kde vyniknou materiály, světlo a detail — a doplňujeme je fotorealistickými vizualizacemi interiérů a 360° prohlídkami, ve kterých klient projde návrh ještě před realizací.",
+             de:"Für Innenarchitektur-Studios bauen wir Websites, auf denen Material, Licht und Detail zur Geltung kommen — ergänzt um fotorealistische Innenraum-Visualisierungen und 360°-Rundgänge, durch die Ihre Kunden den Entwurf vorab begehen.",
+             en:"For interior studios we build websites where material, light and detail come forward — paired with photoreal interior visualisations and 360° tours that let a client walk the design before it's built."} },
+    { key:"developer", icon:"◳", hero:HERO+"01-nightfall.webp",
+      strip:[HERO+"02-ascension.webp",HERO+"09-horizon.webp",HERO+"10-penthouse.webp"],
+      label:{cs:"Realitní developer",de:"Immobilienentwickler",en:"Real-estate developer"},
+      subj:{cs:"Prezentace projektu, která prodává — web, vizualizace a 360° prohlídky",
+            de:"Eine Projektpräsentation, die verkauft — Website, Visualisierung und 360°-Touren",
+            en:"A project presentation that sells — website, visualisation and 360° tours"},
+      value:{cs:"Pro developery stavíme prodejní prezentace projektů — web s přehledem dostupnosti jednotek, fotorealistické vizualizace, animované průlety a interaktivní 360° prohlídky. Kupující projekt pochopí dřív, než se kopne do země.",
+             de:"Für Entwickler bauen wir verkaufsstarke Projektpräsentationen — Website mit Verfügbarkeitsübersicht, fotorealistische Visualisierungen, animierte Kameraflüge und interaktive 360°-Touren. Käufer verstehen das Projekt, bevor der erste Spatenstich erfolgt.",
+             en:"For developers we build sales-grade project presentations — a website with a unit-availability overview, photoreal visualisations, animated fly-throughs and interactive 360° tours. Buyers understand the project before the ground is broken."} },
+    { key:"urban", icon:"⬡", hero:HERO+"08-courtyards.webp",
+      strip:[HERO+"05-crossing.webp",HERO+"04-tidewater.webp",HERO+"07-loop.webp"],
+      label:{cs:"Urbanismus / veřejný sektor",de:"Städtebau / öffentlicher Sektor",en:"Urbanism / public sector"},
+      subj:{cs:"Srozumitelná prezentace vašeho projektu pro veřejnost",
+            de:"Eine klare, öffentliche Präsentation Ihres Projekts",
+            en:"A clear, public-facing presentation of your project"},
+      value:{cs:"Pro urbanistické a veřejné projekty stavíme weby, které srozumitelně vysvětlí záměr občanům i zastupitelům — mapy, fáze, vizualizace a 360° pohledy na jednom přehledném místě.",
+             de:"Für städtebauliche und öffentliche Projekte bauen wir Websites, die das Vorhaben Bürgern wie Entscheidungsträgern verständlich machen — Karten, Phasen, Visualisierungen und 360°-Ansichten an einem klaren Ort.",
+             en:"For urban and public projects we build websites that explain the intent clearly to residents and stakeholders alike — maps, phases, visualisations and 360° views in one legible place."} },
+    { key:"individual", icon:"◑", hero:HERO+"12-fjord.webp",
+      strip:[HERO+"06-canopy.webp",HERO+"03-concert.webp",HERO+"12-fjord.webp"],
+      label:{cs:"Samostatný architekt",de:"Einzelarchitekt:in",en:"Individual architect"},
+      subj:{cs:"Portfolio web, který staví vaši práci do popředí",
+            de:"Eine Portfolio-Website, die Ihre Arbeit in den Vordergrund stellt",
+            en:"A portfolio site that puts your work first"},
+      value:{cs:"Pro samostatné architekty děláme čisté, rychlé portfolio weby, které práci nechají dýchat — bez šablonovitosti, s důrazem na typografii a obraz. Ideální vstupní úroveň, kterou lze později rozšířit.",
+             de:"Für selbstständige Architekt:innen gestalten wir klare, schnelle Portfolio-Websites, die der Arbeit Raum lassen — keine Vorlagen-Optik, Fokus auf Typografie und Bild. Ein idealer Einstieg, später erweiterbar.",
+             en:"For individual architects we make clean, fast portfolio sites that let the work breathe — no template look, focused on typography and image. An ideal entry point you can grow later."} }
+  ];
+
+  /* ---------------- countries ---------------- */
+  function chf(t){ return t.replace(/ß/g,"ss"); }
+  var COUNTRIES = [
+    { key:"cz", name:"Česko", flag:"🇨🇿", lang:"cs", to:"jmeno@studio.cz", city:"Praha",
+      note:"<b>Čeština.</b> Domácí trh. „Dobrý den, [vokativ]“ je správné neutrální oslovení. Titul <b>Ing. arch.</b> v podpisu působí profesionálně." },
+    { key:"de", name:"Německo", flag:"🇩🇪", lang:"de", to:"name@studio.de", city:"Berlin",
+      note:"<b>Deutsch.</b> Formelles „Sie“. Sehr direkt und konkret bleiben — deutsche Empfänger schätzen Klarheit über Smalltalk." },
+    { key:"at", name:"Rakousko", flag:"🇦🇹", lang:"de", to:"name@studio.at", city:"Wien", signoff:"Mit besten Grüßen",
+      note:"<b>Deutsch (AT).</b> Wie Deutschland, etwas wärmerer Ton. Akademische Titel sind in Österreich wichtig — <b>Ing. arch.</b> gut sichtbar lassen." },
+    { key:"ch", name:"Švýcarsko", flag:"🇨🇭", lang:"de", to:"name@studio.ch", city:"Zürich", greet:"Guten Tag {{jmeno}},", signoff:"Freundliche Grüsse", swiss:true,
+      note:"<b>Deutsch (CH).</b> Schweizer Rechtschreibung ohne Eszett (→ ss), „Freundliche Grüsse“. Sehr formell und präzise; „Offerte“ statt „Angebot“." },
+    { key:"fi", name:"Finsko", flag:"🇫🇮", lang:"en", to:"name@studio.fi", city:"Helsinki", signoff:"Best regards",
+      note:"<b>English.</b> Finská studia komunikují se zahraničím téměř vždy anglicky — bezpečnější než nespolehlivá finština. Stručně a nevtíravě. (Finská lokalizace na vyžádání.)" },
+    { key:"no", name:"Norsko", flag:"🇳🇴", lang:"en", to:"navn@studio.no", city:"Oslo", signoff:"Kind regards",
+      note:"<b>English.</b> I v Norsku je angličtina v byznysu standard. Plochá hierarchie, uvolněnější ale uctivý tón. (Norská lokalizace na vyžádání.)" },
+    { key:"us", name:"USA", flag:"🇺🇸", lang:"en", to:"name@studio.com", city:"New York", signoff:"Best regards", spell:"us",
+      note:"<b>English (US).</b> US pravopis (visualize). Víc energie a důrazu na přínos; předmět smí být konkrétnější. Pozor na časová pásma." },
+    { key:"au", name:"Austrálie", flag:"🇦🇺", lang:"en", to:"name@studio.com.au", city:"Sydney", signoff:"Kind regards",
+      note:"<b>English (AU).</b> Britský pravopis (visualise). Přátelský, uvolněný tón. Velký časový posun — nabídnout flexibilní termín hovoru." }
+  ];
+
+  /* ---------------- example fills for variables ---------------- */
+  function exampleStudio(client, lc){ return client.label[lc]==="Architecture studio"||client.key==="arch"?"Studio Černý":client.label[lc]; }
+  function fills(country, client){
+    var lc=country.lang;
+    var studioName = ({arch:"Studio Černý",interior:"Atelier Linn",developer:"Northpoint",urban:"Civic Lab",individual:"M. Holt"})[client.key] || "the studio";
+    var ice = {
+      cs:"Sledoval jsem váš nedávný projekt "+studioName+" — práce s prostorem a světlem mě opravdu zaujala.",
+      de:"Ich habe Ihr jüngstes Projekt verfolgt — der Umgang mit Raum und Licht hat mich wirklich beeindruckt.",
+      en:"I followed your recent project — the way you handle space and light genuinely stayed with me."
+    }[lc];
+    return {
+      "{{jmeno}}": lc==="cs"?"Petr":"Petr",
+      "{{osloveni}}": "Petře",
+      "{{studio}}": studioName,
+      "{{mesto}}": country.city,
+      "{{icebreaker}}": ice
+    };
+  }
+  function applyFills(text, f){ return text.replace(/{{osloveni}}|{{jmeno}}|{{studio}}|{{mesto}}|{{icebreaker}}/g,function(m){return f[m]!==undefined?f[m]:m;}); }
+
+  /* ---------------- state ---------------- */
+  var ci=0, ti=0, device="desktop";
+  var T={hero:true,strip:true,ice:true,portrait:true,ps:true,filled:true};
+  var el=function(id){return document.getElementById(id);};
+  var elC=el('countries'), elT=el('clients'), fSubject=el('fSubject'), fBody=el('fBody');
+
+  /* build market + client buttons */
+  COUNTRIES.forEach(function(c,i){
+    var b=document.createElement('button'); b.className='opt'; b.setAttribute('aria-pressed', i===0?'true':'false');
+    b.innerHTML='<span class="flag">'+c.flag+'</span>'+c.name+' <span class="lg">'+LANG[c.lang].tag+'</span>';
+    b.addEventListener('click',function(){ ci=i; loadTemplate(); });
+    elC.appendChild(b);
+  });
+  CLIENTS.forEach(function(t,i){
+    var b=document.createElement('button'); b.className='opt'; b.setAttribute('aria-pressed', i===0?'true':'false');
+    b.innerHTML='<span class="flag">'+t.icon+'</span>'+t.label.cs;
+    b.addEventListener('click',function(){ ti=i; loadTemplate(); });
+    elT.appendChild(b);
+  });
+  el('count').textContent = COUNTRIES.length+'×'+CLIENTS.length+' = '+(COUNTRIES.length*CLIENTS.length)+' templates';
+
+  /* variable chips */
+  ["{{jmeno}}","{{osloveni}}","{{studio}}","{{mesto}}","{{icebreaker}}"].forEach(function(v){
+    var s=document.createElement('button'); s.className='var'; s.textContent=v;
+    s.addEventListener('click',function(){ insertAtCursor(fBody, v); });
+    el('vars').appendChild(s);
+  });
+  function insertAtCursor(ta, txt){
+    var s=ta.selectionStart||ta.value.length, e=ta.selectionEnd||ta.value.length;
+    ta.value=ta.value.slice(0,s)+txt+ta.value.slice(e); ta.focus(); ta.selectionStart=ta.selectionEnd=s+txt.length;
+    render();
+  }
+
+  /* toggles */
+  [['tHero','hero'],['tStrip','strip'],['tIce','ice'],['tPortrait','portrait'],['tPs','ps'],['tFilled','filled']].forEach(function(p){
+    el(p[0]).addEventListener('click',function(){ T[p[1]]=!T[p[1]]; this.classList.toggle('on',T[p[1]]); this.setAttribute('aria-pressed',T[p[1]]); render(); });
+  });
+  /* device */
+  [].forEach.call(el('device').children,function(b){
+    b.addEventListener('click',function(){
+      device=b.getAttribute('data-d');
+      [].forEach.call(el('device').children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+      el('device-frame').classList.toggle('mobile',device==='mobile');
+    });
+  });
+  fSubject.addEventListener('input',render);
+  fBody.addEventListener('input',render);
+
+  /* load editable source for current market+client */
+  function loadTemplate(){
+    [].forEach.call(elC.children,function(b,i){b.setAttribute('aria-pressed',i===ci?'true':'false');});
+    [].forEach.call(elT.children,function(b,i){b.setAttribute('aria-pressed',i===ti?'true':'false');});
+    var country=COUNTRIES[ci], client=CLIENTS[ti], L=LANG[country.lang], lc=country.lang;
+    // relabel client buttons in active language
+    [].forEach.call(elT.children,function(b,i){ b.innerHTML='<span class="flag">'+CLIENTS[i].icon+'</span>'+CLIENTS[i].label[lc]; });
+    fSubject.value = client.subj[lc];
+    var greet = country.greet || L.greet;
+    fBody.value =
+      greet+"\n\n"+
+      (T.ice?L.ice+"\n\n":"")+
+      L.open+"\n\n"+
+      client.value[lc]+"\n\n"+
+      L.ctaAfter;
+    el('note').innerHTML = country.note;
+    render();
+  }
+
+  /* ---------------- email HTML generator (email-safe, inline styles) ---------------- */
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function paras(text){
+    return text.split(/\n{2,}/).map(function(p){
+      return '<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#33302A;">'+esc(p).replace(/\n/g,'<br>')+'</p>';
+    }).join('');
+  }
+  function transform(text, country){
+    if(country.swiss) text=chf(text);
+    if(country.spell==='us') text=text.replace(/visualis/g,'visualiz').replace(/specialis/g,'specializ');
+    return text;
+  }
+
+  function buildEmail(forExport){
+    var country=COUNTRIES[ci], client=CLIENTS[ti], L=LANG[country.lang], lc=country.lang;
+    var signoff = country.signoff || L.signoff;
+    var f = fills(country, client);
+
+    var rawBody = fBody.value;
+    var subject = fSubject.value;
+    var ps = L.ps, heroCap = L.heroCap, cta = L.cta;
+
+    // filled (preview) vs raw {{}} (export for the merge system)
+    var useFilled = T.filled && !forExport;
+    function R(t){ t = useFilled ? applyFills(t,f) : t; return transform(t, country); }
+
+    var body = R(rawBody);
+    subject = R(subject); ps=R(ps);
+
+    var ACC="#D97757", INK="#16140F", PAPER="#F4F2EC";
+    var strip = client.strip;
+
+    var html =
+'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"></head>'+
+'<body style="margin:0;padding:0;background:#E9E6DD;">'+
+'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#E9E6DD;padding:24px 0;"><tr><td align="center">'+
+'<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background:#FBFAF6;border:1px solid #E2DED3;">'+
+  // header
+  '<tr><td style="background:'+INK+';padding:20px 28px;">'+
+    '<span style="font-family:Helvetica,Arial,sans-serif;font-size:19px;font-weight:700;letter-spacing:-0.5px;color:#F4F2EC;">Atmosferi<span style="color:'+ACC+';">°</span></span>'+
+    '<span style="font-family:Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(244,242,236,0.6);padding-left:10px;">'+( {cs:"web a vizualizace",de:"Web & Visualisierung",en:"web & visualisation"}[lc] )+'</span>'+
+  '</td></tr>'+
+  // hero
+  (T.hero ?
+  '<tr><td style="padding:0;"><img src="'+client.hero+'" width="600" alt="" style="display:block;width:100%;height:auto;border:0;"></td></tr>'+
+  '<tr><td style="padding:7px 28px;background:'+INK+';"><span style="font-family:Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(244,242,236,0.55);">'+heroCap+'</span></td></tr>'
+  : '')+
+  // body
+  '<tr><td style="padding:30px 28px 8px;font-family:Helvetica,Arial,sans-serif;">'+ paras(body) +'</td></tr>'+
+  // portfolio strip
+  (T.strip ?
+  '<tr><td style="padding:6px 28px 18px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'+
+    strip.map(function(src,i){ return '<td width="33.33%" style="padding:0 '+(i===1?'6px':'0')+';"><img src="'+src+'" width="178" alt="" style="display:block;width:100%;height:120px;object-fit:cover;border:0;"></td>'; }).join('')+
+  '</tr></table></td></tr>'
+  : '')+
+  // CTA
+  '<tr><td style="padding:6px 28px 28px;" align="left">'+
+    '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:'+INK+';">'+
+    '<a href="https://atmosferi.com" style="display:inline-block;font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#F4F2EC;text-decoration:none;padding:14px 26px;">'+cta+' &rarr;</a>'+
+    '</td></tr></table>'+
+  '</td></tr>'+
+  // signature
+  '<tr><td style="padding:0 28px 26px;border-top:1px solid #E2DED3;padding-top:22px;">'+
+    '<table role="presentation" cellpadding="0" cellspacing="0"><tr>'+
+    (T.portrait ? '<td style="padding-right:14px;" valign="top"><img src="https://atmosferi.com/img/michal.jpg" width="52" height="52" alt="" style="display:block;width:52px;height:52px;border-radius:50%;object-fit:cover;border:0;"></td>' : '')+
+    '<td valign="top" style="font-family:Helvetica,Arial,sans-serif;">'+
+      '<div style="font-size:14px;color:#33302A;margin-bottom:3px;">'+signoff+'</div>'+
+      '<div style="font-size:15px;font-weight:700;color:'+INK+';">Ing. arch. Michal Kašpárek</div>'+
+      '<div style="font-size:12px;color:#807C72;">Atmosferi° — '+L.role+'</div>'+
+      '<div style="font-size:12px;color:#807C72;"><a href="mailto:info@atmosferi.com" style="color:'+ACC+';text-decoration:none;">info@atmosferi.com</a> &middot; atmosferi.com</div>'+
+    '</td></tr></table>'+
+  '</td></tr>'+
+  // P.S.
+  (T.ps ? '<tr><td style="padding:0 28px 24px;font-family:Helvetica,Arial,sans-serif;font-size:13px;font-style:italic;color:#807C72;line-height:1.55;">'+ps+'</td></tr>' : '')+
+  // footer
+  '<tr><td style="background:'+PAPER+';padding:16px 28px;border-top:1px solid #E2DED3;font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#A8A398;">'+
+    'Atmosferi° · Praha · <a href="#" style="color:#A8A398;">'+({cs:"odhlásit",de:"abmelden",en:"unsubscribe"}[lc])+'</a>'+
+  '</td></tr>'+
+'</table></td></tr></table></body></html>';
+    return { html:html, subject:subject, to:country.to, lang:L.tag };
+  }
+
+  /* ---------------- render ---------------- */
+  function render(){
+    var out = buildEmail(false);
+    el('frame').srcdoc = out.html;
+    el('subjOut').textContent = out.subject;
+    el('toOut').textContent = COUNTRIES[ci].to;
+    el('langMeta').textContent = out.lang + (T.filled?" · filled":" · {{ }}");
+    // plain-text version for mailto / copy
+    var txt = textVersion();
+    el('openMail').href = "mailto:?subject="+encodeURIComponent(out.subject)+"&body="+encodeURIComponent(txt);
+  }
+  function textVersion(){
+    var country=COUNTRIES[ci], L=LANG[country.lang];
+    var f=fills(country,CLIENTS[ti]);
+    function R(t){ t=T.filled?applyFills(t,f):t; if(country.swiss)t=chf(t); if(country.spell==='us')t=t.replace(/visualis/g,'visualiz').replace(/specialis/g,'specializ'); return t; }
+    var body=R(fBody.value);
+    var sig=(country.signoff||L.signoff)+"\nIng. arch. Michal Kašpárek\nAtmosferi° — "+L.role+"\ninfo@atmosferi.com · atmosferi.com";
+    return body+"\n\n"+sig+(T.ps?"\n\n"+R(L.ps):"");
+  }
+
+  /* ---------------- actions ---------------- */
+  function flash(btn,label){var o=btn.textContent;btn.textContent=label;btn.classList.add('copied');setTimeout(function(){btn.textContent=o;btn.classList.remove('copied');},1400);}
+  function copy(text,btn,label){
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){flash(btn,label);},function(){fb(text,btn,label);});}
+    else fb(text,btn,label);
+  }
+  function fb(text,btn,label){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');flash(btn,label);}catch(e){}document.body.removeChild(ta);}
+
+  el('copyText').addEventListener('click',function(){ copy(textVersion(), this, "Copied ✓"); });
+  el('copyHtml').addEventListener('click',function(){ copy(buildEmail(true).html, this, "Copied ✓"); });
+  el('dlHtml').addEventListener('click',function(){
+    var out=buildEmail(true);
+    var name="atmosferi-email_"+COUNTRIES[ci].key+"_"+CLIENTS[ti].key+".html";
+    var blob=new Blob([out.html],{type:"text/html;charset=utf-8"});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href);
+    flash(this,"Downloaded ✓");
+  });
+
+  loadTemplate();
+})();
+</script>
+</body>
+</html>
