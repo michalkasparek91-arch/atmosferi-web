@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { generateAtmosferiEmailHtml, EmailTemplateData } from "./EmailTemplateGenerator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -219,6 +220,31 @@ export function ModularLivePreview({
 
   const isPlainLayout = form.layout_type === "plain";
   const isStandardLayout = form.layout_type === "standard";
+  const isAtmosferiLayout = form.layout_type === "atmosferi_studio" || !form.layout_type;
+  
+  if (isAtmosferiLayout) {
+    const emailData: EmailTemplateData = {
+      subject: previewReplace(form.subject) || "Předmět e-mailu",
+      body: previewReplace(form.body) || "",
+      heroImageEnabled: form.hero_image_url ? true : false,
+      heroImageUrl: previewReplace(form.hero_image_url) || "https://atmosferi.com/demos/atmosferi-viz/img/02-ascension.webp",
+      portfolioEnabled: carouselImages.length > 0 ? true : false,
+      portfolioImages: carouselImages,
+      icebreakerEnabled: form.greeting ? true : false,
+      icebreakerText: previewReplace(form.greeting) || "Všimli jsme si vaší nedávné práce...",
+      signatureEnabled: true,
+      signatureName: "Ing. arch. Michal Kašpárek",
+      signatureRole: "Architektonické studio",
+      signatureEmail: "info@atmosferi.com",
+      psEnabled: form.ps_footer_enabled ?? true,
+      psText: previewReplace(form.ps_footer_text) || "Pokud nyní nemáte kapacitu, stačí odepsat...",
+      themeColor: "#D97757"
+    };
+    const html = generateAtmosferiEmailHtml(emailData);
+    return (
+      <iframe srcDoc={html} className="w-full h-[600px] border-none bg-white rounded-md" title="Preview" />
+    );
+  }
   
   if (isStandardLayout) {
     const isDark = previewTheme === "dark";
@@ -675,7 +701,7 @@ export function ModularEmailEditorDialogInner({
         drip_series: initialData.drip_series || "",
         is_enabled: initialData.is_enabled !== undefined ? initialData.is_enabled : true,
         segment_filters: filters,
-        layout_type: initialData.layout_type || "standard",
+        layout_type: initialData.layout_type || "atmosferi_studio",
         hero_image_url: initialData.hero_image_url || "",
         urgency_banner_enabled: initialData.urgency_banner_enabled !== undefined ? initialData.urgency_banner_enabled : true,
         urgency_banner_text: initialData.urgency_banner_text || "SpěchA?: ZA?kaznA�k �TekA? na rychlou reakci. Tuto zakA?zku jsme prA?vě odeslali pouze vybranA?m specialistLZm ve vaL?em okolA�.",
