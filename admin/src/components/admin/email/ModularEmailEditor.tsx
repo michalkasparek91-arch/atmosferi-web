@@ -64,11 +64,11 @@ export interface EmailEditorState {
 }
 
 const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
-  transactional: { label: "Transakční", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  auth: { label: "Auth", color: "bg-purple-100 text-purple-700 border-purple-200" },
-  marketing: { label: "Marketing", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  lifecycle: { label: "Lifecycle", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  sniper: { label: "Sniper", color: "bg-rose-100 text-rose-700 border-rose-200" },
+  architekti: { label: "Architekti", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  developeri: { label: "Developeři", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  interiery: { label: "Interiéry", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  stavebnictvi: { label: "Stavebnictví", color: "bg-rose-100 text-rose-700 border-rose-200" },
+  b2b: { label: "B2B / Ostatní", color: "bg-purple-100 text-purple-700 border-purple-200" },
 };
 
 export const TEMPLATE_VARIABLES = [
@@ -1369,13 +1369,13 @@ export function ModularEmailEditorDialogInner({
                       <div className="space-y-3 pt-2">
                         <div>
                           <Label className="text-xs font-semibold text-muted-foreground">Kategorie</Label>
-                          <Select value={form.category || "marketing"} onValueChange={(v) => setVal("category", v)}>
+                          <Select value={form.category || "architekti"} onValueChange={(v) => setVal("category", v)}>
                             <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Kategorie..." /></SelectTrigger>
                             <SelectContent className="z-[200]">
-                              <SelectItem value="marketing">Marketing (Akvizice)</SelectItem>
-                              <SelectItem value="transactional">Transakční (Systémové)</SelectItem>
-                              <SelectItem value="drip">Drip Kampaň (Sekvence)</SelectItem>
-                              <SelectItem value="newsletter">Newsletter</SelectItem>
+                              <SelectItem value="architekti">Architekti / Studia</SelectItem>
+                              <SelectItem value="developeri">Developeři / Investoři</SelectItem>
+                              <SelectItem value="interiery">Interiérová studia</SelectItem>
+                              <SelectItem value="stavebnictvi">Stavební firmy</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1385,8 +1385,8 @@ export function ModularEmailEditorDialogInner({
                             <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Role..." /></SelectTrigger>
                             <SelectContent className="z-[200]">
                               <SelectItem value="all">Všem (Výchozí)</SelectItem>
-                              <SelectItem value="worker">Pro Řemeslníky</SelectItem>
-                              <SelectItem value="customer">Pro Zákazníky</SelectItem>
+                              <SelectItem value="ceo">Majitel / CEO</SelectItem>
+                              <SelectItem value="architect">Hlavní architekt / Designer</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1429,9 +1429,9 @@ export function ModularEmailEditorDialogInner({
                         <Select value={form.segment_filters?.userTypeFilter || "all"} onValueChange={(v) => setSegmentFilter("userTypeFilter", v)}>
                           <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Všichni" /></SelectTrigger>
                           <SelectContent className="z-[200]">
-                            <SelectItem value="all">Zákazníci i Řemeslníci</SelectItem>
-                            <SelectItem value="worker">Pouze Řemeslníci</SelectItem>
-                            <SelectItem value="customer">Pouze Zákazníci</SelectItem>
+                            <SelectItem value="all">Všechny obory</SelectItem>
+                            <SelectItem value="architekti">Architekti a studia</SelectItem>
+                            <SelectItem value="developeri">Developeři a investoři</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1486,9 +1486,9 @@ export function ModularEmailEditorDialogInner({
                       <Select value={form.target_role || "all"} onValueChange={(v) => setVal("target_role", v)}>
                         <SelectTrigger className="mt-1 h-9 text-xs rounded-xl"><SelectValue /></SelectTrigger>
                         <SelectContent className="z-[200]">
-                          <SelectItem value="all">Všichni</SelectItem>
-                          <SelectItem value="worker">Řemeslníci</SelectItem>
-                          <SelectItem value="customer">Zákazníci</SelectItem>
+                          <SelectItem value="all">Všichni (Firma)</SelectItem>
+                          <SelectItem value="ceo">Majitel / CEO</SelectItem>
+                          <SelectItem value="architect">Hlavní architekt</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1533,12 +1533,12 @@ export function ModularEmailEditorDialogInner({
                     <div>
                       <Label className="text-xs font-semibold text-muted-foreground">Odesílatel (Z koho)</Label>
                       <Select value={form.sender_email || "default"} onValueChange={(v) => setVal("sender_email", v === "default" ? null : v)}>
-                        <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Výchozí (Zrobee <noreply@zrobee.cz>)" /></SelectTrigger>
+                        <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Výchozí (Atmosferi <info@atmosferi.com>)" /></SelectTrigger>
                         <SelectContent className="z-[200]">
-                          <SelectItem value="default">Výchozí (noreply@zrobee.cz)</SelectItem>
-                          <SelectItem value="michal@zrobee.cz">Michal Kasparek (michal@zrobee.cz)</SelectItem>
-                          <SelectItem value="info@zrobee.cz">Zrobee Info (info@zrobee.cz)</SelectItem>
-                          <SelectItem value="podpora@zrobee.cz">Zrobee Podpora (podpora@zrobee.cz)</SelectItem>
+                          <SelectItem value="default">Výchozí (info@atmosferi.com)</SelectItem>
+                          <SelectItem value="michal@atmosferi.com">Michal Kašpárek (michal@atmosferi.com)</SelectItem>
+                          <SelectItem value="hello@atmosferi.com">Atmosferi Hello (hello@atmosferi.com)</SelectItem>
+                          <SelectItem value="podpora@atmosferi.com">Podpora (podpora@atmosferi.com)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
