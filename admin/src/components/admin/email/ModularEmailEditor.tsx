@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { generateAtmosferiEmailHtml, EmailTemplateData } from "./EmailTemplateGenerator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -47,7 +46,6 @@ export interface EmailEditorState {
   promo_banner_enabled?: boolean;
   promo_banner_text?: string | null;
   job_description_snippet?: string | null;
-  language?: string | null;
   ps_footer_enabled?: boolean;
   ps_footer_text?: string | null;
   show_job_widget?: boolean;
@@ -62,7 +60,7 @@ export interface EmailEditorState {
 }
 
 const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
-  transactional: { label: "Transak�TnA�", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  transactional: { label: "Transakční", color: "bg-blue-100 text-blue-700 border-blue-200" },
   auth: { label: "Auth", color: "bg-purple-100 text-purple-700 border-purple-200" },
   marketing: { label: "Marketing", color: "bg-amber-100 text-amber-700 border-amber-200" },
   lifecycle: { label: "Lifecycle", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
@@ -70,19 +68,19 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 export const TEMPLATE_VARIABLES = [
-  { key: "{{osloveni}}", label: "OslovenA� (Vokativ)", desc: "OslovenA� v 5. pA?du (napL�. PetL�e)" },
-  { key: "{{jmeno}}", label: "JmA�no", desc: "JmA�no pL�A�jemce v 1. pA?du" },
-  { key: "{{mesto}}", label: "Město", desc: "Město zakA?zky nebo profA�ka (1. pA?d)" },
-  { key: "{{mesto_v_meste}}", label: "Město (v/ve)", desc: "Město s pL�edloLlkou v/ve (napL�. v Praze)" },
-  { key: "{{obor}}", label: "Obor", desc: "Obor / Specializace (1. pA?d)" },
-  { key: "{{obor_2pad}}", label: "Obor (2./4. pA?d)", desc: "Obor / Specializace (2./4. pA?d, napL�. instalatA�ra)" },
-  { key: "{{nazev_zakazky}}", label: "ZakA?zka", desc: "NA?zev zakA?zky" },
-  { key: "{{popis_zakazky}}", label: "Popis", desc: "DetailnA� popis zadA?nA�" },
-  { key: "{{rozpocet}}", label: "Rozpo�Tet", desc: "Rozpo�Tet nebo cenovA? poznA?mka" },
-  { key: "{{zakaznik}}", label: "ZA?kaznA�k", desc: "JmA�no poptA?vajA�cA�ho" },
-  { key: "{{odkaz_zakazky}}", label: "Odkaz", desc: "URL na detail zakA?zky" },
-  { key: "{{icebreaker}}", label: "Icebreaker", desc: "IndividuA?lnA� oslovenA� na mA�ru" },
-  { key: "{{podkategorie_2pad}}", label: "Podkategorie - SkloněnA? tvar", desc: "SkloněnA? tvar podkategorie" }
+  { key: "{{osloveni}}", label: "Oslovení (Vokativ)", desc: "Oslovení v 5. pádu (např. Petře)" },
+  { key: "{{jmeno}}", label: "Jméno", desc: "Jméno příjemce v 1. pádu" },
+  { key: "{{mesto}}", label: "Město", desc: "Město zakázky nebo profíka (1. pád)" },
+  { key: "{{mesto_v_meste}}", label: "Město (v/ve)", desc: "Město s předložkou v/ve (např. v Praze)" },
+  { key: "{{obor}}", label: "Obor", desc: "Obor / Specializace (1. pád)" },
+  { key: "{{obor_2pad}}", label: "Obor (2./4. pád)", desc: "Obor / Specializace (2./4. pád, např. instalatéra)" },
+  { key: "{{nazev_zakazky}}", label: "Zakázka", desc: "Název zakázky" },
+  { key: "{{popis_zakazky}}", label: "Popis", desc: "Detailní popis zadání" },
+  { key: "{{rozpocet}}", label: "Rozpočet", desc: "Rozpočet nebo cenová poznámka" },
+  { key: "{{zakaznik}}", label: "Zákazník", desc: "Jméno poptávajícího" },
+  { key: "{{odkaz_zakazky}}", label: "Odkaz", desc: "URL na detail zakázky" },
+  { key: "{{icebreaker}}", label: "Icebreaker", desc: "Individuální oslovení na míru" },
+  { key: "{{podkategorie_2pad}}", label: "Podkategorie - Skloněný tvar", desc: "Skloněný tvar podkategorie" }
 ];
 
 export function parseRichTextToHtml(text?: string | null, textAlign: string = "left", isDark: boolean = false) {
@@ -100,7 +98,7 @@ export function parseRichTextToHtml(text?: string | null, textAlign: string = "l
   let newLines: string[] = [];
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (line.startsWith('�? ') || line.startsWith('- ') || line.startsWith('* ')) {
+    if (line.startsWith('• ') || line.startsWith('- ') || line.startsWith('* ')) {
       if (!inList) {
         inList = true;
         newLines.push(`<ul style="margin: 12px 0; padding-left: 20px; list-style-type: disc; font-size: 15px; color: ${color}; line-height: 1.6; text-align: ${align};">`);
@@ -134,7 +132,7 @@ export function RichTextToolbar({ onInsert }: { onInsert: (before: string, after
         size="sm"
         className="h-7 px-2 text-xs font-bold hover:bg-primary/10 hover:text-primary gap-1 rounded"
         onClick={() => onInsert("**", "**")}
-        title="Tu�Tně (**text**)"
+        title="Tučně (**text**)"
       >
         <Bold className="h-3 w-3" /> B
       </Button>
@@ -144,7 +142,7 @@ export function RichTextToolbar({ onInsert }: { onInsert: (before: string, after
         size="sm"
         className="h-7 px-2 text-xs italic hover:bg-primary/10 hover:text-primary gap-1 rounded"
         onClick={() => onInsert("_", "_")}
-        title="KurzA�va (_text_)"
+        title="Kurzíva (_text_)"
       >
         <Italic className="h-3 w-3" /> I
       </Button>
@@ -153,10 +151,10 @@ export function RichTextToolbar({ onInsert }: { onInsert: (before: string, after
         variant="ghost"
         size="sm"
         className="h-7 px-2 text-xs hover:bg-primary/10 hover:text-primary gap-1 rounded"
-        onClick={() => onInsert("�? ", "")}
-        title="OdrA?Llka (�? poloLlka)"
+        onClick={() => onInsert("• ", "")}
+        title="Odrážka (• položka)"
       >
-        <List className="h-3 w-3" /> OdrA?Llka
+        <List className="h-3 w-3" /> Odrážka
       </Button>
       <Button
         type="button"
@@ -167,7 +165,7 @@ export function RichTextToolbar({ onInsert }: { onInsert: (before: string, after
           const url = prompt("Zadejte URL odkazu:", "https://");
           if (url) onInsert(`<a href="${url}" style="color: #a6d16f; text-decoration: underline;">`, "</a>");
         }}
-        title="VloLlit odkaz"
+        title="Vložit odkaz"
       >
         <Link className="h-3 w-3" /> Odkaz
       </Button>
@@ -220,31 +218,6 @@ export function ModularLivePreview({
 
   const isPlainLayout = form.layout_type === "plain";
   const isStandardLayout = form.layout_type === "standard";
-  const isAtmosferiLayout = form.layout_type === "atmosferi_studio" || !form.layout_type;
-  
-  if (isAtmosferiLayout) {
-    const emailData: EmailTemplateData = {
-      subject: previewReplace(form.subject) || "Předmět e-mailu",
-      body: previewReplace(form.body) || "",
-      heroImageEnabled: form.hero_image_url ? true : false,
-      heroImageUrl: previewReplace(form.hero_image_url) || "https://atmosferi.com/demos/atmosferi-viz/img/02-ascension.webp",
-      portfolioEnabled: carouselImages.length > 0 ? true : false,
-      portfolioImages: carouselImages,
-      icebreakerEnabled: form.greeting ? true : false,
-      icebreakerText: previewReplace(form.greeting) || "Všimli jsme si vaší nedávné práce...",
-      signatureEnabled: true,
-      signatureName: "Ing. arch. Michal Kašpárek",
-      signatureRole: "Architektonické studio",
-      signatureEmail: "info@atmosferi.com",
-      psEnabled: form.ps_footer_enabled ?? true,
-      psText: previewReplace(form.ps_footer_text) || "Pokud nyní nemáte kapacitu, stačí odepsat...",
-      themeColor: "#D97757"
-    };
-    const html = generateAtmosferiEmailHtml(emailData);
-    return (
-      <iframe srcDoc={html} className="w-full h-[600px] border-none bg-white rounded-md" title="Preview" />
-    );
-  }
   
   if (isStandardLayout) {
     const isDark = previewTheme === "dark";
@@ -255,9 +228,22 @@ export function ModularLivePreview({
         
         {/* 1. Header (Logo) */}
         <div className="pb-8 text-center">
-          <div className={`font-sans font-bold text-2xl tracking-tight leading-none ${isDark ? "text-white" : "text-black"}`}>
-            Atmosferi<sup className="text-[0.5em] font-medium" style={{ top: "-0.7em", position: "relative" }}>�</sup>
-          </div>
+          <div 
+            style={{
+              height: '28px',
+              width: '124px',
+              backgroundColor: isDark ? '#a6d16f' : '#213319',
+              maskImage: 'url(https://zrobee.cz/zrobee-logo.svg)',
+              WebkitMaskImage: 'url(https://zrobee.cz/zrobee-logo.svg)',
+              maskSize: 'contain',
+              WebkitMaskSize: 'contain',
+              maskRepeat: 'no-repeat',
+              WebkitMaskRepeat: 'no-repeat',
+              maskPosition: 'center',
+              WebkitMaskPosition: 'center',
+              display: 'inline-block'
+            }}
+          />
         </div>
 
         {/* 2. Emoji & Greeting */}
@@ -288,10 +274,8 @@ export function ModularLivePreview({
         {/* 5. Button */}
         {form.cta_url && form.cta_text && form.cta_text !== "none" && (
           <div className="text-center my-8">
-            <div className={`inline-flex items-center justify-center gap-3 px-[28px] py-[18px] border font-mono text-[13px] uppercase tracking-[0.08em] cursor-pointer transition-colors ${
-              isDark ? "bg-white text-black border-white hover:bg-black hover:text-white" : "bg-black text-white border-black hover:bg-white hover:text-black"
-            }`}>
-              {previewReplace(form.cta_text)} <span className="transition-transform hover:translate-x-1.5">?</span>
+            <div className="inline-block px-8 py-3.5 rounded-full font-semibold text-[16px] bg-[#a6d16f] text-[#121210] shadow-[0_4px_14px_0_rgba(166,209,111,0.39)] cursor-pointer">
+              {previewReplace(form.cta_text)}
             </div>
           </div>
         )}
@@ -307,9 +291,9 @@ export function ModularLivePreview({
 
         {/* 7. Footer */}
         <div className={`text-[12px] leading-[1.5] text-center ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>
-          Tento e-mail byl odeslA?n automaticky. NastavenA� notifikacA� mLZLlete změnit ve svA�m profilu.
+          Tento e-mail byl odeslán automaticky. Nastavení notifikací můžete změnit ve svém profilu.
           <br />
-          © {new Date().getFullYear()} Atmosferi. VL?echna prA?va vyhrazena.
+          © {new Date().getFullYear()} Zrobee. Všechna práva vyhrazena.
         </div>
       </div>
     );
@@ -321,7 +305,7 @@ export function ModularLivePreview({
         isDark ? "bg-zinc-950 text-zinc-300 border border-zinc-800" : "bg-white text-zinc-800"
       }`}>
         <div className="border-b border-border/40 pb-2 mb-2 font-bold text-muted-foreground uppercase text-[10px]">
-          �SistA? e-mail (�SistA? text)
+          Čistý e-mail (Čistý text)
         </div>
         <div className="whitespace-pre-wrap leading-relaxed">
           {previewReplace(form.greeting || "Ahoj {{osloveni}},")}\n\n
@@ -340,15 +324,28 @@ export function ModularLivePreview({
     }`} style={{ textAlign: "center" }}>
       {/* 1. Header (Logo Zrobee with exact HEX color Masking) */}
       <div className={`pb-4 text-center border-b ${isDark ? "border-zinc-800" : "border-border/60"}`}>
-        <div className={`font-sans font-bold text-2xl tracking-tight leading-none ${isDark ? "text-white" : "text-black"}`}>
-          Atmosferi<sup className="text-[0.5em] font-medium" style={{ top: "-0.7em", position: "relative" }}>�</sup>
-        </div>
+        <div 
+          style={{
+            height: '28px',
+            width: '124px',
+            backgroundColor: isDark ? '#a6d16f' : '#213319',
+            maskImage: 'url(https://zrobee.cz/zrobee-logo.svg)',
+            WebkitMaskImage: 'url(https://zrobee.cz/zrobee-logo.svg)',
+            maskSize: 'contain',
+            WebkitMaskSize: 'contain',
+            maskRepeat: 'no-repeat',
+            WebkitMaskRepeat: 'no-repeat',
+            maskPosition: 'center',
+            WebkitMaskPosition: 'center',
+            display: 'inline-block'
+          }}
+        />
       </div>
 
       {/* 2. Emoji & Greeting */}
       <div className="space-y-3 pt-2 text-left">
         {!!form.segment_filters?.show_subject_in_body && (
-          <div className="text-4xl animate-bounce duration-1000">{form.emoji || "dz��"}</div>
+          <div className="text-4xl animate-bounce duration-1000">{form.emoji || "📧"}</div>
         )}
         {form.greeting !== "" && (
           form.segment_filters?.graphic_greeting_enabled ? (
@@ -356,7 +353,7 @@ export function ModularLivePreview({
                <span className={`text-[16px] font-black tracking-tight transition-colors ${
                  isDark ? "text-[#a6d16f]" : "text-[#213319]"
                }`}>
-                 {previewReplace(form.greeting || "DobrA? den {{osloveni}},")}
+                 {previewReplace(form.greeting || "Dobrý den {{osloveni}},")}
                </span>
             </div>
           ) : (
@@ -365,7 +362,7 @@ export function ModularLivePreview({
             } ${
               form.segment_filters?.text_align === "center" ? "text-center" : "text-left"
             }`}>
-              {previewReplace(form.greeting || "DobrA? den {{osloveni}},")}
+              {previewReplace(form.greeting || "Dobrý den {{osloveni}},")}
             </p>
           )
         )}
@@ -376,22 +373,22 @@ export function ModularLivePreview({
         <h1 className={`text-2xl md:text-3xl font-extrabold leading-[1.1] tracking-tight max-w-[500px] mx-auto transition-colors ${
           isDark ? "text-white" : "text-zinc-900"
         }`}>
-          {previewReplace(form.subject || "PL�edmět e-mailu")}
+          {previewReplace(form.subject || "Předmět e-mailu")}
         </h1>
       )}
 
-      {/* 4. Hero ObrA?zek */}
+      {/* 4. Hero Obrázek */}
       {(form.hero_image_url !== "" && form.hero_image_url !== null) && (
-        <div className={`relative aspect-[16/9] w-full overflow-hidden border shadow-sm group ${
+        <div className={`relative aspect-[16/9] w-full rounded-2xl overflow-hidden border shadow-sm group ${
           isDark ? "border-zinc-800 bg-zinc-900/30" : "border-border/60 bg-muted/30"
         }`}>
           <img src={form.hero_image_url} alt="Hero Banner" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" />
         </div>
       )}
 
-      {/* 5. ObrA?zkovA? Karusel */}
+      {/* 5. Obrázkový Karusel */}
       {!!form.segment_filters?.carousel_enabled && (
-        <div className={`relative aspect-[16/9] w-full overflow-hidden border shadow-md group select-none ${
+        <div className={`relative aspect-[16/9] w-full rounded-2xl overflow-hidden border shadow-md group select-none ${
           isDark ? "border-zinc-800 bg-zinc-900/40" : "border-border/60 bg-muted/40"
         }`}>
           {carouselImages.length > 0 ? (
@@ -401,7 +398,7 @@ export function ModularLivePreview({
                   <img
                     key={img}
                     src={img}
-                    alt={`SnA�mek ${idx + 1}`}
+                    alt={`Snímek ${idx + 1}`}
                     className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out ${idx === activeSlide ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}`}
                   />
                 ))}
@@ -412,14 +409,14 @@ export function ModularLivePreview({
                   <button
                     onClick={handlePrevSlide}
                     className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-xs border border-white/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer shadow-sm"
-                    title="PL�edchozA�"
+                    title="Předchozí"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     onClick={handleNextSlide}
                     className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-xs border border-white/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer shadow-sm"
-                    title="NA?sledujA�cA�"
+                    title="Následující"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -439,31 +436,31 @@ export function ModularLivePreview({
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50 gap-2">
               <Smartphone className="h-8 w-8 opacity-40 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Karusel aktivnA� (VloLlte URL adresy oddělenA� �TA?rkou)</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Karusel aktivní (Vložte URL adresy oddělené čárkou)</span>
             </div>
           )}
         </div>
       )}
 
-      {/* 6. HlavnA� tělo e-mailu */}
+      {/* 6. Hlavní tělo e-mailu */}
       <div 
         className={`text-[15px] leading-relaxed max-w-[520px] mx-auto py-2 font-normal transition-colors ${
           isDark ? "text-zinc-300" : "text-zinc-700"
         } ${
           form.segment_filters?.text_align === "center" ? "text-center" : "text-left"
         }`} 
-        dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || "Zde bude text vaL?eho e-mailu..."), form.segment_filters?.text_align || "left", isDark) }}
+        dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || "Zde bude text vašeho e-mailu..."), form.segment_filters?.text_align || "left", isDark) }}
       />
 
-      {/* 7. Karta zakA?zky (Job Card Widget) */}
+      {/* 7. Karta zakázky (Job Card Widget) */}
       {(form.show_job_widget ?? true) && (
-        <div className={`border overflow-hidden shadow-md text-left max-w-[500px] mx-auto transition-transform hover:scale-[1.01] ${
+        <div className={`border rounded-2xl overflow-hidden shadow-md text-left max-w-[500px] mx-auto transition-transform hover:scale-[1.01] ${
           isDark ? "border-zinc-800 bg-zinc-900/60" : "border-[#e1e8dc] bg-white"
         }`}>
-            <div className={`px-4 py-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+            <div className={`px-4 py-2 inline-flex items-center gap-2 rounded-br-2xl text-xs font-bold uppercase tracking-wider ${
               isDark ? "bg-zinc-800 text-primary" : "bg-[#EAF4E9] text-[#213319]"
             }`}>
-              <span>dz��</span>
+              <span>🔨</span>
               <span>{previewReplace("{{obor}}")}</span>
             </div>
             
@@ -471,8 +468,8 @@ export function ModularLivePreview({
               <div className={`flex flex-wrap items-center gap-4 text-xs font-medium ${
                 isDark ? "text-zinc-400" : "text-muted-foreground"
               }`}>
-                <span className="flex items-center gap-1">dz�T {previewReplace("{{mesto}}")} — 15 km</span>
-                <span className="flex items-center gap-1">dz�� Co nejdL�A�ve</span>
+                <span className="flex items-center gap-1">📍 {previewReplace("{{mesto}}")} — 15 km</span>
+                <span className="flex items-center gap-1">🗓 Co nejdříve</span>
               </div>
               
               <h3 className={`text-lg font-bold leading-snug ${
@@ -513,21 +510,19 @@ export function ModularLivePreview({
           </div>
       )}
 
-      {/* 8. UrgentnA� banner */}
+      {/* 8. Urgentní banner */}
       {(form.urgency_banner_enabled ?? true) && (
-        <div className={`p-4 text-xs font-semibold text-left max-w-[500px] mx-auto shadow-2xs ${
+        <div className={`rounded-2xl p-4 text-xs font-semibold text-left max-w-[500px] mx-auto shadow-2xs ${
           isDark ? "bg-amber-950/20 border border-amber-900/30 text-amber-400" : "bg-amber-100/60 border border-amber-200/80 text-amber-800"
         }`}>
-          �Zl {previewReplace(form.urgency_banner_text || "SpěchA?: ZA?kaznA�k �TekA? na rychlou reakci. Tuto zakA?zku jsme prA?vě odeslali pouze vybranA?m specialistLZm ve vaL?em okolA�.")}
+          ⏳ {previewReplace(form.urgency_banner_text || "Spěchá: Zákazník čeká na rychlou reakci. Tuto zakázku jsme právě odeslali pouze vybraným specialistům ve vašem okolí.")}
         </div>
       )}
 
       {(form.show_cta_button ?? true) && form.cta_text && form.cta_text !== "none" && (
         <div className="pt-2 text-center">
-          <div className={`inline-flex items-center justify-center gap-3 px-[28px] py-[18px] border font-mono text-[13px] uppercase tracking-[0.08em] cursor-pointer transition-colors ${
-            isDark ? "bg-white text-black border-white hover:bg-black hover:text-white" : "bg-black text-white border-black hover:bg-white hover:text-black"
-          }`}>
-            {previewReplace(form.cta_text || "Zobrazit a podat nab�dku")} <span className="transition-transform hover:translate-x-1.5">?</span>
+          <div className="inline-block bg-[#a6d16f] hover:bg-[#95c05e] text-[#213319] font-bold px-8 py-3 rounded-full text-center text-[13px] shadow-sm cursor-pointer transition-all hover:scale-105 active:scale-98">
+            {previewReplace(form.cta_text || "Zobrazit a podat nabídku")}
           </div>
           {form.secondary_text && (
             <div 
@@ -556,76 +551,76 @@ export function ModularLivePreview({
 
       {/* 10. Promo banner */}
       {(form.promo_banner_enabled ?? true) && (
-        <div className={`border border-dashed p-4 text-xs text-left max-w-[500px] mx-auto ${
+        <div className={`border border-dashed rounded-2xl p-4 text-xs text-left max-w-[500px] mx-auto ${
           isDark ? "bg-[#e8f4da]/5 border-[#a6d16f]/40 text-zinc-300" : "bg-[#e8f4da] border-[#a6d16f] text-[#213319]"
         }`}>
-          dz�  <strong>{previewReplace(form.promo_banner_text || "ZavA?děcA� akce: ProtoLle Zrobee prA?vě spouL?tA�me...").split(':')[0] || "ZavA?děcA� akce"}:</strong> {previewReplace(form.promo_banner_text || "ZavA?děcA� akce: ProtoLle Zrobee prA?vě spouL?tA�me...").split(':').slice(1).join(':')}
+          🎁 <strong>{previewReplace(form.promo_banner_text || "Zaváděcí akce: Protože Zrobee právě spouštíme...").split(':')[0] || "Zaváděcí akce"}:</strong> {previewReplace(form.promo_banner_text || "Zaváděcí akce: Protože Zrobee právě spouštíme...").split(':').slice(1).join(':')}
         </div>
       )}
 
-      {/* 11. SouvisejA�cA� �TlA?nky (Magazine Grid) */}
+      {/* 11. Související články (Magazine Grid) */}
       {!!form.segment_filters?.articles_enabled && (
         <div className={`pt-6 border-t text-left space-y-4 max-w-[500px] mx-auto ${
           isDark ? "border-zinc-800" : "border-border/50"
         }`}>
           <div className="flex items-center justify-between border-b border-border/60 pb-2">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">AktuA?lně z magazA�nu</span>
-            <span className="text-[11px] text-primary font-bold hover:underline cursor-pointer">Zobrazit vL?e →</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Aktuálně z magazínu</span>
+            <span className="text-[11px] text-primary font-bold hover:underline cursor-pointer">Zobrazit vše →</span>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 group cursor-pointer">
-              <div className={`aspect-[4/3] overflow-hidden relative border shadow-2xs ${
+              <div className={`aspect-[4/3] rounded-xl overflow-hidden relative border shadow-2xs ${
                 isDark ? "border-zinc-800 bg-zinc-950" : "border-border/60 bg-muted/50"
               }`}>
-                <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=300&q=80" alt="�SlA?nek 1" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=300&q=80" alt="Článek 1" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
-                  <div className="text-[8px] text-white font-bold px-2 py-0.5 bg-black/40 backdrop-blur-xs uppercase">Nej�TtenějL?A�</div>
+                  <div className="text-[8px] text-white font-bold px-2 py-0.5 bg-black/40 backdrop-blur-xs rounded-full uppercase">Nejčtenější</div>
                 </div>
               </div>
               <div className="space-y-1">
                 <h4 className={`text-xs font-bold leading-tight group-hover:text-primary transition-colors ${
                   isDark ? "text-zinc-200" : "text-foreground"
-                }`}>Jak vybrat sprA?vnA�ho L�emeslnA�ka a neuhoL�et</h4>
-                <p className="text-[10px] text-muted-foreground leading-snug">5 klA��TovA?ch tipLZ, jak poznat profA�ka...</p>
+                }`}>Jak vybrat správného řemeslníka a neuhořet</h4>
+                <p className="text-[10px] text-muted-foreground leading-snug">5 klíčových tipů, jak poznat profíka...</p>
               </div>
             </div>
             <div className="space-y-2 group cursor-pointer">
-              <div className={`aspect-[4/3] overflow-hidden relative border shadow-2xs ${
+              <div className={`aspect-[4/3] rounded-xl overflow-hidden relative border shadow-2xs ${
                 isDark ? "border-zinc-800 bg-zinc-950" : "border-border/60 bg-muted/50"
               }`}>
-                <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80" alt="�SlA?nek 2" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80" alt="Článek 2" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
-                  <div className="text-[8px] text-white font-bold px-2 py-0.5 bg-black/40 backdrop-blur-xs uppercase font-sans">Novinka</div>
+                  <div className="text-[8px] text-white font-bold px-2 py-0.5 bg-black/40 backdrop-blur-xs rounded-full uppercase font-sans">Novinka</div>
                 </div>
               </div>
               <div className="space-y-1">
                 <h4 className={`text-xs font-bold leading-tight group-hover:text-primary transition-colors ${
                   isDark ? "text-zinc-200" : "text-foreground"
                 }`}>Rekonstrukce koupelny krok za krokem</h4>
-                <p className="text-[10px] text-muted-foreground leading-snug">KompletnA� prLZvodce od plA?nu po realizaci...</p>
+                <p className="text-[10px] text-muted-foreground leading-snug">Kompletní průvodce od plánu po realizaci...</p>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 13. P.S. Pati�Tka / OdhlA?L?enA� */}
+      {/* 13. P.S. Patička / Odhlášení */}
       {form.ps_footer_enabled ? (
         <div className={`pt-6 border-t text-xs text-left italic leading-relaxed max-w-[500px] mx-auto ${
           isDark ? "border-zinc-800 text-zinc-400" : "border-border/60 text-muted-foreground"
         }`}>
           <p className={form.segment_filters?.text_align === "center" ? "text-center" : "text-left"}>
-            {previewReplace(form.ps_footer_text || "P.S. Pokud uLl mA?te plno a dalL?A� zakA?zky te�Z nepotL�ebujete, sta�TA� mi odepsat 'Ne' a uLl VA?s nebudu nabA�dkami ruL?it.")}
+            {previewReplace(form.ps_footer_text || "P.S. Pokud už máte plno a další zakázky teď nepotřebujete, stačí mi odepsat 'Ne' a už Vás nebudu nabídkami rušit.")}
           </p>
         </div>
       ) : (
         <div className={`pt-6 border-t text-[11px] text-center space-y-1.5 max-w-[460px] mx-auto ${
           isDark ? "border-zinc-800 text-zinc-500" : "border-border/60 text-muted-foreground"
         }`}>
-          <p>Tento e-mail byl odeslA?n automaticky z platformy Atmosferi.</p>
-          <p>Nechcete od nA?s dostA?vat dalL?A� podobnA� nabA�dky? <span className="underline text-primary hover:text-primary/80 cursor-pointer">OdhlA?sit z odběru</span></p>
-          <p>© 2026 Atmosferi �? VL?echna prA?va vyhrazena.</p>
+          <p>Tento e-mail byl odeslán automaticky z platformy Zrobee.</p>
+          <p>Nechcete od nás dostávat další podobné nabídky? <span className="underline text-primary hover:text-primary/80 cursor-pointer">Odhlásit z odběru</span></p>
+          <p>© 2026 Zrobee • Všechna práva vyhrazena.</p>
         </div>
       )}
     </div>
@@ -687,8 +682,8 @@ export function ModularEmailEditorDialogInner({
         slug: initialData.slug || "",
         category: initialData.category || "marketing",
         subject: initialData.subject || "",
-        emoji: initialData.emoji || "dz��",
-        greeting: initialData.greeting !== undefined ? initialData.greeting : "DobrA? den {{osloveni}},",
+        emoji: initialData.emoji || "📧",
+        greeting: initialData.greeting !== undefined ? initialData.greeting : "Dobrý den {{osloveni}},",
         body: bodyVal,
         cta_text: initialData.cta_text || "",
         cta_url: initialData.cta_url || "",
@@ -701,15 +696,15 @@ export function ModularEmailEditorDialogInner({
         drip_series: initialData.drip_series || "",
         is_enabled: initialData.is_enabled !== undefined ? initialData.is_enabled : true,
         segment_filters: filters,
-        layout_type: initialData.layout_type || "atmosferi_studio",
+        layout_type: initialData.layout_type || "standard",
         hero_image_url: initialData.hero_image_url || "",
         urgency_banner_enabled: initialData.urgency_banner_enabled !== undefined ? initialData.urgency_banner_enabled : true,
-        urgency_banner_text: initialData.urgency_banner_text || "SpěchA?: ZA?kaznA�k �TekA? na rychlou reakci. Tuto zakA?zku jsme prA?vě odeslali pouze vybranA?m specialistLZm ve vaL?em okolA�.",
+        urgency_banner_text: initialData.urgency_banner_text || "Spěchá: Zákazník čeká na rychlou reakci. Tuto zakázku jsme právě odeslali pouze vybraným specialistům ve vašem okolí.",
         promo_banner_enabled: initialData.promo_banner_enabled !== undefined ? initialData.promo_banner_enabled : true,
-        promo_banner_text: initialData.promo_banner_text || "ZavA?děcA� akce: ProtoLle Zrobee prA?vě spouL?tA�me, neplatA�te za kontakt LlA?dnou provizi.",
+        promo_banner_text: initialData.promo_banner_text || "Zaváděcí akce: Protože Zrobee právě spouštíme, neplatíte za kontakt žádnou provizi.",
         job_description_snippet: initialData.job_description_snippet || "",
         ps_footer_enabled: initialData.ps_footer_enabled !== undefined ? initialData.ps_footer_enabled : false,
-        ps_footer_text: initialData.ps_footer_text || "P.S. Pokud uLl mA?te plno a dalL?A� zakA?zky te�Z nepotL�ebujete, sta�TA� mi odepsat 'Ne' a uLl VA?s nebudu nabA�dkami ruL?it.",
+        ps_footer_text: initialData.ps_footer_text || "P.S. Pokud už máte plno a další zakázky teď nepotřebujete, stačí mi odepsat 'Ne' a už Vás nebudu nabídkami rušit.",
         show_job_widget: initialData.show_job_widget !== undefined ? initialData.show_job_widget : true,
         show_cta_button: initialData.show_cta_button !== undefined ? initialData.show_cta_button : true,
         icebreaker: initialData.icebreaker || "",
@@ -745,7 +740,7 @@ export function ModularEmailEditorDialogInner({
         const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
         return jobs?.map(j => ({
           ...j,
-          customer_name: profileMap.get(j.customer_id) || "ZA?kaznA�k"
+          customer_name: profileMap.get(j.customer_id) || "Zákazník"
         })) || [];
       }
       return jobs || [];
@@ -787,7 +782,7 @@ export function ModularEmailEditorDialogInner({
       segment_filters: { ...form.segment_filters, ...filters },
     };
     setForm(nextState);
-    toast.success(`L�ablona „${templateData.name}�s na�Ttena.`);
+    toast.success(`Šablona „${templateData.name}“ načtena.`);
   };
 
   const selectedJob = useMemo(() => {
@@ -798,26 +793,26 @@ export function ModularEmailEditorDialogInner({
 
   const previewData = useMemo(() => {
     const defaultData = {
-      osloveni: "PetL�e", jmeno: "Petr NovA?k", mesto: "Praha", mesto_v_meste: "v Praze",
-      obor: "L?emeslnA� prA?ce", obor_2pad: "L�emeslnA�ka", nazev_zakazky: "Rekonstrukce bytovA�ho jA?dra",
-      popis_zakazky: "HledA?m spolehlivA�ho L�emeslnA�ka na kompletnA� obklad koupelny...",
-      cena_rozpocet: "15 000 K�T", zakaznik: "Jan", odkaz_zakazky: "https://zrobee.cz",
-      icebreaker: form?.icebreaker || "VL?imli jsme si vaL?eho skvělA�ho profilu."
+      osloveni: "Petře", jmeno: "Petr Novák", mesto: "Praha", mesto_v_meste: "v Praze",
+      obor: "Řemeslné práce", obor_2pad: "řemeslníka", nazev_zakazky: "Rekonstrukce bytového jádra",
+      popis_zakazky: "Hledám spolehlivého řemeslníka na kompletní obklad koupelny...",
+      cena_rozpocet: "15 000 Kč", zakaznik: "Jan", odkaz_zakazky: "https://zrobee.cz",
+      icebreaker: form?.icebreaker || "Všimli jsme si vašeho skvělého profilu."
     };
     
     const getCityIn = (city?: string) => {
-      if (!city) return "v okolA�";
+      if (!city) return "v okolí";
       const cityLower = city.toLowerCase().trim();
       if (cityLower === "praha") return "v Praze";
       if (cityLower === "brno") return "v Brně";
       if (cityLower === "ostrava") return "v Ostravě";
-      if (cityLower === "plzeL?") return "v Plzni";
+      if (cityLower === "plzeň") return "v Plzni";
       if (cityLower === "liberec") return "v Liberci";
       if (cityLower === "olomouc") return "v Olomouci";
-      if (cityLower === "hradec krA?lovA�") return "v Hradci KrA?lovA�";
-      if (cityLower === "�TeskA� budějovice") return "v �SeskA?ch BudějovicA�ch";
-      if (cityLower === "pardubice") return "v PardubicA�ch";
-      if (cityLower === "AsstA� nad labem") return "v A�stA� nad Labem";
+      if (cityLower === "hradec králové") return "v Hradci Králové";
+      if (cityLower === "české budějovice") return "v Českých Budějovicích";
+      if (cityLower === "pardubice") return "v Pardubicích";
+      if (cityLower === "ústí nad labem") return "v Ústí nad Labem";
       return `v ${city}`;
     };
     
@@ -832,7 +827,7 @@ export function ModularEmailEditorDialogInner({
         defaultData.mesto = job.city || defaultData.mesto;
         defaultData.mesto_v_meste = getCityIn(job.city);
         defaultData.popis_zakazky = job.description || defaultData.popis_zakazky;
-        defaultData.cena_rozpocet = job.price_note || (job.budget_min ? `${job.budget_min.toLocaleString('cs-CZ')} K�T` : "NenA� stanovena");
+        defaultData.cena_rozpocet = job.price_note || (job.budget_min ? `${job.budget_min.toLocaleString('cs-CZ')} Kč` : "Není stanovena");
         if (job.service_subcategories) {
           defaultData.obor = job.service_subcategories.name || defaultData.obor;
           defaultData.obor_2pad = job.service_subcategories.category_form || job.service_subcategories.name || defaultData.obor_2pad;
@@ -843,7 +838,7 @@ export function ModularEmailEditorDialogInner({
       defaultData.mesto_v_meste = getCityIn(selectedJob.city);
       defaultData.nazev_zakazky = selectedJob.title || defaultData.nazev_zakazky;
       defaultData.popis_zakazky = selectedJob.description || defaultData.popis_zakazky;
-      defaultData.cena_rozpocet = selectedJob.price_note || (selectedJob.budget_min ? `${selectedJob.budget_min.toLocaleString('cs-CZ')} K�T` : "NenA� stanovena");
+      defaultData.cena_rozpocet = selectedJob.price_note || (selectedJob.budget_min ? `${selectedJob.budget_min.toLocaleString('cs-CZ')} Kč` : "Není stanovena");
       if (selectedJob.service_subcategories) {
         defaultData.obor = selectedJob.service_subcategories.name || defaultData.obor;
         defaultData.obor_2pad = selectedJob.service_subcategories.category_form || selectedJob.service_subcategories.name || defaultData.obor_2pad;
@@ -950,7 +945,7 @@ export function ModularEmailEditorDialogInner({
     setIsRegenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("llms-full", {
-        body: { prompt: "NapiL? krA?tkA? icebreaker pro e-mail.", systemPrompt: "Jsi expert na B2B cold emaily." }
+        body: { prompt: "Napiš krátký icebreaker pro e-mail.", systemPrompt: "Jsi expert na B2B cold emaily." }
       });
       if (error) throw error;
       setVal("icebreaker", data?.content || data);
@@ -972,9 +967,9 @@ export function ModularEmailEditorDialogInner({
             </Button>
             <h2 className="text-base font-bold flex items-center gap-2 truncate shrink-0 text-zinc-800 dark:text-zinc-200">
               <span className="truncate hidden md:inline">
-                {mode === "template" && `L�ablona: ${form.name || "NovA?"}`}
-                {mode === "campaign" && `KampaL?: ${form.name || "VizuA?lnA� Editor"}`}
-                {mode === "outbox" && `Revize zprA?vy pro: ${form.recipient_name || form.recipient_email}`}
+                {mode === "template" && `Šablona: ${form.name || "Nová"}`}
+                {mode === "campaign" && `Kampaň: ${form.name || "Vizuální Editor"}`}
+                {mode === "outbox" && `Revize zprávy pro: ${form.recipient_name || form.recipient_email}`}
               </span>
             </h2>
           </div>
@@ -988,7 +983,7 @@ export function ModularEmailEditorDialogInner({
                 onClick={() => setMobileView(mobileView === "editor" ? "preview" : "editor")} 
                 className="h-8 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-muted text-[10px] font-bold"
               >
-                {mobileView === "editor" ? "NA?hled" : "Upravit"}
+                {mobileView === "editor" ? "Náhled" : "Upravit"}
               </Button>
             </div>
 
@@ -1001,7 +996,7 @@ export function ModularEmailEditorDialogInner({
                   checked={form.is_enabled} 
                   onCheckedChange={(checked) => setVal("is_enabled", checked)}
                   className="h-5 w-9 shrink-0 cursor-pointer data-[state=checked]:bg-zinc-800 dark:data-[state=checked]:bg-zinc-200 data-[state=unchecked]:bg-zinc-200 dark:data-[state=unchecked]:bg-zinc-800"
-                  title={form.is_enabled ? "AktivnA�" : "VypnutA?"}
+                  title={form.is_enabled ? "Aktivní" : "Vypnutá"}
                 />
               </div>
             )}
@@ -1017,7 +1012,7 @@ export function ModularEmailEditorDialogInner({
                 variant="outline" 
                 size="icon" 
                 onClick={() => {
-                  if (confirm("Opravdu chcete tuto L?ablonu smazat?")) {
+                  if (confirm("Opravdu chcete tuto šablonu smazat?")) {
                     onClose();
                     onDelete();
                   }
@@ -1034,7 +1029,7 @@ export function ModularEmailEditorDialogInner({
                 variant="outline" 
                 size="sm" 
                 onClick={() => {
-                  const email = window.prompt("Zadejte e-mail pro testovacA� zprA?vu:", "michal.kasparek91@gmail.com");
+                  const email = window.prompt("Zadejte e-mail pro testovací zprávu:", "michal.kasparek91@gmail.com");
                   if (email) {
                     onTestSend(form.slug!, form, selectedJobId || null, email);
                   }
@@ -1057,8 +1052,8 @@ export function ModularEmailEditorDialogInner({
               onClick={() => onSave(form)}
             >
               {isSaving ? <Loader2 className="h-3 w-3 animate-spin shrink-0" /> : <Save className="h-3 w-3 shrink-0" />}
-              <span className="hidden sm:inline">{mode === "campaign" ? "UloLlit a pouLlA�t" : "UloLlit"}</span>
-              <span className="inline sm:hidden">UloLlit</span>
+              <span className="hidden sm:inline">{mode === "campaign" ? "Uložit a použít" : "Uložit"}</span>
+              <span className="inline sm:hidden">Uložit</span>
             </Button>
 
             {onBroadcast && (
@@ -1067,14 +1062,14 @@ export function ModularEmailEditorDialogInner({
                 size="sm" 
                 className="h-8 px-3 text-[11px] font-bold gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/40 cursor-pointer shrink-0"
                 onClick={() => {
-                  if (confirm("Opravdu chcete tyto koncepty pL�esunout k odeslA?nA� do Outboxu?")) {
+                  if (confirm("Opravdu chcete tyto koncepty přesunout k odeslání do Outboxu?")) {
                     onBroadcast();
                   }
                 }}
                 disabled={isBroadcasting}
               >
                 {isBroadcasting ? <Loader2 className="h-3 w-3 animate-spin shrink-0" /> : <Send className="h-3 w-3 shrink-0" />}
-                <span className="truncate hidden sm:inline font-bold">PL�esunout do Outboxu</span>
+                <span className="truncate hidden sm:inline font-bold">Přesunout do Outboxu</span>
               </Button>
             )}
           </div>
@@ -1095,7 +1090,7 @@ export function ModularEmailEditorDialogInner({
                     activeTab === "content" ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
-                  dz�t Obsah
+                  📝 Obsah
                 </button>
                 <button 
                   onClick={() => setActiveTab("widgets")}
@@ -1103,19 +1098,19 @@ export function ModularEmailEditorDialogInner({
                     activeTab === "widgets" ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
-                  dz�� Widgety
+                  🧩 Widgety
                 </button>
                   <button 
                     onClick={() => setActiveTab("settings")}
                     className={`flex-1 py-2 px-1 text-[10px] uppercase tracking-wider font-bold rounded-xl transition-all ${activeTab === "settings" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
                   >
-                    dz�A Publikum
+                    👥 Publikum
                   </button>
               </div>
 
               {activeTab === "content" && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  {/* Panel formA?tovA?nA� a proměnnA?ch */}
+                  {/* Panel formátování a proměnných */}
                   <div className="flex flex-col gap-2 p-2 bg-muted/30 rounded-xl border border-border/50">
                     <div className="flex items-center gap-1 border-b border-border/50 pb-2 mb-1">
                       <Button variant="ghost" size="sm" className="h-7 px-2 font-bold" onClick={(e) => { e.preventDefault(); formatText("b"); }}>B</Button>
@@ -1144,47 +1139,47 @@ export function ModularEmailEditorDialogInner({
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">OslovenA� (smaLlte pro vypnutA�)</Label>
-                    <Input value={form.greeting ?? ""} onChange={(e) => setVal("greeting", e.target.value)} onFocus={() => setActiveField("greeting")} placeholder="DobrA? den {{osloveni}}," className="h-9 text-xs" />
+                    <Label className="text-[11px] font-medium text-muted-foreground/80">Oslovení (smažte pro vypnutí)</Label>
+                    <Input value={form.greeting ?? ""} onChange={(e) => setVal("greeting", e.target.value)} onFocus={() => setActiveField("greeting")} placeholder="Dobrý den {{osloveni}}," className="h-9 text-xs" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">PL�edmět e-mailu</Label>
-                    <Input value={form.subject || ""} onChange={(e) => setVal("subject", e.target.value)} onFocus={() => setActiveField("subject")} placeholder="PL�edmět e-mailu..." className="h-9 text-xs" />
+                    <Label className="text-[11px] font-medium text-muted-foreground/80">Předmět e-mailu</Label>
+                    <Input value={form.subject || ""} onChange={(e) => setVal("subject", e.target.value)} onFocus={() => setActiveField("subject")} placeholder="Předmět e-mailu..." className="h-9 text-xs" />
                   </div>
                   <Textarea ref={textareaRef} value={form.body || ""} onChange={(e) => setVal("body", e.target.value)} onFocus={() => setActiveField("body")} className="min-h-[120px] text-xs" />
                   
-                  {/* SekundA?rnA� text */}
+                  {/* Sekundární text */}
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">CTA doplL?kovA? text</Label>
+                    <Label className="text-[11px] font-medium text-muted-foreground/80">CTA doplňkový text</Label>
                     <Textarea value={form.secondary_text || ""} onChange={(e) => setVal("secondary_text", e.target.value)} onFocus={() => setActiveField("secondary_text")} placeholder="..." className="min-h-[60px] text-xs mt-1" />
                   </div>
 
-                  {/* DoplL?kovA? text pod e-mailem */}
+                  {/* Doplňkový text pod e-mailem */}
                   <div className="space-y-1 mt-4">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">DoplL?kovA? text pod e-mailem (volitelnA�)</Label>
+                    <Label className="text-[11px] font-medium text-muted-foreground/80">Doplňkový text pod e-mailem (volitelné)</Label>
                     <Textarea value={form.segment_filters?.secondary_text_below_job || ""} onChange={(e) => setSegmentFilter("secondary_text_below_job", e.target.value)} onFocus={() => setActiveField("secondary_text_below_job")} placeholder="..." className="min-h-[60px] text-xs mt-1" />
                   </div>
 
-                  {/* GrafickA� oslovenA� */}
+                  {/* Grafické oslovení */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">GrafickA� oslovenA�</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Grafické oslovení</Label>
                       <Switch checked={!!form.segment_filters?.graphic_greeting_enabled} onCheckedChange={(c) => setSegmentFilter("graphic_greeting_enabled", c)} />
                     </div>
                   </div>
 
-                  {/* ZarovnA?nA� na stL�ed */}
+                  {/* Zarovnání na střed */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">ZarovnA?nA� na stL�ed</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Zarovnání na střed</Label>
                       <Switch checked={form.segment_filters?.text_align === "center"} onCheckedChange={(c) => setSegmentFilter("text_align", c ? "center" : "left")} />
                     </div>
                   </div>
 
-                  {/* Emoji a pL�edmět v obsahu */}
+                  {/* Emoji a předmět v obsahu */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Emoji a pL�edmět v obsahu</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Emoji a předmět v obsahu</Label>
                       <Switch checked={!!form.segment_filters?.show_subject_in_body} onCheckedChange={(c) => setSegmentFilter("show_subject_in_body", c)} />
                     </div>
                   </div>
@@ -1194,50 +1189,50 @@ export function ModularEmailEditorDialogInner({
               {activeTab === "widgets" && (
                 <div className="space-y-0.5 animate-in fade-in duration-200 p-1">
                   
-                  {/* GrafickA� oslovenA� */}
+                  {/* Grafické oslovení */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">GrafickA� oslovenA�</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Grafické oslovení</Label>
                       <Switch checked={!!form.segment_filters?.graphic_greeting_enabled} onCheckedChange={(c) => setSegmentFilter("graphic_greeting_enabled", c)} />
                     </div>
                   </div>
 
-                  {/* HlavnA� ObrA?zek */}
+                  {/* Hlavní Obrázek */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">HlavnA� ObrA?zek (Hero)</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Hlavní Obrázek (Hero)</Label>
                       <Switch checked={!!form.hero_image_url} onCheckedChange={(c) => setVal("hero_image_url", c ? "https://" : "")} />
                     </div>
                     {form.hero_image_url !== "" && form.hero_image_url !== null && (
                       <Input value={form.hero_image_url || ""} onChange={(e) => setVal("hero_image_url", e.target.value)} onFocus={() => setActiveField("hero_image_url")} placeholder="https://url-obrazku.jpg" className="h-8 text-xs mt-2" />
                     )}
                   </div>
-                  {/* Tla�TA�tko akce (CTA) */}
+                  {/* Tlačítko akce (CTA) */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Tla�TA�tko akce (CTA)</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Tlačítko akce (CTA)</Label>
                       <Switch checked={form.show_cta_button ?? true} onCheckedChange={(c) => setVal("show_cta_button", c)} />
                     </div>
                     {form.show_cta_button !== false && (
                       <div className="space-y-2 mt-2">
-                        <Input value={form.cta_text || ""} onChange={(e) => setVal("cta_text", e.target.value)} onFocus={() => setActiveField("cta_text")} placeholder="Text tla�TA�tka (napL�. Zobrazit detail)" className="h-8 text-xs" />
+                        <Input value={form.cta_text || ""} onChange={(e) => setVal("cta_text", e.target.value)} onFocus={() => setActiveField("cta_text")} placeholder="Text tlačítka (např. Zobrazit detail)" className="h-8 text-xs" />
                         <Input value={form.cta_url || ""} onChange={(e) => setVal("cta_url", e.target.value)} onFocus={() => setActiveField("cta_url")} placeholder="https://..." className="h-8 text-xs" />
                       </div>
                     )}
                   </div>
 
-                  {/* Informace o zakA?zce */}
+                  {/* Informace o zakázce */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">ShrnutA� zakA?zky (Job Snippet)</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Shrnutí zakázky (Job Snippet)</Label>
                     </div>
-                    <Textarea value={form.job_description_snippet || ""} onChange={(e) => setVal("job_description_snippet", e.target.value)} onFocus={() => setActiveField("job_description_snippet")} placeholder="Stru�TnA? popis zakA?zky..." className="min-h-[60px] text-xs mt-2" />
+                    <Textarea value={form.job_description_snippet || ""} onChange={(e) => setVal("job_description_snippet", e.target.value)} onFocus={() => setActiveField("job_description_snippet")} placeholder="Stručný popis zakázky..." className="min-h-[60px] text-xs mt-2" />
                   </div>
 
-                  {/* SouvisejA�cA� �TlA?nky */}
+                  {/* Související články */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">�SlA?nky z magazA�nu</Label>
+                      <Label className="text-xs font-medium text-foreground/80">Články z magazínu</Label>
                       <Switch checked={!!form.segment_filters?.articles_enabled} onCheckedChange={(c) => setSegmentFilter("articles_enabled", c)} />
                     </div>
                   </div>
@@ -1267,11 +1262,11 @@ export function ModularEmailEditorDialogInner({
                   {/* PS Footer */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">P.S. Pati�Tka</Label>
+                      <Label className="text-xs font-medium text-foreground/80">P.S. Patička</Label>
                       <Switch checked={form.ps_footer_enabled ?? false} onCheckedChange={(c) => setVal("ps_footer_enabled", c)} />
                     </div>
                     {form.ps_footer_enabled && (
-                      <Input value={form.ps_footer_text || ""} onChange={(e) => setVal("ps_footer_text", e.target.value)} onFocus={() => setActiveField("ps_footer_text")} placeholder="Text pati�Tky..." className="h-8 text-xs mt-2" />
+                      <Input value={form.ps_footer_text || ""} onChange={(e) => setVal("ps_footer_text", e.target.value)} onFocus={() => setActiveField("ps_footer_text")} placeholder="Text patičky..." className="h-8 text-xs mt-2" />
                     )}
                   </div>
 
@@ -1284,9 +1279,9 @@ export function ModularEmailEditorDialogInner({
                   {/* Settings section */}
                   <div className="space-y-5">
                     <div className="space-y-4">
-                      <h3 className="text-sm font-bold border-b border-border/50 pb-2">ZA?kladnA� chovA?nA�</h3>
+                      <h3 className="text-sm font-bold border-b border-border/50 pb-2">Základní chování</h3>
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs font-medium text-foreground/80 cursor-pointer">Povoleno k odesA�lA?nA�</Label>
+                        <Label className="text-xs font-medium text-foreground/80 cursor-pointer">Povoleno k odesílání</Label>
                         <Switch checked={form.is_enabled ?? true} onCheckedChange={(c) => setVal("is_enabled", c)} />
                       </div>
                       
@@ -1297,8 +1292,8 @@ export function ModularEmailEditorDialogInner({
                             <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Kategorie..." /></SelectTrigger>
                             <SelectContent className="z-[200]">
                               <SelectItem value="marketing">Marketing (Akvizice)</SelectItem>
-                              <SelectItem value="transactional">Transak�TnA� (SystA�movA�)</SelectItem>
-                              <SelectItem value="drip">Drip KampaL? (Sekvence)</SelectItem>
+                              <SelectItem value="transactional">Transakční (Systémové)</SelectItem>
+                              <SelectItem value="drip">Drip Kampaň (Sekvence)</SelectItem>
                               <SelectItem value="newsletter">Newsletter</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1308,21 +1303,9 @@ export function ModularEmailEditorDialogInner({
                           <Select value={form.target_role || "all"} onValueChange={(v) => setVal("target_role", v)}>
                             <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Role..." /></SelectTrigger>
                             <SelectContent className="z-[200]">
-                              <SelectItem value="all">VL?em (VA?chozA�)</SelectItem>
-                              <SelectItem value="worker">Pro L?emeslnA�ky</SelectItem>
-                              <SelectItem value="customer">Pro ZA?kaznA�ky</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Jazyk L?ablony (Pro AutonomnA� rozesA�lku)</Label>
-                          <Select value={form.language || "cs"} onValueChange={(v) => setVal("language", v)}>
-                            <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Jazyk..." /></SelectTrigger>
-                            <SelectContent className="z-[200]">
-                              <SelectItem value="cs">�SeL?tina (cs)</SelectItem>
-                              <SelectItem value="en">Angli�Ttina (en)</SelectItem>
-                              <SelectItem value="de">Něm�Tina (de)</SelectItem>
-                              <SelectItem value="sk">SlovenL?tina (sk)</SelectItem>
+                              <SelectItem value="all">Všem (Výchozí)</SelectItem>
+                              <SelectItem value="worker">Pro Řemeslníky</SelectItem>
+                              <SelectItem value="customer">Pro Zákazníky</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1336,12 +1319,12 @@ export function ModularEmailEditorDialogInner({
                       <h3 className="text-sm font-bold border-b border-border/50 pb-2">Filtry Publika</h3>
                       
                       <div>
-                        <Label className="text-xs font-semibold text-muted-foreground">Zdroj kontaktLZ</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground">Zdroj kontaktů</Label>
                         <Select value={form.segment_filters?.sourceFilter || "all"} onValueChange={(v) => setSegmentFilter("sourceFilter", v)}>
-                          <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="VL?echny zdroje" /></SelectTrigger>
+                          <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Všechny zdroje" /></SelectTrigger>
                           <SelectContent className="z-[200]">
-                            <SelectItem value="all">VL?echny zdroje</SelectItem>
-                            <SelectItem value="organic">RegistrovanA� (Organic)</SelectItem>
+                            <SelectItem value="all">Všechny zdroje</SelectItem>
+                            <SelectItem value="organic">Registrovaní (Organic)</SelectItem>
                             <SelectItem value="scraped">Scraping (Lead)</SelectItem>
                             <SelectItem value="ai_web_sniper">AI Web Sniper</SelectItem>
                           </SelectContent>
@@ -1349,13 +1332,13 @@ export function ModularEmailEditorDialogInner({
                       </div>
 
                       <div>
-                        <Label className="text-xs font-semibold text-muted-foreground">Typ uLlivatele</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground">Typ uživatele</Label>
                         <Select value={form.segment_filters?.userTypeFilter || "all"} onValueChange={(v) => setSegmentFilter("userTypeFilter", v)}>
-                          <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="VL?ichni" /></SelectTrigger>
+                          <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Všichni" /></SelectTrigger>
                           <SelectContent className="z-[200]">
-                            <SelectItem value="all">ZA?kaznA�ci i L?emeslnA�ci</SelectItem>
-                            <SelectItem value="worker">Pouze L?emeslnA�ci</SelectItem>
-                            <SelectItem value="customer">Pouze ZA?kaznA�ci</SelectItem>
+                            <SelectItem value="all">Zákazníci i Řemeslníci</SelectItem>
+                            <SelectItem value="worker">Pouze Řemeslníci</SelectItem>
+                            <SelectItem value="customer">Pouze Zákazníci</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1363,7 +1346,7 @@ export function ModularEmailEditorDialogInner({
                     <div>
                       <Label className="text-xs font-semibold text-muted-foreground">Lokalita (Město)</Label>
                       <Input 
-                        placeholder="NapL�. Praha, Brno..." 
+                        placeholder="Např. Praha, Brno..." 
                         value={form.segment_filters?.cityFilter || ""} 
                         onChange={(e) => setSegmentFilter("cityFilter", e.target.value)} 
                         className="mt-1 h-9 text-xs rounded-xl"
@@ -1372,28 +1355,28 @@ export function ModularEmailEditorDialogInner({
 
                     {form.segment_filters?.cityFilter && (
                       <div>
-                        <Label className="text-xs font-semibold text-muted-foreground">VzdA?lenost (Radius)</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground">Vzdálenost (Radius)</Label>
                         <Select value={form.segment_filters?.radiusFilter || "10"} onValueChange={(v) => setSegmentFilter("radiusFilter", v)}>
-                          <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="VzdA?lenost" /></SelectTrigger>
+                          <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Vzdálenost" /></SelectTrigger>
                           <SelectContent className="z-[200]">
                             <SelectItem value="10">Do 10 km</SelectItem>
                             <SelectItem value="25">Do 25 km</SelectItem>
                             <SelectItem value="50">Do 50 km</SelectItem>
                             <SelectItem value="100">Do 100 km</SelectItem>
-                            <SelectItem value="999">CelA? �SR</SelectItem>
+                            <SelectItem value="999">Celá ČR</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     )}
                     
                     <div>
-                      <Label className="text-xs font-semibold text-muted-foreground">MinimA?lnA� Engagement SkAlre</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground">Minimální Engagement Skóre</Label>
                       <Select value={form.segment_filters?.minEngagement || "0"} onValueChange={(v) => setSegmentFilter("minEngagement", v)}>
-                        <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="JakA?koliv aktivita" /></SelectTrigger>
+                        <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Jakákoliv aktivita" /></SelectTrigger>
                         <SelectContent className="z-[200]">
-                          <SelectItem value="0">VL?ichni (i bez aktivity)</SelectItem>
-                          <SelectItem value="15">AlespoL? kontaktovA?ni (15+)</SelectItem>
-                          <SelectItem value="40">OtevL�eli e-mail (40+)</SelectItem>
+                          <SelectItem value="0">Všichni (i bez aktivity)</SelectItem>
+                          <SelectItem value="15">Alespoň kontaktováni (15+)</SelectItem>
+                          <SelectItem value="40">Otevřeli e-mail (40+)</SelectItem>
                           <SelectItem value="70">Odpověděli (70+)</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1403,28 +1386,28 @@ export function ModularEmailEditorDialogInner({
 
                 <div className="space-y-5 animate-in fade-in duration-200 p-1">
                   <div className="p-4 bg-muted/10 rounded-2xl border border-border/40 space-y-4">
-                    <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">CA�lenA� & Trigger spouL?těnA�</p>
+                    <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Cílení & Trigger spouštění</p>
                     
                     <div className="space-y-1">
-                      <Label className="text-[11px] font-medium text-muted-foreground/80">CA�lovA� role</Label>
+                      <Label className="text-[11px] font-medium text-muted-foreground/80">Cílové role</Label>
                       <Select value={form.target_role || "all"} onValueChange={(v) => setVal("target_role", v)}>
                         <SelectTrigger className="mt-1 h-9 text-xs rounded-xl"><SelectValue /></SelectTrigger>
                         <SelectContent className="z-[200]">
-                          <SelectItem value="all">VL?ichni</SelectItem>
-                          <SelectItem value="worker">L?emeslnA�ci</SelectItem>
-                          <SelectItem value="customer">ZA?kaznA�ci</SelectItem>
+                          <SelectItem value="all">Všichni</SelectItem>
+                          <SelectItem value="worker">Řemeslníci</SelectItem>
+                          <SelectItem value="customer">Zákazníci</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-[11px] font-medium text-muted-foreground/80">Typ spouL?tě�Te</Label>
+                      <Label className="text-[11px] font-medium text-muted-foreground/80">Typ spouštěče</Label>
                       <Select value={form.trigger_type || "manual"} onValueChange={(v) => setVal("trigger_type", v)}>
                         <SelectTrigger className="mt-1 h-9 text-xs rounded-xl"><SelectValue /></SelectTrigger>
                         <SelectContent className="z-[200]">
-                          <SelectItem value="event">UdA?lost v systA�mu</SelectItem>
-                          <SelectItem value="cron">AutomatickA? sA�rie (cron)</SelectItem>
-                          <SelectItem value="manual">ManuA?lnA� rozesA�lka</SelectItem>
+                          <SelectItem value="event">Událost v systému</SelectItem>
+                          <SelectItem value="cron">Automatická série (cron)</SelectItem>
+                          <SelectItem value="manual">Manuální rozesílka</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1432,7 +1415,7 @@ export function ModularEmailEditorDialogInner({
                     {form.trigger_type === "cron" && (
                       <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/30 animate-in slide-in-from-top-2">
                         <div>
-                          <Label className="text-[11px] font-medium text-muted-foreground/80">ZpoLlděnA� (dny)</Label>
+                          <Label className="text-[11px] font-medium text-muted-foreground/80">Zpoždění (dny)</Label>
                           <Input 
                             type="number" 
                             value={form.drip_delay_days ?? 0} 
@@ -1441,7 +1424,7 @@ export function ModularEmailEditorDialogInner({
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] font-medium text-muted-foreground/80">SA�rie (Drip)</Label>
+                          <Label className="text-[11px] font-medium text-muted-foreground/80">Série (Drip)</Label>
                           <Input 
                             value={form.drip_series || ""} 
                             onChange={(e) => setVal("drip_series", e.target.value)} 
@@ -1453,16 +1436,16 @@ export function ModularEmailEditorDialogInner({
                   </div>
 
                   <div className="space-y-4 pt-4 border-t border-border/40 mt-4">
-                    <h3 className="text-sm font-bold border-b border-border/50 pb-2">OdesA�lacA� Asdaje</h3>
+                    <h3 className="text-sm font-bold border-b border-border/50 pb-2">Odesílací údaje</h3>
                     <div>
-                      <Label className="text-xs font-semibold text-muted-foreground">OdesA�latel (Z koho)</Label>
+                      <Label className="text-xs font-semibold text-muted-foreground">Odesílatel (Z koho)</Label>
                       <Select value={form.sender_email || "default"} onValueChange={(v) => setVal("sender_email", v === "default" ? null : v)}>
-                        <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="VA?chozA� (Atmosferi <info@atmosferi.com>)" /></SelectTrigger>
+                        <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Výchozí (Zrobee <noreply@zrobee.cz>)" /></SelectTrigger>
                         <SelectContent className="z-[200]">
-                          <SelectItem value="default">VA?chozA� (info@atmosferi.com)</SelectItem>
-                          <SelectItem value="michal@atmosferi.com">Michal Kasparek (michal@atmosferi.com)</SelectItem>
-                          <SelectItem value="info@atmosferi.com">Atmosferi Info (info@atmosferi.com)</SelectItem>
-                          <SelectItem value="support@atmosferi.com">Atmosferi Podpora (support@atmosferi.com)</SelectItem>
+                          <SelectItem value="default">Výchozí (noreply@zrobee.cz)</SelectItem>
+                          <SelectItem value="michal@zrobee.cz">Michal Kasparek (michal@zrobee.cz)</SelectItem>
+                          <SelectItem value="info@zrobee.cz">Zrobee Info (info@zrobee.cz)</SelectItem>
+                          <SelectItem value="podpora@zrobee.cz">Zrobee Podpora (podpora@zrobee.cz)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1482,7 +1465,7 @@ export function ModularEmailEditorDialogInner({
               <div className="flex items-center justify-between px-4 text-muted-foreground text-[10px] uppercase tracking-[0.2em] font-bold">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  VizuA?lnA� nA?hled
+                  Vizuální náhled
                 </div>
                 
                 {/* Desktop / Mobile segmented toggler */}
@@ -1513,17 +1496,17 @@ export function ModularEmailEditorDialogInner({
               {/* Job Selector for dynamic previews */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-4 py-2.5 bg-card dark:bg-zinc-900/50 rounded-2xl border border-border/60 shadow-xs text-xs">
                 <span className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                  dz�Z TestovacA� data zakA?zky:
+                  🎯 Testovací data zakázky:
                 </span>
                 <Select value={selectedJobId} onValueChange={setSelectedJobId}>
                   <SelectTrigger className="w-full sm:w-[320px] h-8 text-xs rounded-xl bg-background border-border/50 shadow-2xs font-medium">
-                    <SelectValue placeholder="VA?chozA� ukA?zkovA? data" />
+                    <SelectValue placeholder="Výchozí ukázková data" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[250px] z-[200]">
-                    <SelectItem value="default" className="text-xs font-semibold">�s� VA?chozA� ukA?zkovA? data</SelectItem>
+                    <SelectItem value="default" className="text-xs font-semibold">✨ Výchozí ukázková data</SelectItem>
                     {openJobs?.map((job: any) => (
                       <SelectItem key={job.id} value={job.id} className="text-xs">
-                        {job.title} ({job.city || "CelA? �SR"})
+                        {job.title} ({job.city || "Celá ČR"})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1548,7 +1531,7 @@ export function ModularEmailEditorDialogInner({
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/80" />
                         </div>
                         <div className="bg-background dark:bg-zinc-900 text-foreground rounded-md border border-border px-2 py-0.5 text-[9px] font-medium flex-1 truncate shadow-2xs">
-                          {previewReplace(form.subject || form.name) || "Bez pL�edmětu"}
+                          {previewReplace(form.subject || form.name) || "Bez předmětu"}
                         </div>
                       </div>
                       
@@ -1569,7 +1552,7 @@ export function ModularEmailEditorDialogInner({
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                       </div>
                       <div className="bg-background dark:bg-zinc-900 text-foreground rounded-md border border-border px-3 py-0.5 text-[10px] font-medium flex-1 truncate shadow-sm">
-                        PL�edmět: {previewReplace(form.subject || form.name) || "Bez pL�edmětu"}
+                        Předmět: {previewReplace(form.subject || form.name) || "Bez předmětu"}
                       </div>
                     </div>
                     <ModularLivePreview form={form} previewReplace={previewReplace} previewTheme={previewTheme} />
@@ -1578,7 +1561,7 @@ export function ModularEmailEditorDialogInner({
               </div>
 
               <p className="text-center text-[10px] text-muted-foreground italic">
-                PoznA?mka: Skute�TnA? e-mail se mLZLle v rLZznA?ch klientech (Outlook, Gmail) mA�rně liL?it.
+                Poznámka: Skutečný e-mail se může v různých klientech (Outlook, Gmail) mírně lišit.
               </p>
             </div>
           </div>
@@ -1608,7 +1591,7 @@ class EditorErrorBoundary extends React.Component<{children: any}, {hasError: bo
             onClick={() => window.location.reload()}
             className="mt-6 px-6 py-2 bg-red-900/50 hover:bg-red-900 text-white font-bold rounded-full"
           >
-            Obnovit strA?nku
+            Obnovit stránku
           </button>
         </div>
       );
@@ -1620,4 +1603,3 @@ class EditorErrorBoundary extends React.Component<{children: any}, {hasError: bo
 export default function ModularEmailEditorDialog(props: any) {
   return <EditorErrorBoundary><ModularEmailEditorDialogInner {...props} /></EditorErrorBoundary>;
 }
-
