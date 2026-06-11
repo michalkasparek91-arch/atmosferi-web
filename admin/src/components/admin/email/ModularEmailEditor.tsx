@@ -41,6 +41,8 @@ export interface EmailEditorState {
   segment_filters?: Record<string, any> | null;
   layout_type?: string;
   hero_image_url?: string | null;
+  hero_caption?: string | null;
+  signature_avatar_url?: string | null;
   urgency_banner_enabled?: boolean;
   urgency_banner_text?: string | null;
   promo_banner_enabled?: boolean;
@@ -225,53 +227,77 @@ export function ModularLivePreview({
   const isAtmosferiLayout = form.layout_type === "atmosferi_studio" || !form.layout_type;
 
   if (isAtmosferiLayout) {
-    const isDark = previewTheme === "dark";
-    const bg = isDark ? "#16140F" : "#EFEDE6";
-    const panel = isDark ? "#2A2720" : "#FBFAF6";
-    const ink = isDark ? "#EFEDE6" : "#16140F";
-    const muted = isDark ? "#A8A398" : "#807C72";
-    const acc = "#D97757";
+      const isDark = previewTheme === "dark";
+      const bg = isDark ? "#16140F" : "#EFEDE6";
+      const panel = isDark ? "#2A2720" : "#FBFAF6";
+      const ink = isDark ? "#EFEDE6" : "#16140F";
+      const muted = isDark ? "#A8A398" : "#807C72";
+      const acc = "#D97757";
 
-    return (
-      <div style={{ backgroundColor: bg, padding: "40px 20px", width: "100%", minHeight: "100%", fontFamily: "'Geist', system-ui, sans-serif" }}>
-        <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: panel, borderRadius: "6px", overflow: "hidden", color: ink, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
-          {form.hero_image_url && (
-             <img src={previewReplace(form.hero_image_url)} alt="Hero" style={{ width: "100%", height: "auto", display: "block" }} />
-          )}
-          
-          <div style={{ padding: "40px 30px" }}>
-            {carouselImages.length > 0 && (
-              <div style={{ display: "flex", gap: "8px", marginBottom: "30px", overflowX: "auto" }}>
-                {carouselImages.map((img, i) => (
-                  <img key={i} src={img} alt={`Portfolio ${i}`} style={{ height: "120px", objectFit: "cover", flex: 1, borderRadius: "4px" }} />
-                ))}
-              </div>
-            )}
-            
-            {form.greeting && (
-              <div style={{ fontStyle: "italic", marginBottom: "24px", color: ink, fontSize: "15px", lineHeight: "1.6" }}>
-                {previewReplace(form.greeting)}
-              </div>
-            )}
-            
-            <div style={{ fontSize: "15px", lineHeight: "1.6", color: ink, marginBottom: "30px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || ""), "left", isDark) }} />
-            
-            <div style={{ borderTop: `1px solid ${isDark ? "#444" : "#EAEAEA"}`, paddingTop: "24px", color: muted, fontSize: "13px", lineHeight: "1.5" }}>
-              <strong style={{ color: ink }}>{previewReplace(form.signature_name || "Ing. arch. Michal Kašpárek")}</strong><br/>
-              Atmosferi° — {previewReplace(form.signature_role || "Architektonické studio")}<br/>
-              <span style={{ color: acc }}>{previewReplace(form.signature_email || "info@atmosferi.com")}</span>
+      return (
+        <div style={{ backgroundColor: bg, padding: "40px 20px", width: "100%", minHeight: "100%", fontFamily: "'Geist', system-ui, sans-serif" }}>
+          <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: panel, overflow: "hidden", color: ink }}>
+            <div style={{ backgroundColor: "#16140F", padding: "16px 24px", color: "#EFEDE6", display: "flex", alignItems: "center" }}>
+              <span style={{ fontFamily: "'Geist', system-ui, sans-serif", fontSize: "18px", fontWeight: 600, letterSpacing: "-0.02em" }}>Atmosferi<sup style={{ color: "#D97757", fontSize: "0.6em" }}>&deg;</sup></span>
+              <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "9px", letterSpacing: "0.18em", opacity: 0.6, marginLeft: "14px", borderLeft: "1px solid rgba(244,242,236,0.3)", paddingLeft: "14px", textTransform: "uppercase" }}>WEB A VIZUALIZACE</span>
             </div>
 
-            {form.ps_footer_enabled && form.ps_footer_text && (
-              <div style={{ fontStyle: "italic", marginTop: "24px", color: muted, fontSize: "12px" }}>
-                P.S. {previewReplace(form.ps_footer_text)}
-              </div>
+            {form.hero_image_url && (
+               <div>
+                 <img src={previewReplace(form.hero_image_url)} alt="Hero" style={{ width: "100%", height: "auto", display: "block" }} />
+                 <div style={{ backgroundColor: "#16140F", padding: "12px 24px", color: "#A8A398", fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "10.5px", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                   {previewReplace(form.hero_caption || "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°")}
+                 </div>
+               </div>
             )}
+            
+            <div style={{ padding: "32px" }}>
+              {form.greeting && (
+                <div style={{ marginBottom: "16px", color: ink, fontSize: "14px", lineHeight: "1.6" }}>
+                  {previewReplace(form.greeting)}
+                </div>
+              )}
+              
+              <div style={{ fontSize: "14px", lineHeight: "1.6", color: ink, marginBottom: "0px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || ""), "left", isDark) }} />
+              
+              {carouselImages.length > 0 && (
+                <div style={{ display: "flex", gap: "4px", margin: "32px 0" }}>
+                  {carouselImages.map((img, i) => (
+                    <img key={i} src={img} alt={`Portfolio ${i}`} style={{ width: `${100/carouselImages.length}%`, height: "auto", display: "block", border: "1px solid rgba(22,20,15,0.12)" }} />
+                  ))}
+                </div>
+              )}
+
+              {form.show_cta_button !== false && form.cta_text && form.cta_url && (
+                <div style={{ marginBottom: "32px" }}>
+                  <span style={{ display: "inline-block", backgroundColor: "#16140F", color: "#FBFAF6", padding: "12px 24px", textDecoration: "none", fontSize: "10.5px", fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                    {previewReplace(form.cta_text)} &rarr;
+                  </span>
+                </div>
+              )}
+              
+              <div style={{ display: "flex", alignItems: "flex-start", marginTop: "32px", borderTop: `1px solid ${isDark ? "#444" : "rgba(22,20,15,0.12)"}`, paddingTop: "24px", color: muted, fontSize: "11px", lineHeight: "1.5" }}>
+                {form.signature_avatar_url && (
+                  <img src={previewReplace(form.signature_avatar_url)} alt="Avatar" style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "16px", display: "block" }} />
+                )}
+                <div>
+                  <span style={{ display: "block", marginBottom: "2px" }}>S pozdravem</span>
+                  <strong style={{ color: ink, fontSize: "13px" }}>{previewReplace(form.signature_name || "Ing. arch. Michal Kašpárek")}</strong><br/>
+                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; {previewReplace(form.signature_role || "web a vizualizace pro architekturu")}</span><br/>
+                  <span style={{ color: acc }}>{previewReplace(form.signature_email || "info@atmosferi.com")}</span> &middot; <span style={{ color: "#A8A398" }}>atmosferi.com</span>
+                </div>
+              </div>
+
+              {form.ps_footer_enabled && form.ps_footer_text && (
+                <div style={{ fontStyle: "italic", marginTop: "24px", color: muted, fontSize: "12px", lineHeight: "1.5" }}>
+                  P.S. {previewReplace(form.ps_footer_text)}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
   
   if (isStandardLayout) {
     const isDark = previewTheme === "dark";
