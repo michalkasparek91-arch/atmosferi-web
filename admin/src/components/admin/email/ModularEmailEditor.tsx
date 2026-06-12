@@ -265,20 +265,20 @@ export function ModularLivePreview({
               <div style={{ fontSize: "14px", lineHeight: "1.6", color: ink, marginBottom: "0px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || ""), "left", isDark) }} />
               
               {!!form.segment_filters?.services_widget_enabled && (
-                <div style={{ margin: "32px 0", padding: "24px", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}`, backgroundColor: isDark ? "#1f1f1d" : "#f5f3ec", textAlign: "left" }}>
-                  <h3 style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "20px", color: muted, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
+                <div style={{ margin: "24px 0", padding: "20px 24px", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}`, backgroundColor: isDark ? "#1f1f1d" : "#f5f3ec", textAlign: "left" }}>
+                  <h3 style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px", color: muted, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
                     {form.segment_filters?.services_widget_title || "CO DĚLÁME"}
                   </h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                     {[
                       { num: "1", title: form.segment_filters?.service_1_title || "Webové stránky", desc: form.segment_filters?.service_1_desc || "Získáte moderní prezentaci, která prodává vaše projekty za vás." },
                       { num: "2", title: form.segment_filters?.service_2_title || "3D Vizualizace", desc: form.segment_filters?.service_2_desc || "Ohromte klienty realistickými záběry ještě před začátkem stavby." },
                       { num: "3", title: form.segment_filters?.service_3_title || "Klientské sekce", desc: form.segment_filters?.service_3_desc || "Usnadněte si práci a nechte klienty vybírat standardy pohodlně online." }
                     ].map((item, i, arr) => (
-                      <div key={item.num} style={{ paddingBottom: "16px", borderBottom: i === arr.length - 1 ? "none" : `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
-                        <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                          <span style={{ fontSize: "16px", fontWeight: "bold", color: acc, lineHeight: "1.5" }}>{item.num}</span>
-                          <p style={{ fontSize: "15px", margin: 0, color: ink, lineHeight: "1.5" }}>
+                      <div key={item.num} style={{ paddingBottom: "12px", borderBottom: i === arr.length - 1 ? "none" : `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                          <span style={{ fontSize: "15px", fontWeight: "bold", color: acc, lineHeight: "1.5" }}>{item.num}</span>
+                          <p style={{ fontSize: "14px", margin: 0, color: ink, lineHeight: "1.5" }}>
                             <span style={{ color: isDark ? "#fff" : "#111" }}>{item.title}</span> &mdash; <span style={{ color: muted }}>{item.desc}</span>
                           </p>
                         </div>
