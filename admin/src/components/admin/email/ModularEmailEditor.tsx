@@ -836,6 +836,31 @@ export function ModularEmailEditorDialogInner({
   onBroadcast,
   isBroadcasting
 }: ModularEmailEditorDialogProps) {
+  const { markets, addMarket, isAdding: isAddingMarket } = useMarkets();
+  const [showAddMarket, setShowAddMarket] = useState(false);
+  const [newMarketData, setNewMarketData] = useState({ code: "", name: "", lang: "" });
+
+  const handleAddMarket = async () => {
+    if (!newMarketData.code || !newMarketData.name) {
+      toast.error("Vyplňte prosím kód i název země.");
+      return;
+    }
+    try {
+      await addMarket({
+        id: newMarketData.code.toLowerCase(),
+        code: newMarketData.code.toUpperCase(),
+        name: newMarketData.name,
+        lang: newMarketData.lang || newMarketData.name
+      });
+      toast.success("Země úspěšně přidána.");
+      setShowAddMarket(false);
+      setNewMarketData({ code: "", name: "", lang: "" });
+      setForm((p) => p ? ({ ...p, language: newMarketData.code.toLowerCase() }) : null);
+    } catch (err: any) {
+      toast.error("Chyba při přidávání země: " + err.message);
+    }
+  };
+
   const [form, setForm] = useState<EmailEditorState | null>(null);
   const [originalForm, setOriginalForm] = useState<EmailEditorState | null>(null);
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
@@ -1202,11 +1227,7 @@ export function ModularEmailEditorDialogInner({
                   <div>
                     <Label className="text-[10px] font-black tracking-[0.15em] text-muted-foreground uppercase mb-3 block">Language / Market</Label>
                     <div className="flex flex-wrap gap-2">
-                      {[
-                        { id: "cz", code: "CZ", name: "Česko", lang: "CZE" },
-                        { id: "de", code: "DE", name: "Německo", lang: "GER" },
-                        { id: "at", code: "AT", name: "Rakousko", lang: "GER" },
-                      ].map(m => {
+                      {markets.map(m => {
                         const isActive = form.language === m.id || (m.id === "cz" && !form.language);
                         return (
                           <button 
@@ -1565,13 +1586,8 @@ export function ModularEmailEditorDialogInner({
                         <div>
                           <Label className="text-[10px] font-black tracking-[0.15em] text-muted-foreground uppercase mb-3 block">Market</Label>
                           <div className="flex flex-wrap gap-2">
-                            {[
-                              { id: "cs", code: "CZ", name: "ČESKO", lang: "ČEŠTINA" },
-                              { id: "de", code: "DE", name: "NĚMECKO", lang: "DEUTSCH" },
-                              { id: "sk", code: "SK", name: "SLOVENSKO", lang: "SLOVENČINA" },
-                              { id: "en", code: "US", name: "USA / GLOBAL", lang: "ENGLISH" },
-                            ].map(m => {
-                              const isActive = form.language === m.id || (m.id === "cs" && !form.language);
+                            {markets.map(m => {
+                              const isActive = form.language === m.id || (m.id === "cz" && !form.language);
                               return (
                                 <button 
                                   key={m.id}
@@ -1588,6 +1604,13 @@ export function ModularEmailEditorDialogInner({
                                 </button>
                               );
                             })}
+                            <button
+                              onClick={(e) => { e.preventDefault(); setShowAddMarket(true); }}
+                              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed bg-muted/10 text-muted-foreground hover:bg-muted/30 hover:text-foreground transition-all duration-200"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              <span className="font-semibold text-xs tracking-tight">Přidat zemi</span>
+                            </button>
                           </div>
                         </div>
 
@@ -1874,8 +1897,56 @@ export function ModularEmailEditorDialogInner({
             </div>
           </div>
 
-        </div>
-
+      </div>
+      <Dialog open={showAddMarket} onOpenChange={setShowAddMarket}>
+        <DialogContent className="sm:max-w-[425px] rounded-3xl p-6 border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl z-[300]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black tracking-tight flex items-center gap-2">
+              <Globe className="h-5 w-5 text-primary" /> Nová Země (Market)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="code" className="text-right text-xs font-bold">Kód (např. PL)</Label>
+              <Input
+                id="code"
+                value={newMarketData.code}
+                onChange={(e) => setNewMarketData(p => ({ ...p, code: e.target.value.substring(0, 2) }))}
+                className="col-span-3 h-9 rounded-xl"
+                placeholder="PL"
+                maxLength={2}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right text-xs font-bold">Název (např. Polsko)</Label>
+              <Input
+                id="name"
+                value={newMarketData.name}
+                onChange={(e) => setNewMarketData(p => ({ ...p, name: e.target.value }))}
+                className="col-span-3 h-9 rounded-xl"
+                placeholder="Polsko"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="lang" className="text-right text-xs font-bold">Jazyk (volitelně)</Label>
+              <Input
+                id="lang"
+                value={newMarketData.lang}
+                onChange={(e) => setNewMarketData(p => ({ ...p, lang: e.target.value }))}
+                className="col-span-3 h-9 rounded-xl"
+                placeholder="Polština"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddMarket(false)} className="rounded-xl h-9">Zrušit</Button>
+            <Button onClick={handleAddMarket} disabled={isAddingMarket} className="rounded-xl h-9 gap-2">
+              {isAddingMarket ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Přidat zemi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>,
       document.body
     );
