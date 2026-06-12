@@ -264,52 +264,37 @@ export function ModularLivePreview({
               
               <div style={{ fontSize: "14px", lineHeight: "1.6", color: ink, marginBottom: "0px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || ""), "left", isDark) }} />
               
-              {carouselImages.length > 0 && (
-                <div style={{ display: "flex", gap: "4px", margin: "32px 0" }}>
-                  {carouselImages.map((img, i) => (
-                    <img key={i} src={img} alt={`Portfolio ${i}`} style={{ width: `${100/carouselImages.length}%`, height: "auto", display: "block", border: "1px solid rgba(22,20,15,0.12)" }} />
-                  ))}
-                </div>
-              )}
-
-              {!!form.segment_filters?.gallery_enabled && (
-                <div style={{ display: "flex", gap: "8px", margin: "32px 0", width: "100%" }}>
-                  {[form.segment_filters.gallery_image_1, form.segment_filters.gallery_image_2, form.segment_filters.gallery_image_3].map((imgUrl, i) => (
-                    <div key={i} style={{ flex: 1, aspectRatio: "1/1", overflow: "hidden", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
-                      {imgUrl ? (
-                        <img src={imgUrl} alt={`Gallery image ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                      ) : (
-                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: isDark ? "#1f1f1d" : "#f5f3ec" }}>
-                          <span style={{ fontSize: "12px", color: muted }}>{i + 1}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {!!form.segment_filters?.services_widget_enabled && (
                 <div style={{ margin: "32px 0", padding: "24px", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}`, backgroundColor: isDark ? "#1f1f1d" : "#f5f3ec", textAlign: "left" }}>
                   <h3 style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "20px", color: muted, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
-                    CO DĚLÁME
+                    {form.segment_filters?.services_widget_title || "CO DĚLÁME"}
                   </h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                     {[
-                      { num: "1", title: "Webové stránky", desc: "Získáte moderní prezentaci, která prodává vaše projekty za vás." },
-                      { num: "2", title: "3D Vizualizace", desc: "Ohromte klienty realistickými záběry ještě před začátkem stavby." },
-                      { num: "3", title: "Klientské sekce", desc: "Usnadněte si práci a nechte klienty vybírat standardy pohodlně online." }
+                      { num: "1", title: form.segment_filters?.service_1_title || "Webové stránky", desc: form.segment_filters?.service_1_desc || "Získáte moderní prezentaci, která prodává vaše projekty za vás." },
+                      { num: "2", title: form.segment_filters?.service_2_title || "3D Vizualizace", desc: form.segment_filters?.service_2_desc || "Ohromte klienty realistickými záběry ještě před začátkem stavby." },
+                      { num: "3", title: form.segment_filters?.service_3_title || "Klientské sekce", desc: form.segment_filters?.service_3_desc || "Usnadněte si práci a nechte klienty vybírat standardy pohodlně online." }
                     ].map((item, i, arr) => (
                       <div key={item.num} style={{ paddingBottom: "16px", borderBottom: i === arr.length - 1 ? "none" : `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
-                        <div style={{ display: "flex", gap: "10px" }}>
-                          <span style={{ fontSize: "16px", fontWeight: "bold", color: acc }}>{item.num}</span>
-                          <div>
-                            <h4 style={{ fontSize: "14px", fontWeight: "bold", margin: "0 0 4px 0", color: ink }}>{item.title}</h4>
-                            <p style={{ fontSize: "13px", margin: 0, color: muted, lineHeight: "1.5" }}>{item.desc}</p>
-                          </div>
+                        <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                          <span style={{ fontSize: "16px", fontWeight: "bold", color: acc, lineHeight: "1.5" }}>{item.num}</span>
+                          <p style={{ fontSize: "15px", margin: 0, color: ink, lineHeight: "1.5" }}>
+                            <span style={{ color: isDark ? "#fff" : "#111" }}>{item.title}</span> &mdash; <span style={{ color: muted }}>{item.desc}</span>
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {!!form.segment_filters?.gallery_enabled && carouselImages.length > 0 && (
+                <div style={{ display: "flex", gap: "8px", margin: "32px 0", width: "100%" }}>
+                  {carouselImages.slice(0, 3).map((imgUrl, i) => (
+                    <div key={i} style={{ flex: 1, aspectRatio: "16/9", overflow: "hidden", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
+                      <img src={imgUrl} alt={`Gallery image ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -1456,11 +1441,7 @@ export function ModularEmailEditorDialogInner({
                   </div>
                   <Textarea ref={textareaRef} value={form.body || ""} onChange={(e) => setVal("body", e.target.value)} onFocus={() => setActiveField("body")} className="min-h-[120px] text-xs" />
                   
-                  {/* Sekundární text */}
-                  <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">CTA doplňkový text</Label>
-                    <Textarea value={form.secondary_text || ""} onChange={(e) => setVal("secondary_text", e.target.value)} onFocus={() => setActiveField("secondary_text")} placeholder="..." className="min-h-[60px] text-xs mt-1" />
-                  </div>
+
 
                   {/* Doplňkový text pod e-mailem */}
                   <div className="space-y-1 mt-4">
@@ -1508,13 +1489,6 @@ export function ModularEmailEditorDialogInner({
                       <Label className="text-xs font-medium text-foreground/80">Trojice menších obrázků (Galerie)</Label>
                       <Switch checked={!!form.segment_filters?.gallery_enabled} onCheckedChange={(c) => setSegmentFilter("gallery_enabled", c)} />
                     </div>
-                    {form.segment_filters?.gallery_enabled && (
-                      <div className="space-y-2 mt-2 bg-muted/20 p-2 rounded-xl border border-border/40">
-                        <Input value={form.segment_filters?.gallery_image_1 || ""} onChange={(e) => setSegmentFilter("gallery_image_1", e.target.value)} placeholder="Obrázek 1 (URL)" className="h-8 text-xs" />
-                        <Input value={form.segment_filters?.gallery_image_2 || ""} onChange={(e) => setSegmentFilter("gallery_image_2", e.target.value)} placeholder="Obrázek 2 (URL)" className="h-8 text-xs" />
-                        <Input value={form.segment_filters?.gallery_image_3 || ""} onChange={(e) => setSegmentFilter("gallery_image_3", e.target.value)} placeholder="Obrázek 3 (URL)" className="h-8 text-xs" />
-                      </div>
-                    )}
                   </div>
 
                   {/* Co děláme (Služby) */}
@@ -1523,6 +1497,33 @@ export function ModularEmailEditorDialogInner({
                       <Label className="text-xs font-medium text-foreground/80">Widget: Co děláme</Label>
                       <Switch checked={!!form.segment_filters?.services_widget_enabled} onCheckedChange={(c) => setSegmentFilter("services_widget_enabled", c)} />
                     </div>
+                    {!!form.segment_filters?.services_widget_enabled && (
+                      <div className="space-y-3 mt-3 pl-3 border-l-2 border-amber-500/30">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Nadpis widgetu</Label>
+                          <Input 
+                            value={form.segment_filters?.services_widget_title || "CO DĚLÁME"} 
+                            onChange={e => setSegmentFilter(`services_widget_title`, e.target.value)} 
+                            placeholder="CO DĚLÁME" className="h-7 text-xs bg-background/50" 
+                          />
+                        </div>
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="space-y-1 mt-2">
+                            <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Služba {i}</Label>
+                            <Input 
+                              value={form.segment_filters?.[`service_${i}_title`] || ""} 
+                              onChange={e => setSegmentFilter(`service_${i}_title`, e.target.value)} 
+                              placeholder="Název služby" className="h-7 text-xs bg-background/50 mb-1" 
+                            />
+                            <Input 
+                              value={form.segment_filters?.[`service_${i}_desc`] || ""} 
+                              onChange={e => setSegmentFilter(`service_${i}_desc`, e.target.value)} 
+                              placeholder="Popis služby" className="h-7 text-xs bg-background/50" 
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {/* Tlačítko akce (CTA) */}
                   <div className="py-1">

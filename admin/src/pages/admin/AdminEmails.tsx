@@ -138,6 +138,7 @@ export default function AdminEmails() {
   const [templateType, setTemplateType] = useState<"standard" | "sniper" | "marketing" | "clean" | "minimal" | "plain">("standard");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [isSending, setIsSending] = useState(false);
+  const [templateLanguage, setTemplateLanguage] = useState("cz");
   
   // Template Content State
   const [subject, setSubject] = useState("");
@@ -273,26 +274,27 @@ export default function AdminEmails() {
   const [saveMode, setSaveMode] = useState<"overwrite" | "new">("overwrite");
 
   const saveCampaignMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (directData?: any) => {
       const payload = {
-        subject: subject || "Bez předmětu",
-        heading: title || subject || "Bez nadpisu",
-        body: body || "",
-        cta_text: ctaText || "Zobrazit a podat nabídku",
-        cta_url: ctaUrl || "https://zrobee.cz",
-        secondary_text: secondaryText || null,
-        hero_image_url: campaignImage || null,
-        layout_type: (templateType === "sniper" ? "sniper" : templateType) as any,
-        urgency_banner_enabled: urgencyBannerEnabled,
-        urgency_banner_text: urgencyBannerText,
-        promo_banner_enabled: promoBannerEnabled,
-        promo_banner_text: promoBannerText,
-        ps_footer_enabled: psFooterEnabled,
-        ps_footer_text: psFooterText,
-        show_job_widget: showJobWidget,
-        show_cta_button: showCtaButton,
-        job_description_snippet: jobDescriptionSnippet || null,
-        segment_filters: segmentFilters,
+        subject: directData ? directData.subject || "Bez předmětu" : subject || "Bez předmětu",
+        heading: directData ? directData.name || "Bez nadpisu" : title || subject || "Bez nadpisu",
+        body: directData ? directData.body || "" : body || "",
+        cta_text: directData ? directData.cta_text || "Zobrazit a podat nabídku" : ctaText || "Zobrazit a podat nabídku",
+        cta_url: directData ? directData.cta_url || "https://zrobee.cz" : ctaUrl || "https://zrobee.cz",
+        secondary_text: directData ? directData.secondary_text || null : secondaryText || null,
+        hero_image_url: directData ? directData.hero_image_url || null : campaignImage || null,
+        layout_type: directData ? directData.layout_type : (templateType === "sniper" ? "sniper" : templateType) as any,
+        urgency_banner_enabled: directData ? directData.urgency_banner_enabled : urgencyBannerEnabled,
+        urgency_banner_text: directData ? directData.urgency_banner_text : urgencyBannerText,
+        promo_banner_enabled: directData ? directData.promo_banner_enabled : promoBannerEnabled,
+        promo_banner_text: directData ? directData.promo_banner_text : promoBannerText,
+        ps_footer_enabled: directData ? directData.ps_footer_enabled : psFooterEnabled,
+        ps_footer_text: directData ? directData.ps_footer_text : psFooterText,
+        show_job_widget: directData ? directData.show_job_widget : showJobWidget,
+        show_cta_button: directData ? directData.show_cta_button : showCtaButton,
+        job_description_snippet: directData ? directData.job_description_snippet || null : jobDescriptionSnippet || null,
+        segment_filters: directData ? directData.segment_filters : segmentFilters,
+        language: directData ? directData.language || templateLanguage : templateLanguage,
         updated_at: new Date().toISOString()
       };
 
@@ -449,6 +451,7 @@ export default function AdminEmails() {
       setCtaUrl(t.cta_url || "https://zrobee.cz");
       setSecondaryText(t.secondary_text || "");
       setCampaignImage(t.hero_image_url || "");
+      setTemplateLanguage(t.language || "cz");
       setTemplateType((t.layout_type || "classic") as any);
       setUrgencyBannerEnabled(t.urgency_banner_enabled ?? true);
       setUrgencyBannerText(t.urgency_banner_text || "");
@@ -1370,6 +1373,7 @@ export default function AdminEmails() {
           setCtaUrl(data.cta_url || "");
           setSecondaryText(data.secondary_text || "");
           setCampaignImage(data.hero_image_url || "");
+          setTemplateLanguage(data.language || "cz");
           setTemplateType(data.layout_type as any);
           setUrgencyBannerEnabled(data.urgency_banner_enabled ?? true);
           setUrgencyBannerText(data.urgency_banner_text || "");
@@ -1394,6 +1398,9 @@ export default function AdminEmails() {
             const existing = emailTemplates?.find(t => t.id === selectedTemplateId);
             setNewTemplateName(existing?.name || data.name || data.subject || "Nová šablona");
           }
+          
+          // Also store directData for mutation payload if needed, but since we rely on state:
+          // Wait, we need to pass language! Let's store direct data in a ref or local state.
           setSaveTemplateOpen(true);
         }}
         isSaving={saveCampaignMutation.isPending}
