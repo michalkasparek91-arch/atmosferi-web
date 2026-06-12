@@ -14,8 +14,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { 
   Mail, Save, X, Trash2, Send, Loader2, Bold, Italic, List, Link, 
   Monitor, Smartphone, Sparkles, ChevronLeft, ChevronRight, Eye, Target, MapPin,
-  Building2, Layout, Briefcase
+  Building2, Layout, Briefcase, ChevronDown, Hexagon, Contrast
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 export interface EmailEditorState {
@@ -278,15 +279,13 @@ export function ModularLivePreview({
                 </div>
               )}
               
-              <div style={{ display: "flex", alignItems: "flex-start", marginTop: "32px", borderTop: `1px solid ${isDark ? "#444" : "rgba(22,20,15,0.12)"}`, paddingTop: "24px", color: muted, fontSize: "11px", lineHeight: "1.5" }}>
-                {form.signature_avatar_url && (
-                  <img src={previewReplace(form.signature_avatar_url)} alt="Avatar" style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "16px", display: "block" }} />
-                )}
+              <div style={{ display: "flex", alignItems: "center", marginTop: "32px", borderTop: `1px solid ${isDark ? "#444" : "rgba(22,20,15,0.12)"}`, paddingTop: "24px", color: muted, fontSize: "11px", lineHeight: "1.5" }}>
+                <img src="https://avatars.githubusercontent.com/michalkasparek91" alt="Michal Kašpárek" style={{ width: "44px", height: "44px", borderRadius: "50%", marginRight: "16px", display: "block", objectFit: "cover" }} />
                 <div>
-                  <span style={{ display: "block", marginBottom: "2px" }}>S pozdravem</span>
-                  <strong style={{ color: ink, fontSize: "13px" }}>{previewReplace(form.signature_name || "Ing. arch. Michal Kašpárek")}</strong><br/>
-                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; {previewReplace(form.signature_role || "web a vizualizace pro architekturu")}</span><br/>
-                  <span style={{ color: acc }}>{previewReplace(form.signature_email || "info@atmosferi.com")}</span> &middot; <span style={{ color: "#A8A398" }}>atmosferi.com</span>
+                  <span style={{ display: "block", marginBottom: "0px", color: ink }}>S pozdravem</span>
+                  <strong style={{ color: ink, fontSize: "13px", fontWeight: 700 }}>Ing. arch. Michal Kašpárek</strong><br/>
+                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; web a vizualizace pro architekturu</span><br/>
+                  <span style={{ color: acc }}>info@atmosferi.com</span> <span style={{ color: "#A8A398" }}>&middot; atmosferi.com</span>
                 </div>
               </div>
 
@@ -1114,6 +1113,84 @@ export function ModularEmailEditorDialogInner({
                 {mode === "outbox" && `Revize zprávy pro: ${form.recipient_name || form.recipient_email}`}
               </span>
             </h2>
+
+            {/* Template Switcher Popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 ml-2 rounded-xl text-[10px] font-mono tracking-widest font-bold gap-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-0 hover:bg-zinc-800 dark:hover:bg-zinc-200 uppercase shrink-0 shadow-sm">
+                  {form.language || "CZ"} / {(() => {
+                    const c = [
+                      { id: "architekti", label: "ARCHITEKTONICKÉ STUDIO" },
+                      { id: "interiery", label: "INTERIÉROVÉ STUDIO" },
+                      { id: "developeri", label: "REALITNÍ DEVELOPER" },
+                      { id: "urbanismus", label: "URBANISMUS / VEŘEJNÝ SEKTOR" },
+                      { id: "architekt", label: "SAMOSTATNÝ ARCHITEKT" },
+                    ].find(cat => cat.id === form.category);
+                    return c ? c.label : "ARCHITEKTONICKÉ STUDIO";
+                  })()}
+                  <ChevronDown className="h-3 w-3 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[340px] p-4 bg-background border-border shadow-xl rounded-2xl z-[200]" align="start">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-[10px] font-black tracking-[0.15em] text-muted-foreground uppercase mb-3 block">Language / Market</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { id: "cz", code: "CZ", name: "Česko", lang: "CZE" },
+                        { id: "de", code: "DE", name: "Německo", lang: "GER" },
+                        { id: "at", code: "AT", name: "Rakousko", lang: "GER" },
+                      ].map(m => {
+                        const isActive = form.language === m.id || (m.id === "cz" && !form.language);
+                        return (
+                          <button 
+                            key={m.id}
+                            onClick={(e) => { e.preventDefault(); setVal("language", m.id); }}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 ${
+                              isActive
+                                ? "bg-zinc-900 text-white border-zinc-900 shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
+                                : "bg-muted/30 text-foreground border-border hover:bg-muted/80 hover:border-border/80"
+                            }`}
+                          >
+                            <span className={`font-mono font-bold text-[10px] ${isActive ? "text-zinc-400 dark:text-zinc-500" : ""}`}>{m.code}</span>
+                            <span className="font-semibold text-xs tracking-tight">{m.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-black tracking-[0.15em] text-muted-foreground uppercase mb-3 block">Client Type</Label>
+                    <div className="flex flex-col gap-2">
+                      {[
+                        { id: "architekti", label: "ARCHITEKTONICKÉ STUDIO", icon: Building2 },
+                        { id: "interiery", label: "INTERIÉROVÉ STUDIO", icon: Layout },
+                        { id: "developeri", label: "REALITNÍ DEVELOPER", icon: MapPin },
+                        { id: "urbanismus", label: "URBANISMUS / VEŘEJNÝ SEKTOR", icon: Hexagon },
+                        { id: "architekt", label: "SAMOSTATNÝ ARCHITEKT", icon: Contrast },
+                      ].map(c => {
+                        const Icon = c.icon;
+                        const isActive = form.category === c.id || (c.id === "architekti" && !form.category);
+                        return (
+                          <button
+                            key={c.id}
+                            onClick={(e) => { e.preventDefault(); setVal("category", c.id); }}
+                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                              isActive
+                                ? "bg-zinc-900 text-white border-zinc-900 shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
+                                : "bg-muted/30 text-foreground border-border hover:bg-muted/80 hover:border-border/80"
+                            }`}
+                          >
+                            <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-zinc-400 dark:text-zinc-500" : "text-muted-foreground"}`} />
+                            <span className="font-mono font-bold text-[10px] tracking-widest uppercase">{c.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           
           <div className="flex items-center gap-2.5 shrink-0">
@@ -1340,15 +1417,7 @@ export function ModularEmailEditorDialogInner({
                     </Select>
                   </div>
                   
-                  {/* Atmosferi Signature */}
-                  <div className="py-2 border-t border-border/50 mt-4 mb-2">
-                    <h4 className="text-xs font-bold mb-2">Podpis (Atmosferi Studio)</h4>
-                    <div className="space-y-2">
-                      <Input value={form.signature_name || ""} onChange={(e) => setVal("signature_name", e.target.value)} placeholder="Jméno (např. Ing. arch. Michal Kašpárek)" className="h-8 text-xs" />
-                      <Input value={form.signature_role || ""} onChange={(e) => setVal("signature_role", e.target.value)} placeholder="Role (např. Architektonické studio)" className="h-8 text-xs" />
-                      <Input value={form.signature_email || ""} onChange={(e) => setVal("signature_email", e.target.value)} placeholder="E-mail (např. info@atmosferi.com)" className="h-8 text-xs" />
-                    </div>
-                  </div>
+                  {/* Atmosferi Signature removed - hardcoded in template */}
 
                   {/* Hlavní Obrázek */}
                   <div className="py-1">
@@ -1463,7 +1532,8 @@ export function ModularEmailEditorDialogInner({
                               { id: "architekti", label: "ARCHITEKTONICKÉ STUDIO", icon: Building2 },
                               { id: "interiery", label: "INTERIÉROVÉ STUDIO", icon: Layout },
                               { id: "developeri", label: "REALITNÍ DEVELOPER", icon: MapPin },
-                              { id: "stavebnictvi", label: "STAVEBNÍ FIRMA", icon: Briefcase },
+                              { id: "urbanismus", label: "URBANISMUS / VEŘEJNÝ SEKTOR", icon: Hexagon },
+                              { id: "architekt", label: "SAMOSTATNÝ ARCHITEKT", icon: Contrast },
                             ].map(c => {
                               const Icon = c.icon;
                               const isActive = form.category === c.id || (c.id === "architekti" && !form.category);
