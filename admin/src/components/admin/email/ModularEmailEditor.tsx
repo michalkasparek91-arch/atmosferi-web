@@ -1048,7 +1048,7 @@ export function ModularEmailEditorDialogInner({
 
   const setVal = (key: keyof EmailEditorState, val: any) => setForm((p) => p ? ({ ...p, [key]: val }) : null);
 
-  const handleSwitchTemplate = async (newLang: string, newCat: string) => {
+  const switchTemplateCombination = async (newLang: string, newCat: string) => {
     if (mode !== "template") return;
     try {
       const { data, error } = await supabase
@@ -1211,7 +1211,7 @@ export function ModularEmailEditorDialogInner({
                         return (
                           <button 
                             key={m.id}
-                            onClick={(e) => { e.preventDefault(); handleSwitchTemplate(m.id, form.category || "architekti"); }}
+                            onClick={(e) => { e.preventDefault(); switchTemplateCombination(m.id, form.category || "architekti"); }}
                             className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 ${
                               isActive
                                 ? "bg-zinc-900 text-white border-zinc-900 shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
@@ -1240,7 +1240,7 @@ export function ModularEmailEditorDialogInner({
                         return (
                           <button
                             key={c.id}
-                            onClick={(e) => { e.preventDefault(); handleSwitchTemplate(form.language || "cz", c.id); }}
+                            onClick={(e) => { e.preventDefault(); switchTemplateCombination(form.language || "cz", c.id); }}
                             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 ${
                               isActive
                                 ? "bg-zinc-900 text-white border-zinc-900 shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
