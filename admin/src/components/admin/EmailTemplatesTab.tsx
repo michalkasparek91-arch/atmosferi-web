@@ -68,12 +68,11 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string; icon: type
   lifecycle: { label: "Lifecycle", color: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20", icon: Clock },
 };
 
-const LANGUAGE_LABELS: Record<string, { label: string, flag: string }> = {
-  all: { label: "Všechny jazyky", flag: "🌍" },
-  cs: { label: "Čeština", flag: "🇨🇿" },
-  sk: { label: "Slovenština", flag: "🇸🇰" },
-  en: { label: "Angličtina", flag: "🇬🇧" },
-  de: { label: "Němčina", flag: "🇩🇪" },
+const MARKET_LABELS: Record<string, { label: string, flag: string }> = {
+  all: { label: "Všechny státy", flag: "🌍" },
+  cz: { label: "Česko", flag: "🇨🇿" },
+  de: { label: "Německo", flag: "🇩🇪" },
+  at: { label: "Rakousko", flag: "🇦🇹" },
 };
 
 const TARGET_LABELS: Record<string, { label: string, icon?: any }> = {
@@ -487,7 +486,7 @@ export default function EmailTemplatesTab() {
           </div>
           
           <div className="flex bg-background/50 p-1 rounded-md border border-border/30 overflow-x-auto no-scrollbar">
-            {Object.entries(LANGUAGE_LABELS).map(([key, config]) => {
+            {Object.entries(MARKET_LABELS).map(([key, config]) => {
               const isActive = langFilter === key;
               return (
                 <button

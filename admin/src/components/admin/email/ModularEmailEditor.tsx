@@ -271,6 +271,47 @@ export function ModularLivePreview({
                 </div>
               )}
 
+              {!!form.segment_filters?.gallery_enabled && (
+                <div style={{ display: "flex", gap: "8px", margin: "32px 0", width: "100%" }}>
+                  {[form.segment_filters.gallery_image_1, form.segment_filters.gallery_image_2, form.segment_filters.gallery_image_3].map((imgUrl, i) => (
+                    <div key={i} style={{ flex: 1, aspectRatio: "1/1", overflow: "hidden", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
+                      {imgUrl ? (
+                        <img src={imgUrl} alt={`Gallery image ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: isDark ? "#1f1f1d" : "#f5f3ec" }}>
+                          <span style={{ fontSize: "12px", color: muted }}>{i + 1}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!!form.segment_filters?.services_widget_enabled && (
+                <div style={{ margin: "32px 0", padding: "24px", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}`, backgroundColor: isDark ? "#1f1f1d" : "#f5f3ec", textAlign: "left" }}>
+                  <h3 style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "20px", color: muted, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
+                    CO DĚLÁME
+                  </h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    {[
+                      { num: "1", title: "Webové stránky", desc: "Získáte moderní prezentaci, která prodává vaše projekty za vás." },
+                      { num: "2", title: "3D Vizualizace", desc: "Ohromte klienty realistickými záběry ještě před začátkem stavby." },
+                      { num: "3", title: "Klientské sekce", desc: "Usnadněte si práci a nechte klienty vybírat standardy pohodlně online." }
+                    ].map((item, i, arr) => (
+                      <div key={item.num} style={{ paddingBottom: "16px", borderBottom: i === arr.length - 1 ? "none" : `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          <span style={{ fontSize: "16px", fontWeight: "bold", color: acc }}>{item.num}</span>
+                          <div>
+                            <h4 style={{ fontSize: "14px", fontWeight: "bold", margin: "0 0 4px 0", color: ink }}>{item.title}</h4>
+                            <p style={{ fontSize: "13px", margin: 0, color: muted, lineHeight: "1.5" }}>{item.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {form.show_cta_button !== false && form.cta_text && form.cta_url && (
                 <div style={{ marginBottom: "32px" }}>
                   <span style={{ display: "inline-block", backgroundColor: "#16140F", color: "#FBFAF6", padding: "12px 24px", textDecoration: "none", fontSize: "10.5px", fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", letterSpacing: "0.16em", textTransform: "uppercase" }}>
@@ -1006,6 +1047,31 @@ export function ModularEmailEditorDialogInner({
   };
 
   const setVal = (key: keyof EmailEditorState, val: any) => setForm((p) => p ? ({ ...p, [key]: val }) : null);
+
+  const handleSwitchTemplate = async (newLang: string, newCat: string) => {
+    if (mode !== "template") return;
+    try {
+      const { data, error } = await supabase
+        .from("email_templates")
+        .select("*")
+        .eq("language", newLang)
+        .eq("category", newCat)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setForm(data as any);
+        toast.success(`Šablona načtena: ${data.name || "Bez názvu"}`);
+      } else {
+        if (confirm(`Šablona pro kombinaci ${newLang.toUpperCase()} a oboru ${newCat} neexistuje. Chcete rozpracovat novou?`)) {
+          setForm((p) => p ? { ...p, id: "", name: `Nová šablona (${newLang.toUpperCase()} - ${newCat})`, language: newLang, category: newCat, is_enabled: true } : null);
+        }
+      }
+    } catch (err: any) {
+      toast.error("Chyba při načítání šablony: " + err.message);
+    }
+  };
   const setSegmentFilter = (key: string, val: any) => {
     setForm((p) => p ? ({ ...p, segment_filters: { ...(p.segment_filters || {}), [key]: val } }) : null);
   };
@@ -1114,10 +1180,10 @@ export function ModularEmailEditorDialogInner({
               </span>
             </h2>
 
-            {/* Template Switcher Popover */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 ml-2 rounded-xl text-[10px] font-mono tracking-widest font-bold gap-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-0 hover:bg-zinc-800 dark:hover:bg-zinc-200 uppercase shrink-0 shadow-sm">
+            {mode === "template" && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 ml-2 rounded-xl text-[10px] font-mono tracking-widest font-bold gap-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-0 hover:bg-zinc-800 dark:hover:bg-zinc-200 uppercase shrink-0 shadow-sm">
                   {form.language || "CZ"} / {(() => {
                     const c = [
                       { id: "architekti", label: "ARCHITEKTONICKÉ STUDIO" },
@@ -1145,7 +1211,7 @@ export function ModularEmailEditorDialogInner({
                         return (
                           <button 
                             key={m.id}
-                            onClick={(e) => { e.preventDefault(); setVal("language", m.id); }}
+                            onClick={(e) => { e.preventDefault(); handleSwitchTemplate(m.id, form.category || "architekti"); }}
                             className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 ${
                               isActive
                                 ? "bg-zinc-900 text-white border-zinc-900 shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
@@ -1174,7 +1240,7 @@ export function ModularEmailEditorDialogInner({
                         return (
                           <button
                             key={c.id}
-                            onClick={(e) => { e.preventDefault(); setVal("category", c.id); }}
+                            onClick={(e) => { e.preventDefault(); handleSwitchTemplate(form.language || "cz", c.id); }}
                             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 ${
                               isActive
                                 ? "bg-zinc-900 text-white border-zinc-900 shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
@@ -1191,6 +1257,7 @@ export function ModularEmailEditorDialogInner({
                 </div>
               </PopoverContent>
             </Popover>
+            )}
           </div>
           
           <div className="flex items-center gap-2.5 shrink-0">
