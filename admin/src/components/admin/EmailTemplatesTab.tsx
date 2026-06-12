@@ -50,7 +50,7 @@ type EmailTemplate = {
   sender_email?: string | null;
   created_at: string | null;
   updated_at: string | null;
-  layout_type?: "standard" | "magazine" | "sniper";
+  layout_type?: "standard" | "magazine" | "sniper" | "atmosferi_studio";
   hero_image_url?: string | null;
   urgency_banner_enabled?: boolean;
   urgency_banner_text?: string | null;
@@ -434,7 +434,7 @@ export default function EmailTemplatesTab() {
       heading: null,
       created_at: null,
       updated_at: null,
-      layout_type: "standard",
+      layout_type: "atmosferi_studio",
       hero_image_url: "",
     });
   };
@@ -518,7 +518,7 @@ DŮLEŽITÉ:
           drip_delay_days: t.drip_delay_days,
           drip_series: t.drip_series,
           is_enabled: false,
-          layout_type: t.layout_type,
+          layout_type: "atmosferi_studio",
           hero_image_url: t.hero_image_url,
           urgency_banner_enabled: t.urgency_banner_enabled,
           urgency_banner_text: translated.urgency_banner_text || t.urgency_banner_text,
@@ -630,6 +630,20 @@ DŮLEŽITÉ:
               {localizeProgress}
             </div>
           )}
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-9 rounded-2xl text-xs gap-1.5 px-4 font-bold text-amber-600 border-amber-600/30 hover:bg-amber-600/10" 
+            onClick={async () => {
+              if (confirm("Chcete převést všechny starší šablony ze vzhledu 'Zrobee' na nový 'Atmosferi'?")) {
+                const { error } = await supabase.from("email_templates").update({ layout_type: "atmosferi_studio" }).in("layout_type", ["standard", "magazine", "plain", null]);
+                if (error) alert("Chyba: " + error.message);
+                else { alert("Hotovo! Všechny šablony teď používají vzhled Atmosferi."); queryClient.invalidateQueries({ queryKey: ["email-templates-all"] }); }
+              }
+            }}
+          >
+            Opravit vzhled všech šablon
+          </Button>
           <Button size="sm" className="h-9 rounded-2xl text-xs gap-1.5 px-4 font-bold w-full lg:w-auto shadow-sm" onClick={createNew}>
             <Plus className="h-4 w-4" /> Nová šablona
           </Button>
