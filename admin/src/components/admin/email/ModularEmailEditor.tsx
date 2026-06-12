@@ -1184,13 +1184,25 @@ export function ModularEmailEditorDialogInner({
             <Button variant="outline" size="icon" onClick={onClose} className="h-8 w-8 rounded-full shrink-0 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 hover:bg-muted">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-base font-bold flex items-center gap-2 truncate shrink-0 text-zinc-800 dark:text-zinc-200">
-              <span className="truncate hidden md:inline">
-                {mode === "template" && `Šablona: ${form.name || "Nová"}`}
-                {mode === "campaign" && `Kampaň: ${form.name || "Vizuální Editor"}`}
-                {mode === "outbox" && `Revize zprávy pro: ${form.recipient_name || form.recipient_email}`}
-              </span>
-            </h2>
+            {mode === "outbox" ? (
+              <h2 className="text-base font-bold flex items-center gap-2 truncate shrink-0 text-zinc-800 dark:text-zinc-200">
+                <span className="truncate hidden md:inline">
+                  {`Revize zprávy pro: ${form.recipient_name || form.recipient_email}`}
+                </span>
+              </h2>
+            ) : (
+              <div className="flex items-center gap-1.5 shrink-0 max-w-[200px] sm:max-w-[300px]">
+                <span className="text-sm text-muted-foreground font-medium hidden md:inline shrink-0">
+                  {mode === "template" ? "Šablona:" : "Kampaň:"}
+                </span>
+                <Input 
+                  value={form.name || ""} 
+                  onChange={(e) => setForm(p => p ? { ...p, name: e.target.value } : null)} 
+                  placeholder={mode === "template" ? "Nová šablona" : "Vizuální Editor"}
+                  className="h-8 text-sm md:text-base font-bold bg-transparent border-transparent hover:border-border hover:bg-muted/30 focus-visible:ring-1 px-2 w-full truncate text-zinc-800 dark:text-zinc-200"
+                />
+              </div>
+            )}
 
             {mode === "template" && (
               <Popover>
