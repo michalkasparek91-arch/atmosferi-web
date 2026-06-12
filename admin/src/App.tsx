@@ -16,6 +16,7 @@ const ProtectedAdminRoute = React.lazy(() => import("./components/ProtectedAdmin
 const AdminDashboard = React.lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminEmails = React.lazy(() => import("./pages/admin/AdminEmails"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
+const ProposalView = React.lazy(() => import("./pages/ProposalView"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
