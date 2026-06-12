@@ -555,6 +555,45 @@ export function ModularLivePreview({
         dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || "Zde bude text vašeho e-mailu..."), form.segment_filters?.text_align || "left", isDark) }}
       />
 
+      {/* 6.5 Co děláme (Služby) */}
+      {!!form.segment_filters?.services_widget_enabled && (
+        <div className={`text-left max-w-[520px] mx-auto my-6 p-6 border ${
+          isDark ? "bg-[#1f1f1d] border-[#2d2d2a] text-zinc-300" : "bg-[#f5f3ec] border-[#e6e4dc] text-[#333333]"
+        }`}>
+          <h3 className={`text-[11px] font-medium tracking-[0.15em] uppercase mb-5 ${
+            isDark ? "text-zinc-500" : "text-[#807d73]"
+          }`}>
+            CO DĚLÁME
+          </h3>
+          <div className="space-y-4">
+            <div className={`pb-4 border-b ${isDark ? "border-[#2d2d2a]" : "border-[#e6e4dc]"}`}>
+              <div className="flex gap-2.5">
+                <span className={`text-[16px] font-bold ${isDark ? "text-[#d67a65]" : "text-[#c16c5b]"}`}>1</span>
+                <p className={`text-[15px] leading-relaxed m-0 ${isDark ? "text-zinc-300" : "text-[#333333]"}`}>
+                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>Špičkové weby pro architektonická studia</strong> — portfolia, která drží krok s vaší prací.
+                </p>
+              </div>
+            </div>
+            <div className={`pb-4 border-b ${isDark ? "border-[#2d2d2a]" : "border-[#e6e4dc]"}`}>
+              <div className="flex gap-2.5">
+                <span className={`text-[16px] font-bold ${isDark ? "text-[#d67a65]" : "text-[#c16c5b]"}`}>2</span>
+                <p className={`text-[15px] leading-relaxed m-0 ${isDark ? "text-zinc-300" : "text-[#333333]"}`}>
+                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>Prodejní prezentace architektonických projektů</strong> — web, dostupnost jednotek, 360° prohlídky.
+                </p>
+              </div>
+            </div>
+            <div>
+              <div className="flex gap-2.5">
+                <span className={`text-[16px] font-bold ${isDark ? "text-[#d67a65]" : "text-[#c16c5b]"}`}>3</span>
+                <p className={`text-[15px] leading-relaxed m-0 ${isDark ? "text-zinc-300" : "text-[#333333]"}`}>
+                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>Profesionální architektonické vizualizace</strong> — nasvícené jako fotografie, ne jako strojový render.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 7. Karta zakázky (Job Card Widget) */}
       {(form.show_job_widget ?? true) && (
         <div className={`border rounded-2xl overflow-hidden shadow-md text-left max-w-[500px] mx-auto transition-transform hover:scale-[1.01] ${
@@ -1333,6 +1372,14 @@ export function ModularEmailEditorDialogInner({
                         <Input value={form.segment_filters?.gallery_image_3 || ""} onChange={(e) => setSegmentFilter("gallery_image_3", e.target.value)} placeholder="Obrázek 3 (URL)" className="h-8 text-xs" />
                       </div>
                     )}
+                  </div>
+
+                  {/* Co děláme (Služby) */}
+                  <div className="py-2 border-t border-border/50 mt-2 mb-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-xs font-medium text-foreground/80">Widget: Co děláme</Label>
+                      <Switch checked={!!form.segment_filters?.services_widget_enabled} onCheckedChange={(c) => setSegmentFilter("services_widget_enabled", c)} />
+                    </div>
                   </div>
                   {/* Tlačítko akce (CTA) */}
                   <div className="py-1">
