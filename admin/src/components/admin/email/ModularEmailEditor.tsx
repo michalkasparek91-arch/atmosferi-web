@@ -923,7 +923,6 @@ export function ModularEmailEditorDialogInner({
       const { data: jobs, error } = await supabase
         .from("jobs")
         .select(`id, title, city, description, subcategory_id, budget_min, budget_max, price_note, customer_id, service_subcategories(name, category_form)`)
-        .eq("status", "open")
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
@@ -1834,7 +1833,7 @@ export function ModularEmailEditorDialogInner({
                     <SelectItem value="default" className="text-xs font-semibold">✨ Výchozí ukázková data</SelectItem>
                     {openJobs?.map((job: any) => (
                       <SelectItem key={job.id} value={job.id} className="text-xs">
-                        {job.title} ({job.city || "Celá ČR"})
+                        {job.title || "Bez názvu"} ({job.customer_name ? `${job.customer_name}, ` : ""}{job.city || "Celá ČR"})
                       </SelectItem>
                     ))}
                   </SelectContent>
