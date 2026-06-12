@@ -872,8 +872,8 @@ export function ModularEmailEditorDialogInner({
       const { data: jobs, error } = await supabase
         .from("jobs")
         .select(`id, title, city, description, subcategory_id, budget_min, budget_max, price_note, customer_id, service_subcategories(name, category_form)`)
-        .eq("status", "open")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(20);
       if (error) throw error;
       
       const customerIds = [...new Set(jobs?.map(j => j.customer_id).filter(Boolean) || [])];
@@ -1225,29 +1225,31 @@ export function ModularEmailEditorDialogInner({
             <div className="space-y-4 flex-1">
               
               {/* Internal editor tabs */}
-              <div className="flex flex-wrap border-b border-border mb-2">
+              <div className="flex items-center rounded-xl border border-border overflow-hidden w-max mb-4 bg-background dark:bg-zinc-900 shadow-sm">
                 <button 
                   onClick={() => setActiveTab("content")}
-                  className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2 ${
-                    activeTab === "content" ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground hover:bg-muted/50"
+                  className={`px-5 py-2 text-[10px] font-mono font-bold tracking-[0.15em] uppercase transition-all duration-300 ${
+                    activeTab === "content" ? "bg-[#181816] text-white dark:bg-zinc-100 dark:text-zinc-900" : "bg-transparent text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
-                  📝 Obsah
+                  OBSAH
                 </button>
                 <button 
                   onClick={() => setActiveTab("widgets")}
-                  className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2 ${
-                    activeTab === "widgets" ? "border-primary text-primary bg-primary/5" : "border-transparent text-muted-foreground hover:bg-muted/50"
+                  className={`px-5 py-2 text-[10px] font-mono font-bold tracking-[0.15em] uppercase transition-all duration-300 ${
+                    activeTab === "widgets" ? "bg-[#181816] text-white dark:bg-zinc-100 dark:text-zinc-900" : "bg-transparent text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
-                  🧩 Widgety
+                  WIDGETY
                 </button>
-                  <button 
-                    onClick={() => setActiveTab("settings")}
-                    className={`flex-1 py-2 px-1 text-[10px] uppercase tracking-wider font-bold rounded-xl transition-all ${activeTab === "settings" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    👥 Publikum
-                  </button>
+                <button 
+                  onClick={() => setActiveTab("settings")}
+                  className={`px-5 py-2 text-[10px] font-mono font-bold tracking-[0.15em] uppercase transition-all duration-300 ${
+                    activeTab === "settings" ? "bg-[#181816] text-white dark:bg-zinc-100 dark:text-zinc-900" : "bg-transparent text-muted-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  PUBLIKUM
+                </button>
               </div>
 
               {activeTab === "content" && (
@@ -1642,27 +1644,23 @@ export function ModularEmailEditorDialogInner({
                 </div>
                 
                 {/* Desktop / Mobile segmented toggler */}
-                <div className="flex items-center bg-muted/80 dark:bg-zinc-800 p-0.5 rounded-xl border border-border/40">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={`h-7 px-2.5 rounded-lg gap-1.5 text-[10px] font-bold transition-all ${previewDevice === "desktop" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
+                <div className="flex items-center rounded-xl border border-border overflow-hidden bg-background dark:bg-zinc-900 shadow-sm">
+                  <button
                     onClick={() => setPreviewDevice("desktop")}
+                    className={`px-5 py-2 text-[10px] font-mono font-bold tracking-[0.15em] uppercase transition-all duration-300 ${
+                      previewDevice === "desktop" ? "bg-[#181816] text-white dark:bg-zinc-100 dark:text-zinc-900" : "bg-transparent text-muted-foreground hover:bg-muted/50"
+                    }`}
                   >
-                    <Monitor className="h-3 w-3" />
-                    Desktop
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={`h-7 px-2.5 rounded-lg gap-1.5 text-[10px] font-bold transition-all ${previewDevice === "mobile" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
+                    DESKTOP
+                  </button>
+                  <button
                     onClick={() => setPreviewDevice("mobile")}
+                    className={`px-5 py-2 text-[10px] font-mono font-bold tracking-[0.15em] uppercase transition-all duration-300 ${
+                      previewDevice === "mobile" ? "bg-[#181816] text-white dark:bg-zinc-100 dark:text-zinc-900" : "bg-transparent text-muted-foreground hover:bg-muted/50"
+                    }`}
                   >
-                    <Smartphone className="h-3 w-3" />
-                    Mobil
-                  </Button>
+                    MOBILE
+                  </button>
                 </div>
               </div>
 
