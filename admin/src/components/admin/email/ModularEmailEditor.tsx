@@ -1488,22 +1488,7 @@ export function ModularEmailEditorDialogInner({
                     </div>
                   </div>
 
-                  {/* Layout Selector */}
-                  <div className="py-2 mb-2">
-                    <Label className="text-xs font-medium text-foreground/80">Layout šablony</Label>
-                    <Select value={form.layout_type || "atmosferi_studio"} onValueChange={(v) => setVal("layout_type", v)}>
-                      <SelectTrigger className="h-8 text-xs mt-1">
-                        <SelectValue placeholder="Vyberte layout..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="atmosferi_studio" className="text-xs">Atmosferi Studio</SelectItem>
-                        <SelectItem value="standard" className="text-xs">Standardní oznámení</SelectItem>
-                        <SelectItem value="magazine" className="text-xs">Magazín / Newsletter</SelectItem>
-                        <SelectItem value="sniper_recruitment" className="text-xs">Profil dodavatele</SelectItem>
-                        <SelectItem value="plain" className="text-xs">Jen prostý text (Plain)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+
                   
                   {/* Atmosferi Signature removed - hardcoded in template */}
 
