@@ -875,6 +875,7 @@ export function ModularEmailEditorDialogInner({
         name: initialData.name || "",
         slug: initialData.slug || "",
         category: initialData.category || "marketing",
+        language: initialData.language || "cz",
         subject: initialData.subject || "",
         emoji: initialData.emoji || "📧",
         greeting: initialData.greeting !== undefined ? initialData.greeting : "Dobrý den {{osloveni}},",
@@ -922,9 +923,9 @@ export function ModularEmailEditorDialogInner({
     queryKey: ["admin-leads-preview-modular"],
     queryFn: async () => {
       const { data: leads, error } = await supabase
-        .from("marketing_leads")
+        .from("unified_contacts" as any)
         .select(`id, full_name, email, city, website, user_type`)
-        .order("created_at", { ascending: false })
+        .order("engagement_score", { ascending: false })
         .limit(20);
       if (error) throw error;
       
