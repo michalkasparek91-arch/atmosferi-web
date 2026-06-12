@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Mail, Save, X, Trash2, Send, Loader2, Bold, Italic, List, Link, 
-  Monitor, Smartphone, Sparkles, ChevronLeft, ChevronRight, Eye, Target, MapPin
+  Monitor, Smartphone, Sparkles, ChevronLeft, ChevronRight, Eye, Target, MapPin,
+  Building2, Layout, Briefcase
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -464,6 +465,27 @@ export function ModularLivePreview({
           isDark ? "border-zinc-800 bg-zinc-900/30" : "border-border/60 bg-muted/30"
         }`}>
           <img src={form.hero_image_url} alt="Hero Banner" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" />
+        </div>
+      )}
+
+      {/* 4.5 Galerie (Trojice obrázků) */}
+      {!!form.segment_filters?.gallery_enabled && (
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full">
+          {[form.segment_filters.gallery_image_1, form.segment_filters.gallery_image_2, form.segment_filters.gallery_image_3].map((imgUrl, i) => (
+            <div key={i} className={`aspect-square w-full rounded-xl overflow-hidden border shadow-sm group ${
+              isDark ? "border-zinc-800 bg-zinc-900/30" : "border-border/60 bg-muted/30"
+            }`}>
+              {imgUrl ? (
+                <img src={imgUrl} alt={`Gallery image ${i + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className={`w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center opacity-40 ${isDark ? "border-zinc-600" : "border-zinc-300"}`}>
+                    <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -1297,6 +1319,21 @@ export function ModularEmailEditorDialogInner({
                       <Input value={form.hero_image_url || ""} onChange={(e) => setVal("hero_image_url", e.target.value)} onFocus={() => setActiveField("hero_image_url")} placeholder="https://url-obrazku.jpg" className="h-8 text-xs mt-2" />
                     )}
                   </div>
+
+                  {/* Galerie 3 obrázků */}
+                  <div className="py-2 border-t border-border/50 mt-2 mb-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-xs font-medium text-foreground/80">Trojice menších obrázků (Galerie)</Label>
+                      <Switch checked={!!form.segment_filters?.gallery_enabled} onCheckedChange={(c) => setSegmentFilter("gallery_enabled", c)} />
+                    </div>
+                    {form.segment_filters?.gallery_enabled && (
+                      <div className="space-y-2 mt-2 bg-muted/20 p-2 rounded-xl border border-border/40">
+                        <Input value={form.segment_filters?.gallery_image_1 || ""} onChange={(e) => setSegmentFilter("gallery_image_1", e.target.value)} placeholder="Obrázek 1 (URL)" className="h-8 text-xs" />
+                        <Input value={form.segment_filters?.gallery_image_2 || ""} onChange={(e) => setSegmentFilter("gallery_image_2", e.target.value)} placeholder="Obrázek 2 (URL)" className="h-8 text-xs" />
+                        <Input value={form.segment_filters?.gallery_image_3 || ""} onChange={(e) => setSegmentFilter("gallery_image_3", e.target.value)} placeholder="Obrázek 3 (URL)" className="h-8 text-xs" />
+                      </div>
+                    )}
+                  </div>
                   {/* Tlačítko akce (CTA) */}
                   <div className="py-1">
                     <div className="flex items-center justify-between">
@@ -1338,41 +1375,65 @@ export function ModularEmailEditorDialogInner({
                         <Switch checked={form.is_enabled ?? true} onCheckedChange={(c) => setVal("is_enabled", c)} />
                       </div>
                       
-                      <div className="space-y-3 pt-2">
+                      <div className="space-y-8 pt-4 pb-2">
+                        {/* MARKET (Jazyk) */}
                         <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Kategorie</Label>
-                          <Select value={form.category || "architekti"} onValueChange={(v) => setVal("category", v)}>
-                            <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Kategorie..." /></SelectTrigger>
-                            <SelectContent className="z-[200]">
-                              <SelectItem value="architekti">Architekti / Studia</SelectItem>
-                              <SelectItem value="developeri">Developeři / Investoři</SelectItem>
-                              <SelectItem value="interiery">Interiérová studia</SelectItem>
-                              <SelectItem value="stavebnictvi">Stavební firmy</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Label className="text-[10px] font-black tracking-[0.15em] text-muted-foreground uppercase mb-3 block">Market</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { id: "cs", code: "CZ", name: "ČESKO", lang: "ČEŠTINA" },
+                              { id: "de", code: "DE", name: "NĚMECKO", lang: "DEUTSCH" },
+                              { id: "sk", code: "SK", name: "SLOVENSKO", lang: "SLOVENČINA" },
+                              { id: "en", code: "US", name: "USA / GLOBAL", lang: "ENGLISH" },
+                            ].map(m => {
+                              const isActive = form.language === m.id || (m.id === "cs" && !form.language);
+                              return (
+                                <button 
+                                  key={m.id}
+                                  onClick={(e) => { e.preventDefault(); setVal("language", m.id); }}
+                                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 ${
+                                    isActive
+                                      ? "bg-zinc-900 text-white border-zinc-900 shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
+                                      : "bg-muted/30 text-foreground border-border hover:bg-muted/80 hover:border-border/80"
+                                  }`}
+                                >
+                                  <span className={`font-mono font-bold text-[10px] ${isActive ? "text-zinc-400 dark:text-zinc-500" : ""}`}>{m.code}</span>
+                                  <span className="font-semibold text-xs tracking-tight">{m.name}</span>
+                                  <span className={`text-[9px] uppercase tracking-widest font-mono ${isActive ? "text-zinc-400 dark:text-zinc-500" : "text-muted-foreground"}`}>{m.lang}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
+
+                        {/* CLIENT TYPE (Kategorie) */}
                         <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Odeslat jako roli</Label>
-                          <Select value={form.target_role || "all"} onValueChange={(v) => setVal("target_role", v)}>
-                            <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Role..." /></SelectTrigger>
-                            <SelectContent className="z-[200]">
-                              <SelectItem value="all">Všem (Výchozí)</SelectItem>
-                              <SelectItem value="ceo">Majitel / CEO</SelectItem>
-                              <SelectItem value="architect">Hlavní architekt / Designer</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Jazyk šablony (Pro Autonomní rozesílku)</Label>
-                          <Select value={form.language || "cs"} onValueChange={(v) => setVal("language", v)}>
-                            <SelectTrigger className="mt-1 h-9 rounded-xl text-xs"><SelectValue placeholder="Jazyk..." /></SelectTrigger>
-                            <SelectContent className="z-[200]">
-                              <SelectItem value="cs">Čeština (cs)</SelectItem>
-                              <SelectItem value="en">Angličtina (en)</SelectItem>
-                              <SelectItem value="de">Němčina (de)</SelectItem>
-                              <SelectItem value="sk">Slovenština (sk)</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Label className="text-[10px] font-black tracking-[0.15em] text-muted-foreground uppercase mb-3 block">Client Type</Label>
+                          <div className="flex flex-col gap-2 max-w-[280px]">
+                            {[
+                              { id: "architekti", label: "ARCHITEKTONICKÉ STUDIO", icon: Building2 },
+                              { id: "interiery", label: "INTERIÉROVÉ STUDIO", icon: Layout },
+                              { id: "developeri", label: "REALITNÍ DEVELOPER", icon: MapPin },
+                              { id: "stavebnictvi", label: "STAVEBNÍ FIRMA", icon: Briefcase },
+                            ].map(c => {
+                              const Icon = c.icon;
+                              const isActive = form.category === c.id || (c.id === "architekti" && !form.category);
+                              return (
+                                <button
+                                  key={c.id}
+                                  onClick={(e) => { e.preventDefault(); setVal("category", c.id); }}
+                                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                                    isActive
+                                      ? "bg-zinc-900 text-white border-zinc-900 shadow-sm dark:bg-zinc-100 dark:text-zinc-900"
+                                      : "bg-muted/30 text-foreground border-border hover:bg-muted/80 hover:border-border/80"
+                                  }`}
+                                >
+                                  <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-zinc-400 dark:text-zinc-500" : "text-muted-foreground"}`} />
+                                  <span className="font-mono text-[11px] font-bold tracking-widest">{c.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     </div>
