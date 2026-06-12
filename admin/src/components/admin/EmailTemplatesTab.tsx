@@ -20,6 +20,12 @@ import {
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ModularEmailEditorDialog from "./email/ModularEmailEditor";
+import { useMarkets } from "@/hooks/useMarkets";
+
+const getFlagEmoji = (countryCode: string) => {
+  if (!countryCode || countryCode.length !== 2) return "🌍";
+  return countryCode.toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
+};
 
 type EmailTemplate = {
   id: string;
@@ -68,12 +74,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string; icon: type
   lifecycle: { label: "Lifecycle", color: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20", icon: Clock },
 };
 
-const MARKET_LABELS: Record<string, { label: string, flag: string }> = {
-  all: { label: "Všechny státy", flag: "🌍" },
-  cz: { label: "Česko", flag: "🇨🇿" },
-  de: { label: "Německo", flag: "🇩🇪" },
-  at: { label: "Rakousko", flag: "🇦🇹" },
-};
+
 
 const TARGET_LABELS: Record<string, { label: string, icon?: any }> = {
   all: { label: "Všichni uživatelé", icon: Users },
@@ -139,6 +140,8 @@ export default function EmailTemplatesTab() {
   const [isCreating, setIsCreating] = useState(false);
   const [expandedSeries, setExpandedSeries] = useState<Set<string>>(new Set(["onboarding-worker", "onboarding-customer", "reactivation"]));
   const [sendingSlug, setSendingSlug] = useState<string | null>(null);
+
+  const { markets } = useMarkets();
 
   const testSendMutation = useMutation({
     mutationFn: async ({ slug, overrideData, jobId }: { slug: string; overrideData?: Partial<EmailTemplate>; jobId?: string }) => {
@@ -486,17 +489,25 @@ export default function EmailTemplatesTab() {
           </div>
           
           <div className="flex bg-background/50 p-1 rounded-md border border-border/30 overflow-x-auto no-scrollbar">
-            {Object.entries(MARKET_LABELS).map(([key, config]) => {
-              const isActive = langFilter === key;
+            <button
+              onClick={() => setLangFilter("all")}
+              className={`flex-none px-3 py-1.5 text-[10px] font-bold rounded-sm transition-all whitespace-nowrap ${
+                langFilter === "all" ? "bg-primary/15 dark:bg-primary/25 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              🌍 Všechny státy
+            </button>
+            {markets.map((m) => {
+              const isActive = langFilter === m.id;
               return (
                 <button
-                  key={key}
-                  onClick={() => setLangFilter(key)}
+                  key={m.id}
+                  onClick={() => setLangFilter(m.id)}
                   className={`flex-none px-3 py-1.5 text-[10px] font-bold rounded-sm transition-all whitespace-nowrap ${
                     isActive ? "bg-primary/15 dark:bg-primary/25 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {config.flag} {config.label}
+                  {getFlagEmoji(m.code)} {m.name}
                 </button>
               );
             })}

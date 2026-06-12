@@ -1359,8 +1359,7 @@ export default function AdminEmails() {
           show_job_widget: showJobWidget,
           show_cta_button: showCtaButton,
           job_description_snippet: jobDescriptionSnippet,
-        stealth_tracking_enabled: stealthTrackingEnabled,
-            stealth_tracking_enabled: stealthTrackingEnabled,
+          stealth_tracking_enabled: stealthTrackingEnabled,
         }}
         onClose={() => setEditorOpen(false)}
         onSave={(data) => {
