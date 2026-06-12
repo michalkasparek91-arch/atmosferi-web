@@ -7,17 +7,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Mail, Save, X, Trash2, Send, Loader2, Bold, Italic, List, Link, 
   Monitor, Smartphone, Sparkles, ChevronLeft, ChevronRight, Eye, Target, MapPin,
-  Building2, Layout, Briefcase, ChevronDown, Hexagon, Contrast
+  Building2, Layout, Briefcase, ChevronDown, Hexagon, Contrast, Globe, Plus
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
+import { useMarkets } from "@/hooks/useMarkets";
 
 export interface EmailEditorState {
   id: string;
