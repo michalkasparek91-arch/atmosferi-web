@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Bell, Mail, Zap, Clock, Search, Plus, Pencil, Trash2, 
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Eye, Save, X, Users, UserCheck, Shield, Send, Loader2,
-  Copy, BarChart3, Bold, Italic, Underline, List, Link, Monitor, Smartphone, Sparkles, HardHat, Home, Building2, PaintRoller
+  Copy, BarChart3, Bold, Italic, Underline, List, Link, Monitor, Smartphone, Sparkles, HardHat, Home, Building2, PaintRoller, Globe
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ModularEmailEditorDialog from "./email/ModularEmailEditor";
@@ -140,6 +140,8 @@ export default function EmailTemplatesTab() {
   const [isCreating, setIsCreating] = useState(false);
   const [expandedSeries, setExpandedSeries] = useState<Set<string>>(new Set(["onboarding-worker", "onboarding-customer", "reactivation"]));
   const [sendingSlug, setSendingSlug] = useState<string | null>(null);
+  const [localizingTemplateId, setLocalizingTemplateId] = useState<string | null>(null);
+  const [localizeProgress, setLocalizeProgress] = useState("");
 
   const { markets } = useMarkets();
 
@@ -444,6 +446,113 @@ export default function EmailTemplatesTab() {
     "sniper-outreach": "🎯 Sniper Outreach (All Templates)",
   };
 
+  const handleLocalizeSingle = async (t: EmailTemplate) => {
+    if (!confirm(`Opravdu chcete vytvořit všechny chybějící jazykové mutace pro šablonu "${t.name}" pomocí AI? Může to trvat minutu.`)) return;
+    
+    setLocalizingTemplateId(t.id);
+    try {
+      const otherMarkets = markets.filter(m => m.id !== "cz");
+      let processed = 0;
+      let created = 0;
+
+      for (const m of otherMarkets) {
+        processed++;
+        setLocalizeProgress(`Zpracovávám: ${m.code} (${processed}/${otherMarkets.length})`);
+        
+        const expectedSlug = t.slug ? `${t.slug}-${m.id}` : null;
+        if (!expectedSlug) continue;
+
+        const exists = templates.some(existing => existing.slug === expectedSlug || (existing.category === t.category && existing.language === m.id && t.category !== 'lifecycle' && t.category !== 'transactional'));
+        if (exists) continue;
+
+        const payloadToTranslate = {
+          subject: t.subject,
+          greeting: t.greeting,
+          body: t.body,
+          cta_text: t.cta_text,
+          secondary_text: t.secondary_text,
+          urgency_banner_text: t.urgency_banner_text,
+          promo_banner_text: t.promo_banner_text,
+          ps_footer_text: t.ps_footer_text,
+          job_description_snippet: t.job_description_snippet,
+          service_1_title: t.segment_filters?.service_1_title,
+          service_2_title: t.segment_filters?.service_2_title,
+          service_3_title: t.segment_filters?.service_3_title,
+        };
+
+        const systemPrompt = `Jsi expert na B2B lokalizaci. Tvým úkolem je přeložit následující texty z češtiny do jazyka ${m.lang} (pro trh: ${m.name}).
+DŮLEŽITÉ:
+- Zachovej přesně původní tón a smysl (nic nevymýšlej navíc, žádné velké úpravy).
+- Pouze do textů (např. do těla e-mailu nebo do patičky) jemně zakomponuj zmínku o cílové zemi (např. "ve Finsku", "v Německu", "pro náš trh v ${m.name}").
+- Pokud je v textu proměnná např. {{mesto_v_meste}} nebo {{osloveni}}, NESMÍŠ JE PŘELOŽIT! Musí zůstat přesně ve formátu {{promenna}}.
+- Výstup MUSÍ být pouze validní JSON objekt se stejnými klíči, jaké dostaneš na vstupu. Bez markdown značek \`\`\`json.`;
+
+        let translated;
+        try {
+          const { data, error } = await supabase.functions.invoke("llms-full", {
+            body: { prompt: JSON.stringify(payloadToTranslate), systemPrompt }
+          });
+          if (error) throw error;
+          let jsonText = typeof data === "string" ? data : data.content;
+          if (jsonText.startsWith("\`\`\`json")) jsonText = jsonText.substring(7);
+          if (jsonText.endsWith("\`\`\`")) jsonText = jsonText.substring(0, jsonText.length - 3);
+          translated = JSON.parse(jsonText.trim());
+        } catch (e) {
+          console.error("Chyba překladu pro", expectedSlug, e);
+          continue;
+        }
+
+        const newTemplate = {
+          name: `${t.name.replace(/ CZ| cz/g, '')} (${m.code})`,
+          slug: expectedSlug,
+          category: t.category,
+          emoji: t.emoji,
+          greeting: translated.greeting || t.greeting,
+          body: translated.body || t.body,
+          cta_text: translated.cta_text || t.cta_text,
+          cta_url: t.cta_url,
+          secondary_text: translated.secondary_text || t.secondary_text,
+          target_role: t.target_role,
+          trigger_type: t.trigger_type,
+          trigger_event: t.trigger_event,
+          drip_delay_days: t.drip_delay_days,
+          drip_series: t.drip_series,
+          is_enabled: false,
+          layout_type: t.layout_type,
+          hero_image_url: t.hero_image_url,
+          urgency_banner_enabled: t.urgency_banner_enabled,
+          urgency_banner_text: translated.urgency_banner_text || t.urgency_banner_text,
+          promo_banner_enabled: t.promo_banner_enabled,
+          promo_banner_text: translated.promo_banner_text || t.promo_banner_text,
+          ps_footer_enabled: t.ps_footer_enabled,
+          ps_footer_text: translated.ps_footer_text || t.ps_footer_text,
+          job_description_snippet: translated.job_description_snippet || t.job_description_snippet,
+          show_job_widget: t.show_job_widget,
+          show_cta_button: t.show_cta_button,
+          language: m.id,
+          subject: translated.subject || t.subject,
+          segment_filters: {
+            ...(t.segment_filters || {}),
+            service_1_title: translated.service_1_title || t.segment_filters?.service_1_title,
+            service_2_title: translated.service_2_title || t.segment_filters?.service_2_title,
+            service_3_title: translated.service_3_title || t.segment_filters?.service_3_title,
+          }
+        };
+
+        await saveMutation.mutateAsync(newTemplate);
+        created++;
+      }
+      
+      toast({ title: "Lokalizace hotova", description: `Bylo vygenerováno ${created} nových šablon.` });
+      queryClient.invalidateQueries({ queryKey: ["email-templates-all"] });
+    } catch (e: any) {
+      toast({ title: "Chyba při lokalizaci", description: e.message, variant: "destructive" });
+    } finally {
+      setLocalizingTemplateId(null);
+      setLocalizeProgress("");
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Stats Row & Category Filters */}
@@ -514,9 +623,17 @@ export default function EmailTemplatesTab() {
           </div>
         </div>
         
-        <Button size="sm" className="h-9 rounded-2xl text-xs gap-1.5 px-4 font-bold w-full lg:w-auto shadow-sm" onClick={createNew}>
-          <Plus className="h-4 w-4" /> Nová šablona
-        </Button>
+        <div className="flex items-center gap-2 w-full lg:w-auto">
+          {localizingTemplateId && (
+            <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-primary bg-primary/10 rounded-xl">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {localizeProgress}
+            </div>
+          )}
+          <Button size="sm" className="h-9 rounded-2xl text-xs gap-1.5 px-4 font-bold w-full lg:w-auto shadow-sm" onClick={createNew}>
+            <Plus className="h-4 w-4" /> Nová šablona
+          </Button>
+        </div>
       </div>
 
       {/* Series Groups (Lifecycle) */}
@@ -556,6 +673,8 @@ export default function EmailTemplatesTab() {
                   isSending={sendingSlug === t.slug}
                   onDuplicate={() => duplicateMutation.mutate(t)}
                   sendCount={t.slug ? dripStats[t.slug] : undefined}
+                  onLocalize={() => handleLocalizeSingle(t)}
+                  isLocalizing={localizingTemplateId === t.id}
                 />
               ))}
             </div>
@@ -584,6 +703,8 @@ export default function EmailTemplatesTab() {
                 isSending={sendingSlug === t.slug}
                 onDuplicate={() => duplicateMutation.mutate(t)}
                 sendCount={t.slug ? dripStats[t.slug] : undefined}
+                onLocalize={() => handleLocalizeSingle(t)}
+                isLocalizing={localizingTemplateId === t.id}
               />
             ))}
           </div>
@@ -632,6 +753,8 @@ function TemplateRow({
   isSending,
   onDuplicate,
   sendCount,
+  onLocalize,
+  isLocalizing,
 }: {
   template: EmailTemplate;
   showDelay?: boolean;
@@ -643,6 +766,8 @@ function TemplateRow({
   isSending?: boolean;
   onDuplicate?: () => void;
   sendCount?: number;
+  onLocalize?: () => void;
+  isLocalizing?: boolean;
 }) {
   const cat = CATEGORY_CONFIG[t.category] || CATEGORY_CONFIG.transactional;
   const target = TARGET_LABELS[t.target_role] || TARGET_LABELS.all;
@@ -693,6 +818,11 @@ function TemplateRow({
 
       {/* Actions */}
       <div className="flex items-center gap-1.5 shrink-0">
+        {(t.language === "cz" || !t.language) && onLocalize && (
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted text-primary" onClick={onLocalize} title="Lokalizovat do všech zemí (AI)" disabled={isLocalizing}>
+            {isLocalizing ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <Globe className="h-4.5 w-4.5" />}
+          </Button>
+        )}
         {onDuplicate && (
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted" onClick={onDuplicate} title="Duplikovat">
             <Copy className="h-4.5 w-4.5 text-muted-foreground hover:text-foreground" />
