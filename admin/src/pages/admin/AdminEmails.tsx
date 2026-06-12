@@ -21,6 +21,29 @@ import { CITY_COORDINATES, getLocativeForCity, getPreposition } from "@/lib/city
 import ModularEmailEditorDialog, { ModularLivePreview } from "@/components/admin/email/ModularEmailEditor";
 
 // New Modular Components
+import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
+import { useSearchParams, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Mail, Loader2, Sparkles, Save, X, Edit3, Target, Bold, Italic, Underline, List, Link, Send } from "lucide-react";
+import { render } from "@react-email/render";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+
+// Shared Email Templates
+import SniperRecruitmentEmail from "@/components/email/SniperRecruitmentEmail";
+import NewsletterEmail from "@/components/email/NewsletterEmail";
+import PlainTextEmail from "@/components/email/PlainTextEmail";
+import { CITY_COORDINATES, getLocativeForCity, getPreposition } from "@/lib/city-regions";
+import ModularEmailEditorDialog, { ModularLivePreview } from "@/components/admin/email/ModularEmailEditor";
+
+// New Modular Components
 import { EmailTopNav } from "@/components/admin/email/EmailTopNav";
 import { AdminEmailDashboard } from "@/components/admin/email/AdminEmailDashboard";
 import { CampaignManager } from "@/components/admin/email/CampaignManager";
@@ -28,6 +51,7 @@ import { AudienceManager } from "@/components/admin/email/AudienceManager";
 import { AdminScraping } from "@/components/admin/email/AdminScraping";
 import { AdminOutbox } from "@/components/admin/email/AdminOutbox";
 import { ProposalsManager } from "@/components/admin/email/ProposalsManager";
+import { AiInsightsTab } from "@/components/admin/email/AiInsightsTab";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
@@ -142,6 +166,7 @@ export default function AdminEmails() {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
   const [segmentFilters, setSegmentFilters] = useState<any>({});
+  const [stealthTrackingEnabled, setStealthTrackingEnabled] = useState(true);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const insertFormatting = (before: string, after: string) => {
@@ -323,7 +348,7 @@ export default function AdminEmails() {
             job_category: jobCategory,
             price_note: priceNote,
             customer_name: customerName,
-            job_description: jobDescription,
+            job_description: overrideData.job_description,
             job_description_snippet: overrideData.job_description_snippet,
             urgency_banner_enabled: overrideData.urgency_banner_enabled,
             urgency_banner_text: overrideData.urgency_banner_text,
@@ -821,7 +846,6 @@ export default function AdminEmails() {
         show_cta_button: showCtaButton,
         job_description_snippet: jobDescriptionSnippet,
         stealth_tracking_enabled: stealthTrackingEnabled,
-            stealth_tracking_enabled: stealthTrackingEnabled,
         segment_filters: segmentFilters,
       };
 
@@ -932,9 +956,9 @@ export default function AdminEmails() {
           cta_text: ctaText,
           cta_url: ctaUrl,
           layout_type: templateType === "sniper" ? "sniper_recruitment" : templateType,
-            status: "pending",
-            segment_filters: { stealth_tracking_enabled: stealthTrackingEnabled }
-          }));
+          status: "pending",
+          segment_filters: { stealth_tracking_enabled: stealthTrackingEnabled }
+        }));
 
         const { error } = await supabase.from("email_outbox").insert(outboxRows);
         if (error) throw error;
@@ -1116,8 +1140,6 @@ export default function AdminEmails() {
         title: "Import dokončen",
         description: `Úspěšně: ${successCount}, Chyby: ${errorCount}` 
       });
-      // Refresh leads
-      // leadSheetData.refetch() will happen automatically because the query stays same but we can force it if needed
     };
     reader.readAsText(file);
   };
@@ -1260,9 +1282,9 @@ export default function AdminEmails() {
               } />
 
               <Route path="sablony" element={<EmailTemplatesTab />} />
+              <Route path="ai-data" element={<AiInsightsTab />} />
               <Route path="sber" element={<AdminScraping />} />
               <Route path="outbox" element={<AdminOutbox />} />
-              <Route path="nabidky" element={<ProposalsManager />} />
 
               <Route path="nastaveni" element={
                 <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

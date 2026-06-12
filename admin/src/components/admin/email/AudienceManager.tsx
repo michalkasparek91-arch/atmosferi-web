@@ -10,7 +10,7 @@ import {
   Users, Search, Download, Upload, Filter, 
   ChevronLeft, ChevronRight, Loader2, Tag, Star, Activity, Calendar, Globe, ExternalLink,
   MousePointer2, Mail, Phone, MapPin, Building2, Trash2, Database, X, Briefcase,
-  Send, MailOpen, Clock, PenLine, CheckCircle2, XCircle, AlertCircle, MoreHorizontal, MessageCircle
+  Send, MailOpen, Clock, PenLine, CheckCircle2, XCircle, AlertCircle, MoreHorizontal, MessageCircle, Zap, MessageSquare
 } from "lucide-react";
 import { CITY_COORDINATES } from "@/lib/city-regions";
 import { format } from "date-fns";
@@ -1002,38 +1002,47 @@ export const AudienceManager = (props: any) => {
                 </div>
               </div>
 
-              {/* ─── Company Description / Bio ─── */}
-              {(selectedContactForSheet.description || selectedContactForSheet.company_description) && (
-                <div className="space-y-2">
+              {/* ─── AI Zjištění (Sniper) ─── */}
+              {(selectedContactForSheet.contact_source === 'lead' || selectedContactForSheet.contact_source === 'ai_web_sniper' || selectedContactForSheet.description || selectedContactForSheet.company_description) && (
+                <div className="space-y-3 pt-2">
                   <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Popis / Bio
+                    <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-600/20 flex items-center justify-center border border-amber-500/30 shadow-sm">
+                      <Zap className="h-3.5 w-3.5 text-amber-500" />
+                    </div>
+                    AI Zjištění (Sniper)
                   </h3>
-                  <div className="bg-muted/40 p-4 rounded-2xl border border-border text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap font-medium">
-                    {selectedContactForSheet.description || selectedContactForSheet.company_description}
-                  </div>
-                </div>
-              )}
+                  
+                  <div className="bg-gradient-to-br from-background/80 to-muted/30 p-1.5 rounded-3xl border border-border/80 shadow-sm">
+                    {/* Bio / Popis */}
+                    {(selectedContactForSheet.description || selectedContactForSheet.company_description) && (
+                      <div className="p-4 mb-1.5 bg-background/50 rounded-2xl">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-2">
+                          <Briefcase className="h-3 w-3 text-primary/70" /> Zjištěno o firmě
+                        </label>
+                        <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap font-medium">
+                          {selectedContactForSheet.description || selectedContactForSheet.company_description}
+                        </p>
+                      </div>
+                    )}
 
-              {/* ─── AI Icebreaker (Editovatelný) ─── */}
-              {(selectedContactForSheet.contact_source === 'lead' || selectedContactForSheet.contact_source === 'ai_web_sniper') && (
-                <div className="space-y-2 pt-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> AI Icebreaker (Úvodní oslovení)
-                    </h3>
-                    {isSavingIcebreaker && <span className="text-[10px] text-primary flex items-center gap-1 font-bold"><Loader2 className="h-3 w-3 animate-spin" /> Ukládám...</span>}
-                  </div>
-                  <div className="relative">
-                    <textarea
-                      className="w-full min-h-[90px] bg-muted/40 border border-border/80 rounded-2xl p-3 text-xs leading-relaxed text-foreground font-medium focus:ring-1 focus:ring-primary/30 focus:border-primary/40 outline-none resize-y transition-all shadow-sm font-sans"
-                      value={sheetIcebreaker}
-                      onChange={(e) => setSheetIcebreaker(e.target.value)}
-                      onBlur={(e) => handleSaveIcebreaker(e.target.value)}
-                      placeholder="Zde napište nebo nechte AI vygenerovat úvodní oslovení na míru..."
-                    />
-                    <p className="text-[10px] text-muted-foreground italic mt-1">
-                      Kliknutím vedle textového pole se úvodní oslovení automaticky uloží k tomuto kontaktu.
-                    </p>
+                    {/* AI Icebreaker */}
+                    <div className="p-4 bg-background rounded-2xl border border-border/50 shadow-sm relative group focus-within:ring-1 focus-within:ring-amber-500/30 focus-within:border-amber-500/30 transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                          <MessageSquare className="h-3 w-3 text-amber-500" /> Úvodní oslovení (Icebreaker)
+                        </label>
+                        {isSavingIcebreaker && <span className="text-[10px] text-amber-500 flex items-center gap-1 font-bold"><Loader2 className="h-3 w-3 animate-spin" /> Ukládám...</span>}
+                      </div>
+                      <div className="relative">
+                        <textarea
+                          className="w-full min-h-[90px] bg-transparent border-none p-0 text-xs leading-relaxed text-foreground font-medium focus:ring-0 outline-none resize-y transition-all font-sans"
+                          value={sheetIcebreaker}
+                          onChange={(e) => setSheetIcebreaker(e.target.value)}
+                          onBlur={(e) => handleSaveIcebreaker(e.target.value)}
+                          placeholder="Zde napište nebo nechte AI vygenerovat úvodní oslovení na míru..."
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

@@ -34,7 +34,6 @@ import { cn } from "@/lib/utils";
 import { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
 import { AdminCommandPalette } from "@/components/admin/AdminCommandPalette";
 import { DarkModeToggle } from "@/components/admin/DarkModeToggle";
-import AddToHomeScreen from "@/components/AddToHomeScreen";
 import { usePushNotificationPrompt } from "@/hooks/use-push-notification-prompt";
 
 const sidebarLinks = [
@@ -46,9 +45,6 @@ export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [pwaPromptDismissed, setPwaPromptDismissed] = useState(() => {
-    return window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
-  });
 
   // Sync existing push permission (no prompt)
   usePushNotificationPrompt();
@@ -196,9 +192,6 @@ export function AdminLayout() {
           <Outlet />
         </main>
       </div>
-
-      {/* PWA Install Prompt (shows first) */}
-      <AddToHomeScreen onDismissed={() => setPwaPromptDismissed(true)} />
     </div>
   );
 }
