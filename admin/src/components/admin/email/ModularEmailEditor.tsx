@@ -856,6 +856,7 @@ export function ModularEmailEditorDialogInner({
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<"content" | "widgets" | "settings">("content");
   const [mobileView, setMobileView] = useState<"editor" | "preview">("editor");
+  const [showServicesConfig, setShowServicesConfig] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -918,25 +919,23 @@ export function ModularEmailEditorDialogInner({
   }, [initialData, isOpen, mode]);
 
   const { data: openJobs } = useQuery({
-    queryKey: ["admin-open-jobs-preview-modular"],
+    queryKey: ["admin-leads-preview-modular"],
     queryFn: async () => {
-      const { data: jobs, error } = await supabase
-        .from("jobs")
-        .select(`id, title, city, description, subcategory_id, budget_min, budget_max, price_note, customer_id, service_subcategories(name, category_form)`)
+      const { data: leads, error } = await supabase
+        .from("marketing_leads")
+        .select(`id, full_name, email, city, website, user_type`)
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
       
-      const customerIds = [...new Set(jobs?.map(j => j.customer_id).filter(Boolean) || [])];
-      if (customerIds.length > 0) {
-        const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", customerIds);
-        const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
-        return jobs?.map(j => ({
-          ...j,
-          customer_name: profileMap.get(j.customer_id) || "Zákazník"
-        })) || [];
-      }
-      return jobs || [];
+      return leads?.map(l => ({
+        id: l.id,
+        title: l.full_name || l.email,
+        city: l.city,
+        customer_name: l.full_name,
+        email: l.email,
+        website: l.website
+      })) || [];
     },
   });
 
@@ -1027,6 +1026,11 @@ export function ModularEmailEditorDialogInner({
         }
       }
     } else if (selectedJob) {
+      if (selectedJob.customer_name) {
+        defaultData.jmeno = selectedJob.customer_name;
+        defaultData.zakaznik = selectedJob.customer_name;
+        defaultData.osloveni = selectedJob.customer_name.split(" ")[0];
+      }
       defaultData.mesto = selectedJob.city || defaultData.mesto;
       defaultData.mesto_v_meste = getCityIn(selectedJob.city);
       defaultData.nazev_zakazky = selectedJob.title || defaultData.nazev_zakazky;
@@ -1052,7 +1056,7 @@ export function ModularEmailEditorDialogInner({
       .replace(/{{nazev_zakazky}}/g, previewData.nazev_zakazky)
       .replace(/{{popis_zakazky}}/g, previewData.popis_zakazky)
       .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, previewData.cena_rozpocet)
-      .replace(/{{zakaznik}}/g, previewData.zakaznik)
+      .replace(/{{zakaznik}}|{{studio}}/g, previewData.zakaznik)
       .replace(/{{odkaz_zakazky}}/g, previewData.odkaz_zakazky)
       .replace(/{{icebreaker}}/g, previewData.icebreaker);
   };
@@ -1509,6 +1513,13 @@ export function ModularEmailEditorDialogInner({
                       <Switch checked={!!form.segment_filters?.services_widget_enabled} onCheckedChange={(c) => setSegmentFilter("services_widget_enabled", c)} />
                     </div>
                     {!!form.segment_filters?.services_widget_enabled && (
+                      <div className="flex justify-end mt-1">
+                        <button onClick={(e) => { e.preventDefault(); setShowServicesConfig(!showServicesConfig); }} className="text-[10px] uppercase font-bold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                          {showServicesConfig ? "Skrýt detaily" : "Upravit texty"} <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${showServicesConfig ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+                    )}
+                    {!!form.segment_filters?.services_widget_enabled && showServicesConfig && (
                       <div className="space-y-3 mt-3 pl-3 border-l-2 border-amber-500/30">
                         <div className="space-y-1">
                           <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Nadpis widgetu</Label>
@@ -1823,7 +1834,7 @@ export function ModularEmailEditorDialogInner({
               {/* Job Selector for dynamic previews */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-4 py-2.5 bg-card dark:bg-zinc-900/50 rounded-2xl border border-border/60 shadow-xs text-xs">
                 <span className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                  🎯 Testovací data zakázky:
+                  🎯 Testovací kontakt:
                 </span>
                 <Select value={selectedJobId} onValueChange={setSelectedJobId}>
                   <SelectTrigger className="w-full sm:w-[320px] h-8 text-xs rounded-xl bg-background border-border/50 shadow-2xs font-medium">
