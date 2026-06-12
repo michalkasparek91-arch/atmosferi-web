@@ -938,6 +938,7 @@ export function ModularEmailEditorDialogInner({
       const { data: jobs, error } = await supabase
         .from("jobs")
         .select(`id, title, city, description, subcategory_id, budget_min, budget_max, price_note, customer_id, service_subcategories(name, category_form)`)
+        .eq("status", "open")
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
@@ -1448,10 +1449,7 @@ export function ModularEmailEditorDialogInner({
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">Oslovení (smažte pro vypnutí)</Label>
-                    <Input value={form.greeting ?? ""} onChange={(e) => setVal("greeting", e.target.value)} onFocus={() => setActiveField("greeting")} placeholder="Dobrý den {{osloveni}}," className="h-9 text-xs" />
-                  </div>
+
                   <div className="space-y-1">
                     <Label className="text-[11px] font-medium text-muted-foreground/80">Předmět e-mailu</Label>
                     <Input value={form.subject || ""} onChange={(e) => setVal("subject", e.target.value)} onFocus={() => setActiveField("subject")} placeholder="Předmět e-mailu..." className="h-9 text-xs" />
