@@ -271,15 +271,15 @@ export function ModularLivePreview({
                   </h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                     {[
-                      { num: "1", title: form.segment_filters?.service_1_title || "Webové stránky", desc: form.segment_filters?.service_1_desc || "Získáte moderní prezentaci, která prodává vaše projekty za vás." },
-                      { num: "2", title: form.segment_filters?.service_2_title || "3D Vizualizace", desc: form.segment_filters?.service_2_desc || "Ohromte klienty realistickými záběry ještě před začátkem stavby." },
-                      { num: "3", title: form.segment_filters?.service_3_title || "Klientské sekce", desc: form.segment_filters?.service_3_desc || "Usnadněte si práci a nechte klienty vybírat standardy pohodlně online." }
+                      { num: "1", title: form.segment_filters?.service_1_title || "Webové stránky" },
+                      { num: "2", title: form.segment_filters?.service_2_title || "3D Vizualizace" },
+                      { num: "3", title: form.segment_filters?.service_3_title || "Klientské sekce" }
                     ].map((item, i, arr) => (
                       <div key={item.num} style={{ paddingBottom: "12px", borderBottom: i === arr.length - 1 ? "none" : `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
                         <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
                           <span style={{ fontSize: "15px", fontWeight: "bold", color: acc, lineHeight: "1.5" }}>{item.num}</span>
                           <p style={{ fontSize: "14px", margin: 0, color: ink, lineHeight: "1.5" }}>
-                            <span style={{ color: isDark ? "#fff" : "#111" }}>{item.title}</span> &mdash; <span style={{ color: muted }}>{item.desc}</span>
+                            <span style={{ color: isDark ? "#fff" : "#111" }}>{item.title}</span>
                           </p>
                         </div>
                       </div>
@@ -1536,11 +1536,6 @@ export function ModularEmailEditorDialogInner({
                               value={form.segment_filters?.[`service_${i}_title`] || ""} 
                               onChange={e => setSegmentFilter(`service_${i}_title`, e.target.value)} 
                               placeholder="Název služby" className="h-7 text-xs bg-background/50 mb-1" 
-                            />
-                            <Input 
-                              value={form.segment_filters?.[`service_${i}_desc`] || ""} 
-                              onChange={e => setSegmentFilter(`service_${i}_desc`, e.target.value)} 
-                              placeholder="Popis služby" className="h-7 text-xs bg-background/50" 
                             />
                           </div>
                         ))}
