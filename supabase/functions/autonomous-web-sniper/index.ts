@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
 TVŮJ ÚKOL: 
 1. ${targetCity ? `Zaměř se PŘESNĚ na toto město: ${targetCity}. Prohledej firmy pouze v této lokalitě.` : `Náhodně si vymysli a vyber JEDNO středně velké město v tomto státě. Pokaždé vyber jiné město, ať nehledáme pořád to samé dookola! Vyhni se hlavnímu městu.`}
 2. Pomocí nástroje Google Search najdi reálné firmy v tomto ${targetCity ? 'zadaném' : 'nově vybraném'} městě pro zadaný obor.
-3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 3-5 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Omezení na 5 firem je přísné z důvodu délky výstupu!
+3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 12-15 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Vzhledem k vyššímu limitu tokenů se neboj vypsat až 15 firem najednou!
 
 Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
 Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř textových hodnot (např. v ai_icebreaker) nesmíš používat neescapované uvozovky! Místo uvozovek používej apostrofy, aby se nerozbil JSON parser.`;
