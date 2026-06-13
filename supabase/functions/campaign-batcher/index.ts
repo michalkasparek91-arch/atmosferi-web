@@ -41,12 +41,14 @@ Deno.serve(async (req: any) => {
           
         const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
 
+        const langFilter = t.language === 'cs' ? ['cs', 'cz'] : [t.language];
+
         // Count matching leads
         let query = supabaseClient
           .from("marketing_leads")
           .select("id", { count: "exact", head: true })
           .eq("category", t.category)
-          .eq("language", t.language);
+          .in("language", langFilter);
 
         const { count, error: countErr } = await query;
         
@@ -58,7 +60,7 @@ Deno.serve(async (req: any) => {
           .from("marketing_leads")
           .select("id")
           .eq("category", t.category)
-          .eq("language", t.language);
+          .in("language", langFilter);
 
         const availableLeads = (allLeads || []).filter((l: any) => !excludedLeadIds.includes(l.id));
         const totalAudience = availableLeads.length;
@@ -117,11 +119,12 @@ Deno.serve(async (req: any) => {
       const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
 
       // Fetch available leads
+      const langFilter = template.language === 'cs' ? ['cs', 'cz'] : [template.language];
       const { data: availableLeads, error: leadsErr } = await supabaseClient
         .from("marketing_leads")
         .select("*")
         .eq("category", template.category)
-        .eq("language", template.language);
+        .in("language", langFilter);
         
       if (leadsErr) throw leadsErr;
       
