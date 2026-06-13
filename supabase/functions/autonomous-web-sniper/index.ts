@@ -159,6 +159,26 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
       const { data: lExist } = await supabase.from("marketing_leads").select("id").eq("email", cleanEmail).maybeSingle();
       if (lExist) continue;
 
+      let marketId = "cz";
+      const tc = targetCountry.toLowerCase();
+      if (tc === "česká republika" || tc === "ceska republika") marketId = "cz";
+      else if (tc === "německo" || tc === "nemecko") marketId = "de";
+      else if (tc === "rakousko") marketId = "at";
+      else if (tc === "slovensko") marketId = "sk";
+      else if (tc === "austrálie" || tc === "australie") marketId = "au";
+      else if (tc === "finsko") marketId = "fi";
+      else if (tc === "usa" || tc === "spojené státy") marketId = "us";
+      else if (tc === "švýcarsko" || tc === "svycarsko") marketId = "ch";
+      else if (tc === "norsko") marketId = "no";
+      else marketId = item.language || "cs";
+
+      let categoryId = "architekti";
+      const tk = targetKeyword.toLowerCase();
+      if (tk.includes("interiér") || tk.includes("interier")) categoryId = "interiery";
+      else if (tk.includes("develop")) categoryId = "developeri";
+      else if (tk.includes("urban") || tk.includes("veřejn") || tk.includes("verejn")) categoryId = "urbanismus";
+      else if (tk === "samostatný architekt" || tk === "samostatny architekt") categoryId = "architekt";
+
       const { data: newLead, error: insertErr } = await supabase.from("marketing_leads").insert({
           email: cleanEmail,
           full_name: item.company_name || "B2B Partner",
@@ -167,12 +187,12 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
           website: item.website || "",
           city: item.city || "Neznámé město",
           country: item.country || targetCountry,
-          language: item.language || "cs",
+          language: marketId,
           ai_icebreaker: item.ai_icebreaker || "",
           decision_maker_name: item.decision_maker_name || null,
           premium_score: item.premium_score ? parseInt(item.premium_score) : null,
           full_address: item.full_address || `${item.city || ""}, ${targetCountry}`,
-          category: "B2B",
+          category: categoryId,
           subcategory: targetKeyword,
           description: item.description || "Nalezeno autonomně",
           company_description: item.description || "Nalezeno autonomně",

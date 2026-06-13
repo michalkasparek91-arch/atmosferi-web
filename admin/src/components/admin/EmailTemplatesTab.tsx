@@ -635,14 +635,23 @@ DŮLEŽITÉ:
             variant="outline" 
             className="h-9 rounded-2xl text-xs gap-1.5 px-4 font-bold text-amber-600 border-amber-600/30 hover:bg-amber-600/10" 
             onClick={async () => {
-              if (confirm("Chcete převést všechny starší šablony ze vzhledu 'Zrobee' na nový 'Atmosferi'?")) {
+              if (confirm("Chcete opravit staré šablony a štítky u starších kontaktů?")) {
                 const { error } = await supabase.from("email_templates").update({ layout_type: "atmosferi_studio" }).in("layout_type", ["standard", "magazine", "plain", null]);
+                
+                await supabase.from("marketing_leads").update({ language: "cz" }).eq("language", "cs");
+                await supabase.from("marketing_leads").update({ category: "architekti" }).eq("category", "B2B").ilike("subcategory", "%architekt%");
+                await supabase.from("marketing_leads").update({ category: "interiery" }).eq("category", "B2B").ilike("subcategory", "%interiér%");
+                await supabase.from("marketing_leads").update({ category: "interiery" }).eq("category", "B2B").ilike("subcategory", "%interier%");
+                await supabase.from("marketing_leads").update({ category: "developeri" }).eq("category", "B2B").ilike("subcategory", "%develop%");
+                await supabase.from("marketing_leads").update({ category: "urbanismus" }).eq("category", "B2B").ilike("subcategory", "%urban%");
+                await supabase.from("marketing_leads").update({ category: "urbanismus" }).eq("category", "B2B").ilike("subcategory", "%veřejn%");
+
                 if (error) alert("Chyba: " + error.message);
-                else { alert("Hotovo! Všechny šablony teď používají vzhled Atmosferi."); queryClient.invalidateQueries({ queryKey: ["email-templates-all"] }); }
+                else { alert("Hotovo! Všechny staré kontakty a šablony jsou nyní plně kompatibilní s novými filtry."); queryClient.invalidateQueries({ queryKey: ["email-templates-all"] }); }
               }
             }}
           >
-            Opravit vzhled všech šablon
+            Opravit databázi a starší kontakty
           </Button>
           <Button size="sm" className="h-9 rounded-2xl text-xs gap-1.5 px-4 font-bold w-full lg:w-auto shadow-sm" onClick={createNew}>
             <Plus className="h-4 w-4" /> Nová šablona

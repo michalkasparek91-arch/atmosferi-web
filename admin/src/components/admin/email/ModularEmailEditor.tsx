@@ -920,13 +920,22 @@ export function ModularEmailEditorDialogInner({
   }, [initialData, isOpen, mode]);
 
   const { data: openJobs } = useQuery({
-    queryKey: ["admin-leads-preview-modular"],
+    queryKey: ["admin-leads-preview-modular", form?.language, form?.category],
     queryFn: async () => {
-      const { data: leads, error } = await supabase
+      let query = supabase
         .from("unified_contacts" as any)
         .select(`id, full_name, email, city, website, user_type`)
         .order("engagement_score", { ascending: false })
         .limit(20);
+
+      if (form?.language) {
+        query = query.eq("language", form.language);
+      }
+      if (form?.category) {
+        query = query.eq("category", form.category);
+      }
+
+      const { data: leads, error } = await query;
       if (error) throw error;
       
       return leads?.map(l => ({
