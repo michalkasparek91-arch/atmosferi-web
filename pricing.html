@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pricing — Atmosferi°</title>
-<meta name="description" content="Engagements and pricing — websites, development and 3D visualisation for architecture. Compose a bundle and see the estimate build.">
+<title>Pricing — Websites & Architectural Visualisation | Atmosferi°</title>
+<meta name="description" content="Fixed-scope pricing for architecture websites and 3D visualisation. Compose your engagement and see the estimate build — from portfolio sites to sales platforms.">
 <link rel="stylesheet" href="assets/site.css">
 <style>
   /* ============================ PRICING ============================ */
@@ -121,21 +121,54 @@
 <meta property="og:locale" content="en">
 <meta property="og:locale:alternate" content="de">
 <meta property="og:locale:alternate" content="cs">
-<meta property="og:title" content="Pricing — Atmosferi°">
-<meta property="og:description" content="Engagements and pricing — websites, development and 3D visualisation for architecture. Compose a bundle and see the estimate build.">
+<meta property="og:title" content="Pricing — Websites & Architectural Visualisation | Atmosferi°">
+<meta property="og:description" content="Fixed-scope pricing for architecture websites and 3D visualisation. Compose your engagement and see the estimate build — from portfolio sites to sales platforms.">
 <meta property="og:url" content="https://atmosferi.com/pricing.html">
 <meta property="og:image" content="https://atmosferi.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Atmosferi° — websites & 3D visualisation for architecture">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Pricing — Atmosferi°">
-<meta name="twitter:description" content="Engagements and pricing — websites, development and 3D visualisation for architecture. Compose a bundle and see the estimate build.">
+<meta name="twitter:title" content="Pricing — Websites & Architectural Visualisation | Atmosferi°">
+<meta name="twitter:description" content="Fixed-scope pricing for architecture websites and 3D visualisation. Compose your engagement and see the estimate build — from portfolio sites to sales platforms.">
 <meta name="twitter:image" content="https://atmosferi.com/og.png">
 <link rel="alternate" hreflang="en" href="https://atmosferi.com/pricing.html">
 <link rel="alternate" hreflang="de" href="https://atmosferi.com/pricing.html?lang=de">
 <link rel="alternate" hreflang="cs" href="https://atmosferi.com/pricing.html?lang=cs">
 <link rel="alternate" hreflang="x-default" href="https://atmosferi.com/pricing.html">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "BreadcrumbList",
+ "itemListElement": [
+  {
+   "@type": "ListItem",
+   "position": 1,
+   "name": "Home",
+   "item": "https://atmosferi.com/"
+  },
+  {
+   "@type": "ListItem",
+   "position": 2,
+   "name": "Pricing",
+   "item": "https://atmosferi.com/pricing.html"
+  }
+ ]
+}
+</script>
+<script type="application/ld+json">
+{
+ "@context":"https://schema.org",
+ "@type":"FAQPage",
+ "mainEntity":[
+  {"@type":"Question","name":"How much does a website for an architect cost?","acceptedAnswer":{"@type":"Answer","text":"Websites start at €3,000 for a focused portfolio, €7,000 for a full studio site with a design system and CMS, and €15,000 for a developer sales platform. Every engagement is fixed-scope and fixed-price."}},
+  {"@type":"Question","name":"What is included in the price?","acceptedAnswer":{"@type":"Answer","text":"Bespoke design, responsive build, deployment, a content-management system you run yourself, and a performance and accessibility pass. Larger engagements bundle visualisation and a sales platform."}},
+  {"@type":"Question","name":"How long does a project take?","acceptedAnswer":{"@type":"Answer","text":"A typical engagement runs about eight weeks: one week to scope the brief, three to four weeks of design, then build and launch."}},
+  {"@type":"Question","name":"Can I add 3D visualisation?","acceptedAnswer":{"@type":"Answer","text":"Yes. Architectural stills, animated fly-throughs, interactive 360 tours and real-time scenes can be bundled into any engagement or added à la carte, starting from €400 per still."}},
+  {"@type":"Question","name":"Do you work with studios outside the Czech Republic?","acceptedAnswer":{"@type":"Answer","text":"Yes — we work remotely with architects and developers across Europe and beyond, in English, German and Czech. The studio is based in Prague."}}
+ ]
+}
+</script>
 </head>
 <body>
 
@@ -318,6 +351,31 @@
   <div class="baseline-row" style="padding-top:var(--space-4);align-items:flex-start;gap:var(--space-6);flex-wrap:wrap">
     <p class="hero__lead" style="max-width:60ch;color:var(--neutral-700)">These figures are starting points for planning, not a quote. Every engagement is scoped, fixed and dated against a written brief — what you compose here is the conversation we'll have, drawn to scale.</p>
     <span class="eyebrow">Payment · 40 / 40 / 20 by milestone</span>
+  </div>
+</section>
+
+<!-- ============================ FAQ ============================ -->
+<style>
+  .faq{border-top:1px solid var(--ink);}
+  .faq__q{border-bottom:1px solid var(--line);}
+  .faq__q summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-4);padding:var(--space-4) 0;font-size:var(--text-lg);font-weight:var(--weight-med);letter-spacing:-.01em;color:var(--ink);transition:padding-left var(--dur-standard) var(--curve);}
+  .faq__q summary::-webkit-details-marker{display:none;}
+  .faq__q summary::after{content:"+";font-family:var(--font-mono);font-size:var(--text-xl);font-weight:var(--weight-reg);color:var(--neutral-500);transition:transform var(--dur-standard) var(--curve);line-height:1;}
+  .faq__q[open] summary::after{transform:rotate(45deg);}
+  .faq__q summary:hover{padding-left:var(--space-2);}
+  .faq__a{padding:0 0 var(--space-4);max-width:64ch;font-size:var(--text-md);line-height:var(--leading-body);color:var(--neutral-700);text-wrap:pretty;}
+</style>
+<section class="section wrap" data-screen-label="Pricing / FAQ">
+  <div class="section__head" data-rise>
+    <h2 class="section__title">Common questions.</h2>
+    <span class="eyebrow">FAQ</span>
+  </div>
+  <div class="faq" data-rise>
+    <details class="faq__q"><summary>How much does a website for an architect cost?</summary><p class="faq__a">Websites start at €3,000 for a focused portfolio (Portfolio), €7,000 for a full studio site with a design system and CMS (Practice), and €15,000 for a developer sales platform (Launch). Every engagement is fixed-scope and fixed-price — no hourly meters.</p></details>
+    <details class="faq__q"><summary>What is included in the price?</summary><p class="faq__a">Bespoke design, responsive build, deployment, a light or full content-management system you run yourself, and a performance &amp; accessibility pass. Larger engagements bundle visualisation and a sales platform.</p></details>
+    <details class="faq__q"><summary>How long does a project take?</summary><p class="faq__a">A typical engagement runs about eight weeks — one week to scope and fix the brief, three to four weeks of design reviewed live in the browser, then build and launch. The date is agreed up front.</p></details>
+    <details class="faq__q"><summary>Can I add 3D visualisation?</summary><p class="faq__a">Yes. Architectural stills, animated fly-throughs, interactive 360° tours and real-time scenes can be bundled into any engagement or added à la carte — visualisation starts from €400 per still.</p></details>
+    <details class="faq__q"><summary>Do you work with studios outside the Czech Republic?</summary><p class="faq__a">Yes — we work remotely with architects and developers across Europe and beyond, in English, German and Czech. The studio is based in Prague.</p></details>
   </div>
 </section>
 

@@ -12,7 +12,7 @@
     --bg:#EFEDE6; --panel:#FBFAF6; --panel-2:#F4F2EC; --ink:#16140F; --ink-2:#33302A;
     --muted:#807C72; --muted-2:#A8A398; --line:rgba(22,20,15,.12); --line-2:rgba(22,20,15,.22);
     --acc:#D97757; --ok:#1F8A5B;
-    --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',ui-monospace,monospace;
+    --sans:'Geist', system-ui, 'Segoe UI', Arial, sans-serif; --mono:'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Courier New', monospace;
     --r:6px;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -132,7 +132,15 @@
       <span class="mono">Blocks</span>
       <div class="toggle-row"><span>Hero image (architectural render)</span><button class="sw on" id="tHero" aria-pressed="true"></button></div>
       <div class="toggle-row"><span>Portfolio strip (3 thumbnails)</span><button class="sw on" id="tStrip" aria-pressed="true"></button></div>
-      <div class="toggle-row"><span>Icebreaker line (personalised)</span><button class="sw on" id="tIce" aria-pressed="true"></button></div>
+      <div class="toggle-row"><span>Shrnutí nabídky (3 body)</span><button class="sw on" id="tBullets" aria-pressed="true"></button></div>
+      <div class="opener-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);"><span>Úvodní věta</span>
+        <div class="seg" id="opener">
+          <button data-o="prague" aria-pressed="true" style="padding:7px 9px;font-size:9px;">Z Prahy</button>
+          <button data-o="honest" aria-pressed="false" style="padding:7px 9px;font-size:9px;">Upřímný</button>
+          <button data-o="personal" aria-pressed="false" style="padding:7px 9px;font-size:9px;">Osobní</button>
+          <button data-o="none" aria-pressed="false" style="padding:7px 9px;font-size:9px;">Bez</button>
+        </div>
+      </div>
       <div class="toggle-row"><span>Signature portrait</span><button class="sw on" id="tPortrait" aria-pressed="true"></button></div>
       <div class="toggle-row"><span>P.S. footer</span><button class="sw on" id="tPs" aria-pressed="true"></button></div>
       <div class="toggle-row"><span>Variables: filled preview</span><button class="sw on" id="tFilled" aria-pressed="true"></button></div>
@@ -171,33 +179,66 @@
     cs:{ tag:"Čeština",
       greet:"Dobrý den, {{osloveni}},",
       ice:"{{icebreaker}}",
-      open:"jmenuji se Michal Kašpárek a vedu studio Atmosferi — navrhujeme, programujeme a vizualizujeme weby výhradně pro lidi, kteří tvoří prostor.",
-      cta:"Zobrazit ukázky",
-      ctaAfter:"Rád vám během dvaceti minut ukážu pár konkrétních směrů, jak by web pro {{studio}} mohl vypadat. Hodil by se vám příští týden krátký hovor?",
+      open:"jsem Michal a v Atmosferi děláme webové stránky a vizualizace jen pro jediný obor — architekturu. Právě proto vím, jak moc u vaší práce záleží na obrazu, světle a detailu.",
+      openers:{
+        prague:"jsem Michal z pražského studia Atmosferi — navrhujeme, programujeme a vizualizujeme weby výhradně pro lidi, kteří tvoří prostor. Právě proto víme, jak moc u vaší práce záleží na obrazu, světle a detailu. Ozývám se rovnou k věci:",
+        honest:"tohle je studený e-mail, tak bude krátký. Jsem Michal a v Atmosferi děláme prvotřídní weby a architektonické vizualizace — a jen pro architekturu:",
+        personal:"{{icebreaker}}\n\nKrátce k věci — jsem Michal z Atmosferi, weby a vizualizace pro architekturu:",
+        none:"jsem Michal z Atmosferi — weby a vizualizace výhradně pro architekturu:"
+      },
+      cta:"Mrknout na ukázky",
+      ctaAfter:"Rád vám pošlu pár ukázek na míru {{studio}} a do dvaceti minut to spolu probereme. Hodí se vám tento týden krátký hovor?",
       signoff:"S pozdravem",
       role:"web a vizualizace pro architekturu",
-      ps:"P.S. Pokud teď web neřešíte, stačí odepsat „ne“ a víc rušit nebudu.",
-      heroCap:"Ukázka naší vizualizace — Atmosferi°" },
+      ps:"P.S. Pokud teď web neřešíte, stačí jedním slovem odepsat — víc už psát nebudu.",
+      heroCap:"Ukázka naší vizualizace — Atmosferi°",
+      offer:{head:"Co děláme", items:[
+        "Špičkové weby pro architektonická studia — portfolia, která drží krok s vaší prací.",
+        "Prodejní prezentace architektonických projektů — web, dostupnost jednotek, 360° prohlídky.",
+        "Profesionální architektonické vizualizace — nasvícené jako fotografie, ne jako strojový render."
+      ]} },
     de:{ tag:"Deutsch",
       greet:"Guten Tag {{jmeno}},",
       ice:"{{icebreaker}}",
-      open:"mein Name ist Michal Kašpárek, ich leite das Studio Atmosferi — wir gestalten, entwickeln und visualisieren Websites ausschließlich für Menschen, die mit Raum arbeiten.",
+      open:"ich bin Michal von Atmosferi. Wir machen Websites und Visualisierungen für ein einziges Feld — Architektur. Deshalb weiß ich, wie sehr es bei Ihrer Arbeit auf Bild, Licht und Detail ankommt.",
+      openers:{
+        prague:"ich bin Michal vom Prager Studio Atmosferi — wir gestalten, entwickeln und visualisieren Websites ausschließlich für Menschen, die Raum gestalten. Genau deshalb wissen wir, wie sehr es bei Ihrer Arbeit auf Bild, Licht und Detail ankommt. Gleich zur Sache:",
+        honest:"das ist eine Kaltakquise, also halte ich es kurz. Ich bin Michal, und bei Atmosferi machen wir erstklassige Websites und architektonische Visualisierungen — ausschließlich für Architektur:",
+        personal:"{{icebreaker}}\n\nKurz zu mir — ich bin Michal von Atmosferi, Websites und Visualisierung für Architektur:",
+        none:"ich bin Michal von Atmosferi — Websites und Visualisierung ausschließlich für Architektur:"
+      },
       cta:"Arbeiten ansehen",
-      ctaAfter:"Gerne zeige ich Ihnen in zwanzig Minuten ein paar konkrete Ansätze für die Website von {{studio}}. Hätten Sie nächste Woche Zeit für ein kurzes Gespräch?",
+      ctaAfter:"Ich schicke Ihnen gerne ein paar Ansätze für {{studio}} und wir besprechen es in zwanzig Minuten. Hätten Sie diese Woche kurz Zeit?",
       signoff:"Mit freundlichen Grüßen",
       role:"Web & Visualisierung für Architektur",
-      ps:"P.S. Falls eine Website gerade kein Thema ist, genügt ein kurzes „nein“ — ich melde mich dann nicht wieder.",
-      heroCap:"Beispiel unserer Visualisierung — Atmosferi°" },
+      ps:"P.S. Falls eine Website gerade kein Thema ist, genügt ein kurzes Wort zurück — dann melde ich mich nicht wieder.",
+      heroCap:"Beispiel unserer Visualisierung — Atmosferi°",
+      offer:{head:"Was wir machen", items:[
+        "Erstklassige Websites für Architekturbüros — Portfolios auf Augenhöhe mit Ihrer Arbeit.",
+        "Verkaufsstarke Projektpräsentationen — Website, Verfügbarkeit, 360°-Touren.",
+        "Professionelle Architektur-Visualisierung — ausgeleuchtet wie Fotografie, nicht wie ein Render."
+      ]} },
     en:{ tag:"English",
       greet:"Hello {{jmeno}},",
       ice:"{{icebreaker}}",
-      open:"my name is Michal Kašpárek and I run Atmosferi — a small studio that designs, builds and visualises websites exclusively for people who work in space.",
+      open:"I'm Michal from Atmosferi. We make websites and visualisations for one field only — architecture. That's why I know how much your work lives on image, light and detail.",
+      openers:{
+        prague:"I'm Michal from Atmosferi, a Prague studio — we design, build and visualise websites only for people who shape space. That's exactly why we know how much your work lives on image, light and detail. Straight to the point:",
+        honest:"this is a cold email, so I'll keep it short. I'm Michal, and at Atmosferi we make first-class websites and architectural visualisation — for architecture only:",
+        personal:"{{icebreaker}}\n\nQuick intro — I'm Michal from Atmosferi, websites and visualisation for architecture:",
+        none:"I'm Michal from Atmosferi — websites and visualisation for architecture only:"
+      },
       cta:"See the work",
-      ctaAfter:"I'd be glad to show you a few concrete directions for {{studio}}'s website in twenty minutes. Would you have time for a short call next week?",
+      ctaAfter:"I'll send a few directions for {{studio}} and we can talk it through in twenty minutes. Would you have time for a short call this week?",
       signoff:"Kind regards",
       role:"web & visualisation for architecture",
-      ps:"P.S. If a website isn't on your mind right now, just reply “no” and I won't write again.",
-      heroCap:"A sample of our visualisation work — Atmosferi°" }
+      ps:"P.S. If a website isn't on your mind right now, a one-word reply is plenty — I won't write again.",
+      heroCap:"A sample of our visualisation work — Atmosferi°",
+      offer:{head:"What we do", items:[
+        "First-class websites for architecture studios — portfolios that match your work.",
+        "Sales presentations for architecture projects — site, unit availability, 360° tours.",
+        "Professional architectural visualisation — lit like photography, not output like a render."
+      ]} }
   };
 
   /* ---------------- client types ---------------- */
@@ -206,48 +247,51 @@
     { key:"arch", icon:"▤", hero:HERO+"02-ascension.webp",
       strip:[HERO+"07-loop.webp",HERO+"08-courtyards.webp",HERO+"01-nightfall.webp"],
       label:{cs:"Architektonické studio",de:"Architekturbüro",en:"Architecture studio"},
-      subj:{cs:"Web pro {{studio}} — portfolio na úrovni vaší architektury",
-            de:"Website für {{studio}} — ein Portfolio auf Augenhöhe mit Ihrer Architektur",
-            en:"A website for {{studio}} — a portfolio worthy of your architecture"},
-      value:{cs:"Specializuji se na portfolia architektonických studií — editoriální, obrazem vedené weby s redakčním systémem, ve kterém si projekty spravujete sami. K tomu umíme dodat i vizualizace nepostavených staveb.",
-             de:"Ich bin auf Portfolios von Architekturbüros spezialisiert — editoriale, bildgeführte Websites mit einem CMS, das Sie selbst pflegen. Dazu liefern wir auf Wunsch Visualisierungen noch ungebauter Projekte.",
-             en:"I specialise in portfolios for architecture studios — editorial, image-led websites with a CMS you run yourself. We can also produce visualisations of your unbuilt projects."} },
+      subj:{cs:"Vizualizace pro {{studio}} — a web, který je ukáže",
+            de:"Visualisierung für {{studio}} — und eine Website, die sie zeigt",
+            en:"Visualisation for {{studio}} — and a website that shows it"},
+      value:{cs:"U architektonických studií začínám vizualizacemi — špičkové rendery nasvícené a vyladěné jako fotografie, ne jako strojový výstup. Ukážou projekt dřív, než stojí. A k tomu postavím web, který těm obrazům dodá rámec — velké fotky, čistá typografie a administrace, ve které si projekty spravujete sami.",
+             de:"Bei Architekturbüros beginne ich mit der Visualisierung — erstklassige Renderings, ausgeleuchtet und gegradet wie Fotografie, nicht wie ein Maschinen-Output. Sie zeigen das Projekt, bevor es steht. Dazu baue ich eine Website, die diesen Bildern den Rahmen gibt — große Bilder, klare Typografie und ein CMS, das Sie selbst pflegen.",
+             en:"With architecture studios I begin with the visualisation — top-tier renders lit and graded like photography, not machine output. They show the project before it's built. Then I build a website that gives those images their frame — large images, clean typography and a CMS you run yourself."} },
     { key:"interior", icon:"◫", hero:HERO+"chalet-living.jpg",
       strip:[HERO+"chalet-dining.jpg",HERO+"chalet-bedroom.jpg",HERO+"10-penthouse.webp"],
       label:{cs:"Interiérové studio",de:"Innenarchitektur-Studio",en:"Interior design studio"},
       subj:{cs:"Web a vizualizace pro {{studio}}",
             de:"Website und Visualisierung für {{studio}}",
             en:"A website and visualisation for {{studio}}"},
-      value:{cs:"Pro interiérová studia stavíme weby, kde vyniknou materiály, světlo a detail — a doplňujeme je fotorealistickými vizualizacemi interiérů a 360° prohlídkami, ve kterých klient projde návrh ještě před realizací.",
-             de:"Für Innenarchitektur-Studios bauen wir Websites, auf denen Material, Licht und Detail zur Geltung kommen — ergänzt um fotorealistische Innenraum-Visualisierungen und 360°-Rundgänge, durch die Ihre Kunden den Entwurf vorab begehen.",
-             en:"For interior studios we build websites where material, light and detail come forward — paired with photoreal interior visualisations and 360° tours that let a client walk the design before it's built."} },
+      value:{cs:"U interiérových studií stavíme weby, kde vynikne materiál, světlo a detail — a k tomu fotorealistické vizualizace interiérů i 360° prohlídky, ve kterých si klient projde návrh ještě před realizací.",
+             de:"Bei Innenarchitektur-Studios bauen wir Websites, auf denen Material, Licht und Detail wirken — dazu fotorealistische Innenraum-Visualisierungen und 360°-Rundgänge, durch die Ihre Kunden den Entwurf vorab begehen.",
+             en:"With interior studios, we build sites where material, light and detail come through — plus photoreal interior visualisations and 360° tours that let a client walk the design before it's built."} },
     { key:"developer", icon:"◳", hero:HERO+"01-nightfall.webp",
       strip:[HERO+"02-ascension.webp",HERO+"09-horizon.webp",HERO+"10-penthouse.webp"],
       label:{cs:"Realitní developer",de:"Immobilienentwickler",en:"Real-estate developer"},
-      subj:{cs:"Prezentace projektu, která prodává — web, vizualizace a 360° prohlídky",
-            de:"Eine Projektpräsentation, die verkauft — Website, Visualisierung und 360°-Touren",
-            en:"A project presentation that sells — website, visualisation and 360° tours"},
-      value:{cs:"Pro developery stavíme prodejní prezentace projektů — web s přehledem dostupnosti jednotek, fotorealistické vizualizace, animované průlety a interaktivní 360° prohlídky. Kupující projekt pochopí dřív, než se kopne do země.",
-             de:"Für Entwickler bauen wir verkaufsstarke Projektpräsentationen — Website mit Verfügbarkeitsübersicht, fotorealistische Visualisierungen, animierte Kameraflüge und interaktive 360°-Touren. Käufer verstehen das Projekt, bevor der erste Spatenstich erfolgt.",
-             en:"For developers we build sales-grade project presentations — a website with a unit-availability overview, photoreal visualisations, animated fly-throughs and interactive 360° tours. Buyers understand the project before the ground is broken."} },
+      subj:{cs:"Prodejní web pro váš nový projekt",
+            de:"Eine Verkaufs-Website für Ihr neues Projekt",
+            en:"A sales website for your next project"},
+      value:{cs:"Pro developery děláme prezentace projektů, které prodávají — web s přehledem dostupnosti jednotek, fotorealistické vizualizace, animované průlety a 360° prohlídky. Kupující projekt pochopí dřív, než se kopne do země.",
+             de:"Für Entwickler machen wir Projektpräsentationen, die verkaufen — Website mit Verfügbarkeitsübersicht, fotorealistische Visualisierungen, animierte Kameraflüge und 360°-Touren. Käufer verstehen das Projekt, bevor der erste Spatenstich erfolgt.",
+             en:"For developers we make project presentations that sell — a site with a unit-availability overview, photoreal visualisations, animated fly-throughs and 360° tours. Buyers get the project before the ground is broken."} },
     { key:"urban", icon:"⬡", hero:HERO+"08-courtyards.webp",
       strip:[HERO+"05-crossing.webp",HERO+"04-tidewater.webp",HERO+"07-loop.webp"],
       label:{cs:"Urbanismus / veřejný sektor",de:"Städtebau / öffentlicher Sektor",en:"Urbanism / public sector"},
       subj:{cs:"Srozumitelná prezentace vašeho projektu pro veřejnost",
             de:"Eine klare, öffentliche Präsentation Ihres Projekts",
             en:"A clear, public-facing presentation of your project"},
-      value:{cs:"Pro urbanistické a veřejné projekty stavíme weby, které srozumitelně vysvětlí záměr občanům i zastupitelům — mapy, fáze, vizualizace a 360° pohledy na jednom přehledném místě.",
-             de:"Für städtebauliche und öffentliche Projekte bauen wir Websites, die das Vorhaben Bürgern wie Entscheidungsträgern verständlich machen — Karten, Phasen, Visualisierungen und 360°-Ansichten an einem klaren Ort.",
-             en:"For urban and public projects we build websites that explain the intent clearly to residents and stakeholders alike — maps, phases, visualisations and 360° views in one legible place."} },
+      value:{cs:"U urbanistických a veřejných projektů děláme weby, které záměr srozumitelně vysvětlí občanům i zastupitelům — mapy, fáze, vizualizace a 360° pohledy přehledně na jednom místě.",
+             de:"Bei städtebaulichen und öffentlichen Projekten machen wir Websites, die das Vorhaben Bürgern wie Entscheidern verständlich machen — Karten, Phasen, Visualisierungen und 360°-Ansichten übersichtlich an einem Ort.",
+             en:"With urban and public projects, we make sites that explain the intent clearly to residents and officials alike — maps, phases, visualisations and 360° views in one legible place."} },
     { key:"individual", icon:"◑", hero:HERO+"12-fjord.webp",
       strip:[HERO+"06-canopy.webp",HERO+"03-concert.webp",HERO+"12-fjord.webp"],
       label:{cs:"Samostatný architekt",de:"Einzelarchitekt:in",en:"Individual architect"},
       subj:{cs:"Portfolio web, který staví vaši práci do popředí",
             de:"Eine Portfolio-Website, die Ihre Arbeit in den Vordergrund stellt",
             en:"A portfolio site that puts your work first"},
-      value:{cs:"Pro samostatné architekty děláme čisté, rychlé portfolio weby, které práci nechají dýchat — bez šablonovitosti, s důrazem na typografii a obraz. Ideální vstupní úroveň, kterou lze později rozšířit.",
-             de:"Für selbstständige Architekt:innen gestalten wir klare, schnelle Portfolio-Websites, die der Arbeit Raum lassen — keine Vorlagen-Optik, Fokus auf Typografie und Bild. Ein idealer Einstieg, später erweiterbar.",
-             en:"For individual architects we make clean, fast portfolio sites that let the work breathe — no template look, focused on typography and image. An ideal entry point you can grow later."} }
+      subj:{cs:"Portfolio web pro vaši práci",
+            de:"Eine Portfolio-Website für Ihre Arbeit",
+            en:"A portfolio site for your work"},
+      value:{cs:"Pro samostatné architekty děláme čisté, rychlé portfolio weby, které práci nechají dýchat — bez šablony, s důrazem na typografii a obraz. Ideální vstup, který lze později rozšířit.",
+             de:"Für selbstständige Architekt:innen machen wir klare, schnelle Portfolio-Websites, die der Arbeit Raum lassen — keine Vorlage, Fokus auf Typografie und Bild. Ein idealer Einstieg, später erweiterbar.",
+             en:"For individual architects we make clean, fast portfolio sites that let the work breathe — no template, focused on typography and image. An ideal start you can grow later."} }
   ];
 
   /* ---------------- countries ---------------- */
@@ -277,9 +321,9 @@
     var lc=country.lang;
     var studioName = ({arch:"Studio Černý",interior:"Atelier Linn",developer:"Northpoint",urban:"Civic Lab",individual:"M. Holt"})[client.key] || "the studio";
     var ice = {
-      cs:"Sledoval jsem váš nedávný projekt "+studioName+" — práce s prostorem a světlem mě opravdu zaujala.",
-      de:"Ich habe Ihr jüngstes Projekt verfolgt — der Umgang mit Raum und Licht hat mich wirklich beeindruckt.",
-      en:"I followed your recent project — the way you handle space and light genuinely stayed with me."
+      cs:"četl jsem v ERA21 o vašem domě u jezera — ten detail s dřevěným podhledem mi utkvěl.",
+      de:"ich habe Ihr Haus am See in einem Magazin gesehen — das Detail mit der Holzdecke ist mir geblieben.",
+      en:"I saw your lakeside house featured recently — the timber-ceiling detail stuck with me."
     }[lc];
     return {
       "{{jmeno}}": lc==="cs"?"Petr":"Petr",
@@ -293,7 +337,7 @@
 
   /* ---------------- state ---------------- */
   var ci=0, ti=0, device="desktop";
-  var T={hero:true,strip:true,ice:true,portrait:true,ps:true,filled:true};
+  var T={hero:true,strip:true,bullets:true,opener:'prague',portrait:true,ps:true,filled:true};
   var el=function(id){return document.getElementById(id);};
   var elC=el('countries'), elT=el('clients'), fSubject=el('fSubject'), fBody=el('fBody');
 
@@ -325,10 +369,17 @@
   }
 
   /* toggles */
-  [['tHero','hero'],['tStrip','strip'],['tIce','ice'],['tPortrait','portrait'],['tPs','ps'],['tFilled','filled']].forEach(function(p){
+  [['tHero','hero'],['tStrip','strip'],['tBullets','bullets'],['tPortrait','portrait'],['tPs','ps'],['tFilled','filled']].forEach(function(p){
     el(p[0]).addEventListener('click',function(){ T[p[1]]=!T[p[1]]; this.classList.toggle('on',T[p[1]]); this.setAttribute('aria-pressed',T[p[1]]); render(); });
   });
   /* device */
+  [].forEach.call(el('opener').children,function(b){
+    b.addEventListener('click',function(){
+      T.opener=b.getAttribute('data-o');
+      [].forEach.call(el('opener').children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+      loadTemplate();
+    });
+  });
   [].forEach.call(el('device').children,function(b){
     b.addEventListener('click',function(){
       device=b.getAttribute('data-d');
@@ -350,8 +401,7 @@
     var greet = country.greet || L.greet;
     fBody.value =
       greet+"\n\n"+
-      (T.ice?L.ice+"\n\n":"")+
-      L.open+"\n\n"+
+      L.openers[T.opener]+"\n\n"+
       client.value[lc]+"\n\n"+
       L.ctaAfter;
     el('note').innerHTML = country.note;
@@ -386,6 +436,8 @@
 
     var body = R(rawBody);
     subject = R(subject); ps=R(ps);
+    var offerHead = R(L.offer.head);
+    var offerItems = L.offer.items.map(R);
 
     var ACC="#D97757", INK="#16140F", PAPER="#F4F2EC";
     var strip = client.strip;
@@ -407,6 +459,13 @@
   : '')+
   // body
   '<tr><td style="padding:30px 28px 8px;font-family:Helvetica,Arial,sans-serif;">'+ paras(body) +'</td></tr>'+
+  // offer summary bullets
+  (T.bullets ?
+  '<tr><td style="padding:4px 28px 18px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E2DED3;background:#F4F2EC;"><tr><td style="padding:16px 18px;font-family:Helvetica,Arial,sans-serif;">'+
+    '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#807C72;margin-bottom:12px;">'+offerHead+'</div>'+
+    offerItems.map(function(it,i){ return '<div style="font-size:14px;color:#33302A;line-height:1.5;padding:8px 0 0;'+(i?'border-top:1px solid #E2DED3;margin-top:8px;':'')+'"><span style="color:#D97757;font-weight:700;">'+(i+1)+'</span>&nbsp;&nbsp;'+it+'</div>'; }).join('')+
+  '</td></tr></table></td></tr>'
+  : '')+
   // portfolio strip
   (T.strip ?
   '<tr><td style="padding:6px 28px 18px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'+
@@ -416,7 +475,7 @@
   // CTA
   '<tr><td style="padding:6px 28px 28px;" align="left">'+
     '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:'+INK+';">'+
-    '<a href="https://atmosferi.com" style="display:inline-block;font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#F4F2EC;text-decoration:none;padding:14px 26px;">'+cta+' &rarr;</a>'+
+    '<a href="'+(client.key==="arch"?"https://atmosferi.com/demos/atmosferi-viz/index.html?lang="+lc:"https://atmosferi.com")+'" style="display:inline-block;font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#F4F2EC;text-decoration:none;padding:14px 26px;">'+cta+' &rarr;</a>'+
     '</td></tr></table>'+
   '</td></tr>'+
   // signature
@@ -443,7 +502,7 @@
   /* ---------------- render ---------------- */
   function render(){
     var out = buildEmail(false);
-    el('frame').srcdoc = out.html;
+    el('frame').srcdoc = out.html.replace(/https:\/\/atmosferi\.com\//g, '');
     el('subjOut').textContent = out.subject;
     el('toOut').textContent = COUNTRIES[ci].to;
     el('langMeta').textContent = out.lang + (T.filled?" · filled":" · {{ }}");

@@ -2,6 +2,6 @@
   "name": "atmosferi",
   "version": "1.0.0",
   "scripts": {
-    "build": "mkdir -p _vercel_out && cp *.html _vercel_out/ && cp *.css _vercel_out/ && cp -r assets fonts demos preview ui_kits _vercel_out/ && cp _redirects _vercel_out/ && cp vercel.json _vercel_out/ && cd admin && npm install && npm run build && cd .. && mkdir -p _vercel_out/admin && cp -r admin/dist/* _vercel_out/admin/"
+    "build": "mkdir -p _vercel_out && cp *.html _vercel_out/ && cp *.css _vercel_out/ && cp -r assets fonts demos preview ui_kits img _vercel_out/ && cp _redirects vercel.json og.png apple-touch-icon.png favicon-32.png icon-192.png icon-512.png robots.txt sitemap.xml site.webmanifest _vercel_out/ && rm -f _vercel_out/email-templates.html && cd admin && npm install && npm run build && cd .. && mkdir -p _vercel_out/admin && cp -r admin/dist/* _vercel_out/admin/"
   }
 }

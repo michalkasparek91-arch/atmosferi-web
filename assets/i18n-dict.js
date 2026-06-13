@@ -116,7 +116,7 @@ window.I18N_DICT = {
     "Pictures of architecture before it exists.": "Bilder von Architektur, bevor sie existiert.",
     "Atmosferi Visualisation is an image studio for architects and developers — stills, films and interactive scenes of buildings that aren't built yet.":
       "Atmosferi Visualisation ist ein Bildstudio für Architekten und Entwickler — Stills, Filme und interaktive Szenen von Gebäuden, die es noch nicht gibt.",
-    "Est. 2017 · Prague": "Gegr. 2017 · Prag",
+    "Eleven years · Prague": "Elf Jahre · Prag",
     "Scroll": "Scrollen",
     "We don't render buildings. We make": "Wir rendern keine Gebäude. Wir machen",
     "photographs": "Fotografien",
@@ -169,8 +169,8 @@ window.I18N_DICT = {
     "Drag to explore": "Ziehen zum Erkunden",
     "Selected frames.": "Ausgewählte Bilder.",
     "Click any image to enlarge": "Zum Vergrößern auf ein Bild klicken",
-    "A small studio of image-makers — architects, photographers and 3D artists who care more about light than polygons.":
-      "Ein kleines Studio von Bildermachern — Architekten, Fotografen und 3D-Künstler, denen Licht wichtiger ist als Polygone.",
+    "Eleven years making architectural images — a small studio of architects, photographers and 3D artists who care more about light than polygons.":
+      "Elf Jahre Architekturbilder — ein kleines Studio aus Architekten, Fotografen und 3D-Künstlern, denen Licht wichtiger ist als Polygone.",
     "We start with the light": "Wir beginnen mit dem Licht",
     "Every frame begins with the sun, the season and the weather — the brief is a mood before it is a model.":
       "Jedes Bild beginnt mit Sonne, Jahreszeit und Wetter — das Briefing ist eine Stimmung, bevor es ein Modell ist.",
@@ -506,7 +506,7 @@ window.I18N_DICT = {
     "Pictures of architecture before it exists.": "Obrazy architektury dřív, než vznikne.",
     "Atmosferi Visualisation is an image studio for architects and developers — stills, films and interactive scenes of buildings that aren't built yet.":
       "Atmosferi Visualisation je obrazové studio pro architekty a developery — statické vizualizace, filmy a interaktivní scény budov, které ještě nestojí.",
-    "Est. 2017 · Prague": "Zal. 2017 · Praha",
+    "Eleven years · Prague": "Jedenáct let · Praha",
     "Scroll": "Scrollujte",
     "We don't render buildings. We make": "Nerenderujeme budovy. Tvoříme",
     "photographs": "fotografie",
@@ -559,8 +559,8 @@ window.I18N_DICT = {
     "Drag to explore": "Tažením prozkoumáte",
     "Selected frames.": "Vybrané snímky.",
     "Click any image to enlarge": "Kliknutím obrázek zvětšíte",
-    "A small studio of image-makers — architects, photographers and 3D artists who care more about light than polygons.":
-      "Malé studio tvůrců obrazů — architektů, fotografů a 3D umělců, kterým jde víc o světlo než o polygony.",
+    "Eleven years making architectural images — a small studio of architects, photographers and 3D artists who care more about light than polygons.":
+      "Jedenáct let architektonických obrazů — malé studio architektů, fotografů a 3D umělců, kterým jde víc o světlo než o polygony.",
     "We start with the light": "Začínáme světlem",
     "Every frame begins with the sun, the season and the weather — the brief is a mood before it is a model.":
       "Každý snímek začíná sluncem, ročním obdobím a počasím — zadání je nálada dřív, než je modelem.",
