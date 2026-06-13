@@ -36,3 +36,6 @@ jobs:
         
       - name: Deploy upload-contact
         run: supabase functions deploy upload-contact --project-ref $PROJECT_ID
+
+      - name: Deploy campaign-batcher
+        run: supabase functions deploy campaign-batcher --project-ref $PROJECT_ID
