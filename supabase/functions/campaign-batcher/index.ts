@@ -41,7 +41,9 @@ Deno.serve(async (req: any) => {
           
         const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
 
-        const langFilter = t.language === 'cs' ? ['cs', 'cz'] : [t.language];
+        let langFilter = [t.language];
+        if (t.language === 'cs') langFilter = ['cs', 'cz'];
+        if (t.language === 'de') langFilter = ['de', 'at', 'ch'];
 
         // Count matching leads
         let query = supabaseClient
@@ -119,7 +121,9 @@ Deno.serve(async (req: any) => {
       const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
 
       // Fetch available leads
-      const langFilter = template.language === 'cs' ? ['cs', 'cz'] : [template.language];
+      let langFilter = [template.language];
+      if (template.language === 'cs') langFilter = ['cs', 'cz'];
+      if (template.language === 'de') langFilter = ['de', 'at', 'ch'];
       const { data: availableLeads, error: leadsErr } = await supabaseClient
         .from("marketing_leads")
         .select("*")
