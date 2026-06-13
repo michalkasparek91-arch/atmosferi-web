@@ -66,7 +66,10 @@ type EmailTemplate = {
 
 const CATEGORY_CONFIG: Record<string, { label: string; color: string; icon: typeof Mail }> = {
   architekti: { label: "Architekti", color: "bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-500/10 dark:text-stone-400 dark:border-stone-500/20", icon: PaintRoller },
+  interiery: { label: "Interiéry", color: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20", icon: Home },
   developeri: { label: "Developeři", color: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20", icon: Building2 },
+  urbanismus: { label: "Urbanismus", color: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20", icon: Globe },
+  architekt: { label: "Samostatný architekt", color: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-500/10 dark:text-zinc-400 dark:border-zinc-500/20", icon: UserCheck },
   stavebnictvi: { label: "Stavebnictví", color: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20", icon: HardHat },
   reality: { label: "Reality", color: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20", icon: Home },
   marketing: { label: "Ostatní B2B", color: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20", icon: Zap },
@@ -698,6 +701,7 @@ DŮLEŽITÉ:
                   sendCount={t.slug ? dripStats[t.slug] : undefined}
                   onLocalize={() => handleLocalizeSingle(t)}
                   isLocalizing={localizingTemplateId === t.id}
+                  markets={markets}
                 />
               ))}
             </div>
@@ -728,6 +732,7 @@ DŮLEŽITÉ:
                 sendCount={t.slug ? dripStats[t.slug] : undefined}
                 onLocalize={() => handleLocalizeSingle(t)}
                 isLocalizing={localizingTemplateId === t.id}
+                markets={markets}
               />
             ))}
           </div>
@@ -778,6 +783,7 @@ function TemplateRow({
   sendCount,
   onLocalize,
   isLocalizing,
+  markets,
 }: {
   template: EmailTemplate;
   showDelay?: boolean;
@@ -791,6 +797,7 @@ function TemplateRow({
   sendCount?: number;
   onLocalize?: () => void;
   isLocalizing?: boolean;
+  markets: any[];
 }) {
   const cat = CATEGORY_CONFIG[t.category] || CATEGORY_CONFIG.transactional;
   const target = TARGET_LABELS[t.target_role] || TARGET_LABELS.all;
@@ -814,6 +821,9 @@ function TemplateRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-semibold text-foreground truncate">{t.name}</span>
+          <Badge variant="outline" className="text-[8px] border-border bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            {markets.find(m => m.id === (t.language || "cz"))?.code || (t.language || "cz").toUpperCase()}
+          </Badge>
           <Badge variant="outline" className={`text-[8px] ${cat.color}`}>
             {cat.label}
           </Badge>

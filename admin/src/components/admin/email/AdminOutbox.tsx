@@ -271,9 +271,100 @@ export const AdminOutbox = () => {
         </button>
       </div>
 
+  const { data: virtualBatches = [], isLoading: isLoadingBatches } = useQuery({
+    queryKey: ["admin-outbox-batches"],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
+        body: { action: "get_batches" }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data?.data || [];
+    },
+  });
+
+  const sendBatchMutation = useMutation({
+    mutationFn: async ({ template_id, batch_size }: { template_id: string, batch_size: number }) => {
+      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
+        body: { action: "process_batch", template_id, batch_size }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Dávka úspěšně zpracována a odeslána (${data?.processed || 0} e-mailů).`);
+      queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
+    },
+    onError: (err: any) => {
+      toast.error("Chyba při odesílání dávky: " + err.message);
+    }
+  });
+
       {filterType === "campaigns" ? (
         <div className="bg-card/50 rounded-2xl border border-border/40 p-4">
           <CampaignReview />
+        </div>
+      ) : filterType === "general" ? (
+        <div className="space-y-4">
+          {isLoadingBatches ? (
+            <div className="flex h-48 items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : virtualBatches.length === 0 ? (
+            <div className="p-16 text-center flex flex-col items-center bg-card rounded-2xl border border-border/40">
+              <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                <Mail className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">Žádné nové publikum</p>
+              <p className="text-xs text-muted-foreground mt-1">Nebyly nalezeny žádné nové kontakty čekající na oslovení.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {virtualBatches.map((v: any, index: number) => (
+                <div key={index} className="flex flex-col space-y-3 border border-border/40 bg-card rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-bold text-sm text-foreground line-clamp-1">{v.template.name}</h3>
+                      <div className="flex items-center gap-1 mt-1 flex-wrap">
+                        <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-700">{v.template.language?.toUpperCase()}</Badge>
+                        <Badge variant="outline" className="text-[9px]">{v.template.category}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground">
+                    Celkové dostupné publikum: <strong className="text-foreground">{v.total_audience}</strong>
+                  </div>
+
+                  <div className="space-y-2 mt-2">
+                    {v.batches.map((batch: any, bIdx: number) => (
+                      <div key={bIdx} className={`flex items-center justify-between p-2.5 rounded-xl border ${batch.status === 'ready' ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+                        <div>
+                          <p className="text-xs font-bold">Dávka #{batch.batch_index}</p>
+                          <p className={`text-[10px] ${batch.status === 'ready' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {batch.status === 'ready' ? 'Připraveno (300/300)' : `Čeká se na naplnění (${batch.size}/300)`}
+                          </p>
+                        </div>
+                        {batch.status === 'ready' && (
+                          <Button 
+                            size="sm" 
+                            className="h-7 text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-3 gap-1 shadow-sm"
+                            disabled={sendBatchMutation.isPending}
+                            onClick={() => sendBatchMutation.mutate({ template_id: v.template.id, batch_size: batch.size })}
+                          >
+                            {sendBatchMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                            Odeslat
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
       <div className="rounded-2xl border border-border/40 bg-card shadow-sm overflow-hidden">
