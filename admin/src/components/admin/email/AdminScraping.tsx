@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Zap, Target, MapPin, Search, Plus, X, CheckSquare, Square, Globe } from "lucide-react";
+import { Loader2, Zap, Target, MapPin, Search, Plus, X, CheckSquare, Square, Globe, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TOP_CITIES_BY_COUNTRY } from "@/lib/city-regions";
@@ -19,7 +20,17 @@ interface ScraperConfig {
   active_keywords?: string[];
   active_cities?: string[];
   active_countries?: string[];
+  prompt_template?: string;
 }
+
+const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
+TVŮJ ÚKOL: 
+1. Zaměř se PŘESNĚ na toto město: {{targetCity}} (pokud chybí, vymysli si náhodně jiné než hlavní město).
+2. Pomocí nástroje Google Search najdi reálné firmy v tomto městě pro zadaný obor.
+3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 12-15 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Vzhledem k vyššímu limitu tokenů se neboj vypsat až 15 firem najednou!
+
+Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
+Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř textových hodnot nesmíš používat neescapované uvozovky!`;
 
 const DEFAULT_CONFIG: ScraperConfig = {
   is_enabled: false,
@@ -28,7 +39,8 @@ const DEFAULT_CONFIG: ScraperConfig = {
   countries: ["Česká republika", "Německo", "Rakousko", "Austrálie", "Finsko"],
   active_keywords: [],
   active_cities: [],
-  active_countries: []
+  active_countries: [],
+  prompt_template: DEFAULT_PROMPT
 };
 
 export const AdminScraping = () => {
@@ -44,6 +56,8 @@ export const AdminScraping = () => {
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+
+  const [promptTemplate, setPromptTemplate] = useState(DEFAULT_PROMPT);
 
   const { data: serverConfig, isLoading: configLoading } = useQuery({
     queryKey: ["admin-scraper-config"],
@@ -71,11 +85,13 @@ export const AdminScraping = () => {
         countries: serverConfig.countries || DEFAULT_CONFIG.countries,
         active_keywords: serverConfig.active_keywords || [],
         active_cities: serverConfig.active_cities || [],
-        active_countries: serverConfig.active_countries || []
+        active_countries: serverConfig.active_countries || [],
+        prompt_template: serverConfig.prompt_template || DEFAULT_PROMPT
       });
       setSelectedKeywords(serverConfig.active_keywords || []);
       setSelectedCities(serverConfig.active_cities || []);
       setSelectedCountries(serverConfig.active_countries || []);
+      setPromptTemplate(serverConfig.prompt_template || DEFAULT_PROMPT);
     }
   }, [serverConfig]);
 
@@ -91,6 +107,27 @@ export const AdminScraping = () => {
     },
     refetchInterval: 15000
   });
+
+  const { data: recentLeads = [], isLoading: leadsLoading } = useQuery({
+    queryKey: ["admin-recent-sniper-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("marketing_leads")
+        .select("*")
+        .eq("source", "ai_web_sniper")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: 15000
+  });
+
+  const savePromptTemplate = () => {
+    const updated = { ...config, prompt_template: promptTemplate };
+    setConfig(updated);
+    saveConfigMutation.mutate(updated);
+  };
 
   const saveConfigMutation = useMutation({
     mutationFn: async (newCfg: ScraperConfig) => {
@@ -500,8 +537,76 @@ export const AdminScraping = () => {
               )}
             </CardContent>
           </Card>
+
+          <Card className="border-border/40 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-primary" /> Prompt pro AI
+              </CardTitle>
+              <CardDescription>Základní instrukce, které dostane AI při hledání a extrakci kontaktů.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea 
+                value={promptTemplate}
+                onChange={e => setPromptTemplate(e.target.value)}
+                className="min-h-[250px] text-[11px] font-mono"
+              />
+              <Button 
+                onClick={savePromptTemplate}
+                size="sm" 
+                variant="secondary" 
+                className="w-full"
+                disabled={promptTemplate === config.prompt_template}
+              >
+                Uložit Prompt
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+          <Target className="h-5 w-5 text-primary" />
+          Nedávno nalezené kontakty AI Sniperem
+        </h3>
+        
+        {leadsLoading ? (
+          <div className="flex h-32 items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : recentLeads.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground border rounded-xl bg-card">
+            Zatím nebyly nalezeny žádné kontakty. Zapněte Autonomní režim nebo spusťte hledání manuálně.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recentLeads.map((lead: any) => (
+              <Card key={lead.id} className="border-border/40 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-4 space-y-3">
+                  <div>
+                    <h4 className="font-bold text-sm truncate" title={lead.company_name}>{lead.company_name}</h4>
+                    <p className="text-xs text-primary truncate" title={lead.email}>{lead.email}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    <Badge variant="outline" className="text-[9px] bg-slate-100">{lead.country}</Badge>
+                    <Badge variant="outline" className="text-[9px]">{lead.category}</Badge>
+                  </div>
+                  {lead.ai_icebreaker && (
+                    <div className="bg-muted/30 p-2 rounded-lg text-[10px] text-muted-foreground border border-border/50">
+                      <p className="line-clamp-3 italic">"{lead.ai_icebreaker}"</p>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-[9px] text-muted-foreground pt-1">
+                    <span>{lead.city}</span>
+                    <span>{new Date(lead.created_at).toLocaleDateString('cs-CZ')}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
