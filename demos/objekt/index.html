@@ -82,6 +82,7 @@
   .hero{position:relative;height:100svh;min-height:600px;overflow:hidden;}
   .hero__media{position:absolute;inset:0;}
   .hero__media video,.hero__media img{width:100%;height:100%;object-fit:cover;}
+  .hero__media video{transform:scale(1.12);transform-origin:0 0;}
   .hero__media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,12,9,.5) 0%,rgba(14,12,9,.12) 30%,rgba(14,12,9,.15) 55%,rgba(14,12,9,.82) 100%);}
   .hero__grain{position:absolute;inset:0;z-index:2;opacity:.05;pointer-events:none;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
   .hero__top{position:absolute;top:0;left:0;right:0;z-index:4;display:flex;justify-content:space-between;padding:calc(74px + 18px) var(--gut) 0;color:var(--ink);}
