@@ -1,3 +1,11 @@
+DELETE FROM email_templates WHERE slug IN (
+  'atmosferi-arch', 
+  'atmosferi-interior', 
+  'atmosferi-developer', 
+  'atmosferi-urban', 
+  'atmosferi-individual'
+);
+
 INSERT INTO email_templates (
   slug, name, category, subject, greeting, body, cta_text, cta_url, layout_type, target_role, trigger_type, is_enabled, hero_image_url, segment_filters
 ) VALUES
@@ -110,12 +118,4 @@ Rád vám během dvaceti minut ukážu pár konkrétních směrů, jak by web pr
   true,
   'https://atmosferi.com/demos/atmosferi-viz/img/12-fjord.webp',
   '{"carousel_images": ["https://atmosferi.com/demos/atmosferi-viz/img/06-canopy.webp", "https://atmosferi.com/demos/atmosferi-viz/img/03-concert.webp", "https://atmosferi.com/demos/atmosferi-viz/img/12-fjord.webp"]}'::jsonb
-)
-ON CONFLICT (slug) DO UPDATE SET
-  name = EXCLUDED.name,
-  category = EXCLUDED.category,
-  subject = EXCLUDED.subject,
-  greeting = EXCLUDED.greeting,
-  body = EXCLUDED.body,
-  hero_image_url = EXCLUDED.hero_image_url,
-  segment_filters = EXCLUDED.segment_filters;
+);

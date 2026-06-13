@@ -27,7 +27,7 @@ jobs:
       - name: Deploy Database Migrations
         run: |
           supabase link --project-ref $PROJECT_ID --password $SUPABASE_DB_PASSWORD
-          supabase db push
+          supabase db push --include-all
         env:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
