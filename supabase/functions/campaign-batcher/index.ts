@@ -40,7 +40,7 @@ serve(async (req) => {
           .eq("template_id", t.id)
           .not("lead_id", "is", null);
           
-        const excludedLeadIds = outbox?.map(o => o.lead_id) || [];
+        const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
 
         // Count matching leads
         let query = supabaseClient
@@ -61,7 +61,7 @@ serve(async (req) => {
           .eq("category", t.category)
           .eq("language", t.language);
 
-        const availableLeads = (allLeads || []).filter(l => !excludedLeadIds.includes(l.id));
+        const availableLeads = (allLeads || []).filter((l: any) => !excludedLeadIds.includes(l.id));
         const totalAudience = availableLeads.length;
 
         if (totalAudience > 0) {
@@ -115,7 +115,7 @@ serve(async (req) => {
         .eq("template_id", template.id)
         .not("lead_id", "is", null);
         
-      const excludedLeadIds = outbox?.map(o => o.lead_id) || [];
+      const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
 
       // Fetch available leads
       const { data: availableLeads, error: leadsErr } = await supabaseClient
@@ -127,7 +127,7 @@ serve(async (req) => {
       if (leadsErr) throw leadsErr;
       
       const leadsToProcess = (availableLeads || [])
-        .filter(l => !excludedLeadIds.includes(l.id))
+        .filter((l: any) => !excludedLeadIds.includes(l.id))
         .slice(0, limit);
 
       if (leadsToProcess.length === 0) {
@@ -138,7 +138,7 @@ serve(async (req) => {
       }
 
       // Prepare outbox inserts
-      const outboxInserts = leadsToProcess.map(lead => ({
+      const outboxInserts = leadsToProcess.map((lead: any) => ({
         template_id: template.id,
         template_slug: template.slug,
         lead_id: lead.id,
