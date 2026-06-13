@@ -119,3 +119,135 @@ Rád vám během dvaceti minut ukážu pár konkrétních směrů, jak by web pr
   'https://atmosferi.com/demos/atmosferi-viz/img/12-fjord.webp',
   '{"carousel_images": ["https://atmosferi.com/demos/atmosferi-viz/img/06-canopy.webp", "https://atmosferi.com/demos/atmosferi-viz/img/03-concert.webp", "https://atmosferi.com/demos/atmosferi-viz/img/12-fjord.webp"]}'::jsonb
 );
+
+
+-- Insert or update the automation job for autonomous web sniper
+INSERT INTO public.automation_jobs (job_name, function_name, schedule, is_active)
+VALUES ('Continuous Web Discovery', 'autonomous-web-sniper', '*/30 * * * *', true)
+ON CONFLICT (job_name) DO UPDATE
+SET function_name = EXCLUDED.function_name,
+    schedule = EXCLUDED.schedule,
+    is_active = EXCLUDED.is_active;
+
+
+-- Update unified_contacts view to include country and ai_icebreaker which were missing
+DROP VIEW IF EXISTS public.unified_contacts;
+
+CREATE OR REPLACE VIEW public.unified_contacts AS
+SELECT 
+    p.id,
+    p.email,
+    p.full_name,
+    p.phone,
+    p.user_type::text,
+    p.website,
+    p.city,
+    p.full_address,
+    p.postal_code,
+    p.street_name,
+    p.street_number,
+    p.latitude,
+    p.longitude,
+    p.tags,
+    p.is_pro,
+    p.referral_code,
+    p.marketing_notifications,
+    p.push_notifications,
+    p.email_notifications,
+    COALESCE(p.last_activity, p.created_at) as last_activity,
+    p.engagement_score,
+    p.created_at,
+    p.category,
+    p.subcategory,
+    'registered' as contact_source,
+    p.bio as description,
+    p.secondary_emails,
+    NULL as company_name,
+    (SELECT eo.icebreaker FROM public.email_outbox eo WHERE eo.worker_id = p.id ORDER BY eo.created_at DESC LIMIT 1) as icebreaker,
+    (SELECT eo.id FROM public.email_outbox eo WHERE eo.worker_id = p.id ORDER BY eo.created_at DESC LIMIT 1) as outbox_id,
+    NULL::integer as premium_score,
+    NULL::text as decision_maker_name,
+    NULL::text as language,
+    NULL::text as country,
+    NULL::text as ai_icebreaker
+FROM public.profiles p
+UNION ALL
+SELECT 
+    m.id,
+    m.email,
+    m.full_name,
+    m.phone,
+    m.user_type,
+    m.website,
+    m.city,
+    m.full_address,
+    m.postal_code,
+    m.street_name,
+    m.street_number,
+    m.latitude,
+    m.longitude,
+    m.tags,
+    m.is_pro,
+    m.referral_code,
+    m.marketing_notifications,
+    m.push_notifications,
+    m.email_notifications,
+    m.last_activity,
+    m.engagement_score,
+    m.created_at,
+    m.category,
+    m.subcategory,
+    CASE WHEN m.source = 'ai_web_sniper' THEN 'ai_web_sniper' ELSE 'lead' END as contact_source,
+    COALESCE(m.company_description, m.description) as description,
+    m.secondary_emails,
+    m.company_name,
+    (SELECT eo.icebreaker FROM public.email_outbox eo WHERE eo.lead_id = m.id ORDER BY eo.created_at DESC LIMIT 1) as icebreaker,
+    (SELECT eo.id FROM public.email_outbox eo WHERE eo.lead_id = m.id ORDER BY eo.created_at DESC LIMIT 1) as outbox_id,
+    m.premium_score,
+    m.decision_maker_name,
+    m.language,
+    m.country,
+    m.ai_icebreaker
+FROM public.marketing_leads m;
+
+GRANT SELECT ON public.unified_contacts TO authenticated;
+
+
+-- Fix hardcoded project URL and anon key in the sync_automation_job_cron function
+CREATE OR REPLACE FUNCTION public.sync_automation_job_cron()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, cron
+AS $$
+DECLARE
+  v_job_name   text := 'auto_' || NEW.function_name;
+  v_url        text := 'https://paryiowezqlnffanxtnt.supabase.co/functions/v1/' || NEW.function_name;
+  v_anon_key   text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhcnlpb3dlenFsbmZmYW54dG50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MzM3MzYsImV4cCI6MjA5NjQwOTczNn0.yyd-pRRXds1o8lU9mVWk21zu-5l_dcdxiBjDSKfKw5o';
+  v_command    text;
+BEGIN
+  -- Always unschedule any existing entry first
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = v_job_name) THEN
+    PERFORM cron.unschedule(v_job_name);
+  END IF;
+
+  IF NEW.is_active IS TRUE THEN
+    v_command := format(
+      $cmd$SELECT net.http_post(
+        url := %L,
+        headers := %L::jsonb,
+        body := '{}'::jsonb
+      )$cmd$,
+      v_url,
+      json_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || v_anon_key)
+    );
+    PERFORM cron.schedule(v_job_name, NEW.schedule, v_command);
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+-- Touch the table to force the trigger to fire and recreate all cron jobs with the corrected URL
+UPDATE public.automation_jobs SET is_active = is_active;
+
