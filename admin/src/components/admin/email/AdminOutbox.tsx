@@ -21,6 +21,36 @@ export const AdminOutbox = () => {
   const [isOpeningEditor, setIsOpeningEditor] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<"all" | "job" | "general" | "campaigns">("all");
 
+  const { data: virtualBatches = [], isLoading: isLoadingBatches } = useQuery({
+    queryKey: ["admin-outbox-batches"],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
+        body: { action: "get_batches" }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data?.data || [];
+    },
+  });
+
+  const sendBatchMutation = useMutation({
+    mutationFn: async ({ template_id, batch_size }: { template_id: string, batch_size: number }) => {
+      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
+        body: { action: "process_batch", template_id, batch_size }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Dávka úspěšně zpracována a odeslána (${data?.processed || 0} e-mailů).`);
+      queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
+    },
+    onError: (err: any) => {
+      toast.error("Chyba při odesílání dávky: " + err.message);
+    }
+  });
   const { data: drafts = [], isLoading } = useQuery({
     queryKey: ["admin-outbox-drafts"],
     queryFn: async () => {
@@ -270,37 +300,6 @@ export const AdminOutbox = () => {
           <p className={`text-xl font-black ${filterType === "campaigns" ? "" : "text-foreground/80"}`}>—</p>
         </button>
       </div>
-
-  const { data: virtualBatches = [], isLoading: isLoadingBatches } = useQuery({
-    queryKey: ["admin-outbox-batches"],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
-        body: { action: "get_batches" }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data?.data || [];
-    },
-  });
-
-  const sendBatchMutation = useMutation({
-    mutationFn: async ({ template_id, batch_size }: { template_id: string, batch_size: number }) => {
-      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
-        body: { action: "process_batch", template_id, batch_size }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
-    },
-    onSuccess: (data) => {
-      toast.success(`Dávka úspěšně zpracována a odeslána (${data?.processed || 0} e-mailů).`);
-      queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
-    },
-    onError: (err: any) => {
-      toast.error("Chyba při odesílání dávky: " + err.message);
-    }
-  });
 
       {filterType === "campaigns" ? (
         <div className="bg-card/50 rounded-2xl border border-border/40 p-4">
