@@ -12,8 +12,9 @@ DECLARE
   v_command    text;
 BEGIN
   -- Always unschedule any existing entry first
-  PERFORM cron.unschedule(v_job_name)
-  WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = v_job_name);
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = v_job_name) THEN
+    PERFORM cron.unschedule(v_job_name);
+  END IF;
 
   IF NEW.is_active IS TRUE THEN
     v_command := format(
