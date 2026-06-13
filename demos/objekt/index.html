@@ -64,6 +64,19 @@
   .burger span{height:1px;background:var(--ink);transition:.3s var(--curve);}
   .burger span:nth-child(1){width:22px;}.burger span:nth-child(2){width:16px;}.burger span:nth-child(3){width:22px;}
   @media(max-width:820px){.nav__links{display:none;}.burger{display:flex;}}
+  /* mobile drawer */
+  .nav__in{position:relative;z-index:60;}
+  .burger{position:relative;z-index:62;}
+  .burger span{transition:transform .35s var(--curve),opacity .2s;}
+  .nav.menu-open .burger span:nth-child(1){transform:translateY(6px) rotate(45deg);width:22px;}
+  .nav.menu-open .burger span:nth-child(2){opacity:0;}
+  .nav.menu-open .burger span:nth-child(3){transform:translateY(-6px) rotate(-45deg);width:22px;}
+  .nav__mobile{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--bg-2);padding:104px var(--gut) 42px;display:none;flex-direction:column;gap:2px;transform:translateY(-101%);transition:transform .55s cubic-bezier(.7,0,.15,1);visibility:hidden;}
+  .nav.menu-open .nav__mobile{transform:none;visibility:visible;}
+  .nav__mobile-lead{font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .nav__mobile a{display:flex;align-items:baseline;font-family:var(--serif);font-size:clamp(30px,9vw,42px);font-weight:400;color:var(--ink);padding:15px 0;border-bottom:1px solid var(--line);letter-spacing:-.01em;}
+  .nav__mobile a .i{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--warm);margin-right:16px;}
+  @media(max-width:820px){.nav__mobile{display:flex;}}
 
   /* hero */
   .hero{position:relative;height:100svh;min-height:600px;overflow:hidden;}
@@ -194,7 +207,14 @@
       <a href="#index">Index</a>
       <a href="#contact" class="nav__cta">Enquire</a>
     </nav>
-    <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    <button class="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="nav__mobile" id="navMobile">
+    <span class="nav__mobile-lead">Menu</span>
+    <a href="#work"><span class="i">01</span>Work</a>
+    <a href="#approach"><span class="i">02</span>Approach</a>
+    <a href="#index"><span class="i">03</span>Index</a>
+    <a href="#contact"><span class="i">04</span>Enquire</a>
   </div>
 </header>
 
@@ -423,9 +443,16 @@
     r.addEventListener('pointerleave',function(){ prev.classList.remove('show'); });
   });
 
-  /* ---- mobile menu (simple anchor scroll; burger just reveals links inline) ---- */
-  var burger=document.querySelector('.burger');
-  burger.addEventListener('click',function(){ document.getElementById('contact').scrollIntoView({behavior:'smooth'}); });
+  /* ---- mobile drawer menu ---- */
+  var burger=document.querySelector('.burger'), navEl=document.getElementById('nav'), drawer=document.getElementById('navMobile');
+  function setMenu(open){
+    navEl.classList.toggle('menu-open',open);
+    burger.setAttribute('aria-expanded',open?'true':'false');
+    try{ document.body.style.overflow=open?'hidden':''; }catch(e){}
+  }
+  burger.addEventListener('click',function(){ setMenu(!navEl.classList.contains('menu-open')); });
+  if(drawer) drawer.addEventListener('click',function(e){ if(e.target.closest('a')) setMenu(false); });
+  window.addEventListener('keydown',function(e){ if(e.key==='Escape') setMenu(false); });
 })();
 </script>
 </body>

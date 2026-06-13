@@ -74,6 +74,22 @@
   @media(max-width:460px){
     .nav__links .cta{display:none;}
   }
+  /* mobile drawer menu */
+  .nav__in{position:relative;z-index:60;}
+  .vnav__burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:34px;height:34px;margin-left:14px;flex:none;background:none;border:0;cursor:pointer;padding:0;position:relative;z-index:62;}
+  .vnav__burger span{display:block;width:22px;height:1.5px;background:#fff;transition:transform .35s var(--slow),opacity .2s,background .3s;}
+  header.nav.scrolled .vnav__burger span{background:var(--ink);}
+  .nav.is-open .vnav__burger span{background:#fff;}
+  .nav.is-open .vnav__burger span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+  .nav.is-open .vnav__burger span:nth-child(2){opacity:0;}
+  .nav.is-open .vnav__burger span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+  .vnav__mobile{position:fixed;top:0;left:0;right:0;z-index:50;background:#16140F;color:#fff;padding:104px var(--gut) 40px;display:flex;flex-direction:column;gap:2px;transform:translateY(-101%);transition:transform .55s cubic-bezier(.7,0,.15,1);visibility:hidden;}
+  .nav.is-open .vnav__mobile{transform:none;visibility:visible;}
+  .vnav__mobile .mlead{font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;opacity:.5;margin-bottom:14px;}
+  .vnav__mobile a{display:flex;align-items:baseline;font-family:var(--serif);font-size:clamp(28px,8vw,38px);font-weight:600;color:#fff;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.12);letter-spacing:-.01em;}
+  .vnav__mobile a .i{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.2em;opacity:.45;margin-right:16px;}
+  @media(max-width:720px){ .vnav__burger{display:flex;} }
+  @media(min-width:721px){ .vnav__mobile{display:none;} }
 
   /* hero */
   .hero{position:relative;height:100vh;min-height:620px;overflow:hidden;}
@@ -136,6 +152,34 @@
   @media(max-width:900px){.services{grid-template-columns:1fr 1fr;}.svc:nth-child(2){border-right:0;}.svc{padding-left:0;padding-right:0;border-bottom:1px solid var(--line);padding-bottom:32px;}}
   @media(max-width:540px){.services{grid-template-columns:1fr;}.svc{border-right:0;}}
 
+  /* ===== project series (mir.no editorial) ===== */
+  .ps{padding-top:clamp(54px,8vw,120px);padding-bottom:clamp(30px,5vw,70px);}
+  .ps__head{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:end;border-top:1px solid var(--ink);padding-top:24px;}
+  .ps__eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);}
+  .ps__title{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(44px,6.4vw,108px);line-height:.92;letter-spacing:-.01em;margin-top:12px;}
+  .ps__meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);line-height:2.1;}
+  .ps__lead{font-size:clamp(15px,1.2vw,18px);line-height:1.62;color:var(--ink-2);max-width:44ch;justify-self:end;}
+  @media(max-width:760px){.ps__head{grid-template-columns:1fr;gap:16px;}.ps__lead{justify-self:start;}}
+  .psf{position:relative;overflow:hidden;cursor:pointer;}
+  .psf img{width:100%;height:100%;object-fit:cover;display:block;}
+  .psf .num{position:absolute;top:18px;left:20px;z-index:2;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:#fff;mix-blend-mode:difference;}
+  .psf .open{position:absolute;right:18px;bottom:15px;z-index:2;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:0;transform:translateY(6px);transition:opacity .4s var(--ease),transform .4s var(--ease);mix-blend-mode:difference;}
+  .psf:hover .open{opacity:1;transform:none;}
+  .ps-bleed{width:100%;margin-left:0;}
+  .ps-full{height:clamp(440px,92vh,1040px);}
+  .ps-wide{height:clamp(380px,64vh,760px);}
+  .ps-cap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px var(--gut) 0;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .ps-cap .t{color:var(--ink);}
+  .ps-row{display:grid;grid-template-columns:1.55fr 1fr;gap:clamp(10px,1.4vw,20px);margin-top:clamp(10px,1.4vw,20px);}
+  .ps-row .psf{height:clamp(360px,58vh,720px);}
+  @media(max-width:760px){.ps-row{grid-template-columns:1fr;}.ps-row .psf{height:clamp(300px,52vh,520px);}}
+  .ps-offset{display:grid;grid-template-columns:1fr 3.6fr;gap:clamp(16px,3vw,52px);align-items:center;margin-top:clamp(44px,6vw,96px);}
+  .ps-offset .side .t{font-family:var(--serif);font-style:italic;font-size:clamp(20px,1.7vw,26px);color:var(--ink);display:block;margin-bottom:12px;line-height:1.15;}
+  .ps-offset .side p{font-family:var(--sans);font-size:14px;line-height:1.6;color:var(--ink-2);}
+  .ps-offset .side .m{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:14px;display:block;}
+  .ps-offset .psf{height:clamp(380px,64vh,820px);}
+  @media(max-width:760px){.ps-offset{grid-template-columns:1fr;gap:16px;}}
+
   /* frames grid */
   .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(10px,1.4vw,20px);}
   .frame{position:relative;overflow:hidden;cursor:pointer;grid-column:span 4;}
@@ -155,6 +199,10 @@
   /* process / capability band */
   .cap{background:var(--ink);color:var(--canvas);padding-block:clamp(64px,9vw,130px);margin-top:clamp(60px,9vw,140px);}
   .cap__lead{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(26px,3.4vw,48px);line-height:1.25;max-width:24ch;margin-bottom:clamp(40px,5vw,72px);}
+  .cap__by{display:flex;align-items:center;gap:16px;margin-bottom:clamp(26px,3vw,38px);}
+  .cap__by img{width:62px;height:62px;border-radius:50%;object-fit:cover;object-position:center 18%;flex:none;box-shadow:0 8px 26px rgba(0,0,0,.32);}
+  .cap__by b{display:block;font-weight:600;font-size:16px;letter-spacing:-.01em;}
+  .cap__by span{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted-2);}
   .cap__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(28px,4vw,64px);}
   .cap__item .n{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--muted-2);}
   .cap__item h3{font-size:clamp(19px,1.7vw,24px);font-weight:600;letter-spacing:-.01em;margin:12px 0 10px;}
@@ -224,12 +272,12 @@
   .film .shead h2{color:#fff;}
   .film .shead .mono{color:var(--muted-2);}
   .film__stage{position:relative;width:100%;height:clamp(440px,80vh,900px);overflow:hidden;background:#000;cursor:pointer;}
-  .film__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;}
+  .film__video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;transform:scale(1.12);transform-origin:0 0;}
   .film__bar{position:absolute;left:0;right:0;z-index:4;height:54px;pointer-events:none;}
   .film__bar.t{top:0;background:linear-gradient(180deg,rgba(0,0,0,.6),transparent);}
   .film__bar.b{bottom:0;background:linear-gradient(0deg,rgba(0,0,0,.7),transparent);height:90px;}
   .film__hud{position:absolute;z-index:5;left:0;right:0;bottom:0;padding:22px clamp(18px,3vw,34px);display:flex;justify-content:space-between;align-items:flex-end;gap:16px;pointer-events:none;}
-  .film__title{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(22px,3vw,42px);line-height:1;}
+  .film__title{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(22px,3vw,42px);line-height:1;transition:opacity .5s var(--ease);}
   .film__tc{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.78);text-align:right;white-space:nowrap;}
   .film__rec{display:inline-block;width:7px;height:7px;border-radius:50%;background:#E5483D;margin-right:8px;vertical-align:middle;animation:blink 1.4s steps(1) infinite;}
   .film.paused .film__rec{animation:none;background:rgba(255,255,255,.4);}
@@ -551,12 +599,21 @@
       <a class="swx__seg" href="../../index.html">Websites</a>
       <a class="swx__seg is-on" aria-current="page" href="index.html">Visuals</a>
     </div>
+    <button class="vnav__burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="vnav__mobile" id="vnavMobile">
+    <span class="mlead">Menu</span>
+    <a href="#work"><span class="i">01</span>Work</a>
+    <a href="#motion"><span class="i">02</span>Motion &amp; Film</a>
+    <a href="#services"><span class="i">03</span>Services</a>
+    <a href="#threesixty"><span class="i">04</span>360° Tours</a>
+    <a href="#contact"><span class="i">05</span>Contact</a>
   </div>
 </header>
 
 <!-- hero -->
 <section class="hero" id="top">
-  <div class="hero__img"><img src="img/03-concert.webp" alt="Architectural visualisation of a cultural building at dusk with arriving crowds — Atmosferi"></div>
+  <div class="hero__img"><img src="img/sol-01.webp" alt="Architectural visualisation — a retreat almost lost in a vast northern valley at first light — Atmosferi"></div>
   <div class="hero__c">
     <h1>Pictures of architecture before it exists.</h1>
     <div class="hero__sub">
@@ -656,6 +713,142 @@
 
 </section>
 
+<!-- ============ PROJECT SERIES — exterior in landscape (mir.no rhythm) ============ -->
+<section class="ps" id="project">
+  <div class="wrap">
+    <div class="ps__head" data-rise>
+      <div>
+        <span class="ps__eyebrow">Project — Exterior series</span>
+        <h1 class="ps__title">Solveig</h1>
+      </div>
+      <div>
+        <p class="ps__lead">A retreat set into a high northern valley — concrete, glass and weathered timber, almost lost in the land around it. Fourteen frames following one building through a single turning day.</p>
+        <div class="ps__meta" style="margin-top:18px">Innerdalen, Norway · 2027<br>Exterior stills · 14 frames</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 01 — establishing: building tiny in the valley -->
+  <figure class="psf bloom ps-bleed ps-full" data-rise data-full="img/sol-01.webp" data-cap="The valley holds it" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
+    <span class="num">01 / 14</span>
+    <img src="img/sol-01.webp" alt="Architectural visualisation — a small retreat almost lost in a vast northern valley at first light">
+    <span class="open">Open frame ↗</span>
+  </figure>
+  <div class="ps-cap"><span class="t">The valley holds it</span><span>First light · 06:12</span></div>
+
+  <div class="wrap">
+    <!-- 02 + 03 — wide atmospheric beside a vertical detail -->
+    <div class="ps-row">
+      <figure class="psf bloom" data-rise data-full="img/sol-02.webp" data-cap="Weather coming in" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
+        <span class="num">02 / 14</span>
+        <img src="img/sol-02.webp" alt="Architectural visualisation — the retreat under a wide moody sky, mist rolling across the ridge">
+        <span class="open">Open frame ↗</span>
+      </figure>
+      <figure class="psf bloom" data-rise data-full="img/sol-03.webp" data-cap="The timber edge" data-meta="Solveig · Innerdalen, Norway · Detail · 2027">
+        <span class="num">03 / 14</span>
+        <img src="img/sol-03.webp" alt="Architectural visualisation — close detail of weathered timber and glass against the landscape">
+        <span class="open">Open frame ↗</span>
+      </figure>
+    </div>
+  </div>
+
+  <!-- 04 — full-bleed wide, building small, big sky -->
+  <figure class="psf bloom ps-bleed ps-wide" data-rise data-full="img/sol-04.webp" data-cap="The far mountain" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027" style="margin-top:clamp(40px,6vw,90px)">
+    <span class="num">04 / 14</span>
+    <img src="img/sol-04.webp" alt="Architectural visualisation — the retreat small beneath a great mountain as the last light fades over the ridge">
+    <span class="open">Open frame ↗</span>
+  </figure>
+  <div class="ps-cap"><span class="t">The far mountain</span><span>Last light · 21:40</span></div>
+
+  <div class="wrap">
+    <!-- 05 — offset: the one frame where architecture fills, with side note -->
+    <div class="ps-offset">
+      <div class="side" data-rise>
+        <span class="t">And then, up close.</span>
+        <p>One frame in the series steps in — the entrance cut, the concrete grain, the reflection of the valley caught in the glass.</p>
+        <span class="m">05 / 14 · Approach</span>
+      </div>
+      <figure class="psf bloom" data-rise data-full="img/sol-05.webp" data-cap="The approach" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
+        <span class="num">05 / 14</span>
+        <img src="img/sol-05.webp" alt="Architectural visualisation — the building filling the frame, entrance and concrete detail at close range">
+        <span class="open">Open frame ↗</span>
+      </figure>
+    </div>
+  </div>
+
+  <!-- 06 — closing: twilight, building a warm point in the dark land -->
+  <figure class="psf bloom ps-bleed ps-full" data-rise data-full="img/sol-06.webp" data-cap="A light left on" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027" style="margin-top:clamp(44px,6vw,96px)">
+    <span class="num">06 / 14</span>
+    <img src="img/sol-06.webp" alt="Architectural visualisation — the retreat glowing warmly at twilight, a single point of light in the darkening valley">
+    <span class="open">Open frame ↗</span>
+  </figure>
+  <div class="ps-cap"><span class="t">A light left on</span><span>Blue hour · 21:55</span></div>
+</section>
+
+<!-- ============ PROJECT SERIES — Lysning, a forest kindergarten ============ -->
+<section class="ps" id="project-kg">
+  <div class="wrap">
+    <div class="ps__head" data-rise>
+      <div>
+        <span class="ps__eyebrow">Project — Kindergarten</span>
+        <h2 class="ps__title">Lysning</h2>
+      </div>
+      <div>
+        <p class="ps__lead">A kindergarten set into the slope where the meadow meets the trees — a green living roof, a facade of red-stained timber, and rooms that open straight onto the forest. Visualised with the life already in it.</p>
+        <div class="ps__meta" style="margin-top:18px">Sörmland, Sweden · 2026<br>Exterior &amp; interior · 5 frames</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 01 — establishing: building in the slope at the forest edge -->
+  <figure class="psf bloom ps-bleed ps-full" data-rise data-full="img/kg-01.webp" data-cap="Where the forest begins" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026">
+    <span class="num">01 / 05</span>
+    <img src="img/kg-01.webp" alt="Architectural visualisation — a forest kindergarten with a green living roof set into a meadow slope, children blurred along the path">
+    <span class="open">Open frame ↗</span>
+  </figure>
+  <div class="ps-cap"><span class="t">Where the forest begins</span><span>Morning · the long path</span></div>
+
+  <div class="wrap">
+    <!-- 02 + 03 — sunny life beside a vertical detail -->
+    <div class="ps-row">
+      <figure class="psf bloom" data-rise data-full="img/kg-02.webp" data-cap="The morning run" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026">
+        <span class="num">02 / 05</span>
+        <img src="img/kg-02.webp" alt="Architectural visualisation — children in colourful coats running past the sunlit red timber facade, long-exposure blur">
+        <span class="open">Open frame ↗</span>
+      </figure>
+      <figure class="psf bloom" data-rise data-full="img/kg-03.webp" data-cap="Roof, glass, forest" data-meta="Lysning · Sörmland, Sweden · Detail · 2026">
+        <span class="num">03 / 05</span>
+        <img src="img/kg-03.webp" alt="Architectural visualisation — close detail of the red timber facade meeting the green sedum roof, a window onto the playroom">
+        <span class="open">Open frame ↗</span>
+      </figure>
+    </div>
+  </div>
+
+  <!-- 04 — full-bleed wide, dusk, building small in the meadow -->
+  <figure class="psf bloom ps-bleed ps-wide" data-rise data-full="img/kg-04.webp" data-cap="Dusk, and still playing" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026" style="margin-top:clamp(40px,6vw,90px)">
+    <span class="num">04 / 05</span>
+    <img src="img/kg-04.webp" alt="Architectural visualisation — the kindergarten small in a misty meadow at dusk, windows glowing warm against the dark forest">
+    <span class="open">Open frame ↗</span>
+  </figure>
+  <div class="ps-cap"><span class="t">Dusk, and still playing</span><span>Blue hour · 20:10</span></div>
+
+  <div class="wrap">
+    <!-- 05 — offset: inside, the playroom -->
+    <div class="ps-offset">
+      <div class="side" data-rise>
+        <span class="t">And inside, the day moves.</span>
+        <p>Birch ply, a soft yellow rug, a wall of glass holding the forest — and somewhere in it, two children who will not hold still for the camera.</p>
+        <span class="m">05 / 05 · The playroom</span>
+      </div>
+      <figure class="psf bloom" data-rise data-full="img/kg-05.webp" data-cap="The playroom" data-meta="Lysning · Sörmland, Sweden · Interior · 2026">
+        <span class="num">05 / 05</span>
+        <img src="img/kg-05.webp" alt="Architectural visualisation — a birch-ply playroom flooded with warm light, a wall of glass onto the forest, children blurred mid-play">
+        <span class="open">Open frame ↗</span>
+      </figure>
+    </div>
+  </div>
+</section>
+
 <!-- ============ IN MOTION — animated film / showreel ============ -->
 <section class="film" id="motion">
   <div class="wrap">
@@ -664,13 +857,13 @@
       <span class="mono">Animated film · showreel 2026</span>
     </div>
     <div class="film__stage" id="film" data-rise>
-      <video class="film__video" id="filmVideo" src="img/showreel.mp4" poster="img/02-ascension.webp" muted loop playsinline preload="metadata"></video>
+      <video class="film__video" id="filmVideo" src="media/interior-01.mp4" poster="img/chalet-living.jpg" muted loop playsinline preload="metadata"></video>
 
       <div class="film__bar t"></div>
       <div class="film__bar b"></div>
       <div class="film__top">
         <span>Atmosferi° · Showreel</span>
-        <span>2.39:1 · 4K</span>
+        <span>Interior film · 4K</span>
       </div>
 
       <button class="film__sound" id="filmSound" type="button" aria-pressed="false" aria-label="Toggle sound">
@@ -846,12 +1039,32 @@
       <span class="frame__img"><img src="img/12-fjord.webp" alt="House on the Fjord"></span>
       <figcaption class="frame__cap"><span class="t">House on the Fjord</span><span class="m">Vestland · Stills</span></figcaption>
     </figure>
+    <figure class="frame w8 wide bloom" data-cap="Garden Pavilion" data-meta="Forest house · Exterior stills" data-full="img/gal-pavilion.webp">
+      <span class="frame__img"><img src="img/gal-pavilion.webp" alt="Architectural visualisation — a timber and glass pavilion in a lush forest garden with a stream"></span>
+      <figcaption class="frame__cap"><span class="t">Garden Pavilion</span><span class="m">Forest house · Stills</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Black House" data-meta="Family House · Exterior stills" data-full="img/gal-blackhouse.webp">
+      <span class="frame__img"><img src="img/gal-blackhouse.webp" alt="Architectural visualisation — a dark larch gabled family house on a misty meadow with a cobblestone drive"></span>
+      <figcaption class="frame__cap"><span class="t">Black House</span><span class="m">Family House · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w8 wide bloom" data-cap="Lysá Hora" data-meta="Beskydy House · Interior stills" data-full="img/gal-ostravice.webp">
+      <span class="frame__img"><img src="img/gal-ostravice.webp" alt="Interior visualisation — a wood-lined living room opening onto a Beskydy mountain view at sunset"></span>
+      <figcaption class="frame__cap"><span class="t">Lysá Hora</span><span class="m">Beskydy House · Interior</span></figcaption>
+    </figure>
+    <figure class="frame bloom" data-cap="Among the Pines" data-meta="Forest Kindergarten · Exterior stills" data-full="img/gal-kindergarten.webp">
+      <span class="frame__img"><img src="img/gal-kindergarten.webp" alt="Architectural visualisation — a low timber building among tall pines in golden evening light"></span>
+      <figcaption class="frame__cap"><span class="t">Among the Pines</span><span class="m">Forest Kindergarten · Stills</span></figcaption>
+    </figure>
   </div>
 </section>
 
 <!-- capability band -->
 <section class="cap" id="studio">
   <div class="wrap">
+    <div class="cap__by" data-rise>
+      <img src="img/michal.jpg" alt="Michal Kašpárek, founder of Atmosferi Visualisation">
+      <span><b>Michal Kašpárek</b><span>Founder · Atmosferi Visualisation</span></span>
+    </div>
     <p class="cap__lead" data-rise>Eleven years making architectural images — a small studio of architects, photographers and 3D artists who care more about light than polygons.</p>
     <div class="cap__grid">
       <div class="cap__item" data-rise>
@@ -952,6 +1165,50 @@
 </div>
 
 <div class="vcur" id="vcur">View</div>
+
+<script>
+(function(){
+  var nav=document.querySelector('.nav'),
+      burger=document.querySelector('.vnav__burger'),
+      drawer=document.getElementById('vnavMobile');
+  if(!nav||!burger) return;
+  function set(open){
+    nav.classList.toggle('is-open',open);
+    burger.setAttribute('aria-expanded',open?'true':'false');
+    try{ document.body.style.overflow=open?'hidden':''; }catch(e){}
+  }
+  burger.addEventListener('click',function(){ set(!nav.classList.contains('is-open')); });
+  if(drawer) drawer.addEventListener('click',function(e){ if(e.target.closest('a')) set(false); });
+  window.addEventListener('keydown',function(e){ if(e.key==='Escape') set(false); });
+})();
+</script>
+
+<script>
+(function(){
+  /* In-motion film: subtle per-scene captions in the HUD title */
+  var v=document.getElementById('filmVideo'), t=document.getElementById('filmTitle');
+  if(!v||!t) return;
+  var scenes=[
+    {at:0,    label:'The hearth'},
+    {at:6.8,  label:'The long table'},
+    {at:12.0, label:'The stair'},
+    {at:18.6, label:'Morning room'},
+    {at:28.6, label:'The far shore'}
+  ];
+  function labelFor(time){ var l=scenes[0].label; for(var i=0;i<scenes.length;i++){ if(time>=scenes[i].at) l=scenes[i].label; } return l; }
+  var cur='';
+  function update(){
+    var next=labelFor(v.currentTime||0);
+    if(next===cur) return;
+    cur=next;
+    t.style.opacity='0';
+    setTimeout(function(){ t.textContent=next; t.style.opacity='1'; },260);
+  }
+  v.addEventListener('timeupdate',update);
+  v.addEventListener('loadeddata',function(){ cur=''; update(); });
+  t.textContent=scenes[0].label;
+})();
+</script>
 
 <script src="viz.js"></script>
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>

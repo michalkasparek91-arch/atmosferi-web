@@ -59,6 +59,19 @@
   .nav__links a{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);opacity:.82;transition:opacity .3s,color .3s;white-space:nowrap;}
   .nav__links a:hover{opacity:1;color:var(--gold);}
   @media(max-width:980px){.nav__links a:not(.btn){display:none;}}
+  /* mobile drawer */
+  .nav__in{position:relative;z-index:60;}
+  .mburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:34px;height:34px;flex:none;background:none;border:0;cursor:pointer;padding:0;position:relative;z-index:62;}
+  .mburger span{display:block;width:23px;height:1.5px;background:var(--ink);transition:transform .35s var(--slow),opacity .2s;}
+  .nav.menu-open .mburger span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+  .nav.menu-open .mburger span:nth-child(2){opacity:0;}
+  .nav.menu-open .mburger span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+  .mnav{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--bg-2);padding:108px clamp(20px,5vw,60px) 44px;display:none;flex-direction:column;gap:2px;transform:translateY(-101%);transition:transform .55s cubic-bezier(.7,0,.15,1);visibility:hidden;}
+  .nav.menu-open .mnav{transform:none;visibility:visible;}
+  .mnav__lead{font-family:var(--sans);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+  .mnav a{display:flex;align-items:baseline;font-family:var(--serif);font-size:clamp(30px,8.5vw,44px);font-weight:300;color:var(--ink);padding:15px 0;border-bottom:1px solid var(--line);}
+  .mnav a .i{font-family:var(--sans);font-size:11px;letter-spacing:.18em;color:var(--gold);margin-right:18px;}
+  @media(max-width:980px){.mburger{display:flex;}.mnav{display:flex;}}
 
   /* hero */
   .hero{position:relative;height:100vh;min-height:680px;overflow:hidden;display:flex;align-items:flex-end;}
@@ -292,6 +305,15 @@
       <a href="#view">The View</a>
       <a href="#reg" class="btn">Register Interest</a>
     </nav>
+    <button class="mburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mnav" id="mnav">
+    <span class="mnav__lead">Meridian</span>
+    <a href="#explorer"><span class="i">01</span>Availability</a>
+    <a href="#res"><span class="i">02</span>Residences</a>
+    <a href="#amen"><span class="i">03</span>Amenities</a>
+    <a href="#view"><span class="i">04</span>The View</a>
+    <a href="#reg"><span class="i">05</span>Register Interest</a>
   </div>
 </header>
 
@@ -486,5 +508,19 @@
 <div class="toast" id="toast"><span class="i"></span><span id="toastMsg">Added to shortlist</span></div>
 
 <script src="meridian.js"></script>
+<script>
+(function(){
+  var nav=document.querySelector('.nav'), burger=document.querySelector('.mburger'), drawer=document.getElementById('mnav');
+  if(!nav||!burger) return;
+  function set(open){
+    nav.classList.toggle('menu-open',open);
+    burger.setAttribute('aria-expanded',open?'true':'false');
+    try{ document.body.style.overflow=open?'hidden':''; }catch(e){}
+  }
+  burger.addEventListener('click',function(){ set(!nav.classList.contains('menu-open')); });
+  if(drawer) drawer.addEventListener('click',function(e){ if(e.target.closest('a')) set(false); });
+  window.addEventListener('keydown',function(e){ if(e.key==='Escape') set(false); });
+})();
+</script>
 </body>
 </html>
