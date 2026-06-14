@@ -106,13 +106,14 @@ export const AdminOutbox = () => {
 
   const handleRecoverPending = async () => {
     try {
-      const { error } = await supabase
-        .from('email_outbox')
-        .update({ status: 'draft' })
-        .eq('status', 'pending');
+      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
+        body: { action: "recover_pending" }
+      });
       
       if (error) throw error;
-      toast.success("Skryté maily (ve stavu pending) byly vráceny do konceptů k revizi.");
+      if (data?.error) throw new Error(data.error);
+      
+      toast.success(`Skryté maily (${data?.recovered || 0}) byly vráceny do konceptů.`);
       queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
     } catch (err: any) {

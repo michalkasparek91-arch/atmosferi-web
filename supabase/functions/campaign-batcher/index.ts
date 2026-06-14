@@ -164,6 +164,21 @@ Deno.serve(async (req: any) => {
       );
     }
 
+    if (action === "recover_pending") {
+      const { data, error } = await supabaseClient
+        .from("email_outbox")
+        .update({ status: "draft" })
+        .eq("status", "pending")
+        .select("id");
+        
+      if (error) throw error;
+      
+      return new Response(
+        JSON.stringify({ success: true, recovered: data?.length || 0 }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     throw new Error("Invalid action");
 
   } catch (error: any) {
