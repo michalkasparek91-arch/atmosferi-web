@@ -218,6 +218,7 @@ export default function AdminEmails() {
   const [minPremiumScore, setMinPremiumScore] = useState("0");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [subcatFilter, setSubcatFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
   const [languageFilter, setLanguageFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
@@ -631,7 +632,7 @@ export default function AdminEmails() {
   }, [suitableWorkers]);
 
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, sourceFilter, subcatFilter, cityFilter, radiusFilter, crmPage],
+    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, sourceFilter, subcatFilter, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, crmPage],
     queryFn: async () => {
       let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false });
       
@@ -644,6 +645,10 @@ export default function AdminEmails() {
       
       if (subcatFilter !== "all") {
         query = query.ilike("subcategory", `%${subcatFilter}%`);
+      }
+
+      if (categoryFilter !== "all") {
+        query = query.eq("category", categoryFilter);
       }
 
       if (countryFilter !== "all") {
@@ -1005,6 +1010,14 @@ export default function AdminEmails() {
         }
       }
 
+      if (categoryFilter !== "all") {
+        query = query.eq("category", categoryFilter);
+      }
+
+      if (countryFilter !== "all") {
+        query = query.eq("country", countryFilter);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
       if (!data || data.length === 0) {
@@ -1267,6 +1280,7 @@ export default function AdminEmails() {
                     totalPages,
                     handleExportCSV,
                     subcatFilter, setSubcatFilter,
+                    categoryFilter, setCategoryFilter,
                     countryFilter, setCountryFilter,
                     languageFilter, setLanguageFilter,
                     cityFilter, setCityFilter,

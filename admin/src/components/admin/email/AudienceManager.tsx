@@ -115,6 +115,7 @@ export const AudienceManager = (props: any) => {
     importProgress,
     importTotalCount,
     subcatFilter, setSubcatFilter,
+    categoryFilter, setCategoryFilter,
     countryFilter, setCountryFilter,
     languageFilter, setLanguageFilter,
     cityFilter, setCityFilter,
@@ -368,9 +369,9 @@ export const AudienceManager = (props: any) => {
 
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors ${sourceFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${sourceFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
                 <Database className="h-4 w-4 shrink-0" />
-                <span className="sr-only">Zdroje</span>
+                <span className="text-xs font-medium">Zdroje</span>
               </SelectTrigger>
               <SelectContent className="rounded-xl text-[12px]">
                 <SelectItem value="all">Všechny zdroje</SelectItem>
@@ -382,9 +383,9 @@ export const AudienceManager = (props: any) => {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors ${subcatFilter !== "all" && subcatFilter !== "" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Button variant="outline" className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors ${subcatFilter !== "all" && subcatFilter !== "" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
                   <Tag className="h-4 w-4 shrink-0" />
-                  <span className="sr-only">Obor</span>
+                  <span className="text-xs font-medium">Klíčové slovo</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-64 p-3 rounded-2xl shadow-xl border-border/60">
@@ -401,9 +402,9 @@ export const AudienceManager = (props: any) => {
             </Popover>
 
             <Select value={countryFilter} onValueChange={setCountryFilter}>
-              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${countryFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${countryFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
                 <Globe className="h-4 w-4 shrink-0" />
-                <span className="sr-only">Země</span>
+                <span className="text-xs font-medium">Země</span>
               </SelectTrigger>
               <SelectContent className="rounded-xl text-[12px]">
                 <SelectItem value="all">Všechny země</SelectItem>
@@ -416,9 +417,9 @@ export const AudienceManager = (props: any) => {
             </Select>
 
             <Select value={languageFilter} onValueChange={setLanguageFilter}>
-              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${languageFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${languageFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
                 <MessageCircle className="h-4 w-4 shrink-0" />
-                <span className="sr-only">Jazyk</span>
+                <span className="text-xs font-medium">Jazyk</span>
               </SelectTrigger>
               <SelectContent className="rounded-xl text-[12px]">
                 <SelectItem value="all">Všechny jazyky</SelectItem>
@@ -430,12 +431,23 @@ export const AudienceManager = (props: any) => {
               </SelectContent>
             </Select>
 
-
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${categoryFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Tag className="h-4 w-4 shrink-0" />
+                <span className="text-xs font-medium">Typ klienta</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="all">Všechny typy</SelectItem>
+                {allCategories?.map((c: any) => (
+                  <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <Select value={minEngagement} onValueChange={setMinEngagement}>
-              <SelectTrigger className={`w-9 h-9 p-0 flex items-center justify-center rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${minEngagement !== "0" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${minEngagement !== "0" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
                 <Activity className="h-4 w-4 shrink-0" />
-                <span className="sr-only">Aktivita</span>
+                <span className="text-xs font-medium">Aktivita</span>
               </SelectTrigger>
               <SelectContent className="rounded-xl text-[12px]">
                 <SelectItem value="0">Aktivita: Vše</SelectItem>
