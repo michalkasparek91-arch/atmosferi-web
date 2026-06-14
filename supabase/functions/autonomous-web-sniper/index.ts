@@ -167,15 +167,15 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
 
       let marketId = "cz";
       const tc = targetCountry.toLowerCase();
-      if (tc === "česká republika" || tc === "ceska republika") marketId = "cz";
-      else if (tc === "německo" || tc === "nemecko") marketId = "de";
-      else if (tc === "rakousko") marketId = "at";
-      else if (tc === "slovensko") marketId = "sk";
-      else if (tc === "austrálie" || tc === "australie") marketId = "au";
-      else if (tc === "finsko") marketId = "fi";
-      else if (tc === "usa" || tc === "spojené státy") marketId = "us";
-      else if (tc === "švýcarsko" || tc === "svycarsko") marketId = "ch";
-      else if (tc === "norsko") marketId = "no";
+      if (tc === "česká republika" || tc === "ceska republika" || tc === "czech republic" || tc === "czechia") marketId = "cz";
+      else if (tc === "německo" || tc === "nemecko" || tc === "deutschland" || tc === "germany") marketId = "de";
+      else if (tc === "rakousko" || tc === "austria" || tc === "österreich") marketId = "at";
+      else if (tc === "slovensko" || tc === "slovakia") marketId = "sk";
+      else if (tc === "austrálie" || tc === "australie" || tc === "australia") marketId = "au";
+      else if (tc === "finsko" || tc === "finland" || tc === "suomi") marketId = "fi";
+      else if (tc === "usa" || tc === "spojené státy" || tc === "united states") marketId = "us";
+      else if (tc === "švýcarsko" || tc === "svycarsko" || tc === "switzerland" || tc === "schweiz") marketId = "ch";
+      else if (tc === "norsko" || tc === "norway") marketId = "no";
       else marketId = item.language || "cs";
 
       let categoryId = "architekti";
