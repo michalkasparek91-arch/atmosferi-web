@@ -148,7 +148,7 @@ Deno.serve(async (req: any) => {
         template_id: template.id,
         template_slug: template.slug,
         lead_id: lead.id,
-        status: "pending",
+        status: "draft",
         icebreaker: lead.ai_icebreaker || "Dobrý den,\n\nZaujala mě vaše práce.",
       }));
 
