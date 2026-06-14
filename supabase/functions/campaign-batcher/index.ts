@@ -42,8 +42,8 @@ Deno.serve(async (req: any) => {
         const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
 
         let langFilter = [t.language];
-        if (t.language === 'cs') langFilter = ['cs', 'cz'];
-        if (t.language === 'de') langFilter = ['de', 'at', 'ch'];
+        if (t.language === 'cs' || t.language === 'cz') langFilter = ['cs', 'cz', 'sk'];
+        if (t.language === 'de' || t.language === 'at' || t.language === 'ch') langFilter = ['de', 'at', 'ch'];
 
         // Count matching leads
         let query = supabaseClient
