@@ -163,9 +163,11 @@ export default function EmailTemplatesTab() {
       setSendingSlug(slug);
     },
     onSuccess: (data: any) => {
+      console.log("Success data:", data);
       const results = data?.results || [];
       const ok = results.filter((r: any) => r.success).length;
       const fail = results.filter((r: any) => !r.success).length;
+      window.alert(`Test odeslán. Úspěch: ${ok}, Selhání: ${fail}. Pokud to nepřišlo, koukněte do spamu.`);
       toast({
         title: fail === 0 ? "Testovací e-maily odeslány ✅" : "Částečně odesláno ⚠️",
         description: `Odesláno: ${ok}, Selhalo: ${fail}`,
@@ -174,6 +176,8 @@ export default function EmailTemplatesTab() {
       setSendingSlug(null);
     },
     onError: (err: any) => {
+      console.error("Mutation error:", err);
+      window.alert("Chyba při odesílání: " + (err?.message || String(err)));
       toast({ title: "Chyba odeslání", description: err.message, variant: "destructive" });
       setSendingSlug(null);
     },

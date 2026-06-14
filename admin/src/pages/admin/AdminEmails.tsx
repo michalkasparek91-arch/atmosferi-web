@@ -376,10 +376,14 @@ export default function AdminEmails() {
       }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Success data:", data);
+      window.alert("Testovací e-mail byl úspěšně odeslán (nebo server vrátil úspěch). Podívejte se do spamu.");
       toast({ title: "Testovací e-mail odeslán", description: "E-mail byl úspěšně odeslán na michal.kasparek91@gmail.com." });
     },
     onError: (err: any) => {
+      console.error("Mutation error:", err);
+      window.alert("Chyba při odesílání: " + (err?.message || String(err)));
       toast({ title: "Chyba při odesílání", description: err.message || String(err), variant: "destructive" });
     }
   });
