@@ -516,9 +516,9 @@ export const AudienceManager = (props: any) => {
                     className="rounded-md border-muted-foreground/30"
                   />
                 </TableHead>
-                <TableHead className="w-[160px] max-w-[160px] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2">Kontakt</TableHead>
-                <TableHead className="w-[120px] max-w-[120px] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2">Lokalita & Zdroj</TableHead>
-                <TableHead className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2 text-center">Engagement</TableHead>
+                <TableHead className="w-[45%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2">Kontakt</TableHead>
+                <TableHead className="w-[35%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2">Lokalita & Zdroj</TableHead>
+                <TableHead className="w-[20%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2 text-center">Engagement</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -545,9 +545,9 @@ export const AudienceManager = (props: any) => {
                         className="rounded-md border-muted-foreground/30"
                       />
                     </TableCell>
-                    <TableCell className="py-2 w-[160px] max-w-[160px]">
+                    <TableCell className="py-2 align-top">
                       <div className="flex items-center gap-2.5">
-                        <div className="min-w-0">
+                        <div className="min-w-0 w-full">
                           <p className="text-xs font-bold text-foreground truncate leading-tight group-hover:text-primary transition-colors">{lead.full_name || lead.company_name || "Bezejmenný"}</p>
                           <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium truncate opacity-80 mt-0.5">
                             <Mail className="h-2.5 w-2.5 opacity-60 shrink-0" /> {lead.email}
@@ -566,7 +566,7 @@ export const AudienceManager = (props: any) => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="py-2 w-[120px] max-w-[120px]">
+                    <TableCell className="py-2 align-top">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-[9px] font-bold text-foreground/80">
                           <MapPin className="h-2.5 w-2.5 text-rose-500/40" /> {lead.city || "Nezadáno"} {lead.country && <span className="text-muted-foreground ml-0.5">({lead.country})</span>}
@@ -591,7 +591,7 @@ export const AudienceManager = (props: any) => {
                         })()}
                       </div>
                     </TableCell>
-                    <TableCell className="py-2 text-center">
+                    <TableCell className="py-2 text-center align-top">
                        <span className="text-[10px] font-bold text-foreground/80 border border-border/60 bg-muted/30 px-2 py-0.5 rounded-md flex items-center justify-center gap-1.5 w-max mx-auto shadow-sm">
                          <Mail className="h-3 w-3 text-muted-foreground" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : lead.engagement_score > 0 ? "1" : "0"} 
                          <span className="text-border mx-0.5">|</span>
