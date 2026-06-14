@@ -641,10 +641,6 @@ export default function AdminEmails() {
       if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
       else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
       else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
-      
-      if (subcatFilter !== "all") {
-        query = query.ilike("subcategory", `%${subcatFilter}%`);
-      }
 
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
