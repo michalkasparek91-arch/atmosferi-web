@@ -368,6 +368,12 @@ export default function AdminEmails() {
         }
       });
       if (error) throw error;
+      if (data && data.results && data.results.length > 0) {
+        const firstError = data.results.find((r: any) => !r.success);
+        if (firstError) {
+          throw new Error(firstError.error || "Neznámá chyba při odesílání přes Resend.");
+        }
+      }
       return data;
     },
     onSuccess: () => {
