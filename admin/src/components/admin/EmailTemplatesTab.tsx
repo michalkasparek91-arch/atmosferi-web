@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -145,6 +146,8 @@ export default function EmailTemplatesTab() {
   const [sendingSlug, setSendingSlug] = useState<string | null>(null);
   const [localizingTemplateId, setLocalizingTemplateId] = useState<string | null>(null);
   const [localizeProgress, setLocalizeProgress] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const { markets } = useMarkets();
 
@@ -365,6 +368,18 @@ export default function EmailTemplatesTab() {
       toast({ title: "Chyba přesunu", description: err.message, variant: "destructive" });
     },
   });
+
+  useEffect(() => {
+    if (templates.length > 0 && location.state?.editTemplateId) {
+      const templateId = location.state.editTemplateId;
+      const targetTemplate = templates.find((t: any) => t.id === templateId || t.slug === templateId);
+      if (targetTemplate) {
+        setEditingTemplate(targetTemplate);
+        // Clear state so it doesn't reopen on refresh
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [templates, location.state, navigate]);
 
   const filtered = useMemo(() => {
     let list = templates;

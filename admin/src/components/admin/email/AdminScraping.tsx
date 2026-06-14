@@ -139,10 +139,10 @@ export const AdminScraping = () => {
 
   const saveJobScheduleMutation = useMutation({
     mutationFn: async (newSchedule: string) => {
-      const { error } = await supabase
-        .from("automation_jobs")
-        .update({ schedule: newSchedule })
-        .eq("job_name", "Continuous Web Discovery");
+      const { error } = await supabase.rpc("update_automation_job_schedule", {
+        p_job_name: "Continuous Web Discovery",
+        p_schedule: newSchedule
+      });
       if (error) throw error;
       return newSchedule;
     },

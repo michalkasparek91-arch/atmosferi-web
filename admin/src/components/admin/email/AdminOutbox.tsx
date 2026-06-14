@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import CampaignReview from "@/components/admin/CampaignReview";
 
 export const AdminOutbox = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sendingBatch, setSendingBatch] = useState(false);
   const [editingDraft, setEditingDraft] = useState<any | null>(null);
@@ -329,6 +331,15 @@ export const AdminOutbox = () => {
                         <Badge variant="outline" className="text-[9px]">{v.template.category}</Badge>
                       </div>
                     </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-primary shrink-0"
+                      onClick={() => navigate("../sablony", { state: { editTemplateId: v.template.id } })}
+                      title="Upravit šablonu"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
                   </div>
                   
                   <div className="text-xs text-muted-foreground">
@@ -472,8 +483,34 @@ export const AdminOutbox = () => {
                     </div>
                   </div>
 
-                  <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+                  <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingDraft(draft);
+                        setEditedIcebreaker(draft.icebreaker || "");
+                      }}
+                      title="Upravit AI oslovení"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (draft.template_id || draft.template_slug) {
+                          navigate("../sablony", { state: { editTemplateId: draft.template_id || draft.template_slug } });
+                        } else {
+                          toast.error("Tento koncept nemá přiřazenou šablonu.");
+                        }
+                      }}
+                      title="Upravit šablonu"
+                    >
                       <Edit3 className="h-4 w-4" />
                     </Button>
                   </div>
