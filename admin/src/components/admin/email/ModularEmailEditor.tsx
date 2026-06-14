@@ -1299,9 +1299,13 @@ export function ModularEmailEditorDialogInner({
                 variant="outline" 
                 size="icon" 
                 onClick={() => {
-                  if (confirm("Opravdu chcete tuto šablonu smazat?")) {
-                    onClose();
-                    onDelete();
+                  try {
+                    if (confirm("Opravdu chcete tuto šablonu smazat?")) {
+                      onClose();
+                      onDelete();
+                    }
+                  } catch (err: any) {
+                    window.alert("Chyba při mazání: " + err?.message);
                   }
                 }}
                 className="h-8 w-8 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/30 cursor-pointer shrink-0"
@@ -1316,7 +1320,14 @@ export function ModularEmailEditorDialogInner({
                 variant="outline" 
                 size="sm" 
                 onClick={() => {
-                  onTestSend(form.slug!, form, selectedJobId || null, "michal.kasparek91@gmail.com");
+                  try {
+                    const email = window.prompt("Zadejte e-mail pro testovací zprávu:", "michal.kasparek91@gmail.com");
+                    if (email) {
+                      onTestSend(form.slug!, form, selectedJobId || null, email);
+                    }
+                  } catch (err: any) {
+                    window.alert("Chyba tlačítka: " + err?.message);
+                  }
                 }} 
                 disabled={isSendingTest} 
                 className="h-8 px-2 sm:px-3 text-[11px] font-bold gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-primary/10 hover:text-primary hover:border-primary/40 cursor-pointer shrink-0"
