@@ -172,7 +172,7 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
       else if (tc === "rakousko" || tc === "austria" || tc === "österreich") marketId = "at";
       else if (tc === "slovensko" || tc === "slovakia") marketId = "sk";
       else if (tc === "austrálie" || tc === "australie" || tc === "australia") marketId = "au";
-      else if (tc === "finsko" || tc === "finland" || tc === "suomi") marketId = "fi";
+      else if (tc === "finsko" || tc === "finland" || tc === "suomi") marketId = "f";
       else if (tc === "usa" || tc === "spojené státy" || tc === "united states") marketId = "us";
       else if (tc === "švýcarsko" || tc === "svycarsko" || tc === "switzerland" || tc === "schweiz") marketId = "ch";
       else if (tc === "norsko" || tc === "norway") marketId = "no";
