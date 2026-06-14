@@ -43,7 +43,6 @@ Deno.serve(async (req: any) => {
 
         let langFilter = [t.language];
         if (t.language === 'cs' || t.language === 'cz') langFilter = ['cs', 'cz', 'sk'];
-        if (t.language === 'de' || t.language === 'at' || t.language === 'ch') langFilter = ['de', 'at', 'ch'];
 
         // Count matching leads
         let query = supabaseClient
@@ -122,8 +121,7 @@ Deno.serve(async (req: any) => {
 
       // Fetch available leads
       let langFilter = [template.language];
-      if (template.language === 'cs') langFilter = ['cs', 'cz'];
-      if (template.language === 'de') langFilter = ['de', 'at', 'ch'];
+      if (template.language === 'cs' || template.language === 'cz') langFilter = ['cs', 'cz', 'sk'];
       const { data: availableLeads, error: leadsErr } = await supabaseClient
         .from("marketing_leads")
         .select("*")

@@ -282,19 +282,9 @@ export const AdminOutbox = () => {
           className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${filterType === "all" ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20" : "bg-card text-card-foreground border-border hover:border-primary/30 shadow-sm"}`}
         >
           <div className="flex items-center justify-between mb-0.5">
-            <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "all" ? "font-black" : "text-muted-foreground"}`}>Vše</p>
+            <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "all" ? "font-black" : "text-muted-foreground"}`}>Vše (Ke schválení)</p>
           </div>
           <p className={`text-xl font-black ${filterType === "all" ? "" : "text-foreground/80"}`}>{drafts.length}</p>
-        </button>
-
-        <button 
-          onClick={() => setFilterType("job")}
-          className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${filterType === "job" ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20" : "bg-card text-card-foreground border-border hover:border-primary/30 shadow-sm"}`}
-        >
-          <div className="flex items-center justify-between mb-0.5">
-            <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "job" ? "font-black" : "text-muted-foreground"}`}>Pro zakázku</p>
-          </div>
-          <p className={`text-xl font-black ${filterType === "job" ? "" : "text-foreground/80"}`}>{drafts.filter((d: any) => d.job_id).length}</p>
         </button>
 
         <button 
@@ -305,16 +295,6 @@ export const AdminOutbox = () => {
             <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "general" ? "font-black" : "text-muted-foreground"}`}>Volný nábor</p>
           </div>
           <p className={`text-xl font-black ${filterType === "general" ? "" : "text-foreground/80"}`}>{drafts.filter((d: any) => !d.job_id).length}</p>
-        </button>
-
-        <button 
-          onClick={() => setFilterType("campaigns")}
-          className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${filterType === "campaigns" ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20" : "bg-card text-card-foreground border-border hover:border-primary/30 shadow-sm"}`}
-        >
-          <div className="flex items-center justify-between mb-0.5">
-            <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "campaigns" ? "font-black" : "text-muted-foreground"}`}>Kampaně</p>
-          </div>
-          <p className={`text-xl font-black ${filterType === "campaigns" ? "" : "text-foreground/80"}`}>—</p>
         </button>
       </div>
 
