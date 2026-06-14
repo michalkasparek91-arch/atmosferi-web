@@ -118,6 +118,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         body: payload.body || "",
         heroImageEnabled: payload.heroImageUrl ? true : false,
         heroImageUrl: payload.heroImageUrl || "https://atmosferi.com/demos/atmosferi-viz/img/02-ascension.webp",
+        heroCaption: payload.segmentFilters?.hero_caption,
         portfolioEnabled: payload.carouselImages && payload.carouselImages.length > 0 ? true : false,
         portfolioImages: payload.carouselImages || [],
         icebreakerEnabled: false,

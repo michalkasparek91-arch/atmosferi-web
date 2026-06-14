@@ -15,6 +15,7 @@ export interface EmailTemplateData {
   psEnabled: boolean;
   psText: string;
   themeColor: string; // e.g. #D97757
+  heroCaption?: string;
   servicesWidgetEnabled?: boolean;
   servicesWidgetTitle?: string;
   service1Title?: string;
@@ -29,28 +30,42 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
   // Convert markdown-like syntax to HTML for body
   const parsedBody = parseBodyText(data.body);
 
+  const topBannerHtml = `
+    <div style="background-color: #16140F; padding: 16px 24px; color: #EFEDE6;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="vertical-align: middle; width: 100px;">
+            <span style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; letter-spacing: -0.02em;">Atmosferi<sup style="color: #D97757; font-size: 0.6em;">&deg;</sup></span>
+          </td>
+          <td style="vertical-align: middle; border-left: 1px solid rgba(244,242,236,0.3); padding-left: 14px;">
+            <span style="font-family: monospace; font-size: 9px; letter-spacing: 0.18em; opacity: 0.6; text-transform: uppercase;">WEB A VIZUALIZACE</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
+
   const heroHtml = data.heroImageEnabled && data.heroImageUrl ? `
-    <tr>
-      <td align="center" style="padding-bottom: 30px;">
-        <img src="${data.heroImageUrl}" alt="Hero" width="100%" style="display: block; max-width: 100%; height: auto; border: 1px solid #EAEAEA;" />
-      </td>
-    </tr>
+    <div>
+      <img src="${data.heroImageUrl}" alt="Hero" width="100%" style="display: block; max-width: 100%; height: auto;" />
+      <div style="background-color: #16140F; padding: 12px 24px; color: #A8A398; font-family: monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;">
+        ${data.heroCaption || "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°"}
+      </div>
+    </div>
   ` : '';
 
   const portfolioHtml = data.portfolioEnabled && data.portfolioImages.length > 0 ? `
-    <tr>
-      <td align="center" style="padding-bottom: 30px;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            ${data.portfolioImages.map(url => `
-              <td width="${Math.floor(100 / data.portfolioImages.length)}%" style="padding: 0 4px;">
-                <img src="${url}" alt="Portfolio" width="100%" style="display: block; max-width: 100%; height: auto; border: 1px solid #EAEAEA;" />
-              </td>
-            `).join('')}
-          </tr>
-        </table>
-      </td>
-    </tr>
+    <div style="margin: 32px 0;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          ${data.portfolioImages.slice(0, 3).map(url => `
+            <td width="${Math.floor(100 / Math.min(3, data.portfolioImages.length))}%" style="padding: 0 4px;">
+              <img src="${url}" alt="Gallery" width="100%" style="display: block; max-width: 100%; height: auto; border: 1px solid #EAEAEA;" />
+            </td>
+          `).join('')}
+        </tr>
+      </table>
+    </div>
   ` : '';
 
   const icebreakerHtml = data.icebreakerEnabled && data.icebreakerText ? `
@@ -122,25 +137,28 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${data.subject}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #FAFAFA; -webkit-font-smoothing: antialiased;">
-  <center style="width: 100%; background-color: #FAFAFA;">
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; max-width: 600px; background-color: #FFFFFF;">
+<body style="margin: 0; padding: 0; background-color: #EFEDE6; -webkit-font-smoothing: antialiased;">
+  <center style="width: 100%; background-color: #EFEDE6; padding: 40px 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; max-width: 600px; background-color: #FBFAF6;">
       <tr>
-        <td align="left" style="padding: 40px 30px;">
+        <td align="left" style="padding: 0;">
+          ${topBannerHtml}
           ${heroHtml}
-          ${portfolioHtml}
           
-          ${icebreakerHtml}
-          
-          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #16140F;">
-            ${parsedBody}
+          <div style="padding: 32px;">
+            ${icebreakerHtml}
+            
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #16140F;">
+              ${parsedBody}
+            </div>
+            
+            ${servicesHtml}
+            ${portfolioHtml}
+            ${ctaHtml}
+            
+            ${signatureHtml}
+            ${psHtml}
           </div>
-          
-          ${servicesHtml}
-          ${ctaHtml}
-          
-          ${signatureHtml}
-          ${psHtml}
         </td>
       </tr>
     </table>
