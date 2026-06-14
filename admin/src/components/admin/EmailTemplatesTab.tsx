@@ -167,7 +167,8 @@ export default function EmailTemplatesTab() {
       const results = data?.results || [];
       const ok = results.filter((r: any) => r.success).length;
       const fail = results.filter((r: any) => !r.success).length;
-      window.alert(`Test odeslán. Úspěch: ${ok}, Selhání: ${fail}. Pokud to nepřišlo, koukněte do spamu.`);
+      const errorMsg = fail > 0 ? results.find((r: any) => !r.success)?.error : "";
+      window.alert(`Test odeslán. Úspěch: ${ok}, Selhání: ${fail}. ${errorMsg ? 'Chyba: ' + errorMsg : 'Pokud to nepřišlo, koukněte do spamu.'}`);
       toast({
         title: fail === 0 ? "Testovací e-maily odeslány ✅" : "Částečně odesláno ⚠️",
         description: `Odesláno: ${ok}, Selhalo: ${fail}`,

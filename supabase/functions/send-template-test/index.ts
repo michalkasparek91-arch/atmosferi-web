@@ -296,6 +296,15 @@ Deno.serve(async (req) => {
       console.log(`[TemplateTest] ${slug} → ${email}: ${result.success ? "OK" : result.error}`);
     }
 
+    const failedResult = results.find(r => !r.success);
+    if (failedResult) {
+      console.error("[TemplateTest] Send failed for some recipients:", failedResult.error);
+      return new Response(JSON.stringify({ error: failedResult.error || "Odeslání selhalo na straně Brevo" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
