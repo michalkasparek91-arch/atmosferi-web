@@ -39,3 +39,15 @@ jobs:
 
       - name: Deploy campaign-batcher
         run: supabase functions deploy campaign-batcher --project-ref $PROJECT_ID
+
+      - name: Deploy send-template-test
+        run: supabase functions deploy send-template-test --project-ref $PROJECT_ID
+
+      - name: Deploy process-sniper-outbox
+        run: supabase functions deploy process-sniper-outbox --project-ref $PROJECT_ID
+
+      - name: Deploy email-reply-webhook
+        run: supabase functions deploy email-reply-webhook --project-ref $PROJECT_ID
+
+      - name: Deploy admin-send-broadcast-email
+        run: supabase functions deploy admin-send-broadcast-email --project-ref $PROJECT_ID
