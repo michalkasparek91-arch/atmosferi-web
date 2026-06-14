@@ -298,11 +298,6 @@ export const AdminOutbox = () => {
         </button>
       </div>
 
-      <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={handleRecoverPending} className="text-xs text-amber-600 border-amber-200 bg-amber-50 hover:bg-amber-100 hover:text-amber-700 dark:bg-amber-950/30 dark:border-amber-900/50">
-          <RefreshCw className="w-3 h-3 mr-2" /> Opravit skryté (odeslané) dávky zpět do konceptů
-        </Button>
-      </div>
 
       {filterType === "campaigns" ? (
         <div className="bg-card/50 rounded-2xl border border-border/40 p-4">

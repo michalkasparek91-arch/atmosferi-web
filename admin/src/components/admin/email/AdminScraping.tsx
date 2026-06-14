@@ -27,7 +27,7 @@ const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cí
 TVŮJ ÚKOL: 
 1. Zaměř se PŘESNĚ na toto město: {{targetCity}} (pokud chybí, vymysli si náhodně jiné než hlavní město).
 2. Pomocí nástroje Google Search najdi reálné firmy v tomto městě pro zadaný obor.
-3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 12-15 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Vzhledem k vyššímu limitu tokenů se neboj vypsat až 15 firem najednou!
+3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 30-40 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Vzhledem k vyššímu limitu tokenů se neboj vypsat až 40 firem najednou!
 
 Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
 Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř textových hodnot nesmíš používat neescapované uvozovky!`;
@@ -242,30 +242,45 @@ export const AdminScraping = () => {
 
   const handleRunManualSearch = async () => {
     setIsSearching(true);
-    toast.loading("🌐 AI (Gemini) prohledává web podle aktuálního nastavení...", { id: "manual-sniper" });
+    toast.loading("🌐 AI (Gemini) prohledává web ve 3 paralelních vláknech...", { id: "manual-sniper" });
     try {
-      const res = await supabase.functions.invoke("autonomous-web-sniper", {
-        body: { 
-          forceSearch: true,
-          targetKeywords: selectedKeywords.length > 0 ? selectedKeywords : undefined,
-          targetCities: selectedCities.length > 0 ? selectedCities : undefined,
-          targetCountries: selectedCountries.length > 0 ? selectedCountries : undefined
+      // Create 3 independent parallel requests for up to 3x speed
+      const promises = Array(3).fill(0).map(() => 
+        supabase.functions.invoke("autonomous-web-sniper", {
+          body: { 
+            forceSearch: true,
+            targetKeywords: selectedKeywords.length > 0 ? selectedKeywords : undefined,
+            targetCities: selectedCities.length > 0 ? selectedCities : undefined,
+            targetCountries: selectedCountries.length > 0 ? selectedCountries : undefined
+          }
+        })
+      );
+
+      const results = await Promise.all(promises);
+      
+      let totalSaved = 0;
+      let totalFound = 0;
+      let errorMsgs: string[] = [];
+
+      results.forEach(res => {
+        if (res.error) {
+          errorMsgs.push(res.error.message || "Neznámá chyba z funkce");
+        } else if (res.data) {
+          if (res.data.error) errorMsgs.push(res.data.error);
+          if (res.data.discovered_count) totalSaved += res.data.discovered_count;
+          if (res.data.total_found_by_ai) totalFound += res.data.total_found_by_ai;
+          if (res.data.debug_output) console.error("AI Output:", res.data.debug_output);
         }
       });
-      if (res.error) throw new Error(res.error.message || "Neznámá chyba");
       
-      const data = res.data;
-      if (!data || data.error) throw new Error(data?.error || "Neznámá chyba AI serveru");
-      
-      if (data.discovered_count > 0) {
-        toast.success(`🎯 Úspěch: AI objevila a uložila ${data.discovered_count} nových B2B kontaktů!`, { id: "manual-sniper" });
+      if (totalSaved > 0) {
+        toast.success(`🎯 Úspěch: AI objevila a uložila ${totalSaved} nových B2B kontaktů (ve 3 dávkách)!`, { id: "manual-sniper", duration: 8000 });
         queryClient.invalidateQueries({ queryKey: ["admin-leads-count-total"] });
       } else {
-        if (data.total_found_by_ai > 0) {
-           toast.info(`AI našla ${data.total_found_by_ai} kontaktů, ale všechny už v CRM máte (nebo chyběl e-mail). Zkuste jiná klíčová slova!`, { id: "manual-sniper", duration: 8000 });
-        } else if (data.debug_output) {
-           console.error("AI Output:", data.debug_output);
-           toast.error(`Nenalezeno nic. AI vrátila:\n${data.debug_output.substring(0, 150)}...`, { id: "manual-sniper", duration: 10000 });
+        if (totalFound > 0) {
+           toast.info(`AI našla ${totalFound} kontaktů, ale všechny už v CRM máte (nebo chyběl e-mail). Zkuste jiná klíčová slova/města!`, { id: "manual-sniper", duration: 8000 });
+        } else if (errorMsgs.length > 0) {
+           toast.error(`Nenalezeno nic. Chyby: ${errorMsgs[0]}...`, { id: "manual-sniper", duration: 10000 });
         } else {
            toast.info("AI tentokrát nenalezla žádné nové kontakty (nebo už je všechny v databázi máte).", { id: "manual-sniper" });
         }

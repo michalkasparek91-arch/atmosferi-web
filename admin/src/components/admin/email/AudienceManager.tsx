@@ -103,7 +103,6 @@ export const AudienceManager = (props: any) => {
     searchTerm, setSearchTerm,
     minEngagement, setMinEngagement,
     minPremiumScore, setMinPremiumScore,
-    sourceFilter, setSourceFilter,
     leadSheet, leadsLoading,
     leadTotalCount,
     crmPage, setCrmPage,
@@ -367,19 +366,6 @@ export const AudienceManager = (props: any) => {
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${sourceFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
-                <Database className="h-4 w-4 shrink-0" />
-                <span className="text-xs font-medium">Zdroje</span>
-              </SelectTrigger>
-              <SelectContent className="rounded-xl text-[12px]">
-                <SelectItem value="all">Všechny zdroje</SelectItem>
-                <SelectItem value="organic">Registrovaní</SelectItem>
-                <SelectItem value="scraped">Importovaní / Scrap</SelectItem>
-                <SelectItem value="ai_web_sniper">🤖 AI Web Sniper</SelectItem>
-              </SelectContent>
-            </Select>
-
             <Select value={countryFilter} onValueChange={setCountryFilter}>
               <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${countryFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
                 <Globe className="h-4 w-4 shrink-0" />
