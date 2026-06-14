@@ -55,7 +55,7 @@ export interface EmailEditorState {
   language?: string | null;
   ps_footer_enabled?: boolean;
   ps_footer_text?: string | null;
-  signature_name?: string | null;
+  signature_greeting?: string | null;
   signature_role?: string | null;
   signature_email?: string | null;
   show_job_widget?: boolean;
@@ -304,9 +304,9 @@ export function ModularLivePreview({
               <div style={{ display: "flex", alignItems: "center", marginTop: "32px", borderTop: `1px solid ${isDark ? "#444" : "rgba(22,20,15,0.12)"}`, paddingTop: "24px", color: muted, fontSize: "11px", lineHeight: "1.5" }}>
                 <img src="https://avatars.githubusercontent.com/michalkasparek91" alt="Michal Kašpárek" style={{ width: "44px", height: "44px", borderRadius: "50%", marginRight: "16px", display: "block", objectFit: "cover" }} />
                 <div>
-                  <span style={{ display: "block", marginBottom: "0px", color: ink }}>S pozdravem</span>
+                  <span style={{ display: "block", marginBottom: "0px", color: ink }}>{form.signature_greeting || "S pozdravem"}</span>
                   <strong style={{ color: ink, fontSize: "13px", fontWeight: 700 }}>Ing. arch. Michal Kašpárek</strong><br/>
-                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; web a vizualizace pro architekturu</span><br/>
+                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; {form.signature_role || "web a vizualizace pro architekturu"}</span><br/>
                   <span style={{ color: acc }}>info@atmosferi.com</span> <span style={{ color: "#A8A398" }}>&middot; atmosferi.com</span>
                 </div>
               </div>
@@ -1463,18 +1463,60 @@ export function ModularEmailEditorDialogInner({
 
 
                   
-                  {/* Atmosferi Signature removed - hardcoded in template */}
-
                   {/* Hlavní Obrázek */}
-                  <div className="py-1">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-medium text-foreground/80">Hlavní Obrázek (Hero)</Label>
-                      <Switch checked={!!form.hero_image_url} onCheckedChange={(c) => setVal("hero_image_url", c ? "https://" : "")} />
+                    <div className="py-1">
+                      <div className="flex items-center justify-between mb-2 px-1">
+                        <div>
+                          <Label className="text-xs font-bold text-foreground">Hlavička e-mailu (Hero Cover)</Label>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">Úvodní ilustrační obrázek</p>
+                        </div>
+                        <Switch 
+                          checked={!!form.hero_image_url} 
+                          onCheckedChange={(checked) => setForm({ ...form, hero_image_url: checked ? "https://atmosferi.com/demos/atmosferi-viz/img/02-ascension.webp" : null })} 
+                        />
+                      </div>
+                      {!!form.hero_image_url && (
+                        <div className="space-y-2 mt-3 animate-in fade-in slide-in-from-top-2 p-3 bg-muted/30 rounded-xl border border-border/50">
+                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">URL obrázku</Label>
+                          <Input 
+                            value={form.hero_image_url || ""} 
+                            onChange={(e) => setForm({ ...form, hero_image_url: e.target.value })} 
+                            className="h-8 text-xs bg-background/50 border-border/50"
+                            placeholder="https://..."
+                          />
+                        </div>
+                      )}
                     </div>
-                    {form.hero_image_url !== "" && form.hero_image_url !== null && (
-                      <Input value={form.hero_image_url || ""} onChange={(e) => setVal("hero_image_url", e.target.value)} onFocus={() => setActiveField("hero_image_url")} placeholder="https://url-obrazku.jpg" className="h-8 text-xs mt-2" />
-                    )}
-                  </div>
+
+                    {/* Vlastní Podpis */}
+                    <div className="py-1 mt-4">
+                      <div className="flex items-center justify-between mb-2 px-1">
+                        <div>
+                          <Label className="text-xs font-bold text-foreground">Nastavení podpisu</Label>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">Úprava textů v e-mailovém podpisu</p>
+                        </div>
+                      </div>
+                      <div className="space-y-3 mt-3 animate-in fade-in slide-in-from-top-2 p-3 bg-muted/30 rounded-xl border border-border/50">
+                        <div>
+                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Pozdrav</Label>
+                          <Input 
+                            value={form.signature_greeting ?? "S pozdravem"} 
+                            onChange={(e) => setForm({ ...form, signature_greeting: e.target.value })} 
+                            className="h-8 text-xs bg-background/50 border-border/50 mt-1"
+                            placeholder="S pozdravem"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Role / Pozice</Label>
+                          <Input 
+                            value={form.signature_role ?? "web a vizualizace pro architekturu"} 
+                            onChange={(e) => setForm({ ...form, signature_role: e.target.value })} 
+                            className="h-8 text-xs bg-background/50 border-border/50 mt-1"
+                            placeholder="web a vizualizace pro architekturu"
+                          />
+                        </div>
+                      </div>
+                    </div>
 
                   {/* Galerie 3 obrázků */}
                   <div className="py-2 border-t border-border/50 mt-2 mb-2">

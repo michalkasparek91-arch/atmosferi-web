@@ -28,6 +28,8 @@ export interface EmailPayload {
     url: string;
   }>;
   jobCity?: string;
+  signatureGreeting?: string;
+  signatureRole?: string;
   jobCategory?: string;
   jobDescription?: string;
   jobDescriptionSnippet?: string;
@@ -79,7 +81,6 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         bannerCtaText: "Zadat poptávku",
         bannerCtaUrl: "https://zrobee.cz/zadat-poptavku",
         mainArticles: payload.magazineArticles || [],
-        unsubscribeUrl,
       }));
     } else if (payload.layoutType === "sniper_recruitment" || payload.layoutType === "sniper") {
       html = render(SniperRecruitmentEmail({

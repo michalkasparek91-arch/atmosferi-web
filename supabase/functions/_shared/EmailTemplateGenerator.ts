@@ -8,6 +8,7 @@ export interface EmailTemplateData {
   icebreakerEnabled: boolean;
   icebreakerText: string;
   signatureEnabled: boolean;
+  signatureGreeting: string;
   signatureName: string;
   signatureRole: string;
   signatureEmail: string;
@@ -54,9 +55,10 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 40px; border-top: 1px solid #EAEAEA; padding-top: 20px;">
       <tr>
         <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #807C72;">
+          <span style="display:block; margin-bottom: 2px;">${data.signatureGreeting}</span>
           <strong style="color: #16140F;">${data.signatureName}</strong><br/>
-          Atmosferi° — ${data.signatureRole}<br/>
-          <a href="mailto:${data.signatureEmail}" style="color: ${data.themeColor}; text-decoration: none;">${data.signatureEmail}</a> · <a href="https://atmosferi.com" style="color: ${data.themeColor}; text-decoration: none;">atmosferi.com</a>
+          Atmosferi&deg; &mdash; ${data.signatureRole}<br/>
+          <a href="mailto:${data.signatureEmail}" style="color: ${data.themeColor}; text-decoration: none;">${data.signatureEmail}</a> &middot; <a href="https://atmosferi.com" style="color: ${data.themeColor}; text-decoration: none;">atmosferi.com</a>
         </td>
       </tr>
     </table>
