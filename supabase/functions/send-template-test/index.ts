@@ -219,7 +219,7 @@ Deno.serve(async (req) => {
 
     // Parse carousel images if enabled
     let carouselImages: string[] = [];
-    if (template.segment_filters?.carousel_enabled && template.segment_filters?.carousel_images) {
+    if (template.segment_filters?.gallery_enabled && template.segment_filters?.carousel_images) {
       const imgs = template.segment_filters.carousel_images;
       if (Array.isArray(imgs)) {
         carouselImages = imgs.filter((url: any) => typeof url === 'string' && url.startsWith("http"));
@@ -231,8 +231,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Set Hero Image URL if enabled
-    const heroImageUrl = template.segment_filters?.hero_image_enabled ? (template.hero_image_url || template.heroImageUrl) : undefined;
+    // Set Hero Image URL directly
+    const heroImageUrl = template.hero_image_url || template.heroImageUrl || undefined;
 
     const results: { email: string; success: boolean; error?: string }[] = [];
     const recipients = targetEmail ? [targetEmail] : (user.email ? [user.email] : TEST_EMAILS);
