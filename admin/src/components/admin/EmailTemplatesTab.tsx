@@ -827,9 +827,11 @@ function TemplateRow({
           <Badge variant="outline" className={`text-[8px] ${cat.color}`}>
             {cat.label}
           </Badge>
-          <Badge variant="outline" className="text-[8px] border-border text-muted-foreground">
-            {target.label}
-          </Badge>
+          {t.target_role !== "all" && (
+            <Badge variant="outline" className="text-[8px] border-border text-muted-foreground">
+              {target.label}
+            </Badge>
+          )}
           {showDelay && t.drip_delay_days !== null && (
             <Badge variant="outline" className="text-[8px] border-border text-muted-foreground">
               Den {t.drip_delay_days}
