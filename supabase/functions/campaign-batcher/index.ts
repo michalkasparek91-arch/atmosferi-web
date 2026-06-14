@@ -179,6 +179,24 @@ Deno.serve(async (req: any) => {
       );
     }
 
+    if (action === "debug_leads") {
+      const { data, error } = await supabaseClient
+        .from("marketing_leads")
+        .select("category, language, email");
+      if (error) throw error;
+      
+      const summary: Record<string, number> = {};
+      data?.forEach((d: any) => {
+        const key = `${d.category || 'NULL'}_${d.language || 'NULL'}`;
+        summary[key] = (summary[key] || 0) + 1;
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, summary, sample: data?.slice(0, 5) }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     throw new Error("Invalid action");
 
   } catch (error: any) {
