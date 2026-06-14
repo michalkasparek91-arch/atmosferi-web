@@ -147,7 +147,7 @@ Deno.serve(async (req: any) => {
         template_slug: template.slug,
         lead_id: lead.id,
         status: "draft",
-        icebreaker: lead.ai_icebreaker || "Dobrý den,\n\nZaujala mě vaše práce.",
+        icebreaker: lead.ai_icebreaker || "Zaujala mě vaše práce.",
       }));
 
       const { error: insertErr } = await supabaseClient

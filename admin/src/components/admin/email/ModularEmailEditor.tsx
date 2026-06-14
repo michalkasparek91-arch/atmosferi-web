@@ -255,13 +255,8 @@ export function ModularLivePreview({
                </div>
             )}
             
-            <div style={{ padding: "32px" }}>
-              {form.greeting && (
-                <div style={{ marginBottom: "16px", color: ink, fontSize: "14px", lineHeight: "1.6" }}>
-                  {previewReplace(form.greeting)}
-                </div>
-              )}
-              
+              <div style={{ padding: "32px" }}>
+
               <div style={{ fontSize: "14px", lineHeight: "1.6", color: ink, marginBottom: "0px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || ""), "left", isDark) }} />
               
               {!!form.segment_filters?.services_widget_enabled && (
@@ -358,13 +353,6 @@ export function ModularLivePreview({
         {form.emoji && (
           <div className="text-[40px] text-center mb-4">{form.emoji}</div>
         )}
-        {form.greeting !== "" && form.greeting !== "none" && (
-          <p className={`text-[14px] font-semibold uppercase tracking-[0.05em] text-center mb-2 transition-colors ${
-            isDark ? "text-zinc-500" : "text-zinc-500"
-          }`}>
-            {previewReplace(form.greeting || "Ahoj {{osloveni}},")}
-          </p>
-        )}
 
         {/* 3. Subject / Heading */}
         <h1 className={`text-[24px] font-bold leading-[1.2] text-center mb-4 transition-colors ${
@@ -416,7 +404,6 @@ export function ModularLivePreview({
           Čistý e-mail (Čistý text)
         </div>
         <div className="whitespace-pre-wrap leading-relaxed">
-          {previewReplace(form.greeting || "Ahoj {{osloveni}},")}\n\n
           {previewReplace(form.body || "")}\n\n
           {form.cta_text && form.cta_text !== "none" && `[ ${previewReplace(form.cta_text)} ] -> ${previewReplace(form.cta_url || "")}\n`}
           {form.secondary_text && `\n${previewReplace(form.secondary_text)}\n`}
@@ -454,25 +441,6 @@ export function ModularLivePreview({
       <div className="space-y-3 pt-2 text-left">
         {!!form.segment_filters?.show_subject_in_body && (
           <div className="text-4xl animate-bounce duration-1000">{form.emoji || "📧"}</div>
-        )}
-        {form.greeting !== "" && (
-          form.segment_filters?.graphic_greeting_enabled ? (
-            <div className="text-left">
-               <span className={`text-[16px] font-black tracking-tight transition-colors ${
-                 isDark ? "text-[#a6d16f]" : "text-[#213319]"
-               }`}>
-                 {previewReplace(form.greeting || "Dobrý den {{osloveni}},")}
-               </span>
-            </div>
-          ) : (
-            <p className={`text-[12px] font-black uppercase tracking-[0.2em] transition-colors ${
-              isDark ? "text-primary" : "text-[#213319]"
-            } ${
-              form.segment_filters?.text_align === "center" ? "text-center" : "text-left"
-            }`}>
-              {previewReplace(form.greeting || "Dobrý den {{osloveni}},")}
-            </p>
-          )
         )}
       </div>
 
@@ -878,7 +846,7 @@ export function ModularEmailEditorDialogInner({
         language: initialData.language || "cz",
         subject: initialData.subject || "",
         emoji: initialData.emoji || "📧",
-        greeting: initialData.greeting !== undefined ? initialData.greeting : "Dobrý den {{osloveni}},",
+        greeting: initialData.greeting !== undefined ? initialData.greeting : "",
         body: bodyVal,
         cta_text: initialData.cta_text || "",
         cta_url: initialData.cta_url || "",

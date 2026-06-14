@@ -828,7 +828,7 @@ export default function AdminEmails() {
         name: title || subject || "",
         subject: subject,
         emoji: "📧",
-        greeting: "Dobrý den {{osloveni}},",
+        greeting: "",
         body: body,
         cta_text: ctaText,
         cta_url: ctaUrl,
