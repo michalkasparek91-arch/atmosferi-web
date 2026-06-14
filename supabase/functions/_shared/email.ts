@@ -1,13 +1,9 @@
-import { Resend } from "npm:resend@2.0.0";
 import { render } from "react-email";
 import { StandardAlert } from "./email-templates/StandardAlert.tsx";
 import { MagazineTemplate } from "./email-templates/MagazineTemplate.tsx";
 import { SniperTemplate } from "./email-templates/SniperTemplate.tsx";
 import { SniperRecruitmentEmail } from "./email-templates/SniperRecruitmentEmail.tsx";
 import { generateAtmosferiEmailHtml, EmailTemplateData } from "./EmailTemplateGenerator.ts";
-
-// Lazily initialized to prevent Edge Function worker crashes on boot if secret is missing
-let resendClient: InstanceType<typeof Resend> | null = null;
 
 export interface EmailPayload {
   to: string;
@@ -56,13 +52,10 @@ export interface EmailPayload {
 
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; resendId?: string }> {
   try {
-    if (!resendClient) {
-      const apiKey = Deno.env.get("RESEND_API_KEY");
-      if (!apiKey) {
-         console.error('[Email] Missing RESEND_API_KEY environment variable');
-         return { success: false, error: 'Missing RESEND_API_KEY environment variable' };
-      }
-      resendClient = new Resend(apiKey);
+    const apiKey = Deno.env.get("BREVO_API_KEY") || Deno.env.get("RESEND_API_KEY");
+    if (!apiKey) {
+       console.error('[Email] Missing BREVO_API_KEY environment variable');
+       return { success: false, error: 'Missing BREVO_API_KEY environment variable' };
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://uminqrrkflgldlfeaypn.supabase.co";
@@ -157,20 +150,41 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       }));
     }
 
-    const { data, error } = await resendClient.emails.send({
-      from: payload.from || "Zrobee <noreply@zrobee.cz>",
-      to: [payload.to],
-      subject: payload.subject,
-      html,
-    });
-
-    if (error) {
-      console.error('[Email] Failed to send:', error);
-      return { success: false, error: error.message };
+    let senderName = "Atmosferi";
+    let senderEmail = "info@atmosferi.com";
+    if (payload.from) {
+      const match = payload.from.match(/(.*)<(.*)>/);
+      if (match) {
+        senderName = match[1].trim();
+        senderEmail = match[2].trim();
+      } else {
+        senderEmail = payload.from;
+      }
     }
 
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        sender: { name: senderName, email: senderEmail },
+        to: [{ email: payload.to }],
+        subject: payload.subject,
+        htmlContent: html,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Email] Failed to send via Brevo:', errorText);
+      return { success: false, error: errorText };
+    }
+
+    const data = await response.json();
     console.log('[Email] Sent successfully to:', payload.to);
-    return { success: true, resendId: data?.id };
+    return { success: true, resendId: data.messageId };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[Email] Error:', errorMessage);
