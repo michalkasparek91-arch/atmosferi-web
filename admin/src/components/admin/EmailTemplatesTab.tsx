@@ -152,9 +152,9 @@ export default function EmailTemplatesTab() {
   const { markets } = useMarkets();
 
   const testSendMutation = useMutation({
-    mutationFn: async ({ slug, overrideData, jobId }: { slug: string; overrideData?: Partial<EmailTemplate>; jobId?: string }) => {
+    mutationFn: async ({ slug, overrideData, jobId, targetEmail }: { slug: string; overrideData?: Partial<EmailTemplate>; jobId?: string; targetEmail?: string }) => {
       const { data, error } = await supabase.functions.invoke("send-template-test", {
-        body: { slug, overrideData, jobId },
+        body: { slug, overrideData, jobId, targetEmail },
       });
       if (error) throw error;
       return data;
@@ -776,7 +776,7 @@ DŮLEŽITÉ:
         onSave={(t: any) => saveMutation.mutate(t as any)}
         onDelete={() => editingTemplate && deleteMutation.mutate(editingTemplate.id)}
         isSaving={saveMutation.isPending}
-        onTestSend={(slug: string, overrideData: any, jobId: string) => testSendMutation.mutate({ slug, overrideData: overrideData as any, jobId })}
+        onTestSend={(slug: string, overrideData: any, jobId: string, targetEmail: string) => testSendMutation.mutate({ slug, overrideData: overrideData as any, jobId, targetEmail })}
         isSendingTest={testSendMutation.isPending}
         onMoveToOutbox={(t: any) => moveToOutboxMutation.mutate(t as any)}
       />

@@ -1316,10 +1316,7 @@ export function ModularEmailEditorDialogInner({
                 variant="outline" 
                 size="sm" 
                 onClick={() => {
-                  const email = window.prompt("Zadejte e-mail pro testovací zprávu:", "michal.kasparek91@gmail.com");
-                  if (email) {
-                    onTestSend(form.slug!, form, selectedJobId || null, email);
-                  }
+                  onTestSend(form.slug!, form, selectedJobId || null, "michal.kasparek91@gmail.com");
                 }} 
                 disabled={isSendingTest} 
                 className="h-8 px-2 sm:px-3 text-[11px] font-bold gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-primary/10 hover:text-primary hover:border-primary/40 cursor-pointer shrink-0"
