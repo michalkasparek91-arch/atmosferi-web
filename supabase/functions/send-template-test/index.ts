@@ -220,10 +220,15 @@ Deno.serve(async (req) => {
     // Parse carousel images if enabled
     let carouselImages: string[] = [];
     if (template.segment_filters?.carousel_enabled && template.segment_filters?.carousel_images) {
-      carouselImages = template.segment_filters.carousel_images
-        .split(",")
-        .map((url: string) => url.trim())
-        .filter((url: string) => url.startsWith("http"));
+      const imgs = template.segment_filters.carousel_images;
+      if (Array.isArray(imgs)) {
+        carouselImages = imgs.filter((url: any) => typeof url === 'string' && url.startsWith("http"));
+      } else if (typeof imgs === 'string') {
+        carouselImages = imgs
+          .split(",")
+          .map((url: string) => url.trim())
+          .filter((url: string) => url.startsWith("http"));
+      }
     }
 
     // Set Hero Image URL if enabled
