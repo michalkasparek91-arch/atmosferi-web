@@ -104,6 +104,22 @@ export const AdminOutbox = () => {
     }
   };
 
+  const handleRecoverPending = async () => {
+    try {
+      const { error } = await supabase
+        .from('email_outbox')
+        .update({ status: 'draft' })
+        .eq('status', 'pending');
+      
+      if (error) throw error;
+      toast.success("Skryté maily (ve stavu pending) byly vráceny do konceptů k revizi.");
+      queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
+    } catch (err: any) {
+      toast.error("Chyba při obnově: " + err.message);
+    }
+  };
+
   const handleSendImmediately = async (customIds?: string[]) => {
     const idsToSend = customIds || Array.from(selectedIds);
     if (idsToSend.length === 0) return;
@@ -299,6 +315,12 @@ export const AdminOutbox = () => {
           </div>
           <p className={`text-xl font-black ${filterType === "campaigns" ? "" : "text-foreground/80"}`}>—</p>
         </button>
+      </div>
+
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={handleRecoverPending} className="text-xs text-amber-600 border-amber-200 bg-amber-50 hover:bg-amber-100 hover:text-amber-700 dark:bg-amber-950/30 dark:border-amber-900/50">
+          <RefreshCw className="w-3 h-3 mr-2" /> Opravit skryté (odeslané) dávky zpět do konceptů
+        </Button>
       </div>
 
       {filterType === "campaigns" ? (
