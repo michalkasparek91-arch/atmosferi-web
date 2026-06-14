@@ -114,7 +114,6 @@ export const AudienceManager = (props: any) => {
     isImporting,
     importProgress,
     importTotalCount,
-    subcatFilter, setSubcatFilter,
     categoryFilter, setCategoryFilter,
     countryFilter, setCountryFilter,
     languageFilter, setLanguageFilter,
@@ -381,26 +380,6 @@ export const AudienceManager = (props: any) => {
               </SelectContent>
             </Select>
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors ${subcatFilter !== "all" && subcatFilter !== "" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
-                  <Tag className="h-4 w-4 shrink-0" />
-                  <span className="text-xs font-medium">Klíčové slovo</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-3 rounded-2xl shadow-xl border-border/60">
-                <div className="relative">
-                  <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary/70" />
-                  <Input 
-                    placeholder="Klíčové slovo (Obor)..." 
-                    className="pl-8 h-9 text-[12px] rounded-xl bg-background border-border/60"
-                    value={subcatFilter === "all" ? "" : subcatFilter}
-                    onChange={e => setSubcatFilter(e.target.value || "all")}
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
-
             <Select value={countryFilter} onValueChange={setCountryFilter}>
               <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${countryFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
                 <Globe className="h-4 w-4 shrink-0" />
@@ -438,9 +417,11 @@ export const AudienceManager = (props: any) => {
               </SelectTrigger>
               <SelectContent className="rounded-xl text-[12px]">
                 <SelectItem value="all">Všechny typy</SelectItem>
-                {allCategories?.map((c: any) => (
-                  <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
-                ))}
+                <SelectItem value="architekti">Architektonické studio</SelectItem>
+                <SelectItem value="architekt">Samostatný architekt</SelectItem>
+                <SelectItem value="interiery">Interiérové studio</SelectItem>
+                <SelectItem value="developeri">Realitní developer</SelectItem>
+                <SelectItem value="urbanismus">Urbanismus / Veřejný sektor</SelectItem>
               </SelectContent>
             </Select>
 

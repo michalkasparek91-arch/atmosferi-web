@@ -217,7 +217,6 @@ export default function AdminEmails() {
   const [minEngagement, setMinEngagement] = useState("0");
   const [minPremiumScore, setMinPremiumScore] = useState("0");
   const [sourceFilter, setSourceFilter] = useState("all");
-  const [subcatFilter, setSubcatFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
   const [languageFilter, setLanguageFilter] = useState("all");
@@ -632,7 +631,7 @@ export default function AdminEmails() {
   }, [suitableWorkers]);
 
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, sourceFilter, subcatFilter, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, crmPage],
+    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, sourceFilter, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, crmPage],
     queryFn: async () => {
       let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false });
       
@@ -1000,15 +999,7 @@ export default function AdminEmails() {
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
       if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
       else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
-      
-      if (subcatFilter !== "all") {
-        const subcatName = allSubcategories?.find(s => s.id === subcatFilter)?.name;
-        if (subcatName) {
-          query = query.or(`subcategory.ilike.%${subcatFilter}%,subcategory.ilike.%${subcatName}%`);
-        } else {
-          query = query.ilike("subcategory", `%${subcatFilter}%`);
-        }
-      }
+      else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
 
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
@@ -1279,7 +1270,6 @@ export default function AdminEmails() {
                     crmPage, setCrmPage,
                     totalPages,
                     handleExportCSV,
-                    subcatFilter, setSubcatFilter,
                     categoryFilter, setCategoryFilter,
                     countryFilter, setCountryFilter,
                     languageFilter, setLanguageFilter,
