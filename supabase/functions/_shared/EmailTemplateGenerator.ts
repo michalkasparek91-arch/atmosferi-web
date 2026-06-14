@@ -15,6 +15,14 @@ export interface EmailTemplateData {
   psEnabled: boolean;
   psText: string;
   themeColor: string; // e.g. #D97757
+  servicesWidgetEnabled?: boolean;
+  servicesWidgetTitle?: string;
+  service1Title?: string;
+  service2Title?: string;
+  service3Title?: string;
+  ctaButtonEnabled?: boolean;
+  ctaText?: string;
+  ctaUrl?: string;
 }
 
 export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
@@ -70,6 +78,42 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
     </p>
   ` : '';
 
+  const servicesHtml = data.servicesWidgetEnabled ? `
+    <div style="margin: 24px 0; padding: 20px 24px; border: 1px solid #EAEAEA; background-color: #F9F9F9; text-align: left;">
+      <h3 style="font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; color: #807C72; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+        ${data.servicesWidgetTitle || "CO DĚLÁME"}
+      </h3>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding-bottom: 12px; border-bottom: 1px solid #EAEAEA;">
+            <span style="font-size: 15px; font-weight: bold; color: ${data.themeColor}; margin-right: 8px;">1</span>
+            <span style="font-size: 14px; color: #16140F; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">${data.service1Title || "Webové stránky"}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 12px 0; border-bottom: 1px solid #EAEAEA;">
+            <span style="font-size: 15px; font-weight: bold; color: ${data.themeColor}; margin-right: 8px;">2</span>
+            <span style="font-size: 14px; color: #16140F; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">${data.service2Title || "3D Vizualizace"}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-top: 12px;">
+            <span style="font-size: 15px; font-weight: bold; color: ${data.themeColor}; margin-right: 8px;">3</span>
+            <span style="font-size: 14px; color: #16140F; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">${data.service3Title || "Klientské sekce"}</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+  ` : '';
+
+  const ctaHtml = data.ctaButtonEnabled && data.ctaText && data.ctaUrl ? `
+    <div style="margin-bottom: 32px;">
+      <a href="${data.ctaUrl}" style="display: inline-block; background-color: #16140F; color: #FBFAF6; padding: 12px 24px; text-decoration: none; font-size: 11px; font-weight: 600; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spacing: 0.16em; text-transform: uppercase;">
+        ${data.ctaText} &rarr;
+      </a>
+    </div>
+  ` : '';
+
   return `
 <!DOCTYPE html>
 <html lang="cs">
@@ -91,6 +135,9 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
           <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #16140F;">
             ${parsedBody}
           </div>
+          
+          ${servicesHtml}
+          ${ctaHtml}
           
           ${signatureHtml}
           ${psHtml}

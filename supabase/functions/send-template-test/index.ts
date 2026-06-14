@@ -290,6 +290,7 @@ Deno.serve(async (req) => {
         textAlign: template.segment_filters?.text_align || "left",
         secondaryTextBelowJob: replaceVars(template.segment_filters?.secondary_text_below_job || ""),
         previewTheme: template.segment_filters?.preview_theme || "light",
+        segmentFilters: template.segment_filters,
       });
 
       results.push({ email, ...result });

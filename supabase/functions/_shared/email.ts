@@ -47,7 +47,10 @@ export interface EmailPayload {
   previewTheme?: "light" | "dark";
   carouselImages?: string[];
   articlesEnabled?: boolean;
+  carouselImages?: string[];
+  articlesEnabled?: boolean;
   from?: string;
+  segmentFilters?: any;
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; resendId?: string }> {
@@ -125,7 +128,15 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         signatureEmail: "info@atmosferi.com",
         psEnabled: payload.psFooterEnabled ?? true,
         psText: payload.psFooterText || "Pokud nyní nemáte kapacitu, stačí odepsat \"Ne\" a už vás nebudeme kontaktovat.",
-        themeColor: "#D97757"
+        themeColor: "#D97757",
+        servicesWidgetEnabled: payload.segmentFilters?.services_widget_enabled ?? false,
+        servicesWidgetTitle: payload.segmentFilters?.services_widget_title,
+        service1Title: payload.segmentFilters?.service_1_title,
+        service2Title: payload.segmentFilters?.service_2_title,
+        service3Title: payload.segmentFilters?.service_3_title,
+        ctaButtonEnabled: payload.showCtaButton ?? true,
+        ctaText: payload.ctaText,
+        ctaUrl: payload.ctaUrl,
       };
       html = generateAtmosferiEmailHtml(emailData);
     } else if (payload.layoutType === "plain") {
