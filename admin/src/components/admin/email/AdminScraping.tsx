@@ -11,6 +11,7 @@ import { Loader2, Zap, Target, MapPin, Search, Plus, X, CheckSquare, Square, Glo
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TOP_CITIES_BY_COUNTRY } from "@/lib/city-regions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ScraperConfig {
   is_enabled: boolean;
@@ -121,6 +122,37 @@ export const AdminScraping = () => {
       return data || [];
     },
     refetchInterval: 15000
+  });
+
+  const { data: jobSchedule, isLoading: jobLoading } = useQuery({
+    queryKey: ["admin-sniper-job"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("automation_jobs")
+        .select("schedule")
+        .eq("job_name", "Continuous Web Discovery")
+        .maybeSingle();
+      if (error) throw error;
+      return data?.schedule || "0 * * * *";
+    }
+  });
+
+  const saveJobScheduleMutation = useMutation({
+    mutationFn: async (newSchedule: string) => {
+      const { error } = await supabase
+        .from("automation_jobs")
+        .update({ schedule: newSchedule })
+        .eq("job_name", "Continuous Web Discovery");
+      if (error) throw error;
+      return newSchedule;
+    },
+    onSuccess: (newSched) => {
+      queryClient.setQueryData(["admin-sniper-job"], newSched);
+      toast.success("Interval sběru byl aktualizován.");
+    },
+    onError: (err: any) => {
+      toast.error("Chyba při změně intervalu: " + err.message);
+    }
   });
 
   const savePromptTemplate = () => {
@@ -521,6 +553,28 @@ export const AdminScraping = () => {
                   onCheckedChange={handleToggleEnabled}
                   className="data-[state=checked]:bg-zinc-900 dark:data-[state=checked]:bg-zinc-100"
                 />
+              </div>
+
+              <div className="pt-4 border-t border-border/50 flex flex-col gap-3">
+                <Label className="font-bold text-sm">Frekvence prohledávání</Label>
+                <Select 
+                  value={jobSchedule || "0 * * * *"} 
+                  onValueChange={(val) => saveJobScheduleMutation.mutate(val)}
+                  disabled={jobLoading || saveJobScheduleMutation.isPending}
+                >
+                  <SelectTrigger className="w-full bg-background border-border/60">
+                    <SelectValue placeholder="Vyberte interval..." />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="*/15 * * * *">Každých 15 minut</SelectItem>
+                    <SelectItem value="*/30 * * * *">Každých 30 minut</SelectItem>
+                    <SelectItem value="0 * * * *">Každou hodinu</SelectItem>
+                    <SelectItem value="0 */2 * * *">Každé 2 hodiny</SelectItem>
+                    <SelectItem value="0 */6 * * *">4x denně</SelectItem>
+                    <SelectItem value="0 0 * * *">1x denně (o půlnoci)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">Tímto nastavíte, jak často se má na pozadí spustit AI sběr.</p>
               </div>
             </CardContent>
           </Card>
