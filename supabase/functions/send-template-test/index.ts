@@ -277,6 +277,8 @@ Deno.serve(async (req) => {
         psFooterText: replaceVars(template.ps_footer_text || "P.S. Pokud si nepřejete dostávat další e-maily, napište 'Ne'."),
         showJobWidget: template.show_job_widget ?? true,
         showCtaButton: template.show_cta_button ?? true,
+        signatureGreeting: template.signature_greeting,
+        signatureRole: template.signature_role,
         
         // Modular fields
         heroImageUrl,

@@ -51,6 +51,8 @@ export interface EmailPayload {
   articlesEnabled?: boolean;
   from?: string;
   segmentFilters?: any;
+  signatureGreeting?: string;
+  signatureRole?: string;
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; resendId?: string }> {
@@ -124,8 +126,9 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         icebreakerEnabled: false,
         icebreakerText: "",
         signatureEnabled: true,
+        signatureGreeting: payload.signatureGreeting || "S pozdravem",
         signatureName: "Ing. arch. Michal Kašpárek",
-        signatureRole: "Architektonické studio",
+        signatureRole: payload.signatureRole || "web a vizualizace pro architekturu",
         signatureEmail: "info@atmosferi.com",
         psEnabled: payload.psFooterEnabled ?? true,
         psText: payload.psFooterText || "Pokud nyní nemáte kapacitu, stačí odepsat \"Ne\" a už vás nebudeme kontaktovat.",
