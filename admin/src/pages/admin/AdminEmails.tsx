@@ -235,7 +235,7 @@ export default function AdminEmails() {
   const [parsedHeaders, setParsedHeaders] = useState<string[]>([]);
   const [parsedData, setParsedData] = useState<any[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
-  const [importResult, setImportResult] = useState<{ success: number; errors: number }>({ success: 0, errors: 0 });
+  const [importResult, setImportResult] = useState<{ success: number; errors: number; details: string[] }>({ success: 0, errors: 0, details: [] });
   const [autoEnrich, setAutoEnrich] = useState(false);
 
   // Queries
@@ -1138,19 +1138,25 @@ export default function AdminEmails() {
     
     let successCount = 0;
     let errorCount = 0;
+    let errorDetails: string[] = [];
     
     const batchSize = 100;
     for (let i = 0; i < parsedData.length; i += batchSize) {
       const batchRows = parsedData.slice(i, i + batchSize);
       
-      const batch = batchRows.map(row => {
+      let localErrors = 0;
+      const batch = batchRows.map((row, idx) => {
         const getVal = (field: string) => {
           const header = columnMapping[field];
           return header ? row[header] : null;
         };
         
         const email = getVal("email");
-        if (!email || !email.includes('@')) return null;
+        if (!email || !email.includes('@')) {
+          localErrors++;
+          errorDetails.push(`Řádek ${i + idx + 2}: Neplatný e-mail${email ? ` ('${email}')` : ' (prázdný)'}`);
+          return null;
+        }
 
         return {
             full_name: getVal("full_name") || null,
@@ -1181,11 +1187,14 @@ export default function AdminEmails() {
         };
       }).filter(Boolean);
 
+      errorCount += localErrors;
+
       if (batch.length > 0) {
         const { error } = await supabase.from("marketing_leads").upsert(batch, { onConflict: 'email' });
         if (error) {
           console.error("Import batch error:", error);
           errorCount += batch.length;
+          errorDetails.push(`Záznamy ${i + 2} - ${i + 2 + batch.length}: Chyba databáze (${error.message})`);
         } else {
           successCount += batch.length;
         }
@@ -1212,7 +1221,7 @@ export default function AdminEmails() {
     }
 
     setIsImporting(false);
-    setImportResult({ success: successCount, errors: errorCount });
+    setImportResult({ success: successCount, errors: errorCount, details: errorDetails });
     setImportState("done");
   };
 
@@ -1630,9 +1639,21 @@ export default function AdminEmails() {
               <p className="text-xs font-bold uppercase tracking-widest mt-1">Úspěšně importováno</p>
             </div>
             {importResult.errors > 0 && (
-              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl">
-                <p className="text-3xl font-black">{importResult.errors}</p>
-                <p className="text-xs font-bold uppercase tracking-widest mt-1">Chybných záznamů (přeskočeno)</p>
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl text-left">
+                <div className="text-center mb-2">
+                  <p className="text-3xl font-black">{importResult.errors}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mt-1">Chybných záznamů (přeskočeno)</p>
+                </div>
+                {importResult.details.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-rose-500/20 max-h-32 overflow-y-auto space-y-1">
+                    {importResult.details.slice(0, 50).map((err, i) => (
+                      <p key={i} className="text-[11px] truncate opacity-80" title={err}>• {err}</p>
+                    ))}
+                    {importResult.details.length > 50 && (
+                      <p className="text-[11px] font-bold text-center mt-2 opacity-80">...a dalších {importResult.details.length - 50} chyb</p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
