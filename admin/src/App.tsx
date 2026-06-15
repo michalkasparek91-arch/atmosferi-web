@@ -15,6 +15,7 @@ const AdminLayout = React.lazy(() => import("./layouts/AdminLayout").then(m => (
 const ProtectedAdminRoute = React.lazy(() => import("./components/ProtectedAdminRoute").then(m => ({ default: m.ProtectedAdminRoute })));
 const AdminDashboard = React.lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminEmails = React.lazy(() => import("./pages/admin/AdminEmails"));
+const AdminAnalytics = React.lazy(() => import("./pages/admin/AdminAnalytics"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const ProposalView = React.lazy(() => import("./pages/ProposalView"));
 
@@ -80,6 +81,7 @@ const App = () => {
                         <Route element={<AdminLayout />}>
                           <Route path="/" element={<AdminDashboard />} />
                           <Route path="/emaily/*" element={<AdminEmails />} />
+                          <Route path="/statistiky" element={<AdminAnalytics />} />
                         </Route>
                       </Route>
                       

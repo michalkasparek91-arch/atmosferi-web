@@ -39,6 +39,7 @@ import { usePushNotificationPrompt } from "@/hooks/use-push-notification-prompt"
 const sidebarLinks = [
   { label: "Přehled", href: "/", icon: LayoutDashboard },
   { label: "Kampaně", href: "/emaily", icon: Mail },
+  { label: "Statistiky", href: "/statistiky", icon: BarChart3 },
 ];
 
 export function AdminLayout() {
