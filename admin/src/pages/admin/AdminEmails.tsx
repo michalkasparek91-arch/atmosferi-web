@@ -1084,8 +1084,9 @@ export default function AdminEmails() {
         return;
       }
 
-      const separator = content.includes("\t") ? "\t" : content.includes(";") ? ";" : ",";
-      const rawHeaders = rows[0].split(separator).map(h => h.trim().replace(/^"|"$/g, ""));
+      const headerRow = rows[0];
+      const separator = headerRow.includes("\t") ? "\t" : headerRow.includes(";") ? ";" : ",";
+      const rawHeaders = headerRow.split(separator).map(h => h.trim().replace(/^"|"$/g, ""));
       const dataRows = rows.slice(1);
       
       const initialMapping: Record<string, string> = {};
