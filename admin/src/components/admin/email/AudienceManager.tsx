@@ -678,13 +678,33 @@ export const AudienceManager = (props: any) => {
                         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                           <MapPin className="h-3 w-3 opacity-60" /> {lead.city || "Nezadáno"} {lead.country && <span className="opacity-70 ml-0.5">({lead.country})</span>}
                         </div>
-                        {lead.subcategory && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
-                            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground border border-border/50">
-                              <Tag className="h-2.5 w-2.5 shrink-0" /> {lead.subcategory}
-                            </span>
-                          </div>
-                        )}
+                        {(() => {
+                           if (!lead.subcategory) return null;
+                           let displayCat = lead.subcategory;
+                           if (displayCat.toLowerCase().trim() === 'real estate' || displayCat.toLowerCase().trim() === 'reality') {
+                             displayCat = 'Realitní developer';
+                           }
+                           
+                           let isKnown = false;
+                           if (allSubcategories) {
+                             isKnown = allSubcategories.some((s: any) => 
+                               s.name.toLowerCase() === displayCat.toLowerCase() || 
+                               displayCat.toLowerCase().includes(s.name.toLowerCase())
+                             );
+                           }
+                           
+                           if (!isKnown && allSubcategories && allSubcategories.length > 0) {
+                             displayCat = "Nezařazeno";
+                           }
+
+                           return (
+                             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
+                               <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground border border-border/50">
+                                 <Tag className="h-2.5 w-2.5 shrink-0" /> {displayCat}
+                               </span>
+                             </div>
+                           );
+                        })()}
                         {(() => {
                            const crmStatus = getMockCrmStatus(lead);
                            if (crmStatus === 'lead') return null;

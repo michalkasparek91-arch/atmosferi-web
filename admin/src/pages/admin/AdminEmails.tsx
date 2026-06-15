@@ -1199,6 +1199,13 @@ export default function AdminEmails() {
         return c.charAt(0).toUpperCase() + c.slice(1).toLowerCase();
       };
 
+      const normalizeSubcategory = (c: string | null) => {
+        if (!c) return null;
+        const l = c.toLowerCase().trim();
+        if (["real estate", "realestate", "reality"].includes(l)) return "Realitní developer";
+        return c;
+      };
+
       let localErrors = 0;
       const batch = batchRows.map((row, idx) => {
         const getVal = (field: string) => {
@@ -1234,7 +1241,7 @@ export default function AdminEmails() {
             latitude: getVal("latitude") ? parseFloat(getVal("latitude")!) : null,
             longitude: getVal("longitude") ? parseFloat(getVal("longitude")!) : null,
             category: getVal("category") || null,
-            subcategory: getVal("subcategory") || null,
+            subcategory: normalizeSubcategory(getVal("subcategory")) || null,
             tags: getVal("tags") ? getVal("tags")!.split(";").map((t: string) => t.trim()).filter((t: string) => t) : [],
             is_pro: getVal("is_pro")?.toLowerCase() === "yes" || getVal("is_pro") === "true",
             engagement_score: getVal("engagement_score") ? parseInt(getVal("engagement_score")!) : 0,
