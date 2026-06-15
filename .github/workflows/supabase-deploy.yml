@@ -52,3 +52,6 @@ jobs:
 
       - name: Deploy admin-send-broadcast-email
         run: supabase functions deploy admin-send-broadcast-email --project-ref $PROJECT_ID
+
+      - name: Deploy enrich-imported-leads
+        run: supabase functions deploy enrich-imported-leads --project-ref $PROJECT_ID
