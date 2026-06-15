@@ -116,10 +116,10 @@ Vrať POUZE validní JSON objekt.`;
       }
     };
 
-    // Process asynchronously without waiting
-    processEnrichment().catch(console.error);
+    // Process sequentially to respect Gemini API rate limits
+    await processEnrichment().catch(console.error);
 
-    return new Response(JSON.stringify({ ok: true, message: `Enrichment started for ${batch.length} leads` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, message: `Enrichment finished for ${batch.length} leads` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
     return new Response(JSON.stringify({ ok: false, error: String(err.message || err) }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 });
