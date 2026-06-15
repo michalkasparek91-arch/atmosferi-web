@@ -1114,9 +1114,28 @@ export default function AdminEmails() {
         return;
       }
 
+      const parseCSVLine = (text: string, sep: string) => {
+        const result = [];
+        let col = '';
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === sep && !inQuotes) {
+            result.push(col);
+            col = '';
+          } else {
+            col += char;
+          }
+        }
+        result.push(col);
+        return result.map(p => p.trim().replace(/^"|"$/g, ""));
+      };
+
       const headerRow = rows[0];
       const separator = headerRow.includes("\t") ? "\t" : headerRow.includes(";") ? ";" : ",";
-      const rawHeaders = headerRow.split(separator).map(h => h.trim().replace(/^"|"$/g, ""));
+      const rawHeaders = parseCSVLine(headerRow, separator);
       const dataRows = rows.slice(1);
       
       const initialMapping: Record<string, string> = {};
@@ -1141,12 +1160,7 @@ export default function AdminEmails() {
       setColumnMapping(initialMapping);
       
       const parsed = dataRows.map(row => {
-        let parts = [];
-        if (separator === "\t" || separator === ";") {
-          parts = row.split(separator).map(p => p.trim().replace(/^"|"$/g, ""));
-        } else {
-          parts = row.match(/(".*?"|[^,]+)/g)?.map(p => p.trim().replace(/^"|"$/g, "")) || [];
-        }
+        const parts = parseCSVLine(row, separator);
         const rowData: Record<string, string> = {};
         rawHeaders.forEach((h, index) => {
           if (parts[index] !== undefined) rowData[h] = parts[index];
