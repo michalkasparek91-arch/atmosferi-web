@@ -230,6 +230,14 @@ export default function AdminEmails() {
   const [importTotalCount, setImportTotalCount] = useState(0);
   const importFileRef = useRef<HTMLInputElement>(null);
 
+  // Column Mapping State
+  const [importState, setImportState] = useState<"idle" | "mapping" | "importing" | "done">("idle");
+  const [parsedHeaders, setParsedHeaders] = useState<string[]>([]);
+  const [parsedData, setParsedData] = useState<any[]>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+  const [importResult, setImportResult] = useState<{ success: number; errors: number }>({ success: 0, errors: 0 });
+  const [autoEnrich, setAutoEnrich] = useState(false);
+
   // Queries
   const { data: allSubcategories } = useQuery({
     queryKey: ["all-service-subcategories-with-cats"],
@@ -1036,10 +1044,34 @@ export default function AdminEmails() {
     }
   };
 
+  const EXPECTED_CSV_FIELDS = [
+    { key: "email", label: "E-mail (Povinné)" },
+    { key: "full_name", label: "Jméno a příjmení" },
+    { key: "company_name", label: "Název firmy" },
+    { key: "phone", label: "Telefon" },
+    { key: "city", label: "Město" },
+    { key: "country", label: "Země" },
+    { key: "language", label: "Jazyk" },
+    { key: "website", label: "Web" },
+    { key: "decision_maker_name", label: "Rozhodovatel" },
+    { key: "premium_score", label: "Skóre kvality (0-100)" },
+    { key: "engagement_score", label: "Skóre aktivity" },
+    { key: "full_address", label: "Celá adresa" },
+    { key: "postal_code", label: "PSČ" },
+    { key: "street_name", label: "Ulice" },
+    { key: "street_number", label: "Č.p." },
+    { key: "category", label: "Kategorie (ID)" },
+    { key: "subcategory", label: "Podkategorie (ID)" },
+    { key: "tags", label: "Štítky (;)" },
+    { key: "is_pro", label: "Je PRO? (yes/no)" },
+    { key: "description", label: "Popis" },
+    { key: "ai_icebreaker", label: "AI Icebreaker" },
+    { key: "user_type", label: "Typ uživatele" },
+    { key: "contact_source", label: "Zdroj" },
+  ];
+
   const handleFileUpload = async (file: File) => {
     if (!file) return;
-    setIsImporting(true);
-    setImportProgress(0);
     
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -1048,106 +1080,139 @@ export default function AdminEmails() {
 
       const rows = content.split("\n").filter(l => l.trim());
       if (rows.length <= 1) {
-        setIsImporting(false);
         toast({ title: "CSV soubor je prázdný.", variant: "destructive" });
         return;
       }
 
       const separator = content.includes("\t") ? "\t" : content.includes(";") ? ";" : ",";
-      const headers = rows[0].split(separator).map(h => {
-        let cleaned = h.trim().toLowerCase().replace(/^"|"$/g, "");
-        if (cleaned === "e-mail" || cleaned === "emailová adresa" || cleaned === "e-mailová adresa") return "email";
-        if (cleaned === "jméno" || cleaned === "name") return "full_name";
-        if (cleaned === "firma" || cleaned === "společnost" || cleaned === "název firmy") return "company_name";
-        if (cleaned === "město" || cleaned === "obec") return "city";
-        if (cleaned === "stát" || cleaned === "země") return "country";
-        if (cleaned === "jazyk") return "language";
-        if (cleaned === "telefon" || cleaned === "tel") return "phone";
-        if (cleaned === "web" || cleaned === "stránky") return "website";
-        if (cleaned === "majitel" || cleaned === "rozhodovatel" || cleaned === "ředitel") return "decision_maker_name";
-        if (cleaned === "premium_score" || cleaned === "skóre kvality") return "premium_score";
-        return cleaned;
-      });
-      
+      const rawHeaders = rows[0].split(separator).map(h => h.trim().replace(/^"|"$/g, ""));
       const dataRows = rows.slice(1);
-      setImportTotalCount(dataRows.length);
       
-      let successCount = 0;
-      let errorCount = 0;
+      const initialMapping: Record<string, string> = {};
+      const expectedKeys = EXPECTED_CSV_FIELDS.map(f => f.key);
       
-      const batchSize = 100;
-      for (let i = 0; i < dataRows.length; i += batchSize) {
-        const batchRows = dataRows.slice(i, i + batchSize);
-        const batch = batchRows.map(row => {
-          let parts = [];
-          if (separator === "\t" || separator === ";") {
-            parts = row.split(separator).map(p => p.trim().replace(/^"|"$/g, ""));
-          } else {
-            parts = row.match(/(".*?"|[^,]+)/g)?.map(p => p.trim().replace(/^"|"$/g, "")) || [];
-          }
-
-          const rowData: any = {};
-          headers.forEach((h, index) => {
-            if (parts[index] !== undefined) rowData[h] = parts[index];
-          });
-          
-          if (!rowData.email || !rowData.email.includes('@')) return null;
-
-          return {
-            full_name: rowData.full_name || null,
-            company_name: rowData.company_name || rowData.business_name || rowData.company || null,
-            avatar_url: rowData.avatar_url || null,
-            email: rowData.email,
-            phone: rowData.phone || null,
-            city: rowData.city || null,
-            country: rowData.country || null,
-            language: rowData.language || null,
-            website: rowData.website || null,
-            full_address: rowData.full_address || null,
-            postal_code: rowData.postal_code || null,
-            street_name: rowData.street_name || null,
-            street_number: rowData.street_number || null,
-            latitude: rowData.latitude ? parseFloat(rowData.latitude) : null,
-            longitude: rowData.longitude ? parseFloat(rowData.longitude) : null,
-            category: rowData.category || null,
-            subcategory: rowData.subcategory || null,
-            tags: rowData.tags ? rowData.tags.split(";").map((t: string) => t.trim()).filter((t: string) => t) : [],
-            is_pro: rowData.is_pro?.toLowerCase() === "yes" || rowData.is_pro === "true",
-            engagement_score: rowData.engagement_score ? parseInt(rowData.engagement_score) : 0,
-            premium_score: rowData.premium_score ? parseInt(rowData.premium_score) : null,
-            decision_maker_name: rowData.decision_maker_name || null,
-            description: rowData.description || null,
-            ai_icebreaker: rowData.ai_icebreaker || null,
-            user_type: rowData.user_type || 'worker',
-            source: rowData.contact_source || 'scraped',
-            referral_code: rowData.referral_code || null,
-            email_notifications: rowData.email_enabled?.toLowerCase() === "true" || rowData.email_enabled === "1",
-            push_notifications: rowData.push_enabled?.toLowerCase() === "true" || rowData.push_enabled === "1",
-            marketing_notifications: rowData.marketing_consent?.toLowerCase() === "true" || rowData.marketing_consent === "1",
-            last_activity: rowData.last_activity || null,
-          };
-        }).filter(Boolean);
-
-        if (batch.length > 0) {
-          const { error } = await supabase.from("marketing_leads").upsert(batch, { onConflict: 'email' });
-          if (error) {
-            console.error("Import batch error:", error);
-            errorCount += batch.length;
-          } else {
-            successCount += batch.length;
-          }
-        }
-        
-        setImportProgress(Math.min(100, Math.round(((i + batchSize) / dataRows.length) * 100)));
-      }
-
-      setIsImporting(false);
-      toast({ 
-        title: "Import dokončen",
-        description: `Úspěšně: ${successCount}, Chyby: ${errorCount}` 
+      rawHeaders.forEach(h => {
+        let cleaned = h.toLowerCase();
+        if (cleaned === "e-mail" || cleaned === "emailová adresa" || cleaned === "e-mailová adresa") initialMapping["email"] = h;
+        else if (cleaned === "jméno" || cleaned === "name") initialMapping["full_name"] = h;
+        else if (cleaned === "firma" || cleaned === "společnost" || cleaned === "název firmy") initialMapping["company_name"] = h;
+        else if (cleaned === "město" || cleaned === "obec") initialMapping["city"] = h;
+        else if (cleaned === "stát" || cleaned === "země") initialMapping["country"] = h;
+        else if (cleaned === "jazyk") initialMapping["language"] = h;
+        else if (cleaned === "telefon" || cleaned === "tel") initialMapping["phone"] = h;
+        else if (cleaned === "web" || cleaned === "stránky") initialMapping["website"] = h;
+        else if (cleaned === "majitel" || cleaned === "rozhodovatel" || cleaned === "ředitel") initialMapping["decision_maker_name"] = h;
+        else if (cleaned === "premium_score" || cleaned === "skóre kvality") initialMapping["premium_score"] = h;
+        else if (expectedKeys.includes(cleaned)) initialMapping[cleaned] = h;
       });
+
+      setParsedHeaders(rawHeaders);
+      setColumnMapping(initialMapping);
+      
+      const parsed = dataRows.map(row => {
+        let parts = [];
+        if (separator === "\t" || separator === ";") {
+          parts = row.split(separator).map(p => p.trim().replace(/^"|"$/g, ""));
+        } else {
+          parts = row.match(/(".*?"|[^,]+)/g)?.map(p => p.trim().replace(/^"|"$/g, "")) || [];
+        }
+        const rowData: Record<string, string> = {};
+        rawHeaders.forEach((h, index) => {
+          if (parts[index] !== undefined) rowData[h] = parts[index];
+        });
+        return rowData;
+      });
+      
+      setParsedData(parsed);
+      setImportState("mapping");
     };
     reader.readAsText(file);
+  };
+
+  const confirmAndImport = async () => {
+    setImportState("importing");
+    setIsImporting(true);
+    setImportProgress(0);
+    setImportTotalCount(parsedData.length);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    const batchSize = 100;
+    for (let i = 0; i < parsedData.length; i += batchSize) {
+      const batchRows = parsedData.slice(i, i + batchSize);
+      
+      const batch = batchRows.map(row => {
+        const getVal = (field: string) => {
+          const header = columnMapping[field];
+          return header ? row[header] : null;
+        };
+        
+        const email = getVal("email");
+        if (!email || !email.includes('@')) return null;
+
+        return {
+            full_name: getVal("full_name") || null,
+            company_name: getVal("company_name") || null,
+            email: email,
+            phone: getVal("phone") || null,
+            city: getVal("city") || null,
+            country: getVal("country") || null,
+            language: getVal("language") || null,
+            website: getVal("website") || null,
+            full_address: getVal("full_address") || null,
+            postal_code: getVal("postal_code") || null,
+            street_name: getVal("street_name") || null,
+            street_number: getVal("street_number") || null,
+            latitude: getVal("latitude") ? parseFloat(getVal("latitude")!) : null,
+            longitude: getVal("longitude") ? parseFloat(getVal("longitude")!) : null,
+            category: getVal("category") || null,
+            subcategory: getVal("subcategory") || null,
+            tags: getVal("tags") ? getVal("tags")!.split(";").map((t: string) => t.trim()).filter((t: string) => t) : [],
+            is_pro: getVal("is_pro")?.toLowerCase() === "yes" || getVal("is_pro") === "true",
+            engagement_score: getVal("engagement_score") ? parseInt(getVal("engagement_score")!) : 0,
+            premium_score: getVal("premium_score") ? parseInt(getVal("premium_score")!) : null,
+            decision_maker_name: getVal("decision_maker_name") || null,
+            description: getVal("description") || null,
+            ai_icebreaker: getVal("ai_icebreaker") || null,
+            user_type: getVal("user_type") || 'worker',
+            source: getVal("contact_source") || 'scraped',
+        };
+      }).filter(Boolean);
+
+      if (batch.length > 0) {
+        const { error } = await supabase.from("marketing_leads").upsert(batch, { onConflict: 'email' });
+        if (error) {
+          console.error("Import batch error:", error);
+          errorCount += batch.length;
+        } else {
+          successCount += batch.length;
+        }
+      }
+      
+      setImportProgress(Math.min(100, Math.round(((i + batchSize) / parsedData.length) * 100)));
+    }
+
+    if (autoEnrich) {
+      const successfullyImportedEmails = parsedData
+        .map(row => {
+          const emailHeader = columnMapping["email"];
+          return emailHeader ? row[emailHeader] : null;
+        })
+        .filter(e => e && e.includes('@'));
+
+      if (successfullyImportedEmails.length > 0) {
+        for (let k = 0; k < successfullyImportedEmails.length; k += 20) {
+          supabase.functions.invoke("enrich-imported-leads", {
+            body: { emails: successfullyImportedEmails.slice(k, k + 20) }
+          }).catch(console.error);
+        }
+      }
+    }
+
+    setIsImporting(false);
+    setImportResult({ success: successCount, errors: errorCount });
+    setImportState("done");
   };
 
   const handleInsertVariable = (code: string) => {
@@ -1466,6 +1531,116 @@ export default function AdminEmails() {
             <Button className="h-9 rounded-xl px-6 text-xs font-bold gap-1.5 shadow-sm" onClick={() => saveCampaignMutation.mutate()} disabled={saveCampaignMutation.isPending}>
               {saveCampaignMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Potvrdit a uložit
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={importState === "mapping"} onOpenChange={(open) => { if (!open) setImportState("idle"); }}>
+        <DialogContent className="max-w-2xl bg-background border border-border p-6 rounded-3xl shadow-xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40 shrink-0">
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" /> Mapování sloupců importu
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full hover:bg-emerald-500/10 hover:text-emerald-500 transition-colors"
+              onClick={() => setImportState("idle")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogHeader>
+          <div className="py-4 overflow-y-auto flex-1 px-1">
+            <p className="text-sm text-muted-foreground mb-4">
+              Zkontrolujte přiřazení sloupců z vašeho CSV souboru k našim polím v databázi. 
+              Položky s prázdným výběrem nebudou importovány.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              {EXPECTED_CSV_FIELDS.map(field => (
+                <div key={field.key} className="space-y-1">
+                  <Label className="text-xs font-bold">{field.label}</Label>
+                  <Select 
+                    value={columnMapping[field.key] || "none"} 
+                    onValueChange={(val) => setColumnMapping(prev => ({ ...prev, [field.key]: val === "none" ? "" : val }))}
+                  >
+                    <SelectTrigger className="h-9 text-xs rounded-xl">
+                      <SelectValue placeholder="Ignorovat (neimportovat)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">-- Ignorovat (neimportovat) --</SelectItem>
+                      {parsedHeaders.map(h => (
+                        <SelectItem key={h} value={h}>{h}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex items-center justify-between p-4 bg-muted/40 border border-border/50 rounded-2xl">
+              <div className="space-y-1">
+                <Label className="text-sm font-bold flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-emerald-500" />
+                  Automaticky obohatit chybějící data pomocí AI
+                </Label>
+                <p className="text-[11px] text-muted-foreground w-11/12">
+                  Pokud je zaškrtnuto, AI (Gemini) na pozadí navštíví importované weby a pokusí se z nich vyčíst chybějící údaje jako město, telefon, popis firmy a dokonce vygeneruje oslovení (icebreaker) pro e-mailing. Obohacení proběhne na pozadí do několika minut.
+                </p>
+              </div>
+              <Switch 
+                checked={autoEnrich} 
+                onCheckedChange={setAutoEnrich}
+                className="data-[state=checked]:bg-emerald-500"
+              />
+            </div>
+          </div>
+          <div className="pt-4 border-t border-border/40 flex justify-end gap-3 shrink-0">
+            <Button variant="outline" className="rounded-xl h-9 text-xs" onClick={() => setImportState("idle")}>
+              Zrušit
+            </Button>
+            <Button className="rounded-xl h-9 text-xs font-bold" onClick={confirmAndImport} disabled={!columnMapping["email"]}>
+              Potvrdit a importovat ({parsedData.length} kontaktů)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={importState === "done"} onOpenChange={(open) => { if (!open) setImportState("idle"); }}>
+        <DialogContent className="max-w-md bg-background border border-border p-6 rounded-3xl shadow-xl">
+          <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-emerald-500" /> Import dokončen
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={() => {
+                setImportState("idle");
+                queryClient.invalidateQueries({ queryKey: ["admin-lead-sheet"] });
+              }}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogHeader>
+          <div className="py-6 space-y-4 text-center">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 p-4 rounded-2xl">
+              <p className="text-3xl font-black">{importResult.success}</p>
+              <p className="text-xs font-bold uppercase tracking-widest mt-1">Úspěšně importováno</p>
+            </div>
+            {importResult.errors > 0 && (
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl">
+                <p className="text-3xl font-black">{importResult.errors}</p>
+                <p className="text-xs font-bold uppercase tracking-widest mt-1">Chybných záznamů (přeskočeno)</p>
+              </div>
+            )}
+          </div>
+          <div className="pt-2 border-t border-border/40 flex justify-end">
+            <Button className="rounded-xl h-9 text-xs font-bold" onClick={() => {
+              setImportState("idle");
+              queryClient.invalidateQueries({ queryKey: ["admin-lead-sheet"] });
+            }}>
+              Zavřít
             </Button>
           </div>
         </DialogContent>
