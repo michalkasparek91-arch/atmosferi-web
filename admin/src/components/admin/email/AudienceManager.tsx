@@ -1129,11 +1129,6 @@ export const AudienceManager = (props: any) => {
                     )}
 
                     {/* AI Icebreaker */}
-                      <p className="text-xs text-foreground/80 leading-relaxed font-medium">
-                        {selectedContactForSheet.description || selectedContactForSheet.company_description}
-                      </p>
-                    )}
-
                     <div className="pt-2">
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -1153,6 +1148,7 @@ export const AudienceManager = (props: any) => {
                           onBlur={(e) => handleSaveIcebreaker(e.target.value)}
                           placeholder="Zde napište nebo nechte AI vygenerovat úvodní oslovení na míru..."
                         />
+                      )}
                     </div>
                   </div>
                 </div>
