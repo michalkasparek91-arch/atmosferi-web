@@ -29,19 +29,27 @@ Deno.serve(async (req) => {
 
     const phone = body.phone ? ("+" + body.phone.replace(/\s+/g, "")) : "";
 
+    const emails = body.email.split(/[,;]+/).map((e: string) => e.trim().toLowerCase()).filter((e: string) => e.includes('@'));
+    if (emails.length === 0) {
+      throw new Error("No valid email found");
+    }
+
     const { data: existing, error: existErr } = await supabase
       .from("marketing_leads")
-      .select("id")
-      .eq("email", body.email.toLowerCase().trim())
-      .maybeSingle();
+      .select("email")
+      .in("email", emails);
     if (existErr) console.warn("Exist check error", existErr);
-    if (existing) {
+    
+    const existingEmails = new Set(existing?.map((e: any) => e.email) || []);
+    const newEmails = emails.filter((e: string) => !existingEmails.has(e));
+
+    if (newEmails.length === 0) {
       await logJobSuccess(supabase, jobName, { uploaded: false, reason: "duplicate" });
       return new Response(JSON.stringify({ ok: true, message: "Contact already exists" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { error: insertErr } = await supabase.from("marketing_leads").insert({
-      email: body.email.toLowerCase().trim(),
+    const inserts = newEmails.map((email: string) => ({
+      email: email,
       company_name: body.company_name,
       full_name: body.full_name || body.company_name,
       phone,
@@ -50,7 +58,9 @@ Deno.serve(async (req) => {
       full_address: body.full_address || "",
       description: body.description || "",
       source: "manual_upload",
-    });
+    }));
+
+    const { error: insertErr } = await supabase.from("marketing_leads").insert(inserts);
 
     if (insertErr) throw insertErr;
 

@@ -1208,28 +1208,30 @@ export default function AdminEmails() {
       };
 
       let localErrors = 0;
-      const batch = batchRows.map((row, idx) => {
+      const batch = batchRows.flatMap((row, idx) => {
         const getVal = (field: string) => {
           const header = columnMapping[field];
           return header ? row[header] : null;
         };
         
-        let email = getVal("email");
+        const rawEmail = getVal("email");
         const website = getVal("website");
         
-        if (!email || !email.includes('@')) {
+        const emails = rawEmail ? rawEmail.split(/[,;]+/).map((e: string) => e.trim()).filter((e: string) => e.includes('@')) : [];
+        
+        if (emails.length === 0) {
           if (!website) {
             localErrors++;
             errorDetails.push(`Řádek ${i + idx + 2}: Neplatný/chybějící e-mail a chybí web pro dohledání`);
-            return null;
+            return [];
           }
-          email = `missing-${Math.random().toString(36).substring(2, 12)}@placeholder.zrobee.cz`;
+          emails.push(`missing-${Math.random().toString(36).substring(2, 12)}@placeholder.zrobee.cz`);
         }
 
-        return {
+        return emails.map(email => ({
             full_name: getVal("full_name") || null,
             company_name: getVal("company_name") || null,
-            email: email,
+            email: email.toLowerCase(),
             phone: getVal("phone") || null,
             city: getVal("city") || null,
             country: normalizeCountry(getVal("country")) || null,
@@ -1252,8 +1254,8 @@ export default function AdminEmails() {
             ai_icebreaker: getVal("ai_icebreaker") || null,
             user_type: getVal("user_type") || 'worker',
             source: getVal("contact_source") || 'scraped',
-        };
-      }).filter(Boolean);
+        }));
+      });
 
       errorCount += localErrors;
 
@@ -1273,11 +1275,11 @@ export default function AdminEmails() {
 
     if (autoEnrich) {
       const successfullyImportedEmails = parsedData
-        .map(row => {
+        .flatMap(row => {
           const emailHeader = columnMapping["email"];
-          return emailHeader ? row[emailHeader] : null;
-        })
-        .filter(e => e && e.includes('@'));
+          const raw = emailHeader ? row[emailHeader] : null;
+          return raw ? String(raw).split(/[,;]+/).map(e => e.trim().toLowerCase()).filter(e => e.includes('@')) : [];
+        });
 
       if (successfullyImportedEmails.length > 0) {
         for (let k = 0; k < successfullyImportedEmails.length; k += 20) {
