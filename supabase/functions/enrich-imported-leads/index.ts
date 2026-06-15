@@ -52,9 +52,10 @@ Deno.serve(async (req) => {
         if (lead.city && lead.category && lead.ai_icebreaker) continue;
 
         const PROMPT = `Jsi B2B akviziční agent. 
-Máš k dispozici firmu: ${lead.company_name || lead.full_name} a její web: ${lead.website}.
+Máš k dispozici firmu: ${lead.company_name || lead.full_name} a její web: ${lead.website}. Původní e-mail z CSV je: ${lead.email}.
 ÚKOL:
 Najdi na webu pomocí Google Search nebo přímým procházením základní údaje o firmě a doplň je do JSONu.
+Původní e-mail (${lead.email}) zkontroluj. Pokud na webu najdeš lepší nebo relevantnější e-mail pro B2B komunikaci, vrať ten nový. Pokud je původní e-mail v pořádku a na webu jsi nenašel lepší, vrať ten původní.
 Povinné klíče:
 - company_name: Oficiální název firmy
 - city: Město působnosti (např. Praha, Brno)
@@ -65,7 +66,7 @@ Povinné klíče:
 - category: Hlavní kategorie. MUSÍŠ vybrat přesně jednu z tohoto seznamu: architekti, interiery, developeri, urbanismus, architekt, remeslnici. Nevymýšlej jiné.
 - subcategory: Specifická podkategorie (např. truhlářství, bytový architekt, atd.)
 - ai_icebreaker: Osobní otevírací odstavec do cold e-mailu chválící konkrétní část jejich práce nebo portfolio na webu.
-- email: E-mailová adresa firmy (pouze pokud ji na webu najdeš, jinak nech prázdné)
+- email: Výsledná e-mailová adresa (nová nalezená, nebo původní pokud je dobrá)
 Vrať POUZE validní JSON objekt.`;
 
         try {
@@ -97,8 +98,15 @@ Vrať POUZE validní JSON objekt.`;
                 premium_score: lead.premium_score || extracted.premium_score || 50,
               };
 
-              if (lead.email.includes("@placeholder.zrobee.cz") && extracted.email && extracted.email.includes("@")) {
-                updatePayload.email = extracted.email;
+              if (extracted.email && extracted.email.includes("@") && extracted.email.toLowerCase() !== lead.email.toLowerCase()) {
+                updatePayload.email = extracted.email.toLowerCase();
+                
+                if (!lead.email.includes("@placeholder.zrobee.cz")) {
+                  const currentSecondary = lead.secondary_emails || [];
+                  if (!currentSecondary.includes(lead.email)) {
+                    updatePayload.secondary_emails = [...currentSecondary, lead.email];
+                  }
+                }
               }
 
               const { error: updateError } = await supabase.from("marketing_leads").update(updatePayload).eq("id", lead.id);
