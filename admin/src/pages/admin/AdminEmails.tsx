@@ -1136,12 +1136,27 @@ export default function AdminEmails() {
       const headerRow = rows[0];
       const separator = headerRow.includes("\t") ? "\t" : headerRow.includes(";") ? ";" : ",";
       const rawHeaders = parseCSVLine(headerRow, separator);
+      
+      const safeHeaders: string[] = [];
+      const seen = new Set<string>();
+      rawHeaders.forEach((h, i) => {
+        let safe = h.trim() || `Sloupec ${i + 1}`;
+        let original = safe;
+        let counter = 1;
+        while (seen.has(safe)) {
+          safe = `${original} (${counter})`;
+          counter++;
+        }
+        seen.add(safe);
+        safeHeaders.push(safe);
+      });
+      
       const dataRows = rows.slice(1);
       
       const initialMapping: Record<string, string> = {};
       const expectedKeys = EXPECTED_CSV_FIELDS.map(f => f.key);
       
-      rawHeaders.forEach(h => {
+      safeHeaders.forEach(h => {
         let cleaned = h.toLowerCase();
         if (cleaned === "e-mail" || cleaned === "emailová adresa" || cleaned === "e-mailová adresa") initialMapping["email"] = h;
         else if (cleaned === "jméno" || cleaned === "name") initialMapping["full_name"] = h;
@@ -1156,13 +1171,13 @@ export default function AdminEmails() {
         else if (expectedKeys.includes(cleaned)) initialMapping[cleaned] = h;
       });
 
-      setParsedHeaders(rawHeaders);
+      setParsedHeaders(safeHeaders);
       setColumnMapping(initialMapping);
       
       const parsed = dataRows.map(row => {
         const parts = parseCSVLine(row, separator);
         const rowData: Record<string, string> = {};
-        rawHeaders.forEach((h, index) => {
+        safeHeaders.forEach((h, index) => {
           if (parts[index] !== undefined) rowData[h] = parts[index];
         });
         return rowData;
