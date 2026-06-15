@@ -118,6 +118,7 @@ export const AudienceManager = (props: any) => {
     languageFilter, setLanguageFilter,
     cityFilter, setCityFilter,
     radiusFilter, setRadiusFilter,
+    sourceFilter, setSourceFilter,
     allSubcategories,
     allCategories,
   } = props;
@@ -432,6 +433,19 @@ export const AudienceManager = (props: any) => {
                 <SelectItem value="de">Němčina (de)</SelectItem>
                 <SelectItem value="en">Angličtina (en)</SelectItem>
                 <SelectItem value="pl">Polština (pl)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${sourceFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Database className="h-4 w-4 shrink-0" />
+                <span className="text-xs font-medium">Zdroj</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="all">Všechny zdroje</SelectItem>
+                <SelectItem value="organic">Uživatelé webu (Organic)</SelectItem>
+                <SelectItem value="scraped">Importováno z CSV</SelectItem>
+                <SelectItem value="ai_web_sniper">Nalezeno přes AI Sniper</SelectItem>
               </SelectContent>
             </Select>
 

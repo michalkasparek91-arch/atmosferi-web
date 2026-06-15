@@ -221,6 +221,7 @@ export default function AdminEmails() {
   const [languageFilter, setLanguageFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
   const [radiusFilter, setRadiusFilter] = useState("50");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [crmPage, setCrmPage] = useState(0);
   const pageSize = 200;
   
@@ -648,13 +649,17 @@ export default function AdminEmails() {
   }, [suitableWorkers]);
 
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, crmPage],
+    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, crmPage],
     queryFn: async () => {
       let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false });
       
       if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
       if (minPremiumScore && parseInt(minPremiumScore) > 0) query = query.gte("premium_score", parseInt(minPremiumScore));
+
+      if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
+      else if (sourceFilter === "scraped") query = query.eq("contact_source", "scraped");
+      else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
 
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
@@ -1348,6 +1353,7 @@ export default function AdminEmails() {
                     languageFilter, setLanguageFilter,
                     cityFilter, setCityFilter,
                     radiusFilter, setRadiusFilter,
+                    sourceFilter, setSourceFilter,
                     allSubcategories,
                     importFileRef,
                     handleFileUpload,
