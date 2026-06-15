@@ -222,6 +222,7 @@ export default function AdminEmails() {
   const [cityFilter, setCityFilter] = useState("all");
   const [radiusFilter, setRadiusFilter] = useState("50");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [enrichFilter, setEnrichFilter] = useState("all");
   const [crmPage, setCrmPage] = useState(0);
   const pageSize = 200;
   
@@ -649,7 +650,7 @@ export default function AdminEmails() {
   }, [suitableWorkers]);
 
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, crmPage],
+    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, enrichFilter, crmPage],
     queryFn: async () => {
       let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false });
       
@@ -660,6 +661,9 @@ export default function AdminEmails() {
       if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
       else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
       else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
+
+      if (enrichFilter === "unenriched") query = query.is("company_name", null);
+      else if (enrichFilter === "enriched") query = query.not("company_name", "is", null);
 
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
@@ -708,8 +712,11 @@ export default function AdminEmails() {
     else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
     else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
     
-    if (subcatFilter !== "all") {
-      query = query.ilike("subcategory", `%${subcatFilter}%`);
+    if (enrichFilter === "unenriched") query = query.is("company_name", null);
+    else if (enrichFilter === "enriched") query = query.not("company_name", "is", null);
+
+    if (categoryFilter !== "all") {
+      query = query.eq("category", categoryFilter);
     }
 
     if (countryFilter !== "all") {
@@ -1354,6 +1361,7 @@ export default function AdminEmails() {
                     cityFilter, setCityFilter,
                     radiusFilter, setRadiusFilter,
                     sourceFilter, setSourceFilter,
+                    enrichFilter, setEnrichFilter,
                     allSubcategories,
                     importFileRef,
                     handleFileUpload,

@@ -119,6 +119,7 @@ export const AudienceManager = (props: any) => {
     cityFilter, setCityFilter,
     radiusFilter, setRadiusFilter,
     sourceFilter, setSourceFilter,
+    enrichFilter, setEnrichFilter,
     allSubcategories,
     allCategories,
   } = props;
@@ -446,6 +447,18 @@ export const AudienceManager = (props: any) => {
                 <SelectItem value="organic">Uživatelé webu (Organic)</SelectItem>
                 <SelectItem value="scraped">Importováno z CSV</SelectItem>
                 <SelectItem value="ai_web_sniper">Nalezeno přes AI Sniper</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={enrichFilter} onValueChange={setEnrichFilter}>
+              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${enrichFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Sparkles className="h-4 w-4 shrink-0" />
+                <span className="text-xs font-medium">Stav dat</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="all">Všechny stavy</SelectItem>
+                <SelectItem value="enriched">Obohacené</SelectItem>
+                <SelectItem value="unenriched">Neobohacené</SelectItem>
               </SelectContent>
             </Select>
 
