@@ -63,7 +63,7 @@ Povinné klíče:
 - language: Zkratka jazyka webu (cs, sk, de, en atd.)
 - phone: Telefonní číslo ve formátu s předvolbou (např. +420...)
 - description: Krátký popis toho, co firma dělá (1-2 věty)
-- category: Hlavní kategorie. MUSÍŠ vybrat přesně jednu z tohoto seznamu: architekti, interiery, developeri, urbanismus, architekt, remeslnici. Nevymýšlej jiné.
+- category: Hlavní kategorie. MUSÍŠ vybrat přesně jednu z tohoto seznamu: architekti, interiery, developeri, realitky, urbanismus, architekt, remeslnici. Nevymýšlej jiné.
 - subcategory: Specifická podkategorie (např. truhlářství, bytový architekt, atd.)
 - ai_icebreaker: Osobní otevírací odstavec do cold e-mailu chválící konkrétní část jejich práce nebo portfolio na webu.
 - email: Výsledná e-mailová adresa (nová nalezená, nebo původní pokud je dobrá)

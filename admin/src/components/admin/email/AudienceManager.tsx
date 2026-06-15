@@ -521,6 +521,7 @@ export const AudienceManager = (props: any) => {
                 <SelectItem value="architekt">Samostatný architekt</SelectItem>
                 <SelectItem value="interiery">Interiérové studio</SelectItem>
                 <SelectItem value="developeri">Realitní developer</SelectItem>
+                <SelectItem value="realitky">Realitní kancelář</SelectItem>
                 <SelectItem value="urbanismus">Urbanismus / Veřejný sektor</SelectItem>
               </SelectContent>
             </Select>
@@ -680,20 +681,27 @@ export const AudienceManager = (props: any) => {
                           <MapPin className="h-3 w-3 opacity-60" /> {lead.city || "Nezadáno"} {lead.country && <span className="opacity-70 ml-0.5">({lead.country})</span>}
                         </div>
                         {(() => {
-                           if (!lead.subcategory) return null;
-                           let displayCat = lead.subcategory;
-                           if (displayCat.toLowerCase().trim() === 'real estate' || displayCat.toLowerCase().trim() === 'reality') {
-                             displayCat = 'Realitní developer';
-                           }
+                           if (!lead.category && !lead.subcategory) return null;
                            
-                           if (displayCat.toLowerCase().trim() === 'real estate' || displayCat.toLowerCase().trim() === 'reality') {
-                             displayCat = 'Realitní developer';
-                           }
+                           const categoryMap: Record<string, string> = {
+                             "architekti": "Architektonické studio",
+                             "architekt": "Samostatný architekt",
+                             "interiery": "Interiérové studio",
+                             "developeri": "Realitní developer",
+                             "realitky": "Realitní kancelář",
+                             "urbanismus": "Urbanismus / Veřejný sektor",
+                             "remeslnici": "Řemeslníci"
+                           };
+                           
+                           const mainCat = lead.category ? (categoryMap[lead.category] || lead.category) : "Nezařazeno";
+                           const subCat = lead.subcategory && lead.subcategory.toLowerCase() !== mainCat.toLowerCase() ? lead.subcategory : null;
+                           
+                           const displayCat = subCat ? `${mainCat} (${subCat})` : mainCat;
 
                            return (
                              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
-                               <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground border border-border/50">
-                                 <Tag className="h-2.5 w-2.5 shrink-0" /> {displayCat}
+                               <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground border border-border/50 max-w-[200px] truncate" title={displayCat}>
+                                 <Tag className="h-2.5 w-2.5 shrink-0" /> <span className="truncate">{displayCat}</span>
                                </span>
                              </div>
                            );
