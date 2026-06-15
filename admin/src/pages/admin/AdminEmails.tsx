@@ -1203,6 +1203,7 @@ export default function AdminEmails() {
         if (!c) return null;
         const l = c.toLowerCase().trim();
         if (["real estate", "realestate", "reality"].includes(l)) return "Realitní developer";
+        if (["real estate agency", "real estate agent", "realitka", "realitni kancelar", "realitní kancelář", "real estate broker"].includes(l)) return "Realitní kancelář";
         return c;
       };
 
