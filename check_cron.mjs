@@ -1,0 +1,23 @@
+const url = "https://paryiowezqlnffanxtnt.supabase.co/rest/v1/automation_jobs?select=*";
+const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhcnlpb3dlenFsbmZmYW54dG50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MzM3MzYsImV4cCI6MjA5NjQwOTczNn0.yyd-pRRXds1o8lU9mVWk21zu-5l_dcdxiBjDSKfKw5o";
+
+async function run() {
+  const res = await fetch(url, {
+    headers: {
+      "apikey": key,
+      "Authorization": "Bearer " + key
+    }
+  });
+  console.log("Jobs:");
+  console.log(JSON.stringify(await res.json(), null, 2));
+
+  const res2 = await fetch("https://paryiowezqlnffanxtnt.supabase.co/rest/v1/app_settings?select=*", {
+    headers: {
+      "apikey": key,
+      "Authorization": "Bearer " + key
+    }
+  });
+  console.log("Settings:");
+  console.log(JSON.stringify(await res2.json(), null, 2));
+}
+run();

@@ -31,8 +31,8 @@ Deno.serve(async (req) => {
     // However, it's safer to just await it since we can afford to keep the connection open up to a few minutes,
     // OR we process them in the background using `EdgeRuntime.waitUntil` if available.
     // For simplicity and safety in Supabase, we'll process them synchronously if batch is small, or use a worker approach.
-    // We'll limit to 20 emails per invocation for safety.
-    const batch = emails.slice(0, 20);
+    // We process up to 50 leads in a single batch to save Gemini API requests
+    const batch = emails.slice(0, 50);
 
     const { data: leads } = await supabase
       .from("marketing_leads")
@@ -45,12 +45,10 @@ Deno.serve(async (req) => {
 
     // Return response immediately, process in background
     const processEnrichment = async () => {
-      for (const lead of leads) {
-        if (!lead.website || lead.website.trim() === "") continue;
-        
-        // Skip if already reasonably enriched (has city, category, and icebreaker)
-        if (lead.city && lead.category && lead.ai_icebreaker) continue;
+      const leadsToProcess = leads.filter(l => l.website && l.website.trim() !== "" && (!l.city || !l.category));
+      if (leadsToProcess.length === 0) return;
 
+      const inputForAI = leadsToProcess.map(lead => {
         let targetUrl = lead.website;
         if (!targetUrl && lead.email && lead.email.includes('@')) {
           const domain = lead.email.split('@')[1].toLowerCase();
@@ -59,40 +57,47 @@ Deno.serve(async (req) => {
             targetUrl = `https://www.${domain}`;
           }
         }
+        return { id: lead.id, company_name: lead.company_name || lead.full_name || "Neznámý", email: lead.email, website: targetUrl };
+      });
 
-        const PROMPT = `Jsi B2B akviziční agent. 
-Máš k dispozici firmu: ${lead.company_name || lead.full_name || "Neznámý název"}, její web: ${targetUrl || "Neznámý"} a e-mail: ${lead.email}.
+      const PROMPT = `Jsi B2B akviziční agent. 
+Máš k dispozici seznam firem ve formátu JSON:
+${JSON.stringify(inputForAI)}
+
 ÚKOL:
-Využij své rozsáhlé znalostní databáze a doplň základní údaje o firmě do JSONu.
-Původní e-mail (${lead.email}) zkontroluj a pokud znáš pro tuto firmu lepší B2B kontakt, vrať ten nový. Jinak vrať původní.
-Povinné klíče:
+Využij své rozsáhlé znalostní databáze a doplň základní údaje o každé firmě. Původní e-mail zkontroluj a pokud znáš pro tuto firmu lepší B2B kontakt, vrať ten nový, jinak původní.
+Vrať validní JSON POLE objektů. Každý objekt MUSÍ obsahovat:
+- id: ID firmy (převezmi ze vstupu)
 - company_name: Oficiální název firmy
 - city: Město působnosti (např. Praha, Brno)
-- country: Oficiální název země působnosti. Název země MUSÍ BÝT VŽDY V ČEŠTINĚ (např. "Finsko" místo "Finland", "Austrálie" místo "Australia").
+- country: Oficiální název země působnosti. Název země MUSÍ BÝT VŽDY V ČEŠTINĚ (např. "Finsko", "Austrálie").
 - language: Zkratka jazyka webu (cs, sk, de, en atd.)
-- phone: Telefonní číslo ve formátu s předvolbou (např. +420...)
+- phone: Telefonní číslo ve formátu s předvolbou
 - description: Krátký popis toho, co firma dělá (1-2 věty)
-- category: Hlavní kategorie. MUSÍŠ vybrat přesně jednu z tohoto seznamu: architekti, interiery, developeri, realitky, urbanismus, architekt, remeslnici. Nevymýšlej jiné.
-- subcategory: Specifická podkategorie (např. truhlářství, bytový architekt, atd.)
-- ai_icebreaker: Osobní otevírací odstavec do cold e-mailu chválící konkrétní část jejich práce nebo portfolio na webu. TENTO ODSTAVEC MUSÍ BÝT PSÁN V JAZYCE WEBU FIRMY (např. anglicky pro Austrálii, německy pro Německo)! NIKDY NEPOUŽÍVEJ OSLOVENÍ (jako "Dobrý den...", "Hello...", "Dear..."), napiš POUZE samotný text odstavce.
-- email: Výsledná e-mailová adresa (nová nalezená, nebo původní pokud je dobrá)
-Vrať POUZE validní JSON objekt.`;
+- category: Hlavní kategorie (MUSÍŠ vybrat přesně jednu: architekti, interiery, developeri, realitky, urbanismus, architekt, remeslnici)
+- subcategory: Specifická podkategorie
+- email: Výsledná e-mailová adresa (nová nalezená, nebo původní)
+Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čisté pole).`;
 
-        try {
-          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.3 } }) 
-          });
+      try {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1 } }) 
+        });
 
-          if (geminiRes.ok) {
-            const resJson = await geminiRes.json();
-            let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+        if (geminiRes.ok) {
+          const resJson = await geminiRes.json();
+          let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+          
+          const firstBracket = textOut.indexOf('[');
+          const lastBracket = textOut.lastIndexOf(']');
+          if (firstBracket !== -1 && lastBracket !== -1) {
+            textOut = textOut.substring(firstBracket, lastBracket + 1);
+            const extractedArray = JSON.parse(textOut);
             
-            const firstBracket = textOut.indexOf('{');
-            const lastBracket = textOut.lastIndexOf('}');
-            if (firstBracket !== -1 && lastBracket !== -1) {
-              textOut = textOut.substring(firstBracket, lastBracket + 1);
-              const extracted = JSON.parse(textOut);
+            for (const extracted of extractedArray) {
+              const lead = leadsToProcess.find(l => l.id === extracted.id);
+              if (!lead) continue;
               
               const updatePayload: any = {
                 company_name: lead.company_name || extracted.company_name || null,
@@ -103,7 +108,6 @@ Vrať POUZE validní JSON objekt.`;
                 description: lead.description || extracted.description || null,
                 category: lead.category || extracted.category || null,
                 subcategory: lead.subcategory || extracted.subcategory || null,
-                ai_icebreaker: lead.ai_icebreaker || extracted.ai_icebreaker || null,
                 premium_score: lead.premium_score || extracted.premium_score || 50,
               };
 
@@ -127,9 +131,9 @@ Vrať POUZE validní JSON objekt.`;
               }
             }
           }
-        } catch (e) {
-          console.error("Enrichment failed for", lead.email, e);
         }
+      } catch (e) {
+        console.error("Enrichment failed for batch", e);
       }
     };
 

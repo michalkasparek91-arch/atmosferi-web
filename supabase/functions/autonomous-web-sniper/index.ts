@@ -103,7 +103,7 @@ TVŮJ ÚKOL:
 2. Pomocí nástroje Google Search najdi reálné firmy v tomto městě pro zadaný obor.
 3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 30-40 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Vzhledem k obrovskému limitu tokenů se neboj vypsat až 40 firem najednou!
 
-Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country (Název země MUSÍ BÝT VŽDY V ČEŠTINĚ, např. Finsko, Austrálie, USA), language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci - NIKDY NEPOUŽÍVEJ OSLOVENÍ JAKO "Dobrý den", pouze samotný text), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
+Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country (Název země MUSÍ BÝT VŽDY V ČEŠTINĚ, např. Finsko, Austrálie, USA), language (např. cs, en, de), full_address, description, decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
 Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř textových hodnot nesmíš používat neescapované uvozovky!`;
 
     const promptTemplate = config.prompt_template || DEFAULT_PROMPT;
@@ -127,7 +127,9 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
 
     if (!geminiRes.ok) {
        const errBody = await geminiRes.text();
-       return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `Chyba od Google API: ${errBody}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+       const errMsg = `Chyba od Google API: ${errBody}`;
+       await logJobFailure(supabase, jobName, errMsg);
+       return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const resJson = await geminiRes.json();
@@ -145,7 +147,9 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
     try { 
       discoveredList = JSON.parse(textOut); 
     } catch (e: any) { 
-      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `JSON CHYBA: ${e.message}. Úryvek: ${textOut.substring(0, 500)}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const errMsg = `JSON CHYBA: ${e.message}. Úryvek: ${textOut.substring(0, 500)}`;
+      await logJobFailure(supabase, jobName, errMsg);
+      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (!Array.isArray(discoveredList) || discoveredList.length === 0) {
@@ -194,7 +198,7 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
           city: item.city || "Neznámé město",
           country: item.country || targetCountry,
           language: marketId,
-          ai_icebreaker: item.ai_icebreaker || "",
+          ai_icebreaker: null,
           decision_maker_name: item.decision_maker_name || null,
           premium_score: item.premium_score ? parseInt(item.premium_score) : null,
           full_address: item.full_address || `${item.city || ""}, ${targetCountry}`,

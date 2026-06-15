@@ -420,11 +420,11 @@ export const AudienceManager = (props: any) => {
       }
 
       let triggered = 0;
-      for (let k = 0; k < emailsToEnrich.length; k += 20) {
+      for (let k = 0; k < emailsToEnrich.length; k += 50) {
         supabase.functions.invoke("enrich-imported-leads", {
-          body: { emails: emailsToEnrich.slice(k, k + 20) }
+          body: { emails: emailsToEnrich.slice(k, k + 50) }
         }).catch(console.error);
-        triggered += emailsToEnrich.slice(k, k + 20).length;
+        triggered += emailsToEnrich.slice(k, k + 50).length;
       }
 
       toast.success(`Spuštěno AI obohacení pro ${triggered} kontaktů. Změny se projeví za pár minut.`);
