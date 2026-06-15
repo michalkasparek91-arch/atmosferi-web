@@ -658,7 +658,7 @@ export default function AdminEmails() {
       if (minPremiumScore && parseInt(minPremiumScore) > 0) query = query.gte("premium_score", parseInt(minPremiumScore));
 
       if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
-      else if (sourceFilter === "scraped") query = query.eq("contact_source", "scraped");
+      else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
       else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
 
       if (categoryFilter !== "all") {
