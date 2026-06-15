@@ -51,11 +51,20 @@ Deno.serve(async (req) => {
         // Skip if already reasonably enriched (has city, category, and icebreaker)
         if (lead.city && lead.category && lead.ai_icebreaker) continue;
 
+        let targetUrl = lead.website;
+        if (!targetUrl && lead.email && lead.email.includes('@')) {
+          const domain = lead.email.split('@')[1].toLowerCase();
+          const genericDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'seznam.cz', 'centrum.cz', 'outlook.com', 'icloud.com', 'post.cz', 'volny.cz'];
+          if (!genericDomains.includes(domain)) {
+            targetUrl = `https://www.${domain}`;
+          }
+        }
+
         const PROMPT = `Jsi B2B akviziční agent. 
-Máš k dispozici firmu: ${lead.company_name || lead.full_name} a její web: ${lead.website}. Původní e-mail z CSV je: ${lead.email}.
+Máš k dispozici firmu: ${lead.company_name || lead.full_name || "Neznámý název"}, její web: ${targetUrl || "Neznámý"} a e-mail: ${lead.email}.
 ÚKOL:
-Najdi na webu pomocí Google Search nebo přímým procházením základní údaje o firmě a doplň je do JSONu.
-Původní e-mail (${lead.email}) zkontroluj. Pokud na webu najdeš lepší nebo relevantnější e-mail pro B2B komunikaci, vrať ten nový. Pokud je původní e-mail v pořádku a na webu jsi nenašel lepší, vrať ten původní.
+Využij své rozsáhlé znalostní databáze a doplň základní údaje o firmě do JSONu.
+Původní e-mail (${lead.email}) zkontroluj a pokud znáš pro tuto firmu lepší B2B kontakt, vrať ten nový. Jinak vrať původní.
 Povinné klíče:
 - company_name: Oficiální název firmy
 - city: Město působnosti (např. Praha, Brno)
@@ -65,14 +74,14 @@ Povinné klíče:
 - description: Krátký popis toho, co firma dělá (1-2 věty)
 - category: Hlavní kategorie. MUSÍŠ vybrat přesně jednu z tohoto seznamu: architekti, interiery, developeri, realitky, urbanismus, architekt, remeslnici. Nevymýšlej jiné.
 - subcategory: Specifická podkategorie (např. truhlářství, bytový architekt, atd.)
-- ai_icebreaker: Osobní otevírací odstavec do cold e-mailu chválící konkrétní část jejich práce nebo portfolio na webu.
+- ai_icebreaker: Osobní otevírací odstavec do cold e-mailu chválící konkrétní část jejich práce nebo portfolio na webu. TENTO ODSTAVEC MUSÍ BÝT PSÁN V JAZYCE WEBU FIRMY (např. anglicky pro Austrálii, německy pro Německo)! NIKDY NEPOUŽÍVEJ OSLOVENÍ (jako "Dobrý den...", "Hello...", "Dear..."), napiš POUZE samotný text odstavce.
 - email: Výsledná e-mailová adresa (nová nalezená, nebo původní pokud je dobrá)
 Vrať POUZE validní JSON objekt.`;
 
         try {
           const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.3 } }) 
+            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.3 } }) 
           });
 
           if (geminiRes.ok) {
