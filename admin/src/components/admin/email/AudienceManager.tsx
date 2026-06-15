@@ -670,12 +670,6 @@ export const AudienceManager = (props: any) => {
                               <Phone className="h-3 w-3 opacity-60 shrink-0" /> {lead.phone}
                             </div>
                           )}
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70 truncate mt-0.5">
-                            <Calendar className="h-3 w-3 opacity-50 shrink-0" /> 
-                            {lead.last_activity 
-                              ? `Aktivita: ${new Date(lead.last_activity).toLocaleDateString("cs-CZ")}` 
-                              : `Přidáno: ${new Date(lead.created_at).toLocaleDateString("cs-CZ")}`}
-                          </div>
                         </div>
                       </div>
                     </TableCell>
@@ -705,10 +699,18 @@ export const AudienceManager = (props: any) => {
                       </div>
                     </TableCell>
                     <TableCell className="py-2 text-center align-top">
-                       <div className="text-[11px] text-muted-foreground flex items-center justify-center gap-2 mt-0.5">
-                         <span className="flex items-center gap-1" title="Odeslané e-maily"><Mail className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : lead.engagement_score > 0 ? "1" : "0"}</span>
-                         <span className="opacity-30">|</span>
-                         <span className="flex items-center gap-1" title="Otevřené e-maily"><MailOpen className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : "0"}</span>
+                       <div className="flex flex-col items-center justify-center gap-1.5 mt-0.5">
+                         <div className="text-[11px] text-muted-foreground flex items-center justify-center gap-2">
+                           <span className="flex items-center gap-1" title="Odeslané e-maily"><Mail className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : lead.engagement_score > 0 ? "1" : "0"}</span>
+                           <span className="opacity-30">|</span>
+                           <span className="flex items-center gap-1" title="Otevřené e-maily"><MailOpen className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : "0"}</span>
+                         </div>
+                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
+                           <Calendar className="h-2.5 w-2.5 opacity-50 shrink-0" /> 
+                           {lead.last_activity 
+                             ? `${new Date(lead.last_activity).toLocaleDateString("cs-CZ")}` 
+                             : `${new Date(lead.created_at).toLocaleDateString("cs-CZ")}`}
+                         </div>
                        </div>
                     </TableCell>
                   </TableRow>
@@ -913,130 +915,96 @@ export const AudienceManager = (props: any) => {
                   {/* Status Badges Row */}
                   <div className="flex items-center gap-2 pt-1.5 flex-wrap">
                     {crmStatus !== 'lead' && (
-                      <Badge variant="outline" className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 ${statusConf.color}`}>
+                      <span className={`text-[10px] font-medium uppercase px-2 py-0.5 rounded border inline-flex items-center gap-1.5 ${statusConf.color}`}>
                         <StatusIcon className="h-3 w-3" />
                         {statusConf.label}
-                      </Badge>
+                      </span>
                     )}
                     {selectedContactForSheet.contact_source !== 'lead' && (
-                      <Badge variant="outline" className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border shadow-sm ${selectedContactForSheet.contact_source === 'registered' ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"}`}>
+                      <span className={`text-[10px] font-medium uppercase px-2 py-0.5 rounded border ${selectedContactForSheet.contact_source === 'registered' ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/10" : "bg-amber-500/5 text-amber-600 border-amber-500/10"}`}>
                         {selectedContactForSheet.contact_source === 'registered' ? "REGISTROVANÝ" : "🤖 AI WEB SNIPER"}
-                      </Badge>
+                      </span>
+                    )}
+                    {selectedContactForSheet.engagement_score > 0 && (
+                      <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded border bg-muted/50 text-muted-foreground border-border/50 inline-flex items-center gap-1.5">
+                        <Activity className="h-3 w-3" /> ENGAGEMENT: {selectedContactForSheet.engagement_score}
+                      </span>
+                    )}
+                    {selectedContactForSheet.premium_score > 0 && (
+                      <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded border bg-amber-500/5 text-amber-600 border-amber-500/10 inline-flex items-center gap-1.5">
+                        <Star className="h-3 w-3" /> PREMIUM: {selectedContactForSheet.premium_score}/100
+                      </span>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* ─── Email Activity Timeline ─── */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Časová osa komunikace
-                </h3>
-                <div className="bg-card/60 rounded-2xl border border-border/80 overflow-hidden">
-                  {timeline.length === 0 ? (
-                    <div className="p-6 text-center">
-                      <Clock className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
-                      <p className="text-xs text-muted-foreground italic font-medium">Zatím žádná komunikace.</p>
-                    </div>
-                  ) : (
-                    <div className="relative pl-8 pr-4 py-4">
-                      {/* Vertical timeline line */}
-                      <div className="absolute left-[18px] top-6 bottom-6 w-px bg-border/60" />
-                      
-                      {timeline.map((event, idx) => {
-                        const dotColor = TIMELINE_STATUS_COLORS[event.status] || "bg-zinc-400";
-                        return (
-                          <div key={idx} className={`relative flex items-start gap-3 ${idx > 0 ? "mt-5" : ""} group`}>
-                            {/* Timeline dot */}
-                            <div className={`absolute -left-[22px] top-1 w-2.5 h-2.5 rounded-full ${dotColor} ring-4 ring-background shadow-sm transition-transform group-hover:scale-125`} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
-                                  {event.subject}
-                                </p>
-                                <Badge
-                                  variant="outline"
-                                  className={`text-[8px] font-black uppercase px-1.5 py-0 rounded-md border shrink-0 ${
-                                    event.status === "Kliknuto" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
-                                    event.status === "Otevřeno" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
-                                    "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                                  }`}
-                                >
-                                  {event.status}
-                                </Badge>
-                              </div>
-                              <p className="text-[10px] text-muted-foreground font-medium mt-0.5 flex items-center gap-1">
-                                <Clock className="h-2.5 w-2.5 opacity-50" /> {event.date}
-                              </p>
-                            </div>
+              {timeline.length > 0 && (
+                <div className="space-y-2.5">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Historie komunikace
+                  </h3>
+                  <div className="space-y-2">
+                    {timeline.map((event, idx) => (
+                      <div key={idx} className="flex items-start gap-3 bg-muted/20 p-2.5 rounded-lg border border-border/40">
+                        <div className="flex-1 min-w-0 flex items-center justify-between">
+                          <div className="flex items-center gap-2 truncate">
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${event.status === "Kliknuto" ? "bg-amber-500" : event.status === "Otevřeno" ? "bg-emerald-500" : "bg-blue-500"}`} />
+                            <p className="text-xs font-medium text-foreground truncate">{event.subject}</p>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* ─── Engagement & Premium Score ─── */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/40 p-4 rounded-2xl border border-border flex flex-col justify-center gap-1 shadow-sm relative overflow-hidden">
-                  <div className="absolute -right-3 -top-3 p-4 bg-primary/5 rounded-full text-primary/20 pointer-events-none">
-                    <Activity className="h-10 w-10" />
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[10px] text-muted-foreground">{event.date}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-[10px] uppercase font-black tracking-wider text-muted-foreground">Engagement</p>
-                  <p className="text-xl font-extrabold text-foreground">{selectedContactForSheet.engagement_score || 0} <span className="text-xs font-medium text-muted-foreground">bodů</span></p>
                 </div>
-                <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 p-4 rounded-2xl border border-amber-500/20 flex flex-col justify-center gap-1 shadow-sm relative overflow-hidden">
-                  <div className="absolute -right-3 -top-3 p-4 bg-amber-500/10 rounded-full text-amber-500/20 pointer-events-none">
-                    <Star className="h-10 w-10" />
-                  </div>
-                  <p className="text-[10px] uppercase font-black tracking-wider text-amber-600/80">Premium Score (AI)</p>
-                  <p className="text-xl font-extrabold text-foreground">{selectedContactForSheet.premium_score || 0} <span className="text-xs font-medium text-muted-foreground">/ 100</span></p>
-                </div>
-              </div>
+              )}
 
               {/* ─── Contact Info Section ─── */}
               <div className="space-y-3">
                 <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Kontaktní a adresní údaje
                 </h3>
-                <div className="bg-card/60 p-4 rounded-2xl border border-border/80 space-y-3 text-xs">
+                <div className="bg-transparent space-y-2 text-xs">
                   {selectedContactForSheet.decision_maker_name && (
-                    <div className="flex items-center justify-between pb-2 border-b border-border/50">
-                      <span className="text-muted-foreground flex items-center gap-2 font-medium"><Star className="h-3.5 w-3.5 text-amber-500" /> Rozhodovatel (Majitel)</span>
-                      <span className="font-bold text-foreground">{selectedContactForSheet.decision_maker_name}</span>
+                    <div className="flex items-center justify-between pb-1 border-b border-border/30">
+                      <span className="text-muted-foreground">Rozhodovatel</span>
+                      <span className="font-medium text-foreground">{selectedContactForSheet.decision_maker_name}</span>
                     </div>
                   )}
                   {selectedContactForSheet.phone && (
-                    <div className="flex items-center justify-between pb-2 border-b border-border/50">
-                      <span className="text-muted-foreground flex items-center gap-2 font-medium"><Phone className="h-3.5 w-3.5 text-primary" /> Telefon</span>
-                      <span className="font-mono font-bold text-foreground">{selectedContactForSheet.phone}</span>
+                    <div className="flex items-center justify-between pb-1 border-b border-border/30">
+                      <span className="text-muted-foreground">Telefon</span>
+                      <span className="font-medium text-foreground">{selectedContactForSheet.phone}</span>
                     </div>
                   )}
                   {selectedContactForSheet.website && (
-                    <div className="flex items-center justify-between pb-2 border-b border-border/50">
-                      <span className="text-muted-foreground flex items-center gap-2 font-medium"><Globe className="h-3.5 w-3.5 text-primary" /> Webová stránka</span>
-                      <a href={selectedContactForSheet.website.startsWith("http") ? selectedContactForSheet.website : `https://${selectedContactForSheet.website}`} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline flex items-center gap-1">
-                        {selectedContactForSheet.website} <ExternalLink className="h-2.5 w-2.5" />
+                    <div className="flex items-center justify-between pb-1 border-b border-border/30">
+                      <span className="text-muted-foreground">Web</span>
+                      <a href={selectedContactForSheet.website.startsWith("http") ? selectedContactForSheet.website : `https://${selectedContactForSheet.website}`} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                        {selectedContactForSheet.website}
                       </a>
                     </div>
                   )}
-                  <div className="flex items-start justify-between pb-2 border-b border-border/50">
-                    <span className="text-muted-foreground flex items-center gap-2 font-medium shrink-0"><MapPin className="h-3.5 w-3.5 text-rose-500" /> Adresa</span>
+                  <div className="flex items-start justify-between pb-1 border-b border-border/30">
+                    <span className="text-muted-foreground">Adresa</span>
                     <span className="font-medium text-foreground text-right">
                       {selectedContactForSheet.full_address || [selectedContactForSheet.street_name, selectedContactForSheet.street_number, selectedContactForSheet.city, selectedContactForSheet.postal_code].filter(Boolean).join(", ") || selectedContactForSheet.city || "Nezadáno"}
                     </span>
                   </div>
                   {selectedContactForSheet.country && (
-                    <div className="flex items-center justify-between pb-2 border-b border-border/50">
-                      <span className="text-muted-foreground flex items-center gap-2 font-medium"><Globe className="h-3.5 w-3.5 text-primary" /> Země / Jazyk</span>
-                      <span className="font-bold text-foreground">{selectedContactForSheet.country} {selectedContactForSheet.language && <span className="text-muted-foreground uppercase text-[10px]">({selectedContactForSheet.language})</span>}</span>
+                    <div className="flex items-center justify-between pb-1 border-b border-border/30">
+                      <span className="text-muted-foreground">Země / Jazyk</span>
+                      <span className="font-medium text-foreground">{selectedContactForSheet.country} {selectedContactForSheet.language && <span className="text-muted-foreground uppercase text-[10px]">({selectedContactForSheet.language})</span>}</span>
                     </div>
                   )}
                   {(selectedContactForSheet.latitude !== null && selectedContactForSheet.longitude !== null && selectedContactForSheet.latitude !== undefined) && (
                     <div className="flex items-center justify-between pt-1">
-                      <span className="text-muted-foreground text-[11px]">GPS souřadnice</span>
-                      <span className="font-mono text-[11px] text-muted-foreground">{selectedContactForSheet.latitude.toFixed(5)}, {selectedContactForSheet.longitude.toFixed(5)}</span>
+                      <span className="text-muted-foreground text-[11px]">GPS</span>
+                      <span className="text-[11px] text-muted-foreground">{selectedContactForSheet.latitude.toFixed(5)}, {selectedContactForSheet.longitude.toFixed(5)}</span>
                     </div>
                   )}
                 </div>
@@ -1044,10 +1012,10 @@ export const AudienceManager = (props: any) => {
 
               {/* ─── Categories & Subcategories ─── */}
               <div className="space-y-3">
-                <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Odbornost a kategorie
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Odbornost a kategorie
                 </h3>
-                <div className="bg-card dark:bg-muted/20 p-4 rounded-2xl border border-border space-y-3 shadow-sm">
+                <div className="bg-transparent space-y-3">
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       const leadSubcats = (selectedContactForSheet.subcategory || "").split(";").map((s: string) => s.trim().toLowerCase()).filter(Boolean);
@@ -1079,14 +1047,14 @@ export const AudienceManager = (props: any) => {
                           {Object.values(groups).map((group) => {
                             const Icon = getCategoryIcon(group.icon, group.slug);
                             return (
-                              <div key={group.name} className="flex flex-col gap-2.5 p-3.5 rounded-xl bg-background/50 dark:bg-background/20 border border-border">
-                                <div className="flex items-center gap-2.5">
+                              <div key={group.name} className="flex flex-col gap-2 p-3 rounded-xl bg-muted/20 border border-border/50">
+                                <div className="flex items-center gap-2">
                                   <div className="p-1.5 rounded-lg bg-primary/10 text-primary shadow-sm">
                                     <Icon className="h-4 w-4" />
                                   </div>
-                                  <span className="text-xs font-black uppercase tracking-wider text-foreground">{group.name}</span>
+                                  <span className="text-xs font-medium text-foreground">{group.name}</span>
                                 </div>
-                                <div className="flex flex-wrap gap-1.5 pl-[38px]">
+                                <div className="flex flex-wrap gap-1.5">
                                   {group.subcats.map(sub => (
                                     <Badge key={sub} variant="secondary" className="px-2 py-0.5 text-[10px] rounded-md bg-muted/80 text-foreground border border-border/50 hover:bg-muted transition-colors">
                                       {sub}
@@ -1099,7 +1067,7 @@ export const AudienceManager = (props: any) => {
                           {orphanSubcats.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mt-1">
                               {orphanSubcats.map(sub => (
-                                <Badge key={sub} variant="secondary" className="px-2.5 py-1 text-[10px] rounded-lg bg-muted/80 text-foreground border border-border/50 hover:bg-muted transition-colors">
+                                <Badge key={sub} variant="secondary" className="px-2 py-0.5 text-[10px] rounded bg-muted/50 text-muted-foreground border border-border/50">
                                   {sub}
                                 </Badge>
                               ))}
@@ -1122,20 +1090,17 @@ export const AudienceManager = (props: any) => {
 
               {/* ─── AI Zjištění (Sniper) ─── */}
               {(selectedContactForSheet.contact_source === 'lead' || selectedContactForSheet.contact_source === 'ai_web_sniper' || selectedContactForSheet.description || selectedContactForSheet.company_description) && (
-                <div className="space-y-3 pt-2">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-600/20 flex items-center justify-center border border-amber-500/30 shadow-sm">
-                      <Zap className="h-3.5 w-3.5 text-amber-500" />
-                    </div>
-                    AI Zjištění (Sniper)
+                <div className="space-y-2 pt-2">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    AI Zjištění
                   </h3>
                   
-                  <div className="bg-gradient-to-br from-background/80 to-muted/30 p-1.5 rounded-3xl border border-border/80 shadow-sm">
+                  <div className="space-y-2">
                     {/* Bio / Popis */}
                     {(selectedContactForSheet.description || selectedContactForSheet.company_description) && (
-                      <div className="p-4 mb-1.5 bg-background/50 rounded-2xl">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-2">
-                          <Briefcase className="h-3 w-3 text-primary/70" /> Zjištěno o firmě
+                      <div className="p-3 bg-muted/20 border border-border/50 rounded-xl">
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">
+                          Zjištěno o firmě
                         </label>
                         <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap font-medium">
                           {selectedContactForSheet.description || selectedContactForSheet.company_description}
@@ -1144,22 +1109,30 @@ export const AudienceManager = (props: any) => {
                     )}
 
                     {/* AI Icebreaker */}
-                    <div className="p-4 bg-background rounded-2xl border border-border/50 shadow-sm relative group focus-within:ring-1 focus-within:ring-amber-500/30 focus-within:border-amber-500/30 transition-all">
-                      <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-foreground/80 leading-relaxed font-medium">
+                        {selectedContactForSheet.description || selectedContactForSheet.company_description}
+                      </p>
+                    )}
+
+                    <div className="pt-2">
+                      <div className="flex items-center justify-between mb-1.5">
                         <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                          <MessageSquare className="h-3 w-3 text-amber-500" /> Úvodní oslovení (Icebreaker)
+                          <MessageSquare className="h-3 w-3 text-amber-500" /> Úvodní oslovení
                         </label>
                         {isSavingIcebreaker && <span className="text-[10px] text-amber-500 flex items-center gap-1 font-bold"><Loader2 className="h-3 w-3 animate-spin" /> Ukládám...</span>}
                       </div>
-                      <div className="relative">
+                      {isGeneratingIcebreaker ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
+                        </div>
+                      ) : (
                         <textarea
-                          className="w-full min-h-[90px] bg-transparent border-none p-0 text-xs leading-relaxed text-foreground font-medium focus:ring-0 outline-none resize-y transition-all font-sans"
+                          className="w-full min-h-[90px] bg-transparent border border-border/50 rounded-lg p-3 text-xs leading-relaxed text-foreground font-medium focus:ring-1 focus:ring-primary outline-none transition-all"
                           value={sheetIcebreaker}
                           onChange={(e) => setSheetIcebreaker(e.target.value)}
                           onBlur={(e) => handleSaveIcebreaker(e.target.value)}
                           placeholder="Zde napište nebo nechte AI vygenerovat úvodní oslovení na míru..."
                         />
-                      </div>
                     </div>
                   </div>
                 </div>

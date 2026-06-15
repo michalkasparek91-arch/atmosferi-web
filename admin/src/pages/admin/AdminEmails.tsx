@@ -1188,6 +1188,17 @@ export default function AdminEmails() {
     for (let i = 0; i < parsedData.length; i += batchSize) {
       const batchRows = parsedData.slice(i, i + batchSize);
       
+      const normalizeCountry = (c: string | null) => {
+        if (!c) return null;
+        const l = c.toLowerCase().trim();
+        if (["de", "germany", "deutschland", "nemecko", "německo"].includes(l)) return "Německo";
+        if (["at", "austria", "österreich", "osterreich", "rakousko"].includes(l)) return "Rakousko";
+        if (["cz", "czech republic", "czechia", "cesko", "česko", "česká republika", "ceska republika"].includes(l)) return "Česká republika";
+        if (["sk", "slovakia", "slovensko"].includes(l)) return "Slovensko";
+        if (["pl", "poland", "polska", "polsko"].includes(l)) return "Polsko";
+        return c.charAt(0).toUpperCase() + c.slice(1).toLowerCase();
+      };
+
       let localErrors = 0;
       const batch = batchRows.map((row, idx) => {
         const getVal = (field: string) => {
@@ -1213,7 +1224,7 @@ export default function AdminEmails() {
             email: email,
             phone: getVal("phone") || null,
             city: getVal("city") || null,
-            country: getVal("country") || null,
+            country: normalizeCountry(getVal("country")) || null,
             language: getVal("language") || null,
             website: getVal("website") || null,
             full_address: getVal("full_address") || null,
