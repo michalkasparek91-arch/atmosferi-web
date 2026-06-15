@@ -59,7 +59,7 @@ Původní e-mail (${lead.email}) zkontroluj. Pokud na webu najdeš lepší nebo 
 Povinné klíče:
 - company_name: Oficiální název firmy
 - city: Město působnosti (např. Praha, Brno)
-- country: Oficiální název země působnosti. Pokud není z ČR/SR, normálně vypiš jinou zemi (např. Francie, Itálie).
+- country: Oficiální název země působnosti. Název země MUSÍ BÝT VŽDY V ČEŠTINĚ (např. "Finsko" místo "Finland", "Austrálie" místo "Australia").
 - language: Zkratka jazyka webu (cs, sk, de, en atd.)
 - phone: Telefonní číslo ve formátu s předvolbou (např. +420...)
 - description: Krátký popis toho, co firma dělá (1-2 věty)
