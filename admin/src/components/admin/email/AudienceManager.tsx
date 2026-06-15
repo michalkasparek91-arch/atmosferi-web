@@ -10,7 +10,7 @@ import {
   Users, Search, Download, Upload, Filter, 
   ChevronLeft, ChevronRight, Loader2, Tag, Star, Activity, Calendar, Globe, ExternalLink,
   MousePointer2, Mail, Phone, MapPin, Building2, Trash2, Database, X, Briefcase,
-  Send, MailOpen, Clock, PenLine, CheckCircle2, XCircle, AlertCircle, MoreHorizontal, MessageCircle, Zap, MessageSquare, Sparkles
+  Send, MailOpen, Clock, PenLine, CheckCircle2, XCircle, AlertCircle, MoreHorizontal, MessageCircle, Zap, MessageSquare, Sparkles, RefreshCw
 } from "lucide-react";
 import { CITY_COORDINATES } from "@/lib/city-regions";
 import { format } from "date-fns";
@@ -782,6 +782,21 @@ export const AudienceManager = (props: any) => {
                 <span className="hidden sm:inline">AI Obohatit</span>
                 <span className="sm:hidden">AI</span>
               </Button>
+              
+              {props.refetchLeads && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="h-8 md:h-9 px-2.5 md:px-4 rounded-xl font-bold text-xs gap-1.5 bg-white/5 text-white border-white/10 hover:bg-white/10 shrink-0"
+                  onClick={() => {
+                    props.refetchLeads();
+                    toast.success("Data byla úspěšně obnovena.");
+                  }}
+                >
+                  <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Obnovit</span>
+                </Button>
+              )}
 
               <Button  
                 variant="destructive" 

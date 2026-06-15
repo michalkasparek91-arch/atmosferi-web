@@ -64,6 +64,7 @@ Povinné klíče:
 - category: Hlavní kategorie z výběru (architekti, interiery, developeri, urbanismus, architekt, remeslnici). Vyber tu, která nejvíc sedí.
 - subcategory: Specifická podkategorie (např. truhlářství, bytový architekt, atd.)
 - ai_icebreaker: Osobní otevírací odstavec do cold e-mailu chválící konkrétní část jejich práce nebo portfolio na webu.
+- email: E-mailová adresa firmy (pouze pokud ji na webu najdeš, jinak nech prázdné)
 Vrať POUZE validní JSON objekt.`;
 
         try {
@@ -82,7 +83,7 @@ Vrať POUZE validní JSON objekt.`;
               textOut = textOut.substring(firstBracket, lastBracket + 1);
               const extracted = JSON.parse(textOut);
               
-              await supabase.from("marketing_leads").update({
+              const updatePayload: any = {
                 company_name: lead.company_name || extracted.company_name || null,
                 city: lead.city || extracted.city || null,
                 country: lead.country || extracted.country || "Česká republika",
@@ -92,7 +93,19 @@ Vrať POUZE validní JSON objekt.`;
                 subcategory: lead.subcategory || extracted.subcategory || null,
                 ai_icebreaker: lead.ai_icebreaker || extracted.ai_icebreaker || null,
                 premium_score: lead.premium_score || extracted.premium_score || 50,
-              }).eq("id", lead.id);
+              };
+
+              if (lead.email.includes("@placeholder.zrobee.cz") && extracted.email && extracted.email.includes("@")) {
+                updatePayload.email = extracted.email;
+              }
+
+              const { error: updateError } = await supabase.from("marketing_leads").update(updatePayload).eq("id", lead.id);
+              
+              // Fallback if email update failed (e.g. duplicate key)
+              if (updateError && updatePayload.email) {
+                delete updatePayload.email;
+                await supabase.from("marketing_leads").update(updatePayload).eq("id", lead.id);
+              }
             }
           }
         } catch (e) {

@@ -1195,11 +1195,16 @@ export default function AdminEmails() {
           return header ? row[header] : null;
         };
         
-        const email = getVal("email");
+        let email = getVal("email");
+        const website = getVal("website");
+        
         if (!email || !email.includes('@')) {
-          localErrors++;
-          errorDetails.push(`Řádek ${i + idx + 2}: Neplatný e-mail${email ? ` ('${email}')` : ' (prázdný)'}`);
-          return null;
+          if (!website) {
+            localErrors++;
+            errorDetails.push(`Řádek ${i + idx + 2}: Neplatný/chybějící e-mail a chybí web pro dohledání`);
+            return null;
+          }
+          email = `missing-${Math.random().toString(36).substring(2, 12)}@placeholder.zrobee.cz`;
         }
 
         return {
