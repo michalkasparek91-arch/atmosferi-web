@@ -134,6 +134,7 @@ export const AudienceManager = (props: any) => {
   const [selectedBulkSubcategory, setSelectedBulkSubcategory] = React.useState<string>("all");
   const [isAssigning, setIsAssigning] = React.useState(false);
   const [isAssignPopoverOpen, setIsAssignPopoverOpen] = React.useState(false);
+  const [isBulkEnriching, setIsBulkEnriching] = React.useState(false);
   const [realTimeline, setRealTimeline] = React.useState<any[]>([]);
 
   React.useEffect(() => {
@@ -349,6 +350,44 @@ export const AudienceManager = (props: any) => {
       toast.error("Chyba při mazání kontaktů.");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBulkEnrich = async () => {
+    if (selectedIds.length === 0) return;
+    setIsBulkEnriching(true);
+    try {
+      const { data, error } = await supabase
+        .from("marketing_leads")
+        .select("email")
+        .in("id", selectedIds)
+        .not("website", "is", null)
+        .neq("website", "");
+
+      if (error) throw error;
+      
+      const emailsToEnrich = data.map(d => d.email).filter(Boolean);
+      if (emailsToEnrich.length === 0) {
+        toast.error("Žádný z vybraných kontaktů nemá vyplněný web. AI potřebuje web k analýze.");
+        return;
+      }
+
+      let triggered = 0;
+      for (let k = 0; k < emailsToEnrich.length; k += 20) {
+        supabase.functions.invoke("enrich-imported-leads", {
+          body: { emails: emailsToEnrich.slice(k, k + 20) }
+        }).catch(console.error);
+        triggered += emailsToEnrich.slice(k, k + 20).length;
+      }
+
+      toast.success(`Spuštěno AI obohacení pro ${triggered} kontaktů. Změny se projeví za pár minut.`);
+      setSelectedIds([]);
+      setSelectedSources({});
+    } catch (error) {
+      console.error("Bulk enrich error:", error);
+      toast.error("Chyba při spouštění AI obohacení.");
+    } finally {
+      setIsBulkEnriching(false);
     }
   };
 
@@ -706,6 +745,18 @@ export const AudienceManager = (props: any) => {
               </Popover>
 
               <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 md:h-9 px-2.5 md:px-4 rounded-xl font-bold text-xs gap-1.5 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300 shrink-0"
+                onClick={handleBulkEnrich}
+                disabled={isBulkEnriching || isDeleting || isAssigning}
+              >
+                {isBulkEnriching ? <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" /> : <Sparkles className="h-3.5 w-3.5 shrink-0" />}
+                <span className="hidden sm:inline">AI Obohatit</span>
+                <span className="sm:hidden">AI</span>
+              </Button>
+
+              <Button  
                 variant="destructive" 
                 size="sm" 
                 className="h-8 md:h-9 px-2.5 md:px-4 rounded-xl font-bold text-xs gap-1.5 shrink-0"
