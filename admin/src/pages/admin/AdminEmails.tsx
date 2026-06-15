@@ -652,7 +652,7 @@ export default function AdminEmails() {
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
     queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, enrichFilter, crmPage],
     queryFn: async () => {
-      let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false });
+      let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
       
       if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
@@ -705,7 +705,7 @@ export default function AdminEmails() {
 
   const fetchAllMatchingContacts = async () => {
     const buildQuery = () => {
-      let query = supabase.from("unified_contacts" as any).select("id, contact_source").order("engagement_score", { ascending: false });
+      let query = supabase.from("unified_contacts" as any).select("id, contact_source").order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
       
       if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
@@ -1033,7 +1033,7 @@ export default function AdminEmails() {
     try {
       toast({ title: "Export spuštěn", description: "Připravuji data pro export..." });
       
-      let query = supabase.from("unified_contacts" as any).select("*").order("engagement_score", { ascending: false });
+      let query = supabase.from("unified_contacts" as any).select("*").order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
       
       if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
