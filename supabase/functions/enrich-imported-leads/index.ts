@@ -58,10 +58,11 @@ Najdi na webu pomocí Google Search nebo přímým procházením základní úda
 Povinné klíče:
 - company_name: Oficiální název firmy
 - city: Město působnosti (např. Praha, Brno)
-- country: Země
+- country: Oficiální název země působnosti. Pokud není z ČR/SR, normálně vypiš jinou zemi (např. Francie, Itálie).
+- language: Zkratka jazyka webu (cs, sk, de, en atd.)
 - phone: Telefonní číslo ve formátu s předvolbou (např. +420...)
 - description: Krátký popis toho, co firma dělá (1-2 věty)
-- category: Hlavní kategorie z výběru (architekti, interiery, developeri, urbanismus, architekt, remeslnici). Vyber tu, která nejvíc sedí.
+- category: Hlavní kategorie. MUSÍŠ vybrat přesně jednu z tohoto seznamu: architekti, interiery, developeri, urbanismus, architekt, remeslnici. Nevymýšlej jiné.
 - subcategory: Specifická podkategorie (např. truhlářství, bytový architekt, atd.)
 - ai_icebreaker: Osobní otevírací odstavec do cold e-mailu chválící konkrétní část jejich práce nebo portfolio na webu.
 - email: E-mailová adresa firmy (pouze pokud ji na webu najdeš, jinak nech prázdné)
@@ -87,6 +88,7 @@ Vrať POUZE validní JSON objekt.`;
                 company_name: lead.company_name || extracted.company_name || null,
                 city: lead.city || extracted.city || null,
                 country: lead.country || extracted.country || "Česká republika",
+                language: lead.language || extracted.language || null,
                 phone: lead.phone || extracted.phone || null,
                 description: lead.description || extracted.description || null,
                 category: lead.category || extracted.category || null,
