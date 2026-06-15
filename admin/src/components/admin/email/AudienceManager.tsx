@@ -129,6 +129,7 @@ export const AudienceManager = (props: any) => {
   const [selectedContactForSheet, setSelectedContactForSheet] = React.useState<any | null>(null);
   const [sheetIcebreaker, setSheetIcebreaker] = React.useState<string>("");
   const [isSavingIcebreaker, setIsSavingIcebreaker] = React.useState(false);
+  const [isGeneratingIcebreaker, setIsGeneratingIcebreaker] = React.useState(false);
   const [selectedSources, setSelectedSources] = React.useState<Record<string, string>>({});
   const [isSelectingAllGlobal, setIsSelectingAllGlobal] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
