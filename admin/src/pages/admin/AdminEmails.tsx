@@ -704,49 +704,67 @@ export default function AdminEmails() {
   });
 
   const fetchAllMatchingContacts = async () => {
-    let query = supabase.from("unified_contacts" as any).select("id, contact_source").order("engagement_score", { ascending: false });
-    
-    if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
-    if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
-    if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
-    else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
-    else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
-    
-    if (enrichFilter === "unenriched") query = query.is("company_name", null);
-    else if (enrichFilter === "enriched") query = query.not("company_name", "is", null);
+    const buildQuery = () => {
+      let query = supabase.from("unified_contacts" as any).select("id, contact_source").order("engagement_score", { ascending: false });
+      
+      if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
+      if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
+      if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
+      else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
+      else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
+      
+      if (enrichFilter === "unenriched") query = query.is("company_name", null);
+      else if (enrichFilter === "enriched") query = query.not("company_name", "is", null);
 
-    if (categoryFilter !== "all") {
-      query = query.eq("category", categoryFilter);
-    }
+      if (categoryFilter !== "all") {
+        query = query.eq("category", categoryFilter);
+      }
 
-    if (countryFilter !== "all") {
-      query = query.eq("country", countryFilter);
-    }
+      if (countryFilter !== "all") {
+        query = query.eq("country", countryFilter);
+      }
 
-    if (languageFilter !== "all") {
-      query = query.eq("language", languageFilter);
-    }
+      if (languageFilter !== "all") {
+        query = query.eq("language", languageFilter);
+      }
 
-    if (cityFilter !== "all") {
-      const coords = CITY_COORDINATES[cityFilter];
-      if (coords) {
-        const r = parseFloat(radiusFilter);
-        const latDelta = r / 111;
-        const lngDelta = r / (111 * Math.cos(coords.lat * Math.PI / 180));
-        
-        query = query
-          .gte("latitude", coords.lat - latDelta)
-          .lte("latitude", coords.lat + latDelta)
-          .gte("longitude", coords.lng - lngDelta)
-          .lte("longitude", coords.lng + lngDelta);
+      if (cityFilter !== "all") {
+        const coords = CITY_COORDINATES[cityFilter];
+        if (coords) {
+          const r = parseFloat(radiusFilter);
+          const latDelta = r / 111;
+          const lngDelta = r / (111 * Math.cos(coords.lat * Math.PI / 180));
+          
+          query = query
+            .gte("latitude", coords.lat - latDelta)
+            .lte("latitude", coords.lat + latDelta)
+            .gte("longitude", coords.lng - lngDelta)
+            .lte("longitude", coords.lng + lngDelta);
+        } else {
+          query = query.ilike("city", `%${cityFilter}%`);
+        }
+      }
+      return query;
+    };
+
+    let allData: any[] = [];
+    let page = 0;
+    const fetchLimit = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const query = buildQuery();
+      const { data, error } = await query.range(page * fetchLimit, (page + 1) * fetchLimit - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        hasMore = false;
       } else {
-        query = query.ilike("city", `%${cityFilter}%`);
+        allData = [...allData, ...data];
+        if (data.length < fetchLimit) hasMore = false;
+        page++;
       }
     }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
+    return allData;
   };
 
   const leadSheet = leadSheetData?.data || [];
