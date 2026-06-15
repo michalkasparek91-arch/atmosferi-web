@@ -1217,7 +1217,12 @@ export default function AdminEmails() {
         const rawEmail = getVal("email");
         const website = getVal("website");
         
-        const emails = rawEmail ? rawEmail.split(/[,;]+/).map((e: string) => e.trim()).filter((e: string) => e.includes('@')) : [];
+        const garbagePrefixes = ['no-reply@', 'noreply@', 'donotreply@', 'do-not-reply@', 'bounce@', 'bounces@', 'postmaster@', 'mailer-daemon@', 'test@'];
+        
+        const emails = rawEmail ? rawEmail.split(/[,;]+/)
+          .map((e: string) => e.trim().toLowerCase())
+          .filter((e: string) => e.includes('@') && !garbagePrefixes.some(prefix => e.startsWith(prefix))) 
+          : [];
         
         if (emails.length === 0) {
           if (!website) {
