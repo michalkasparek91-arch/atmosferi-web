@@ -686,16 +686,8 @@ export const AudienceManager = (props: any) => {
                              displayCat = 'Realitní developer';
                            }
                            
-                           let isKnown = false;
-                           if (allSubcategories) {
-                             isKnown = allSubcategories.some((s: any) => 
-                               s.name.toLowerCase() === displayCat.toLowerCase() || 
-                               displayCat.toLowerCase().includes(s.name.toLowerCase())
-                             );
-                           }
-                           
-                           if (!isKnown && allSubcategories && allSubcategories.length > 0) {
-                             displayCat = "Nezařazeno";
+                           if (displayCat.toLowerCase().trim() === 'real estate' || displayCat.toLowerCase().trim() === 'reality') {
+                             displayCat = 'Realitní developer';
                            }
 
                            return (
