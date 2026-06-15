@@ -25,12 +25,6 @@ jobs:
         with:
           version: 1.162.4
 
-      - name: Deploy Database Migrations
-        run: |
-          supabase link --project-ref $PROJECT_ID --password $SUPABASE_DB_PASSWORD
-          supabase db push --include-all
-        env:
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Deploy autonomous-web-sniper
         run: supabase functions deploy autonomous-web-sniper --project-ref $PROJECT_ID
