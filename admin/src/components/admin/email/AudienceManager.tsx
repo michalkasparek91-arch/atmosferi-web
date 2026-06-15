@@ -143,6 +143,22 @@ export const AudienceManager = (props: any) => {
     if (selectedContactForSheet) {
       setSheetIcebreaker(selectedContactForSheet.ai_icebreaker || selectedContactForSheet.icebreaker || "");
       
+      const fetchExtraDetails = async () => {
+        if (selectedContactForSheet.contact_source !== 'registered') {
+          try {
+            const { data } = await supabase.from('marketing_leads').select('ai_icebreaker').eq('id', selectedContactForSheet.id).single();
+            if (data?.ai_icebreaker) {
+              setSheetIcebreaker(data.ai_icebreaker);
+              // Store it so it re-renders correctly in the textarea
+              selectedContactForSheet.ai_icebreaker = data.ai_icebreaker;
+            }
+          } catch (e) {
+            console.error("Failed to fetch ai_icebreaker", e);
+          }
+        }
+      };
+      fetchExtraDetails();
+      
       const fetchTimeline = async () => {
         if (!selectedContactForSheet.email) {
           setRealTimeline([]);
@@ -614,17 +630,17 @@ export const AudienceManager = (props: any) => {
                     <TableCell className="py-2 align-top">
                       <div className="flex items-center gap-2.5">
                         <div className="min-w-0 w-full">
-                          <p className="text-xs font-bold text-foreground truncate leading-tight group-hover:text-primary transition-colors">{lead.full_name || lead.company_name || "Bezejmenný"}</p>
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium truncate opacity-80 mt-0.5">
-                            <Mail className="h-2.5 w-2.5 opacity-60 shrink-0" /> {lead.email}
+                          <p className="text-xs font-medium text-foreground truncate leading-tight group-hover:text-primary transition-colors">{lead.full_name || lead.company_name || "Bezejmenný"}</p>
+                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate opacity-80 mt-1">
+                            <Mail className="h-3 w-3 opacity-60 shrink-0" /> {lead.email}
                           </div>
                           {lead.phone && (
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground/80 font-medium truncate mt-0.5">
-                              <Phone className="h-2.5 w-2.5 opacity-60 shrink-0" /> {lead.phone}
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate mt-0.5">
+                              <Phone className="h-3 w-3 opacity-60 shrink-0" /> {lead.phone}
                             </div>
                           )}
-                          <div className="flex items-center gap-1 text-[9px] text-muted-foreground/60 font-medium truncate mt-0.5">
-                            <Calendar className="h-2.5 w-2.5 opacity-40 shrink-0" /> 
+                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70 truncate mt-0.5">
+                            <Calendar className="h-3 w-3 opacity-50 shrink-0" /> 
                             {lead.last_activity 
                               ? `Aktivita: ${new Date(lead.last_activity).toLocaleDateString("cs-CZ")}` 
                               : `Přidáno: ${new Date(lead.created_at).toLocaleDateString("cs-CZ")}`}
@@ -633,15 +649,15 @@ export const AudienceManager = (props: any) => {
                       </div>
                     </TableCell>
                     <TableCell className="py-2 align-top">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-[9px] font-bold text-foreground/80">
-                          <MapPin className="h-2.5 w-2.5 text-rose-500/40" /> {lead.city || "Nezadáno"} {lead.country && <span className="text-muted-foreground ml-0.5">({lead.country})</span>}
+                      <div className="space-y-1.5 mt-0.5">
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <MapPin className="h-3 w-3 opacity-60" /> {lead.city || "Nezadáno"} {lead.country && <span className="opacity-70 ml-0.5">({lead.country})</span>}
                         </div>
                         {lead.subcategory && (
-                          <div className="flex items-center gap-1 text-[9px] text-muted-foreground/80 font-medium truncate mt-0.5">
-                            <Badge variant="outline" className="text-[8px] h-4 px-1.5 py-0 font-bold tracking-tight rounded-md flex items-center gap-1 w-max bg-primary/5 text-primary border-primary/20">
+                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground border border-border/50">
                               <Tag className="h-2.5 w-2.5 shrink-0" /> {lead.subcategory}
-                            </Badge>
+                            </span>
                           </div>
                         )}
                         {(() => {
@@ -650,19 +666,19 @@ export const AudienceManager = (props: any) => {
                            const statusConf = CRM_STATUS_CONFIG[crmStatus];
                            const StatusIcon = statusConf.icon;
                            return (
-                             <Badge variant="outline" className={`text-[8px] h-4 px-1.5 py-0 font-bold tracking-tight rounded-md flex items-center gap-1 w-max ${statusConf.color}`}>
+                             <span className={`flex items-center gap-1 w-max px-1.5 py-0.5 rounded text-[10px] border ${statusConf.color}`}>
                                <StatusIcon className="h-2.5 w-2.5 shrink-0" /> {statusConf.label}
-                             </Badge>
+                             </span>
                            );
                         })()}
                       </div>
                     </TableCell>
                     <TableCell className="py-2 text-center align-top">
-                       <span className="text-[10px] font-bold text-foreground/80 border border-border/60 bg-muted/30 px-2 py-0.5 rounded-md flex items-center justify-center gap-1.5 w-max mx-auto shadow-sm">
-                         <Mail className="h-3 w-3 text-muted-foreground" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : lead.engagement_score > 0 ? "1" : "0"} 
-                         <span className="text-border mx-0.5">|</span>
-                         <MailOpen className="h-3 w-3 text-muted-foreground" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : "0"}
-                       </span>
+                       <div className="text-[11px] text-muted-foreground flex items-center justify-center gap-2 mt-0.5">
+                         <span className="flex items-center gap-1" title="Odeslané e-maily"><Mail className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : lead.engagement_score > 0 ? "1" : "0"}</span>
+                         <span className="opacity-30">|</span>
+                         <span className="flex items-center gap-1" title="Otevřené e-maily"><MailOpen className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : "0"}</span>
+                       </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -838,10 +854,20 @@ export const AudienceManager = (props: any) => {
               {/* ─── Header Profile Banner ─── */}
               <div className="flex items-start gap-4 pb-5 border-b border-border/80">
                 <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
                     <h2 className="text-xl font-extrabold text-foreground truncate">
                       {selectedContactForSheet.full_name || selectedContactForSheet.company_name || "Bezejmenný kontakt"}
                     </h2>
+                    <Button
+                      size="sm"
+                      className="rounded-full font-bold text-xs gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                      onClick={() => {
+                        toast.success("Příprava e-mailu", { description: `Otevírám editor pro ${selectedContactForSheet.full_name || selectedContactForSheet.email}` });
+                      }}
+                    >
+                      <PenLine className="h-3 w-3" />
+                      Napsat e-mail
+                    </Button>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
                     <Mail className="h-4 w-4 opacity-60 text-primary" />
@@ -869,17 +895,6 @@ export const AudienceManager = (props: any) => {
                   </div>
                 </div>
               </div>
-
-              {/* ─── CTA Button: Napsat e-mail ─── */}
-              <Button
-                className="w-full h-12 rounded-2xl font-bold text-sm gap-2.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.01]"
-                onClick={() => {
-                  toast.success("Příprava e-mailu", { description: `Otevírám editor pro ${selectedContactForSheet.full_name || selectedContactForSheet.email}` });
-                }}
-              >
-                <PenLine className="h-4.5 w-4.5" />
-                Napsat e-mail
-              </Button>
 
               {/* ─── Email Activity Timeline ─── */}
               <div className="space-y-3">
