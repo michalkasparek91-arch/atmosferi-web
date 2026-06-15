@@ -619,7 +619,7 @@ export const AudienceManager = (props: any) => {
 
       <Card className="border-border/50 shadow-sm overflow-hidden bg-card/50">
         <div className="overflow-x-auto">
-          <Table>
+          <Table className="table-fixed min-w-[800px]">
             <TableHeader className="bg-muted/30">
               <TableRow className="hover:bg-transparent border-border/50">
                 <TableHead className="w-10 py-2 px-3">

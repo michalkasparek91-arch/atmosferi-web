@@ -662,8 +662,8 @@ export default function AdminEmails() {
       else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
       else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
 
-      if (enrichFilter === "unenriched") query = query.is("company_name", null);
-      else if (enrichFilter === "enriched") query = query.not("company_name", "is", null);
+      if (enrichFilter === "unenriched") query = query.is("description", null);
+      else if (enrichFilter === "enriched") query = query.not("description", "is", null);
 
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
@@ -713,8 +713,8 @@ export default function AdminEmails() {
       else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
       else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
       
-      if (enrichFilter === "unenriched") query = query.is("company_name", null);
-      else if (enrichFilter === "enriched") query = query.not("company_name", "is", null);
+      if (enrichFilter === "unenriched") query = query.is("description", null);
+      else if (enrichFilter === "enriched") query = query.not("description", "is", null);
 
       if (categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
