@@ -139,6 +139,34 @@ export const AudienceManager = (props: any) => {
   const [isBulkEnriching, setIsBulkEnriching] = React.useState(false);
   const [realTimeline, setRealTimeline] = React.useState<any[]>([]);
 
+  const KNOWN_COUNTRIES = ["Česká republika", "Slovensko", "Německo", "Rakousko", "Polsko", "Česko"];
+  const [dynamicCountries, setDynamicCountries] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    // Detect new countries and show a popup
+    if (!leadSheet || leadSheet.length === 0) return;
+    
+    const newCountries = new Set<string>();
+    leadSheet.forEach((lead: any) => {
+      if (lead.country && !KNOWN_COUNTRIES.includes(lead.country) && !dynamicCountries.includes(lead.country)) {
+        newCountries.add(lead.country);
+      }
+    });
+
+    if (newCountries.size > 0) {
+      const arr = Array.from(newCountries);
+      setDynamicCountries(prev => [...prev, ...arr]);
+      
+      // Show popup for each new country discovered
+      arr.forEach(country => {
+        toast.info(`AI přidala novou zemi: ${country}`, {
+          description: "Tato země nebyla ve výchozím seznamu a byla přidána do filtru.",
+          duration: 6000,
+        });
+      });
+    }
+  }, [leadSheet]);
+
   React.useEffect(() => {
     if (selectedContactForSheet) {
       setSheetIcebreaker(selectedContactForSheet.ai_icebreaker || selectedContactForSheet.icebreaker || "");
@@ -435,6 +463,9 @@ export const AudienceManager = (props: any) => {
                 <SelectItem value="Německo">Německo</SelectItem>
                 <SelectItem value="Rakousko">Rakousko</SelectItem>
                 <SelectItem value="Polsko">Polsko</SelectItem>
+                {dynamicCountries.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
