@@ -1273,22 +1273,8 @@ export default function AdminEmails() {
       setImportProgress(Math.min(100, Math.round(((i + batchSize) / parsedData.length) * 100)));
     }
 
-    if (autoEnrich) {
-      const successfullyImportedEmails = parsedData
-        .flatMap(row => {
-          const emailHeader = columnMapping["email"];
-          const raw = emailHeader ? row[emailHeader] : null;
-          return raw ? String(raw).split(/[,;]+/).map(e => e.trim().toLowerCase()).filter(e => e.includes('@')) : [];
-        });
-
-      if (successfullyImportedEmails.length > 0) {
-        for (let k = 0; k < successfullyImportedEmails.length; k += 20) {
-          supabase.functions.invoke("enrich-imported-leads", {
-            body: { emails: successfullyImportedEmails.slice(k, k + 20) }
-          }).catch(console.error);
-        }
-      }
-    }
+    // Auto-enrich is now handled entirely by the Supabase pg_cron background job
+    // to prevent browser crashes and rate limits with 50,000+ contacts.
 
     setIsImporting(false);
     setImportResult({ success: successCount, errors: errorCount, details: errorDetails });
