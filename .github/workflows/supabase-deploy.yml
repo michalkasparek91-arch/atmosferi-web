@@ -49,3 +49,6 @@ jobs:
 
       - name: Deploy enrich-imported-leads
         run: supabase functions deploy enrich-imported-leads --project-ref $PROJECT_ID
+
+      - name: Deploy auto-enrich-leads
+        run: supabase functions deploy auto-enrich-leads --project-ref $PROJECT_ID
