@@ -53,7 +53,8 @@ Deno.serve(async (req) => {
         newStatus = "spam";
         break;
       case "unsubscribed":
-        // we handle unsubscribes differently usually, but we could mark email as bounced or just leave it
+      case "unsubscribe":
+        newStatus = "unsubscribed";
         break;
     }
 
