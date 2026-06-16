@@ -52,3 +52,7 @@ jobs:
 
       - name: Deploy auto-enrich-leads
         run: supabase functions deploy auto-enrich-leads --project-ref $PROJECT_ID
+
+      - name: Deploy email-delivery-webhook
+        run: supabase functions deploy email-delivery-webhook --project-ref $PROJECT_ID
+

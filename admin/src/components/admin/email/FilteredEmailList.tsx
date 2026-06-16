@@ -5,9 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { X, Send, MailOpen, MousePointer2, Trophy, Mail, Loader2 } from "lucide-react";
+import { X, Send, MailOpen, MousePointer2, Trophy, Mail, Loader2, AlertCircle, ShieldAlert } from "lucide-react";
 
-export type MetricFilter = "sent" | "opened" | "clicked" | "converted" | "pending" | "delivered" | null;
+export type MetricFilter = "sent" | "opened" | "clicked" | "converted" | "pending" | "delivered" | "bounced" | "spam" | null;
 
 const FILTER_LABELS: Record<string, string> = {
   sent: "Odesláno",
@@ -16,6 +16,8 @@ const FILTER_LABELS: Record<string, string> = {
   converted: "Konvertováno",
   pending: "Ve frontě",
   delivered: "Doručeno",
+  bounced: "Nedoručitelné (Bounced)",
+  spam: "Spam",
 };
 
 interface FilteredEmailListProps {
@@ -35,6 +37,8 @@ export const FilteredEmailList: React.FC<FilteredEmailListProps> = ({ filter, on
         converted: ["converted"],
         pending: ["pending"],
         delivered: ["delivered"],
+        bounced: ["bounced"],
+        spam: ["spam"],
       };
       const statuses = statusMap[filter] ?? [];
       
@@ -87,11 +91,13 @@ export const FilteredEmailList: React.FC<FilteredEmailListProps> = ({ filter, on
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden shadow-lg">
         <div className="flex items-center justify-between px-5 py-3 border-b border-border/50 bg-muted/20">
           <div className="flex items-center gap-3">
-            <div className={`p-1.5 rounded-lg ${filter === "sent" ? "bg-blue-500/10" : filter === "opened" ? "bg-emerald-500/10" : filter === "clicked" ? "bg-amber-500/10" : "bg-purple-500/10"}`}>
+            <div className={`p-1.5 rounded-lg ${filter === "sent" ? "bg-blue-500/10" : filter === "opened" ? "bg-emerald-500/10" : filter === "clicked" ? "bg-amber-500/10" : filter === "bounced" ? "bg-red-500/10" : filter === "spam" ? "bg-rose-500/10" : "bg-purple-500/10"}`}>
               {filter === "sent" && <Send className="h-3.5 w-3.5 text-blue-500" />}
               {filter === "opened" && <MailOpen className="h-3.5 w-3.5 text-emerald-500" />}
               {filter === "clicked" && <MousePointer2 className="h-3.5 w-3.5 text-amber-500" />}
               {filter === "converted" && <Trophy className="h-3.5 w-3.5 text-purple-500" />}
+              {filter === "bounced" && <AlertCircle className="h-3.5 w-3.5 text-red-500" />}
+              {filter === "spam" && <ShieldAlert className="h-3.5 w-3.5 text-rose-500" />}
             </div>
             <div>
               <h3 className="text-xs font-black uppercase tracking-widest text-foreground">
@@ -167,13 +173,14 @@ export const FilteredEmailList: React.FC<FilteredEmailListProps> = ({ filter, on
                         </p>
                       </TableCell>
                       <TableCell className="py-3 pr-5 text-right">
-                        <Badge
-                          variant="outline"
-                          className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 bg-blue-500/10 text-blue-500 border-blue-500/20"
-                        >
-                          <Send className="h-3 w-3" />
-                          {email.status}
-                        </Badge>
+                        {email.status === 'sent' && <Badge className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 bg-blue-500/10 text-blue-500 border-blue-500/20"><Send className="w-3 h-3" /> Odesláno</Badge>}
+                        {email.status === 'delivered' && <Badge className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 bg-slate-500/10 text-slate-500 border-slate-500/20"><Mail className="w-3 h-3" /> Doručeno</Badge>}
+                        {email.status === 'opened' && <Badge className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/20"><MailOpen className="w-3 h-3" /> Otevřeno</Badge>}
+                        {email.status === 'clicked' && <Badge className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-500 border-amber-500/20"><MousePointer2 className="w-3 h-3" /> Kliknuto</Badge>}
+                        {email.status === 'converted' && <Badge className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 bg-purple-500/10 text-purple-500 border-purple-500/20"><Trophy className="w-3 h-3" /> Konverze</Badge>}
+                        {email.status === 'bounced' && <Badge className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 bg-red-500/10 text-red-500 border-red-500/20"><AlertCircle className="w-3 h-3" /> Odraženo</Badge>}
+                        {email.status === 'spam' && <Badge className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-500 border-rose-500/20"><ShieldAlert className="w-3 h-3" /> Spam</Badge>}
+                        {email.status === 'pending' && <Badge variant="outline" className="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border shadow-sm inline-flex items-center gap-1.5 border-slate-300 text-slate-500">Čeká ve frontě</Badge>}
                       </TableCell>
                     </TableRow>
                   ))

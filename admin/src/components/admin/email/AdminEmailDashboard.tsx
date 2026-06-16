@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Mail, Send, Zap, Users, BarChart3, Trophy, 
-  ArrowUpRight, ArrowDownRight, Clock, Plus, Sparkles
+  ArrowUpRight, ArrowDownRight, Clock, Plus, Sparkles, AlertCircle, ShieldAlert
 } from "lucide-react";
 import { FilteredEmailList, MetricFilter } from "./FilteredEmailList";
 
@@ -26,6 +26,8 @@ const FilterTab = ({ title, value, icon: Icon, color, metricKey, isActive, onCli
     'bg-emerald-500': 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:bg-emerald-500/20 dark:text-emerald-400',
     'bg-amber-500': 'bg-amber-500/10 text-amber-700 border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400',
     'bg-purple-500': 'bg-purple-500/10 text-purple-700 border-purple-500/30 dark:bg-purple-500/20 dark:text-purple-400',
+    'bg-red-500': 'bg-red-500/10 text-red-700 border-red-500/30 dark:bg-red-500/20 dark:text-red-400',
+    'bg-rose-500': 'bg-rose-500/10 text-rose-700 border-rose-500/30 dark:bg-rose-500/20 dark:text-rose-400',
   }[color] || 'bg-primary/10 text-primary border-primary/30 dark:bg-primary/20';
 
   const baseClasses = isActive 
@@ -72,13 +74,15 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
       const logs = currLogs.data || [];
       const outbox = currOutbox.data || [];
       
-      const counts = { sent: 0, pending: 0, delivered: 0, clicked: 0, converted: 0 };
+      const counts = { sent: 0, pending: 0, delivered: 0, clicked: 0, converted: 0, bounced: 0, spam: 0 };
       
       logs.forEach((l: any) => {
-        if (['sent', 'delivered', 'opened', 'clicked', 'converted'].includes(l.status)) counts.sent++;
+        if (['sent', 'delivered', 'opened', 'clicked', 'converted', 'bounced', 'spam'].includes(l.status)) counts.sent++;
         if (['delivered', 'opened', 'clicked', 'converted'].includes(l.status)) counts.delivered++;
         if (['clicked', 'converted'].includes(l.status)) counts.clicked++;
         if (l.status === 'converted') counts.converted++;
+        if (l.status === 'bounced') counts.bounced++;
+        if (l.status === 'spam') counts.spam++;
       });
       
       outbox.forEach((o: any) => {
@@ -192,6 +196,24 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           color="bg-purple-500" 
           metricKey="converted"
           isActive={activeMetric === "converted"}
+          onClick={handleMetricClick}
+        />
+        <FilterTab 
+          title="Bounced" 
+          value={stats?.bounced?.toLocaleString("cs-CZ") ?? 0} 
+          icon={AlertCircle} 
+          color="bg-red-500" 
+          metricKey="bounced"
+          isActive={activeMetric === "bounced"}
+          onClick={handleMetricClick}
+        />
+        <FilterTab 
+          title="Spam" 
+          value={stats?.spam?.toLocaleString("cs-CZ") ?? 0} 
+          icon={ShieldAlert} 
+          color="bg-rose-500" 
+          metricKey="spam"
+          isActive={activeMetric === "spam"}
           onClick={handleMetricClick}
         />
       </div>
