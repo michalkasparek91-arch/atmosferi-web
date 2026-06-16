@@ -66,13 +66,9 @@
   .nav__links a:hover{opacity:1;}
   .nav__in .swx{margin-left:26px;flex:none;}
   @media(max-width:720px){
-    .nav__links{gap:18px;margin-left:auto;}
-    .nav__links a:not(.cta){display:none;}
-    .nav__in .swx{margin-left:16px;}
+    .nav__links{display:none;}
+    .nav__in .swx{margin-left:auto;}
     .swx__seg{padding:6px 11px;font-size:9px;letter-spacing:.14em;}
-  }
-  @media(max-width:460px){
-    .nav__links .cta{display:none;}
   }
   /* mobile drawer menu */
   .nav__in{position:relative;z-index:60;}
@@ -83,13 +79,33 @@
   .nav.is-open .vnav__burger span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
   .nav.is-open .vnav__burger span:nth-child(2){opacity:0;}
   .nav.is-open .vnav__burger span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
-  .vnav__mobile{position:fixed;top:0;left:0;right:0;z-index:50;background:#16140F;color:#fff;padding:104px var(--gut) 40px;display:flex;flex-direction:column;gap:2px;transform:translateY(-101%);transition:transform .55s cubic-bezier(.7,0,.15,1);visibility:hidden;}
+  .vnav__mobile{position:fixed;inset:0;z-index:55;background:#16140F;color:#fff;padding:24px var(--gut) 40px;display:flex;flex-direction:column;gap:2px;transform:translateY(-101%);transition:transform .55s cubic-bezier(.7,0,.15,1);visibility:hidden;overflow-y:auto;}
   .nav.is-open .vnav__mobile{transform:none;visibility:visible;}
-  .vnav__mobile .mlead{font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;opacity:.5;margin-bottom:14px;}
+  .vnav__mobile-head{display:flex;align-items:center;justify-content:space-between;height:54px;margin-bottom:22px;}
+  .vnav__mobile .mlead{font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;opacity:.5;}
+  .vnav__close{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#fff;background:none;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:9px 15px;cursor:pointer;transition:opacity .3s,border-color .3s,background .3s;}
+  .vnav__close:hover{border-color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);}
+  .vnav__close svg{width:11px;height:11px;display:block;}
   .vnav__mobile a{display:flex;align-items:baseline;font-family:var(--serif);font-size:clamp(28px,8vw,38px);font-weight:600;color:#fff;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.12);letter-spacing:-.01em;}
   .vnav__mobile a .i{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.2em;opacity:.45;margin-right:16px;}
+  .vnav__mobile-foot{margin-top:auto;padding-top:30px;}
+  .vnav__mobile-foot a{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:.55;border:0;padding:0;display:inline-flex;gap:9px;}
+  .vnav__mobile-foot a:hover{opacity:1;}
+  /* when the drawer is open the burger turns into a working X too */
+  .nav.is-open .vnav__burger{z-index:60;}
   @media(max-width:720px){ .vnav__burger{display:flex;} }
   @media(min-width:721px){ .vnav__mobile{display:none;} }
+
+  /* ---- mobile: shorter frames so wide landscapes keep their context ---- */
+  @media(max-width:620px){
+    .feature__media{height:46vh;min-height:300px;max-height:440px;}
+    .ps-full{height:50vh;min-height:320px;max-height:460px;}
+    .ps-wide{height:44vh;min-height:280px;max-height:420px;}
+    .ps-offset .psf{height:46vh;min-height:300px;max-height:440px;}
+    /* the two compositions that genuinely want the height */
+    .feature__media.keep-tall{height:74vh;max-height:none;}
+    .ps-wide.keep-tall,.ps-full.keep-tall{height:78vh;max-height:none;}
+  }
 
   /* hero */
   .hero{position:relative;height:100vh;min-height:620px;overflow:hidden;}
@@ -602,12 +618,20 @@
     <button class="vnav__burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
   <div class="vnav__mobile" id="vnavMobile">
-    <span class="mlead">Menu</span>
+    <div class="vnav__mobile-head">
+      <span class="mlead">Menu</span>
+      <button class="vnav__close" type="button" id="vnavClose" aria-label="Close menu">Close
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
     <a href="#work"><span class="i">01</span>Work</a>
     <a href="#motion"><span class="i">02</span>Motion &amp; Film</a>
     <a href="#services"><span class="i">03</span>Services</a>
     <a href="#threesixty"><span class="i">04</span>360° Tours</a>
     <a href="#contact"><span class="i">05</span>Contact</a>
+    <div class="vnav__mobile-foot">
+      <a href="../../index.html"><span aria-hidden="true">←</span> Atmosferi Websites</a>
+    </div>
   </div>
 </header>
 
@@ -647,7 +671,7 @@
   </article>
 
   <article class="feature wrap" data-rise>
-    <div class="feature__media bloom" data-cap="Ascension" data-meta="Helix Tower, Singapore · Film · 2027" data-full="img/02-ascension.webp">
+    <div class="feature__media bloom keep-tall" data-cap="Ascension" data-meta="Helix Tower, Singapore · Film · 2027" data-full="img/02-ascension.webp">
       <span class="feature__num">02 / 14</span>
       <img src="img/02-ascension.webp" alt="Architectural visualisation — Helix Tower, Singapore (animated fly-through)">
       <span class="feature__expand">Open frame ↗</span>
@@ -753,7 +777,7 @@
   </div>
 
   <!-- 04 — full-bleed wide, building small, big sky -->
-  <figure class="psf bloom ps-bleed ps-wide" data-rise data-full="img/sol-04.webp" data-cap="The far mountain" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027" style="margin-top:clamp(40px,6vw,90px)">
+  <figure class="psf bloom ps-bleed ps-wide keep-tall" data-rise data-full="img/sol-04.webp" data-cap="The far mountain" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027" style="margin-top:clamp(40px,6vw,90px)">
     <span class="num">04 / 14</span>
     <img src="img/sol-04.webp" alt="Architectural visualisation — the retreat small beneath a great mountain as the last light fades over the ridge">
     <span class="open">Open frame ↗</span>
@@ -1178,6 +1202,8 @@
     try{ document.body.style.overflow=open?'hidden':''; }catch(e){}
   }
   burger.addEventListener('click',function(){ set(!nav.classList.contains('is-open')); });
+  var closeBtn=document.getElementById('vnavClose');
+  if(closeBtn) closeBtn.addEventListener('click',function(){ set(false); });
   if(drawer) drawer.addEventListener('click',function(e){ if(e.target.closest('a')) set(false); });
   window.addEventListener('keydown',function(e){ if(e.key==='Escape') set(false); });
 })();
