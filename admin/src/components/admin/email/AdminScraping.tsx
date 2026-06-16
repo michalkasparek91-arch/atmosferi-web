@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TOP_CITIES_BY_COUNTRY } from "@/lib/city-regions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AiJobsMonitor } from "./AiJobsMonitor";
 
 interface ScraperConfig {
   is_enabled: boolean;
@@ -352,6 +353,8 @@ export const AdminScraping = () => {
           </div>
         </div>
       </div>
+
+      <AiJobsMonitor />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
