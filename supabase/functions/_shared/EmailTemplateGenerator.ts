@@ -171,13 +171,13 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
 function parseBodyText(text: string): string {
   if (!text) return "";
   let html = text;
-  html = html.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');
-  html = html.replace(/\\b_(.*?)_\\b/g, '<em>$1</em>');
-  html = html.replace(/(?<!\\*)\\*(?!\\*)(.*?)\\*/g, '<em>$1</em>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\b_(.*?)_\b/g, '<em>$1</em>');
+  html = html.replace(/(?<!\*)\*(?!\*)(.*?)\*/g, '<em>$1</em>');
   
-  const paragraphs = html.split(/\\n\\s*\\n/);
+  const paragraphs = html.split(/\n\s*\n/);
   return paragraphs.map(p => {
-    const lines = p.split('\\n');
+    const lines = p.split('\n');
     const isList = lines.some(l => l.trim().startsWith('- ') || l.trim().startsWith('• '));
     if (isList) {
       const listItems = lines.map(l => {
@@ -188,6 +188,6 @@ function parseBodyText(text: string): string {
       }).join('');
       return `<ul style="margin: 0 0 16px 0; padding-left: 20px;">${listItems}</ul>`;
     }
-    return `<p style="margin: 0 0 16px 0;">${p.replace(/\\n/g, '<br/>')}</p>`;
-  }).join('\\n');
+    return `<p style="margin: 0 0 16px 0;">${p.replace(/\n/g, '<br/>')}</p>`;
+  }).join('\n');
 }
