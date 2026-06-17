@@ -179,17 +179,13 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
             if (groqRes.ok) {
                 // Log api usage
                 try {
-                   await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
-                       method: "POST",
-                       headers: {
-                           "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-                           "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
-                           "Content-Type": "application/json",
-                           "Prefer": "return=minimal"
-                       },
-                       body: JSON.stringify({ engine: "groq", service_name: "autonomous-web-sniper", requests_count: 1 })
-                   });
-                } catch(e) {}
+                    const { error: usageErr } = await supabase.from("api_usage_logs").insert({
+                        engine: "groq", 
+                        service_name: "autonomous-web-sniper", 
+                        requests_count: 1
+                    });
+                    if (usageErr) console.error("Chyba při zápisu do api_usage_logs:", usageErr);
+                } catch(e) { console.error("Vyjimka pri zapisu api_usage_logs:", e); }
 
                 const groqData = await groqRes.json();
                 let textOut = groqData.choices?.[0]?.message?.content || "";
