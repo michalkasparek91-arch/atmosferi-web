@@ -96,7 +96,7 @@ async function runGeminiEngine(targetCountry: string, targetKeyword: string, tar
     }
 }
 
-async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string, targetCity: string): Promise<{ discoveredList?: any[], error?: string }> {
+async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string, targetCity: string): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
     const placesKey = Deno.env.get("GOOGLE_PLACES_API_KEY") || Deno.env.get("GOOGLE_MAPS_API_KEY");
     const groqKey = Deno.env.get("GROQ_API_KEY");
     
@@ -125,11 +125,15 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
     const validPlaces = places.filter((p: any) => p.websiteUri);
 
     if (validPlaces.length === 0) {
-        return { discoveredList: [] };
+        return { discoveredList: [], debug: `Nalezeno ${places.length} míst v Google Places pro '${query}', ale žádné nemělo websiteUri.` };
     }
 
     // 2. Pro každý nalezený web stáhneme HTML a pošleme do Groq
     const discoveredList: any[] = [];
+    let groqErrors = 0;
+    let fetchErrors = 0;
+    let noEmailFound = 0;
+    
     const promises = validPlaces.slice(0, 10).map(async (place: any) => { // limit na 10 pro jedno volání aby nedošlo k timeoutu
         try {
             // fetch with timeout
@@ -139,7 +143,10 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
             const pageRes = await fetch(place.websiteUri, { signal: controller.signal }).catch(() => null);
             clearTimeout(timeoutId);
             
-            if (!pageRes || !pageRes.ok) return null;
+            if (!pageRes || !pageRes.ok) {
+                fetchErrors++;
+                return null;
+            }
             
             let html = await pageRes.text();
             // clean HTML
@@ -186,20 +193,39 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
 
                 const groqData = await groqRes.json();
                 let textOut = groqData.choices?.[0]?.message?.content || "";
-                textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-                const parsed = JSON.parse(textOut);
-                if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].email && parsed[0].email.includes("@")) {
-                    discoveredList.push(parsed[0]);
+                
+                const firstBracket = textOut.indexOf('[');
+                const lastBracket = textOut.lastIndexOf(']');
+                if (firstBracket !== -1 && lastBracket !== -1) {
+                    textOut = textOut.substring(firstBracket, lastBracket + 1);
+                } else {
+                    textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
                 }
+                
+                try {
+                    const parsed = JSON.parse(textOut);
+                    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].email && parsed[0].email.includes("@")) {
+                        discoveredList.push(parsed[0]);
+                    } else {
+                        noEmailFound++;
+                    }
+                } catch (parseErr) {
+                    groqErrors++;
+                    console.error("JSON parse error:", textOut);
+                }
+            } else {
+                groqErrors++;
             }
         } catch (e) {
             console.error("Error processing place", place.websiteUri, e);
+            fetchErrors++;
         }
     });
 
     await Promise.all(promises);
 
-    return { discoveredList };
+    const debugMsg = `Google Places API vrátilo ${places.length} výsledků, z toho ${validPlaces.length} mělo web. Zkusili jsme zpracovat max 10. Chyby stahování webu: ${fetchErrors}. Groq/AI chyby: ${groqErrors}. Weby bez nalezeného emailu: ${noEmailFound}. Nalezeno platných kontaktů s e-mailem: ${discoveredList.length}.`;
+    return { discoveredList, debug: debugMsg };
 }
 
 Deno.serve(async (req) => {
@@ -290,6 +316,11 @@ Deno.serve(async (req) => {
             return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: result.error }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
         discoveredList = result.discoveredList || [];
+        
+        if (discoveredList.length === 0) {
+            await logJobSuccess(supabase, jobName, { discovered_count: 0 });
+            return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: result.debug || `Groq Engine nenašel žádné firmy s emailem.` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
     } else {
         // default to gemini
         const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
