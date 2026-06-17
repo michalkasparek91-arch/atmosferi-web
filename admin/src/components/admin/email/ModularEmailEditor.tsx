@@ -196,6 +196,7 @@ export function ModularLivePreview({
 }) {
   const [activeSlide, setActiveSlide] = useState(0);
   const isDark = previewTheme === "dark";
+  const activeBody = form.body;
 
   const carouselImages = useMemo(() => {
     const imgs = form?.segment_filters?.carousel_images;
