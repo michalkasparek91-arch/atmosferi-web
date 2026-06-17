@@ -195,7 +195,6 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
               }
             }
           }
-        }
       } catch (e) {
         console.error("Enrichment failed for batch", e);
       }
