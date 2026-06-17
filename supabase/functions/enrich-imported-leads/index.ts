@@ -193,7 +193,6 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
                 await supabase.from("marketing_leads").update(updatePayload).eq("id", lead.id);
               }
             }
-          }
       } catch (e) {
         console.error("Enrichment failed for batch", e);
       }
