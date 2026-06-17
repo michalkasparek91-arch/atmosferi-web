@@ -25,6 +25,12 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, error: "Missing GEMINI_API_KEY" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const { data: configData } = await supabase.from("app_settings").select("value").eq("key", "scraper_config").maybeSingle();
+    let enrichEngine = "gemini";
+    if (configData && configData.value && configData.value.enrich_engine) {
+       enrichEngine = configData.value.enrich_engine;
+    }
+
     // We process the enrichment asynchronously and immediately return success to not block the frontend
     // In Edge Functions on Deno Deploy, background tasks after response might get killed if not handled properly, 
     // but Deno Deploy allows `waitUntil` or returning the response while promise continues.
@@ -80,50 +86,81 @@ Vrať validní JSON POLE objektů. Každý objekt MUSÍ obsahovat:
 Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čisté pole).`;
 
       try {
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1 } }) 
-        });
-
-        if (geminiRes.ok) {
-          try {
-              await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
-                  method: "POST",
-                  headers: {
-                      "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-                      "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
-                      "Content-Type": "application/json",
-                      "Prefer": "return=minimal"
-                  },
-                  body: JSON.stringify({ engine: "gemini", service_name: "enrich-imported-leads", requests_count: 1 })
-              });
-          } catch (e) {}
-
-          const resJson = await geminiRes.json();
-          let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-          
-          if (!textOut) {
-             const finishReason = resJson.candidates?.[0]?.finishReason || "UNKNOWN_REASON";
-             const errMsg = `Odpověď od AI je prázdná (finishReason: ${finishReason}). Může se jednat o bezpečnostní filtr.`;
-             await logJobFailure(supabase, jobName, errMsg);
-             return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-          }
-
-          // Odstranění formátování Markdownu
-          textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-
-          const firstBracket = textOut.indexOf('[');
-          const lastBracket = textOut.lastIndexOf(']');
-          if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-            textOut = textOut.substring(firstBracket, lastBracket + 1);
-            const extractedArray = JSON.parse(textOut);
+        let textOut = "";
+        
+        if (enrichEngine === "groq") {
+            const groqApiKey = Deno.env.get("GROQ_API_KEY");
+            if (!groqApiKey) return;
+            const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
+                body: JSON.stringify({ model: "llama3-70b-8192", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+            });
             
-            for (const extracted of extractedArray) {
-              const lead = leadsToProcess.find(l => l.id === extracted.id);
-              if (!lead) continue;
-              
-              const updatePayload: any = {
-                company_name: lead.company_name || extracted.company_name || null,
+            if (groqRes.ok) {
+                try {
+                    await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
+                        method: "POST",
+                        headers: {
+                            "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+                            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
+                            "Content-Type": "application/json",
+                            "Prefer": "return=minimal"
+                        },
+                        body: JSON.stringify({ engine: "groq", service_name: "enrich-imported-leads", requests_count: 1 })
+                    });
+                } catch (e) {}
+
+                const resJson = await groqRes.json();
+                textOut = resJson.choices?.[0]?.message?.content?.trim() || "";
+            } else {
+                console.error("Groq error:", await groqRes.text());
+                return;
+            }
+        } else {
+            const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1 } }) 
+            });
+
+            if (geminiRes.ok) {
+              try {
+                  await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
+                      method: "POST",
+                      headers: {
+                          "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+                          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
+                          "Content-Type": "application/json",
+                          "Prefer": "return=minimal"
+                      },
+                      body: JSON.stringify({ engine: "gemini", service_name: "enrich-imported-leads", requests_count: 1 })
+                  });
+              } catch (e) {}
+
+              const resJson = await geminiRes.json();
+              textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+            } else {
+                console.error("Gemini error:", await geminiRes.text());
+                return;
+            }
+        }
+
+        if (!textOut) return;
+
+        // Odstranění formátování Markdownu
+        textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        const firstBracket = textOut.indexOf('[');
+        const lastBracket = textOut.lastIndexOf(']');
+        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+          textOut = textOut.substring(firstBracket, lastBracket + 1);
+          const extractedArray = JSON.parse(textOut);
+          
+          for (const extracted of extractedArray) {
+            const lead = leadsToProcess.find(l => l.id === extracted.id);
+            if (!lead) continue;
+            
+            const updatePayload: any = {
+              company_name: lead.company_name || extracted.company_name || null,
                 city: lead.city || extracted.city || null,
                 country: lead.country || extracted.country || "Česká republika",
                 language: lead.language || extracted.language || null,

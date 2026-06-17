@@ -29,6 +29,7 @@ interface ScraperConfig {
   ai_batch_size?: number;
   use_gemini_engine?: boolean;
   use_groq_places_engine?: boolean;
+  enrich_engine?: "gemini" | "groq";
 }
 
 const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
@@ -52,7 +53,8 @@ const DEFAULT_CONFIG: ScraperConfig = {
   ai_rpm_limit: 5,
   ai_batch_size: 50,
   use_gemini_engine: true,
-  use_groq_places_engine: false
+  use_groq_places_engine: false,
+  enrich_engine: "gemini"
 };
 
 export const AdminScraping = () => {
@@ -646,6 +648,27 @@ export const AdminScraping = () => {
                     checked={config.use_groq_places_engine === true} 
                     onCheckedChange={(c) => handleToggleEngine("groq", c)}
                   />
+                </div>
+
+                <div className="pt-4 mt-2 border-t border-border/50 space-y-4">
+                  <Label className="font-bold text-sm">Engine pro obohacování dat (Enrichment)</Label>
+                  <Select 
+                    value={config.enrich_engine || "gemini"} 
+                    onValueChange={(val: any) => {
+                      const updated = { ...config, enrich_engine: val };
+                      setConfig(updated);
+                      saveConfigMutation.mutate(updated);
+                    }}
+                  >
+                    <SelectTrigger className="h-10 rounded-xl">
+                      <SelectValue placeholder="Vyberte AI model" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl text-[12px]">
+                      <SelectItem value="gemini">Gemini (Google) - Chytrý, výchozí</SelectItem>
+                      <SelectItem value="groq">Groq (Llama 3) - Rychlý</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground">Který AI model se má použít pro doplňování informací o firmách.</p>
                 </div>
               </div>
             </CardContent>

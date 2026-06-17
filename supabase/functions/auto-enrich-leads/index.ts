@@ -47,8 +47,10 @@ Deno.serve(async (req) => {
 
     const { data: configData } = await supabase.from("app_settings").select("value").eq("key", "scraper_config").maybeSingle();
     let batchSize = 50;
-    if (configData && configData.value && configData.value.ai_batch_size) {
-       batchSize = configData.value.ai_batch_size;
+    let enrichEngine = "gemini";
+    if (configData && configData.value) {
+       if (configData.value.ai_batch_size) batchSize = configData.value.ai_batch_size;
+       if (configData.value.enrich_engine) enrichEngine = configData.value.enrich_engine;
     }
 
     // Select oldest updated leads that need enrichment
@@ -97,39 +99,83 @@ Vrať validní JSON POLE objektů. Každý objekt MUSÍ obsahovat:
 - email: Výsledná e-mailová adresa (nová nalezená, nebo původní)
 Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čisté pole).`;
 
-    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1 } }) 
-    });
-
-    if (!geminiRes.ok) {
-      const errBody = await geminiRes.text();
-      const errMsg = `Chyba od Google API: ${errBody}`;
-      await logJobFailure(supabase, jobName, errMsg);
-      return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    try {
-        await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
-            method: "POST",
-            headers: {
-                "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-                "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
-                "Content-Type": "application/json",
-                "Prefer": "return=minimal"
-            },
-            body: JSON.stringify({ engine: "gemini", service_name: "auto-enrich-leads", requests_count: 1 })
-        });
-    } catch (e) {}
-
-    const resJson = await geminiRes.json();
-    let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    let textOut = "";
     
-    if (!textOut) {
-       const finishReason = resJson.candidates?.[0]?.finishReason || "UNKNOWN_REASON";
-       const errMsg = `Odpověď od AI je prázdná (finishReason: ${finishReason}). Může se jednat o bezpečnostní filtr.`;
-       await logJobFailure(supabase, jobName, errMsg);
-       return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (enrichEngine === "groq") {
+        const groqApiKey = Deno.env.get("GROQ_API_KEY");
+        if (!groqApiKey) {
+            const errMsg = "Missing GROQ_API_KEY";
+            await logJobFailure(supabase, jobName, errMsg);
+            return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
+            body: JSON.stringify({ model: "llama3-70b-8192", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+        });
+        
+        if (!groqRes.ok) {
+            const errBody = await groqRes.text();
+            const errMsg = `Chyba od Groq API: ${errBody}`;
+            await logJobFailure(supabase, jobName, errMsg);
+            return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        
+        try {
+            await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
+                method: "POST",
+                headers: {
+                    "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+                    "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal"
+                },
+                body: JSON.stringify({ engine: "groq", service_name: "auto-enrich-leads", requests_count: 1 })
+            });
+        } catch (e) {}
+
+        const resJson = await groqRes.json();
+        textOut = resJson.choices?.[0]?.message?.content?.trim() || "";
+        
+        if (!textOut) {
+            const errMsg = `Odpověď od Groq je prázdná.`;
+            await logJobFailure(supabase, jobName, errMsg);
+            return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+    } else {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1 } }) 
+        });
+
+        if (!geminiRes.ok) {
+          const errBody = await geminiRes.text();
+          const errMsg = `Chyba od Google API: ${errBody}`;
+          await logJobFailure(supabase, jobName, errMsg);
+          return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
+        try {
+            await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
+                method: "POST",
+                headers: {
+                    "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+                    "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal"
+                },
+                body: JSON.stringify({ engine: "gemini", service_name: "auto-enrich-leads", requests_count: 1 })
+            });
+        } catch (e) {}
+
+        const resJson = await geminiRes.json();
+        textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+        
+        if (!textOut) {
+           const finishReason = resJson.candidates?.[0]?.finishReason || "UNKNOWN_REASON";
+           const errMsg = `Odpověď od AI je prázdná (finishReason: ${finishReason}). Může se jednat o bezpečnostní filtr.`;
+           await logJobFailure(supabase, jobName, errMsg);
+           return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
     }
 
     // Odstranění formátování Markdownu
