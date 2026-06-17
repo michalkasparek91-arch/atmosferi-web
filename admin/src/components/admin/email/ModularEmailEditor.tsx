@@ -79,6 +79,22 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
   b2b: { label: "B2B / Ostatní", color: "bg-purple-100 text-purple-700 border-purple-200" },
 };
 
+function cleanCompanyName(name: string | null | undefined): string {
+  if (!name) return "";
+  let cleaned = name.replace(/\b(gmbh|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.)\b/gi, "").trim();
+  cleaned = cleaned.replace(/,\s*$/, "").trim();
+  
+  if (cleaned === cleaned.toUpperCase() && cleaned.match(/[A-Z]/)) {
+    cleaned = cleaned.split(" ").map(word => {
+      if (word.length > 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      }
+      return word;
+    }).join(" ");
+  }
+  return cleaned;
+}
+
 export const TEMPLATE_VARIABLES = [
   { key: "{{osloveni}}", label: "Oslovení (Vokativ)", desc: "Oslovení v 5. pádu (např. Petře)" },
   { key: "{{jmeno}}", label: "Jméno", desc: "Jméno osoby (ne firmy) — např. Petr Novák" },
