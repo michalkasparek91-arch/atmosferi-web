@@ -53,6 +53,10 @@ Deno.serve(async (req) => {
        if (configData.value.enrich_engine) enrichEngine = configData.value.enrich_engine;
     }
 
+    if (enrichEngine === "both") {
+       enrichEngine = Math.random() > 0.5 ? "gemini" : "groq";
+    }
+
     // Select oldest updated leads that need enrichment
     const { data: leads } = await supabase
       .from("marketing_leads")

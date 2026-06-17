@@ -31,6 +31,10 @@ Deno.serve(async (req) => {
        enrichEngine = configData.value.enrich_engine;
     }
 
+    if (enrichEngine === "both") {
+       enrichEngine = Math.random() > 0.5 ? "gemini" : "groq";
+    }
+
     // We process the enrichment asynchronously and immediately return success to not block the frontend
     // In Edge Functions on Deno Deploy, background tasks after response might get killed if not handled properly, 
     // but Deno Deploy allows `waitUntil` or returning the response while promise continues.

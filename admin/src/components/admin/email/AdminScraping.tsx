@@ -29,7 +29,7 @@ interface ScraperConfig {
   ai_batch_size?: number;
   use_gemini_engine?: boolean;
   use_groq_places_engine?: boolean;
-  enrich_engine?: "gemini" | "groq";
+  enrich_engine?: "gemini" | "groq" | "both";
 }
 
 const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
@@ -665,6 +665,7 @@ export const AdminScraping = () => {
                     <SelectContent className="rounded-xl text-[12px]">
                       <SelectItem value="gemini">Gemini (Google) - Chytrý, výchozí</SelectItem>
                       <SelectItem value="groq">Groq (Llama 3) - Rychlý</SelectItem>
+                      <SelectItem value="both">Obě (Střídat Gemini a Groq)</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-[10px] text-muted-foreground">Který AI model se má použít pro doplňování informací o firmách.</p>
