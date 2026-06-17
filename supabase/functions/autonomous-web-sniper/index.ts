@@ -134,7 +134,7 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
     let fetchErrors = 0;
     let noEmailFound = 0;
     
-    const promises = validPlaces.slice(0, 10).map(async (place: any) => { // limit na 10 pro jedno volání aby nedošlo k timeoutu
+    const promises = validPlaces.slice(0, 25).map(async (place: any) => { // Zvýšený limit na 25 pro Groq (Free tier zvládá 30 RPM)
         try {
             // fetch with timeout
             const controller = new AbortController();

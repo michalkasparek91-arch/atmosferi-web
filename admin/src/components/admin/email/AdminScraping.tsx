@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { TOP_CITIES_BY_COUNTRY } from "@/lib/city-regions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AiJobsMonitor } from "./AiJobsMonitor";
 import { ApiUsageStats } from "./ApiUsageStats";
 
@@ -670,27 +671,36 @@ export const AdminScraping = () => {
 
                 <div className="pt-4 mt-2 border-t border-border/50 space-y-4">
                   <Label className="font-bold text-sm">Engine pro obohacování dat (Enrichment)</Label>
-                  <p className="text-[10px] text-muted-foreground mb-3">Které modely se mají střídat při obohacování firem na pozadí.</p>
+                  <p className="text-[10px] text-muted-foreground mb-3">Které modely se mají používat při obohacování firem na pozadí.</p>
 
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-sm">Gemini (Google) - Chytrý</Label>
+                  <RadioGroup
+                    value={config.enrich_engine || "gemini"}
+                    onValueChange={(val: any) => {
+                      const updated = { ...config, enrich_engine: val };
+                      setConfig(updated);
+                      saveConfigMutation.mutate(updated);
+                    }}
+                    className="flex flex-col space-y-3"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="gemini" id="enrich-gemini" />
+                      <Label htmlFor="enrich-gemini" className="font-normal text-sm cursor-pointer">
+                        Pouze Gemini <span className="text-muted-foreground text-xs">(Chytrý)</span>
+                      </Label>
                     </div>
-                    <Switch 
-                      checked={config.enrich_engine === "gemini" || config.enrich_engine === "both" || !config.enrich_engine} 
-                      onCheckedChange={(c) => handleToggleEnrichEngine("gemini", c)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-sm">Groq (Llama 3) - Rychlý</Label>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="groq" id="enrich-groq" />
+                      <Label htmlFor="enrich-groq" className="font-normal text-sm cursor-pointer">
+                        Pouze Groq <span className="text-muted-foreground text-xs">(Rychlý)</span>
+                      </Label>
                     </div>
-                    <Switch 
-                      checked={config.enrich_engine === "groq" || config.enrich_engine === "both"} 
-                      onCheckedChange={(c) => handleToggleEnrichEngine("groq", c)}
-                    />
-                  </div>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="both" id="enrich-both" />
+                      <Label htmlFor="enrich-both" className="font-normal text-sm cursor-pointer">
+                        Střídat obě <span className="text-muted-foreground text-xs">(Polovina dotazů půjde na Gemini, polovina na Groq)</span>
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
             </CardContent>
