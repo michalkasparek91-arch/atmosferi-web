@@ -106,11 +106,14 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
     const resJson = await geminiRes.json();
     let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     
+    // Odstranění formátování Markdownu
+    textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
+
     const firstBracket = textOut.indexOf('[');
     const lastBracket = textOut.lastIndexOf(']');
     
     let extractedArray: any[] = [];
-    if (firstBracket !== -1 && lastBracket !== -1) {
+    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
       textOut = textOut.substring(firstBracket, lastBracket + 1);
       try {
         extractedArray = JSON.parse(textOut);

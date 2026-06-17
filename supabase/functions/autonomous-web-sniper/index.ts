@@ -135,6 +135,9 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
     const resJson = await geminiRes.json();
     let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     
+    // Odstranění formátování Markdownu
+    textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
+
     // Extrémně robustní čtení - najde první znak [ a poslední ] a zbytek osekne
     const firstBracket = textOut.indexOf('[');
     const lastBracket = textOut.lastIndexOf(']');
