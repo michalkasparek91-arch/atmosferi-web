@@ -92,7 +92,10 @@ export const TEMPLATE_VARIABLES = [
   { key: "{{zakaznik}}", label: "Zákazník", desc: "Jméno poptávajícího" },
   { key: "{{odkaz_zakazky}}", label: "Odkaz", desc: "URL na detail zakázky" },
   { key: "{{icebreaker}}", label: "Icebreaker", desc: "Individuální oslovení na míru" },
-  { key: "{{podkategorie_2pad}}", label: "Podkategorie - Skloněný tvar", desc: "Skloněný tvar podkategorie" }
+  { key: "{{podkategorie_2pad}}", label: "Podkategorie - Skloněný tvar", desc: "Skloněný tvar podkategorie" },
+  { key: "{{firma}}", label: "Firma / Studio", desc: "Název firmy nebo studia" },
+  { key: "{{studio}}", label: "Studio / Firma", desc: "Alternativa k {{firma}}" },
+  { key: "{{projekt}}", label: "Projekt", desc: "Název posledního projektu z webu" }
 ];
 
 export function parseRichTextToHtml(text?: string | null, textAlign: string = "left", isDark: boolean = false) {
@@ -1082,9 +1085,10 @@ export function ModularEmailEditorDialogInner({
       .replace(/{{nazev_zakazky}}/g, previewData.nazev_zakazky)
       .replace(/{{popis_zakazky}}/g, previewData.popis_zakazky)
       .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, previewData.cena_rozpocet)
-      .replace(/{{zakaznik}}|{{studio}}/g, previewData.zakaznik)
-      .replace(/{{projekt}}/g, previewData.projekt)
+      .replace(/{{zakaznik}}/g, previewData.zakaznik)
+      .replace(/{{projekt}}/g, previewData.projekt || "Národní muzeum")
       .replace(/{{odkaz_zakazky}}/g, previewData.odkaz_zakazky)
+      .replace(/{{firma}}|{{studio}}/g, previewData.firma || "Atmosferi Studio")
       .replace(/{{icebreaker}}/g, previewData.icebreaker);
   };
 

@@ -72,7 +72,10 @@ const TEMPLATE_VARIABLES = [
   { key: "{{zakaznik}}", label: "Zákazník", desc: "Jméno poptávajícího" },
   { key: "{{odkaz_zakazky}}", label: "Odkaz", desc: "URL na detail zakázky" },
   { key: "{{icebreaker}}", label: "Icebreaker", desc: "Individuální oslovení na míru" },
-  { key: "{{podkategorie_2pad}}", label: "Podkategorie - Skloněný tvar", desc: "Skloněný tvar podkategorie" }
+  { key: "{{podkategorie_2pad}}", label: "Podkategorie - Skloněný tvar", desc: "Skloněný tvar podkategorie" },
+  { key: "{{firma}}", label: "Firma / Studio", desc: "Název firmy nebo studia" },
+  { key: "{{studio}}", label: "Studio / Firma", desc: "Alternativa k {{firma}}" },
+  { key: "{{projekt}}", label: "Projekt", desc: "Název posledního projektu z webu" }
 ];
 
 function RichTextToolbar({ onInsert }: { onInsert: (before: string, after: string) => void }) {
@@ -882,6 +885,8 @@ export default function AdminEmails() {
       .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, priceNote || "15 000 Kč")
       .replace(/{{zakaznik}}/g, customerName || "Jan Novák")
       .replace(/{{odkaz_zakazky}}/g, ctaUrl || "https://zrobee.cz/sdilena-zakazka/123")
+      .replace(/{{firma}}|{{studio}}/g, "Atmosferi Studio")
+      .replace(/{{projekt}}/g, "Národní muzeum")
       .replace(/{{icebreaker}}/g, "Všimli jsme si vašeho skvělého profilu na Zrobee.");
   };
 

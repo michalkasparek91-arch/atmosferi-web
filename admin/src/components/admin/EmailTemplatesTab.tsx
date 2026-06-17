@@ -106,6 +106,8 @@ const previewReplaceGlobal = (txt: string | null | undefined) => {
     .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, "15 000 Kč")
     .replace(/{{zakaznik}}/g, "Jan")
     .replace(/{{odkaz_zakazky}}/g, "https://zrobee.cz/sdilena-zakazka/123")
+    .replace(/{{firma}}|{{studio}}/g, "Atmosferi Studio")
+    .replace(/{{projekt}}/g, "Národní muzeum")
     .replace(/{{icebreaker}}/g, "Všimli jsme si vašeho skvělého profilu na Zrobee.");
 };
 

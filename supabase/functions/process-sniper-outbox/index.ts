@@ -131,6 +131,7 @@ Deno.serve(async (req) => {
             .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, draft.job?.price_note || "Není stanovena")
             .replace(/{{zakaznik}}/g, "Zákazník")
             .replace(/{{projekt}}/g, draft.lead?.last_project || filters.project_fallback || "Váš projekt")
+            .replace(/{{firma}}|{{studio}}/g, companyName || name || "Vaše studio")
             .replace(/{{odkaz_zakazky}}/g, template.cta_url || "https://zrobee.cz");
         };
 
