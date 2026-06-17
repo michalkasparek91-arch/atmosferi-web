@@ -167,7 +167,7 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "llama3-70b-8192",
+                    model: "llama-3.3-70b-versatile",
                     messages: [
                         { role: "system", content: "You are a precise data extractor. Extract the requested info and return ONLY a valid JSON array. DO NOT wrap it in markdown or provide any other text." },
                         { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object exactly matching this format: [{"company_name": "${companyName}", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "", "premium_score": 50, "ai_icebreaker": "..."}]. If no email is found, return an empty array []. Text: ${html}` }

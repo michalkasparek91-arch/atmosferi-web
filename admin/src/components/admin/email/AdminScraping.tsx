@@ -209,6 +209,25 @@ export const AdminScraping = () => {
     saveConfigMutation.mutate(updated);
   };
 
+  const handleToggleEnrichEngine = (engine: "gemini" | "groq", checked: boolean) => {
+    let currentEnrich = config.enrich_engine || "gemini";
+    let isGemini = currentEnrich === "gemini" || currentEnrich === "both";
+    let isGroq = currentEnrich === "groq" || currentEnrich === "both";
+
+    if (engine === "gemini") isGemini = checked;
+    if (engine === "groq") isGroq = checked;
+
+    let newVal: "gemini" | "groq" | "both" = "gemini";
+    if (isGemini && isGroq) newVal = "both";
+    else if (isGemini) newVal = "gemini";
+    else if (isGroq) newVal = "groq";
+    else newVal = "gemini"; // fallback if both false
+
+    const updated = { ...config, enrich_engine: newVal };
+    setConfig(updated);
+    saveConfigMutation.mutate(updated);
+  };
+
   const handleAddKeyword = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newKeyword.trim()) return;
@@ -651,24 +670,27 @@ export const AdminScraping = () => {
 
                 <div className="pt-4 mt-2 border-t border-border/50 space-y-4">
                   <Label className="font-bold text-sm">Engine pro obohacování dat (Enrichment)</Label>
-                  <Select 
-                    value={config.enrich_engine || "gemini"} 
-                    onValueChange={(val: any) => {
-                      const updated = { ...config, enrich_engine: val };
-                      setConfig(updated);
-                      saveConfigMutation.mutate(updated);
-                    }}
-                  >
-                    <SelectTrigger className="h-10 rounded-xl">
-                      <SelectValue placeholder="Vyberte AI model" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl text-[12px]">
-                      <SelectItem value="gemini">Gemini (Google) - Chytrý, výchozí</SelectItem>
-                      <SelectItem value="groq">Groq (Llama 3) - Rychlý</SelectItem>
-                      <SelectItem value="both">Obě (Střídat Gemini a Groq)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground">Který AI model se má použít pro doplňování informací o firmách.</p>
+                  <p className="text-[10px] text-muted-foreground mb-3">Které modely se mají střídat při obohacování firem na pozadí.</p>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm">Gemini (Google) - Chytrý</Label>
+                    </div>
+                    <Switch 
+                      checked={config.enrich_engine === "gemini" || config.enrich_engine === "both" || !config.enrich_engine} 
+                      onCheckedChange={(c) => handleToggleEnrichEngine("gemini", c)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm">Groq (Llama 3) - Rychlý</Label>
+                    </div>
+                    <Switch 
+                      checked={config.enrich_engine === "groq" || config.enrich_engine === "both"} 
+                      onCheckedChange={(c) => handleToggleEnrichEngine("groq", c)}
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>

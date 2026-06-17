@@ -114,7 +114,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         }
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
-            body: JSON.stringify({ model: "llama3-70b-8192", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+            body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
         });
         
         if (!groqRes.ok) {
