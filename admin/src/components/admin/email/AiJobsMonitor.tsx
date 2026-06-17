@@ -149,10 +149,17 @@ export const AiJobsMonitor = () => {
                   )}
 
                   {job.metadata && job.last_run_status === 'success' && (
-                    <div className="mt-1 text-[10px] text-muted-foreground flex gap-2">
-                      {job.metadata.processed !== undefined && <span>Zpracováno: {job.metadata.processed}</span>}
-                      {job.metadata.updated !== undefined && <span>Aktualizováno: {job.metadata.updated}</span>}
-                      {job.metadata.discovered_count !== undefined && <span>Nalezeno: {job.metadata.discovered_count}</span>}
+                    <div className="mt-1 flex flex-col gap-1">
+                      <div className="text-[10px] text-muted-foreground flex gap-2">
+                        {job.metadata.processed !== undefined && <span>Zpracováno: {job.metadata.processed}</span>}
+                        {job.metadata.updated !== undefined && <span>Aktualizováno: {job.metadata.updated}</span>}
+                        {job.metadata.discovered_count !== undefined && <span>Nalezeno: {job.metadata.discovered_count}</span>}
+                      </div>
+                      {job.metadata.debug_output && (
+                        <div className="text-[9px] text-muted-foreground/70 italic border-l-2 border-primary/20 pl-2 mt-1">
+                          {job.metadata.debug_output}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
