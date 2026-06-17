@@ -79,7 +79,10 @@ Deno.serve(async (req) => {
         // decision_maker_name = actual person's name (e.g. "Jan Novák")
         // full_name = usually same as company for AI-scraped leads
         // company_name = company — use only as last resort
-        const personName = draft.worker?.full_name || draft.lead?.decision_maker_name;
+        let personName = draft.worker?.full_name || draft.lead?.decision_maker_name;
+        if (personName?.trim().toLowerCase() === "studio") {
+          personName = null;
+        }
         const companyName = draft.lead?.company_name || draft.lead?.full_name;
         
         let name = "Neznámý";
