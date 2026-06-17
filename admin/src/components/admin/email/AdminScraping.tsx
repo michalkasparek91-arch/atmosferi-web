@@ -26,6 +26,8 @@ interface ScraperConfig {
   prompt_template?: string;
   ai_rpm_limit?: number;
   ai_batch_size?: number;
+  use_gemini_engine?: boolean;
+  use_groq_places_engine?: boolean;
 }
 
 const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
@@ -47,7 +49,9 @@ const DEFAULT_CONFIG: ScraperConfig = {
   active_countries: [],
   prompt_template: DEFAULT_PROMPT,
   ai_rpm_limit: 5,
-  ai_batch_size: 50
+  ai_batch_size: 50,
+  use_gemini_engine: true,
+  use_groq_places_engine: false
 };
 
 export const AdminScraping = () => {
@@ -95,7 +99,9 @@ export const AdminScraping = () => {
         active_countries: serverConfig.active_countries || [],
         prompt_template: serverConfig.prompt_template || DEFAULT_PROMPT,
         ai_rpm_limit: serverConfig.ai_rpm_limit || 5,
-        ai_batch_size: serverConfig.ai_batch_size || 50
+        ai_batch_size: serverConfig.ai_batch_size || 50,
+        use_gemini_engine: serverConfig.use_gemini_engine !== false,
+        use_groq_places_engine: serverConfig.use_groq_places_engine === true
       });
       setSelectedKeywords(serverConfig.active_keywords || []);
       setSelectedCities(serverConfig.active_cities || []);
@@ -188,6 +194,14 @@ export const AdminScraping = () => {
 
   const handleToggleEnabled = (checked: boolean) => {
     const updated = { ...config, is_enabled: checked };
+    setConfig(updated);
+    saveConfigMutation.mutate(updated);
+  };
+
+  const handleToggleEngine = (engine: "gemini" | "groq", checked: boolean) => {
+    const updated = { ...config };
+    if (engine === "gemini") updated.use_gemini_engine = checked;
+    if (engine === "groq") updated.use_groq_places_engine = checked;
     setConfig(updated);
     saveConfigMutation.mutate(updated);
   };
@@ -288,11 +302,25 @@ export const AdminScraping = () => {
       const rpm = config.ai_rpm_limit || 5;
       const delayMs = 60000 / rpm;
       
+      const activeEngines = [];
+      if (config.use_gemini_engine !== false) activeEngines.push("gemini");
+      if (config.use_groq_places_engine === true) activeEngines.push("groq_places");
+
+      if (activeEngines.length === 0) {
+        toast.error("Není zapnutý žádný vyhledávací engine (Gemini ani Groq).");
+        setIsSearching(false);
+        return;
+      }
+
       for (let i = 0; i < 3; i++) {
+        // distribute between engines
+        const engineToUse = activeEngines[i % activeEngines.length];
+
         promises.push(
           supabase.functions.invoke("autonomous-web-sniper", {
             body: { 
               forceSearch: true,
+              engine: engineToUse,
               targetKeywords: selectedKeywords.length > 0 ? selectedKeywords : undefined,
               targetCities: selectedCities.length > 0 ? selectedCities : undefined,
               targetCountries: selectedCountries.length > 0 ? selectedCountries : undefined
@@ -591,6 +619,32 @@ export const AdminScraping = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] text-muted-foreground">Tímto nastavíte, jak často se má na pozadí spustit AI sběr.</p>
+              </div>
+
+              <div className="pt-4 border-t border-border/50 flex flex-col gap-4">
+                <Label className="font-bold text-sm">Vyhledávací Enginy</Label>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-sm">Gemini + Google Search</Label>
+                    <p className="text-[10px] text-muted-foreground">Používá Google Grounding pro hledání. Dražší, ale chytré.</p>
+                  </div>
+                  <Switch 
+                    checked={config.use_gemini_engine !== false} 
+                    onCheckedChange={(c) => handleToggleEngine("gemini", c)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-sm">Groq + Google Places</Label>
+                    <p className="text-[10px] text-muted-foreground">Používá Places API a rychlý LLaMA model. Levnější varianta.</p>
+                  </div>
+                  <Switch 
+                    checked={config.use_groq_places_engine === true} 
+                    onCheckedChange={(c) => handleToggleEngine("groq", c)}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
