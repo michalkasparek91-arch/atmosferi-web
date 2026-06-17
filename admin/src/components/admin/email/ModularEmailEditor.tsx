@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Mail, Save, X, Trash2, Send, Loader2, Bold, Italic, List, Link, 
@@ -258,7 +259,7 @@ export function ModularLivePreview({
             
               <div style={{ padding: "32px" }}>
 
-              <div style={{ fontSize: "14px", lineHeight: "1.6", color: ink, marginBottom: "0px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || ""), "left", isDark) }} />
+              <div style={{ fontSize: "14px", lineHeight: "1.6", color: ink, marginBottom: "0px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(activeBody || ""), "left", isDark) }} />
               
               {!!form.segment_filters?.services_widget_enabled && (
                 <div style={{ margin: "24px 0", padding: "20px 24px", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}`, backgroundColor: isDark ? "#1f1f1d" : "#f5f3ec", textAlign: "left" }}>
@@ -365,7 +366,7 @@ export function ModularLivePreview({
         {/* 4. Body */}
         <div 
           className="text-[16px] leading-[1.6] text-center mb-6"
-          dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || "Zde bude text e-mailu..."), "center", isDark) }}
+          dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(activeBody || "Zde bude text e-mailu..."), "center", isDark) }}
         />
 
         {/* 5. Button */}
@@ -405,7 +406,7 @@ export function ModularLivePreview({
           Čistý e-mail (Čistý text)
         </div>
         <div className="whitespace-pre-wrap leading-relaxed">
-          {previewReplace(form.body || "")}\n\n
+          {previewReplace(activeBody || "")}\n\n
           {form.cta_text && form.cta_text !== "none" && `[ ${previewReplace(form.cta_text)} ] -> ${previewReplace(form.cta_url || "")}\n`}
           {form.secondary_text && `\n${previewReplace(form.secondary_text)}\n`}
           {form.ps_footer_enabled && `\nP.S. ${previewReplace(form.ps_footer_text || "")}`}
@@ -547,7 +548,7 @@ export function ModularLivePreview({
         } ${
           form.segment_filters?.text_align === "center" ? "text-center" : "text-left"
         }`} 
-        dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(form.body || "Zde bude text vašeho e-mailu..."), form.segment_filters?.text_align || "left", isDark) }}
+        dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(activeBody || "Zde bude text vašeho e-mailu..."), form.segment_filters?.text_align || "left", isDark) }}
       />
 
       {/* 6.5 Co děláme (Služby) */}
@@ -1042,8 +1043,30 @@ export function ModularEmailEditorDialogInner({
         defaultData.obor_2pad = selectedJob.service_subcategories.category_form || selectedJob.service_subcategories.name || defaultData.obor_2pad;
       }
     }
+    
+    if (simulateCompanyOnly) {
+       let companyName = "Ukázková Firma s.r.o.";
+       if (selectedJob && (selectedJob as any).company_name) {
+          companyName = (selectedJob as any).company_name;
+       } else if (selectedJob && selectedJob.customer_name) {
+          companyName = selectedJob.customer_name;
+       }
+       const lang = form?.language || 'cz';
+       let simName = `týme z ${companyName}`;
+       if (lang === 'de') simName = `Team von ${companyName}`;
+       if (lang === 'en') simName = `Team at ${companyName}`;
+       
+       defaultData.osloveni = simName.split(" ")[0] || "týme";
+       defaultData.jmeno = simName;
+    }
+    
+    // Přepis projekt fallbacku, pokud je v segment filters
+    if (defaultData.projekt === "Váš projekt" && form?.segment_filters?.project_fallback) {
+      defaultData.projekt = form.segment_filters.project_fallback;
+    }
+
     return defaultData;
-  }, [selectedJob, form, mode]);
+  }, [selectedJob, form, mode, simulateCompanyOnly]);
 
   const previewReplace = (txt: string | null | undefined) => {
     if (!txt) return "";
@@ -1470,6 +1493,32 @@ export function ModularEmailEditorDialogInner({
                   </div>
                   <Textarea ref={textareaRef} value={form.body || ""} onChange={(e) => setVal("body", e.target.value)} onFocus={() => setActiveField("body")} className="min-h-[120px] text-xs" />
                   
+                  {/* Tělo B (Fallback) */}
+                  <div className="space-y-1 mt-4 p-3 bg-muted/20 border border-border/50 rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-[11px] font-bold text-foreground">Alternativní text (pokud chybí jméno)</Label>
+                      <span className="text-[10px] text-muted-foreground font-medium">Volitelné</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mb-2">Tento text se použije automaticky místo hlavního textu, pokud se AI nepodaří najít jméno kontaktní osoby a odesílá se pouze na firmu (např. "Team von Firm").</p>
+                    <Textarea 
+                      value={form.segment_filters?.body_fallback || ""} 
+                      onChange={(e) => setSegmentFilter("body_fallback", e.target.value)} 
+                      onFocus={() => setActiveField("body_fallback")} 
+                      placeholder="Nechte prázdné pro použití hlavního textu i pro firmy..." 
+                      className="min-h-[100px] text-xs bg-background" 
+                    />
+                  </div>
+
+                  {/* Projekt Fallback */}
+                  <div className="space-y-1 mt-4">
+                    <Label className="text-[11px] font-medium text-muted-foreground/80">Náhradní text pro {'{{projekt}}'}</Label>
+                    <Input 
+                      value={form.segment_filters?.project_fallback || ""} 
+                      onChange={(e) => setSegmentFilter("project_fallback", e.target.value)} 
+                      placeholder="Např. Váš projekt" 
+                      className="h-8 text-xs bg-background" 
+                    />
+                  </div>
 
 
                   {/* Doplňkový text pod e-mailem */}
