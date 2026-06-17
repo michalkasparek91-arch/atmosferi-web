@@ -825,6 +825,7 @@ export function ModularEmailEditorDialogInner({
   const [activeField, setActiveField] = useState<string | null>(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<"content" | "widgets" | "settings">("content");
+  const [simulateCompanyOnly, setSimulateCompanyOnly] = useState(false);
   const [mobileView, setMobileView] = useState<"editor" | "preview">("editor");
   const [showServicesConfig, setShowServicesConfig] = useState(false);
 

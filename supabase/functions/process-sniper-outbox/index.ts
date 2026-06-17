@@ -98,16 +98,26 @@ Deno.serve(async (req) => {
         }
         const isWorker = !!draft.worker;
 
+        let filters: any = {};
+        if (typeof template.segment_filters === "string") {
+          try { filters = JSON.parse(template.segment_filters); } catch(e) {}
+        } else if (template.segment_filters && typeof template.segment_filters === "object") {
+          filters = template.segment_filters;
+        }
+
+        const isCompanyOnly = !personName && !!companyName;
+        const activeBody = (isCompanyOnly && filters.body_fallback) ? filters.body_fallback : (template.body || "");
+
         const bodyWithIcebreaker = draft.icebreaker 
-          ? (template.body?.includes("{{icebreaker}}") 
-            ? template.body.replace(/{{icebreaker}}/g, draft.icebreaker)
-            : `${draft.icebreaker}\n\n${template.body || ""}`)
-          : (template.body || "");
+          ? (activeBody.includes("{{icebreaker}}") 
+            ? activeBody.replace(/{{icebreaker}}/g, draft.icebreaker)
+            : `${draft.icebreaker}\n\n${activeBody}`)
+          : (activeBody);
 
         const replaceVars = (txt: string | null | undefined) => {
           if (!txt) return "";
           return txt
-            .replace(/{{osloveni}}/g, "Petře") // Mock or real parsing if needed
+            .replace(/{{osloveni}}/g, name.split(" ")[0]) // better parsing of name for osloveni
             .replace(/{{jmeno}}/g, name)
             .replace(/{{mesto_v_meste}}/g, draft.job?.city ? `v ${draft.job.city}` : "v okolí")
             .replace(/{{mesto}}/g, draft.job?.city || "Vaše město")
@@ -117,16 +127,9 @@ Deno.serve(async (req) => {
             .replace(/{{popis_zakazky}}/g, draft.job?.description || "")
             .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, draft.job?.price_note || "Není stanovena")
             .replace(/{{zakaznik}}/g, "Zákazník")
-            .replace(/{{projekt}}/g, draft.lead?.last_project || "Váš projekt")
+            .replace(/{{projekt}}/g, draft.lead?.last_project || filters.project_fallback || "Váš projekt")
             .replace(/{{odkaz_zakazky}}/g, template.cta_url || "https://zrobee.cz");
         };
-
-        let filters: any = {};
-        if (typeof template.segment_filters === "string") {
-          try { filters = JSON.parse(template.segment_filters); } catch(e) {}
-        } else if (template.segment_filters && typeof template.segment_filters === "object") {
-          filters = template.segment_filters;
-        }
 
         const result = await sendEmail({
           from: template.sender_email,
