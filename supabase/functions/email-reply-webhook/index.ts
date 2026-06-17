@@ -69,6 +69,19 @@ Odpověz POUZE JSON objektem, ničím jiným.`;
       });
 
       if (geminiRes.ok) {
+        try {
+            await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
+                method: "POST",
+                headers: {
+                    "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+                    "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal"
+                },
+                body: JSON.stringify({ engine: "gemini", service_name: "email-reply-webhook", requests_count: 1 })
+            });
+        } catch (e) {}
+
         const resJson = await geminiRes.json();
         const textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
         

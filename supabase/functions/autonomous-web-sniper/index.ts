@@ -76,6 +76,20 @@ async function runGeminiEngine(targetCountry: string, targetKeyword: string, tar
 
     try { 
       const parsed = JSON.parse(textOut);
+      // Log api usage
+      try {
+         await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
+             method: "POST",
+             headers: {
+                 "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+                 "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
+                 "Content-Type": "application/json",
+                 "Prefer": "return=minimal"
+             },
+             body: JSON.stringify({ engine: "gemini", service_name: "autonomous-web-sniper", requests_count: 1 })
+         });
+      } catch(e) {}
+      
       return { discoveredList: parsed };
     } catch (e: any) { 
       return { error: `JSON CHYBA: ${e.message}. Úryvek: ${textOut.substring(0, 500)}` };
@@ -83,11 +97,11 @@ async function runGeminiEngine(targetCountry: string, targetKeyword: string, tar
 }
 
 async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string, targetCity: string): Promise<{ discoveredList?: any[], error?: string }> {
-    const placesKey = Deno.env.get("GOOGLE_PLACES_API_KEY");
+    const placesKey = Deno.env.get("GOOGLE_PLACES_API_KEY") || Deno.env.get("GOOGLE_MAPS_API_KEY");
     const groqKey = Deno.env.get("GROQ_API_KEY");
     
     if (!placesKey || !groqKey) {
-        return { error: "Chybí GOOGLE_PLACES_API_KEY nebo GROQ_API_KEY v Supabase Secrets!" };
+        return { error: "Chybí GOOGLE_PLACES_API_KEY (nebo GOOGLE_MAPS_API_KEY) či GROQ_API_KEY v Supabase Secrets!" };
     }
 
     // 1. Vyhledání přes Google Places API
@@ -156,6 +170,20 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
             });
 
             if (groqRes.ok) {
+                // Log api usage
+                try {
+                   await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
+                       method: "POST",
+                       headers: {
+                           "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+                           "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
+                           "Content-Type": "application/json",
+                           "Prefer": "return=minimal"
+                       },
+                       body: JSON.stringify({ engine: "groq", service_name: "autonomous-web-sniper", requests_count: 1 })
+                   });
+                } catch(e) {}
+
                 const groqData = await groqRes.json();
                 let textOut = groqData.choices?.[0]?.message?.content || "";
                 textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();

@@ -117,6 +117,14 @@ Měsíc: ${context.date}`;
     throw new Error(`Gemini API error ${geminiRes.status}: ${errText}`);
   }
 
+  try {
+      await supabase.from("api_usage_logs").insert({
+          engine: "gemini",
+          service_name: "marketing-utils-newsletter",
+          requests_count: 1
+      });
+  } catch(e) {}
+
   const geminiData = await geminiRes.json();
   const rawContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!rawContent) throw new Error("AI nevrátila obsah.");

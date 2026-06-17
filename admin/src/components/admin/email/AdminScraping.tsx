@@ -14,6 +14,7 @@ import { TOP_CITIES_BY_COUNTRY } from "@/lib/city-regions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { AiJobsMonitor } from "./AiJobsMonitor";
+import { ApiUsageStats } from "./ApiUsageStats";
 
 interface ScraperConfig {
   is_enabled: boolean;
@@ -396,6 +397,7 @@ export const AdminScraping = () => {
       </div>
 
       <AiJobsMonitor />
+      <ApiUsageStats />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
