@@ -1052,9 +1052,26 @@ export function ModularEmailEditorDialogInner({
     } else if (selectedJob) {
       if (selectedJob.customer_name) {
         const cName = cleanCompanyName(selectedJob.customer_name);
-        defaultData.jmeno = cName;
+        const lang = form?.language || 'cz';
+        const isCompany = cName.toLowerCase().match(/architekten|studio|atelier|gmbh|s\.r\.o|a\.s|ltd|inc|llc|partners/);
+        
+        if (isCompany) {
+           if (lang === 'de') {
+               defaultData.jmeno = `liebes Team von ${cName}`;
+               defaultData.osloveni = "týme";
+           } else if (lang === 'en') {
+               defaultData.jmeno = `Team at ${cName}`;
+               defaultData.osloveni = "team";
+           } else {
+               defaultData.jmeno = `týme z ${cName}`;
+               defaultData.osloveni = "týme";
+           }
+        } else {
+           defaultData.jmeno = cName;
+           defaultData.osloveni = cName.split(" ")[0];
+        }
+        
         defaultData.zakaznik = cName;
-        defaultData.osloveni = cName.split(" ")[0];
         defaultData.firma = cName;
       }
       defaultData.mesto = selectedJob.city || defaultData.mesto;
