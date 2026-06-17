@@ -30,7 +30,8 @@ interface ScraperConfig {
   ai_batch_size?: number;
   use_gemini_engine?: boolean;
   use_groq_places_engine?: boolean;
-  enrich_engine?: "gemini" | "groq" | "both";
+  use_openrouter_engine?: boolean;
+  enrich_engine?: "gemini" | "groq" | "openrouter" | "both";
 }
 
 const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
@@ -53,6 +54,7 @@ const DEFAULT_CONFIG: ScraperConfig = {
   prompt_template: DEFAULT_PROMPT,
   ai_rpm_limit: 5,
   ai_batch_size: 50,
+  use_openrouter_engine: false,
   use_gemini_engine: true,
   use_groq_places_engine: false,
   enrich_engine: "gemini"
