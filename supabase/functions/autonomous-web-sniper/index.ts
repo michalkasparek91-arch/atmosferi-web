@@ -135,6 +135,13 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
     const resJson = await geminiRes.json();
     let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     
+    if (!textOut) {
+       const finishReason = resJson.candidates?.[0]?.finishReason || "UNKNOWN_REASON";
+       const errMsg = `Odpověď od AI je prázdná (finishReason: ${finishReason}). Může se jednat o bezpečnostní filtr nebo chybu generování.`;
+       await logJobFailure(supabase, jobName, errMsg);
+       return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    
     // Odstranění formátování Markdownu
     textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
 

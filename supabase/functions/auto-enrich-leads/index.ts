@@ -106,6 +106,13 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
     const resJson = await geminiRes.json();
     let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     
+    if (!textOut) {
+       const finishReason = resJson.candidates?.[0]?.finishReason || "UNKNOWN_REASON";
+       const errMsg = `Odpověď od AI je prázdná (finishReason: ${finishReason}). Může se jednat o bezpečnostní filtr.`;
+       await logJobFailure(supabase, jobName, errMsg);
+       return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Odstranění formátování Markdownu
     textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
 
