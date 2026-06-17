@@ -994,7 +994,23 @@ export function ModularEmailEditorDialogInner({
     };
     
     if (mode === "outbox" && form) {
-      const name = form.recipient_name || "kolego";
+      const personName = form.worker?.full_name || form.lead?.decision_maker_name;
+      const companyName = form.lead?.company_name || form.lead?.full_name;
+      
+      let name = form.recipient_name || "kolego";
+      if (personName) {
+        name = personName;
+      } else if (companyName) {
+        const lang = form.language || 'cz';
+        if (lang === 'de') {
+          name = `Team von ${companyName}`;
+        } else if (lang === 'en') {
+          name = `Team at ${companyName}`;
+        } else {
+          name = `týme z ${companyName}`;
+        }
+      }
+
       defaultData.osloveni = name.split(" ")[0] || "kolego";
       defaultData.jmeno = name;
       

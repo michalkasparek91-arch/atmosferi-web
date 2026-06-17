@@ -79,7 +79,23 @@ Deno.serve(async (req) => {
         // decision_maker_name = actual person's name (e.g. "Jan Novák")
         // full_name = usually same as company for AI-scraped leads
         // company_name = company — use only as last resort
-        const name = draft.worker?.full_name || draft.lead?.decision_maker_name || draft.lead?.full_name || draft.lead?.company_name || "Neznámý";
+        const personName = draft.worker?.full_name || draft.lead?.decision_maker_name;
+        const companyName = draft.lead?.company_name || draft.lead?.full_name;
+        
+        let name = "Neznámý";
+        if (personName) {
+          name = personName;
+        } else if (companyName) {
+          const lang = template.language || 'cz';
+          if (lang === 'de') {
+            name = `Team von ${companyName}`;
+          } else if (lang === 'en') {
+            name = `Team at ${companyName}`;
+          } else {
+            // CZ/SK fallback
+            name = `týme z ${companyName}`;
+          }
+        }
         const isWorker = !!draft.worker;
 
         const bodyWithIcebreaker = draft.icebreaker 
@@ -104,6 +120,13 @@ Deno.serve(async (req) => {
             .replace(/{{odkaz_zakazky}}/g, template.cta_url || "https://zrobee.cz");
         };
 
+        let filters: any = {};
+        if (typeof template.segment_filters === "string") {
+          try { filters = JSON.parse(template.segment_filters); } catch(e) {}
+        } else if (template.segment_filters && typeof template.segment_filters === "object") {
+          filters = template.segment_filters;
+        }
+
         const result = await sendEmail({
           from: template.sender_email,
           to: recipientEmail,
@@ -126,6 +149,11 @@ Deno.serve(async (req) => {
           psFooterEnabled: template.ps_footer_enabled ?? false,
           showJobWidget: template.show_job_widget ?? false,
           showCtaButton: template.show_cta_button ?? true,
+          signatureGreeting: filters.signature_greeting,
+          signatureRole: filters.signature_role,
+          signatureEmail: filters.signature_email,
+          heroCaption: filters.hero_caption,
+          heroTagline: filters.hero_tagline,
         });
 
         if (result.success) {
