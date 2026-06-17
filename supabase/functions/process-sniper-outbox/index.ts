@@ -76,7 +76,10 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const name = draft.worker?.full_name || draft.lead?.company_name || draft.lead?.full_name || "Neznámý";
+        // decision_maker_name = actual person's name (e.g. "Jan Novák")
+        // full_name = usually same as company for AI-scraped leads
+        // company_name = company — use only as last resort
+        const name = draft.worker?.full_name || draft.lead?.decision_maker_name || draft.lead?.full_name || draft.lead?.company_name || "Neznámý";
         const isWorker = !!draft.worker;
 
         const bodyWithIcebreaker = draft.icebreaker 

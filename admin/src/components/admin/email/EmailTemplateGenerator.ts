@@ -6,6 +6,7 @@ export interface EmailTemplateData {
   heroImageEnabled: boolean;
   heroImageUrl: string;
   heroCaption: string;
+  heroTagline?: string;
   portfolioEnabled: boolean;
   portfolioImages: string[];
   icebreakerEnabled: boolean;
@@ -77,9 +78,13 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
       <tr>
         ${data.signatureAvatarUrl ? `
           <td width="48" valign="top" style="padding-right: 16px;">
-            <img src="${data.signatureAvatarUrl}" alt="Avatar" width="40" height="40" style="display: block; border-radius: 50%;" />
+            <img src="${data.signatureAvatarUrl}" alt="Avatar" width="44" height="44" style="display: block; border-radius: 50%; object-fit: cover; object-position: center top;" />
           </td>
-        ` : ''}
+        ` : `
+          <td width="48" valign="top" style="padding-right: 16px;">
+            <img src="https://atmosferi.com/img/michal.jpg" alt="Michal Kašpárek" width="44" height="44" style="display: block; border-radius: 50%; object-fit: cover; object-position: center top;" />
+          </td>
+        `}
         <td style="font-family: 'Geist', system-ui, sans-serif; font-size: 11px; line-height: 1.5; color: #807C72;">
           <span style="display:block; margin-bottom: 2px;">S pozdravem</span>
           <strong style="color: #16140F; font-size: 13px;">${data.signatureName}</strong><br/>
@@ -115,7 +120,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
           <tr>
             <td style="background-color: #16140F; padding: 16px 24px; color: #EFEDE6;">
               <span style="font-family: 'Geist', system-ui, sans-serif; font-size: 18px; font-weight: 600; letter-spacing: -0.02em;">Atmosferi<sup style="color: #D97757; font-size: 0.6em;">&deg;</sup></span>
-              <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 9px; letter-spacing: 0.18em; opacity: 0.6; margin-left: 14px; border-left: 1px solid rgba(244,242,236,0.3); padding-left: 14px;">WEB A VIZUALIZACE</span>
+              <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 9px; letter-spacing: 0.18em; opacity: 0.6; margin-left: 14px; border-left: 1px solid rgba(244,242,236,0.3); padding-left: 14px;">${data.heroTagline || "WEB A VIZUALIZACE"}</span>
             </td>
           </tr>
           ${heroHtml}

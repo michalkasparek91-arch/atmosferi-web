@@ -45,6 +45,7 @@ export interface EmailEditorState {
   layout_type?: string;
   hero_image_url?: string | null;
   hero_caption?: string | null;
+  hero_tagline?: string | null;
   signature_avatar_url?: string | null;
   stealth_tracking_enabled?: boolean;
   urgency_banner_enabled?: boolean;
@@ -79,7 +80,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
 
 export const TEMPLATE_VARIABLES = [
   { key: "{{osloveni}}", label: "Oslovení (Vokativ)", desc: "Oslovení v 5. pádu (např. Petře)" },
-  { key: "{{jmeno}}", label: "Jméno", desc: "Jméno příjemce v 1. pádu" },
+  { key: "{{jmeno}}", label: "Jméno", desc: "Jméno osoby (ne firmy) — např. Petr Novák" },
   { key: "{{mesto}}", label: "Město", desc: "Město zakázky nebo profíka (1. pád)" },
   { key: "{{mesto_v_meste}}", label: "Město (v/ve)", desc: "Město s předložkou v/ve (např. v Praze)" },
   { key: "{{obor}}", label: "Obor", desc: "Obor / Specializace (1. pád)" },
@@ -243,7 +244,7 @@ export function ModularLivePreview({
           <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: panel, overflow: "hidden", color: ink }}>
             <div style={{ backgroundColor: "#16140F", padding: "16px 24px", color: "#EFEDE6", display: "flex", alignItems: "center" }}>
               <span style={{ fontFamily: "'Geist', system-ui, sans-serif", fontSize: "18px", fontWeight: 600, letterSpacing: "-0.02em" }}>Atmosferi<sup style={{ color: "#D97757", fontSize: "0.6em" }}>&deg;</sup></span>
-              <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "9px", letterSpacing: "0.18em", opacity: 0.6, marginLeft: "14px", borderLeft: "1px solid rgba(244,242,236,0.3)", paddingLeft: "14px", textTransform: "uppercase" }}>WEB A VIZUALIZACE</span>
+              <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "9px", letterSpacing: "0.18em", opacity: 0.6, marginLeft: "14px", borderLeft: "1px solid rgba(244,242,236,0.3)", paddingLeft: "14px", textTransform: "uppercase" }}>{form.hero_tagline || "WEB A VIZUALIZACE"}</span>
             </div>
 
             {form.hero_image_url && (
@@ -302,7 +303,7 @@ export function ModularLivePreview({
               )}
               
               <div style={{ display: "flex", alignItems: "center", marginTop: "32px", borderTop: `1px solid ${isDark ? "#444" : "rgba(22,20,15,0.12)"}`, paddingTop: "24px", color: muted, fontSize: "11px", lineHeight: "1.5" }}>
-                <img src="https://avatars.githubusercontent.com/michalkasparek91" alt="Michal Kašpárek" style={{ width: "44px", height: "44px", borderRadius: "50%", marginRight: "16px", display: "block", objectFit: "cover" }} />
+                <img src="https://atmosferi.com/img/michal.jpg" alt="Michal Kašpárek" style={{ width: "44px", height: "44px", borderRadius: "50%", marginRight: "16px", display: "block", objectFit: "cover", objectPosition: "center top" }} />
                 <div>
                   <span style={{ display: "block", marginBottom: "0px", color: ink }}>{form.signature_greeting || "S pozdravem"}</span>
                   <strong style={{ color: ink, fontSize: "13px", fontWeight: 700 }}>Ing. arch. Michal Kašpárek</strong><br/>
@@ -1492,6 +1493,13 @@ export function ModularEmailEditorDialogInner({
                             className="h-8 text-xs bg-background/50 border-border/50"
                             placeholder="https://..."
                           />
+                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mt-2 block">Popis pod obrázkem (Caption)</Label>
+                          <Input 
+                            value={form.hero_caption || ""} 
+                            onChange={(e) => setForm({ ...form, hero_caption: e.target.value })} 
+                            className="h-8 text-xs bg-background/50 border-border/50"
+                            placeholder="UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°"
+                          />
                         </div>
                       )}
                     </div>
@@ -1521,6 +1529,15 @@ export function ModularEmailEditorDialogInner({
                             onChange={(e) => setForm({ ...form, signature_role: e.target.value })} 
                             className="h-8 text-xs bg-background/50 border-border/50 mt-1"
                             placeholder="web a vizualizace pro architekturu"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Tagline v hlavičce (vedle loga)</Label>
+                          <Input 
+                            value={form.hero_tagline ?? "WEB A VIZUALIZACE"} 
+                            onChange={(e) => setForm({ ...form, hero_tagline: e.target.value })} 
+                            className="h-8 text-xs bg-background/50 border-border/50 mt-1"
+                            placeholder="WEB A VIZUALIZACE"
                           />
                         </div>
                       </div>
