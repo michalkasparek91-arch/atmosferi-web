@@ -45,7 +45,13 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Select 50 oldest updated leads that need enrichment
+    const { data: configData } = await supabase.from("app_settings").select("value").eq("key", "scraper_config").maybeSingle();
+    let batchSize = 50;
+    if (configData && configData.value && configData.value.ai_batch_size) {
+       batchSize = configData.value.ai_batch_size;
+    }
+
+    // Select oldest updated leads that need enrichment
     const { data: leads } = await supabase
       .from("marketing_leads")
       .select("id, email, full_name, company_name, website, city, category, updated_at")
@@ -53,7 +59,7 @@ Deno.serve(async (req) => {
       .neq("website", "")
       .or("city.is.null,category.is.null")
       .order("updated_at", { ascending: true, nullsFirst: true })
-      .limit(50);
+      .limit(batchSize);
 
     if (!leads || leads.length === 0) {
       await logJobSuccess(supabase, jobName, { message: "No more leads to enrich" });

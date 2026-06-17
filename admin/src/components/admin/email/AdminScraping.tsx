@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TOP_CITIES_BY_COUNTRY } from "@/lib/city-regions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { AiJobsMonitor } from "./AiJobsMonitor";
 
 interface ScraperConfig {
@@ -23,6 +24,8 @@ interface ScraperConfig {
   active_cities?: string[];
   active_countries?: string[];
   prompt_template?: string;
+  ai_rpm_limit?: number;
+  ai_batch_size?: number;
 }
 
 const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
@@ -42,7 +45,9 @@ const DEFAULT_CONFIG: ScraperConfig = {
   active_keywords: [],
   active_cities: [],
   active_countries: [],
-  prompt_template: DEFAULT_PROMPT
+  prompt_template: DEFAULT_PROMPT,
+  ai_rpm_limit: 5,
+  ai_batch_size: 50
 };
 
 export const AdminScraping = () => {
@@ -88,7 +93,9 @@ export const AdminScraping = () => {
         active_keywords: serverConfig.active_keywords || [],
         active_cities: serverConfig.active_cities || [],
         active_countries: serverConfig.active_countries || [],
-        prompt_template: serverConfig.prompt_template || DEFAULT_PROMPT
+        prompt_template: serverConfig.prompt_template || DEFAULT_PROMPT,
+        ai_rpm_limit: serverConfig.ai_rpm_limit || 5,
+        ai_batch_size: serverConfig.ai_batch_size || 50
       });
       setSelectedKeywords(serverConfig.active_keywords || []);
       setSelectedCities(serverConfig.active_cities || []);
@@ -277,17 +284,23 @@ export const AdminScraping = () => {
     setIsSearching(true);
     toast.loading("🌐 AI (Gemini) prohledává web ve 3 paralelních vláknech...", { id: "manual-sniper" });
     try {
-      // Create 3 independent parallel requests for up to 3x speed
-      const promises = Array(3).fill(0).map(() => 
-        supabase.functions.invoke("autonomous-web-sniper", {
-          body: { 
-            forceSearch: true,
-            targetKeywords: selectedKeywords.length > 0 ? selectedKeywords : undefined,
-            targetCities: selectedCities.length > 0 ? selectedCities : undefined,
-            targetCountries: selectedCountries.length > 0 ? selectedCountries : undefined
-          }
-        })
-      );
+      const promises = [];
+      const rpm = config.ai_rpm_limit || 5;
+      const delayMs = 60000 / rpm;
+      
+      for (let i = 0; i < 3; i++) {
+        promises.push(
+          supabase.functions.invoke("autonomous-web-sniper", {
+            body: { 
+              forceSearch: true,
+              targetKeywords: selectedKeywords.length > 0 ? selectedKeywords : undefined,
+              targetCities: selectedCities.length > 0 ? selectedCities : undefined,
+              targetCountries: selectedCountries.length > 0 ? selectedCountries : undefined
+            }
+          })
+        );
+        if (i < 2) await new Promise(r => setTimeout(r, delayMs)); // Wait between starting requests to respect RPM
+      }
 
       const results = await Promise.all(promises);
       
@@ -578,6 +591,58 @@ export const AdminScraping = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] text-muted-foreground">Tímto nastavíte, jak často se má na pozadí spustit AI sběr.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/40 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" /> Limity AI (Gemini)
+              </CardTitle>
+              <CardDescription>
+                Zabraňte chybám "Rate Limit Exceeded" omezením rychlosti.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold">Požadavky za minutu (RPM)</Label>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.ai_rpm_limit || 5}</span>
+                </div>
+                <Slider 
+                  value={[config.ai_rpm_limit || 5]} 
+                  min={1} max={15} step={1}
+                  onValueChange={(vals) => {
+                    const updated = { ...config, ai_rpm_limit: vals[0] };
+                    setConfig(updated);
+                  }}
+                  onValueCommit={(vals) => {
+                    const updated = { ...config, ai_rpm_limit: vals[0] };
+                    saveConfigMutation.mutate(updated);
+                  }}
+                />
+                <p className="text-[10px] text-muted-foreground">Free tier limit pro Gemini 2.5 Flash je obvykle 5 nebo 15 RPM. Doporučujeme nastavit 5.</p>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold">Velikost AI dávky (Počet leadů)</Label>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.ai_batch_size || 50}</span>
+                </div>
+                <Slider 
+                  value={[config.ai_batch_size || 50]} 
+                  min={10} max={100} step={5}
+                  onValueChange={(vals) => {
+                    const updated = { ...config, ai_batch_size: vals[0] };
+                    setConfig(updated);
+                  }}
+                  onValueCommit={(vals) => {
+                    const updated = { ...config, ai_batch_size: vals[0] };
+                    saveConfigMutation.mutate(updated);
+                  }}
+                />
+                <p className="text-[10px] text-muted-foreground">Kolik leadů najednou se zpracuje v jednom požadavku (šetří RPM limit).</p>
               </div>
             </CardContent>
           </Card>

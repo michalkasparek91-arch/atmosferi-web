@@ -419,12 +419,31 @@ export const AudienceManager = (props: any) => {
         return;
       }
 
+      // Fetch AI limits
+      let batchSize = 50;
+      let delayMs = 12000; // default 5 RPM -> 12s
+      try {
+        const { data: configData } = await supabase.from("app_settings").select("value").eq("key", "scraper_config").maybeSingle();
+        if (configData && configData.value) {
+           const cfg = configData.value as any;
+           if (cfg.ai_batch_size) batchSize = cfg.ai_batch_size;
+           if (cfg.ai_rpm_limit) delayMs = 60000 / cfg.ai_rpm_limit;
+        }
+      } catch (e) {
+        console.warn("Could not fetch scraper_config for AI limits", e);
+      }
+
       let triggered = 0;
-      for (let k = 0; k < emailsToEnrich.length; k += 50) {
+      for (let k = 0; k < emailsToEnrich.length; k += batchSize) {
         supabase.functions.invoke("enrich-imported-leads", {
-          body: { emails: emailsToEnrich.slice(k, k + 50) }
+          body: { emails: emailsToEnrich.slice(k, k + batchSize) }
         }).catch(console.error);
-        triggered += emailsToEnrich.slice(k, k + 50).length;
+        triggered += emailsToEnrich.slice(k, k + batchSize).length;
+        
+        // Wait between requests to respect RPM limit, except for the last batch
+        if (k + batchSize < emailsToEnrich.length) {
+          await new Promise(r => setTimeout(r, delayMs));
+        }
       }
 
       toast.success(`Spuštěno AI obohacení pro ${triggered} kontaktů. Změny se projeví za pár minut.`);
