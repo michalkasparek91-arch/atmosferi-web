@@ -38,7 +38,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
             <span style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; letter-spacing: -0.02em;">Atmosferi<sup style="color: #D97757; font-size: 0.6em;">&deg;</sup></span>
           </td>
           <td style="vertical-align: middle; border-left: 1px solid rgba(244,242,236,0.3); padding-left: 14px;">
-            <span style="font-family: monospace; font-size: 9px; letter-spacing: 0.18em; opacity: 0.6; text-transform: uppercase;">WEB A VIZUALIZACE</span>
+            <span style="font-family: monospace; font-size: 9px; letter-spacing: 0.18em; opacity: 0.6; text-transform: uppercase;">${data.heroTagline ?? "WEB A VIZUALIZACE"}</span>
           </td>
         </tr>
       </table>
@@ -49,7 +49,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
     <div>
       <img src="${data.heroImageUrl}" alt="Hero" width="100%" style="display: block; max-width: 100%; height: auto;" />
       <div style="background-color: #16140F; padding: 12px 24px; color: #A8A398; font-family: monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;">
-        ${data.heroCaption || "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°"}
+        ${data.heroCaption ?? "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°"}
       </div>
     </div>
   ` : '';

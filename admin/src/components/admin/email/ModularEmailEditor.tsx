@@ -305,9 +305,9 @@ export function ModularLivePreview({
               <div style={{ display: "flex", alignItems: "center", marginTop: "32px", borderTop: `1px solid ${isDark ? "#444" : "rgba(22,20,15,0.12)"}`, paddingTop: "24px", color: muted, fontSize: "11px", lineHeight: "1.5" }}>
                 <img src="https://atmosferi.com/img/michal.jpg" alt="Michal Kašpárek" style={{ width: "44px", height: "44px", borderRadius: "50%", marginRight: "16px", display: "block", objectFit: "cover", objectPosition: "center top" }} />
                 <div>
-                  <span style={{ display: "block", marginBottom: "0px", color: ink }}>{form.signature_greeting || "S pozdravem"}</span>
-                  <strong style={{ color: ink, fontSize: "13px", fontWeight: 700 }}>Ing. arch. Michal Kašpárek</strong><br/>
-                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; {form.signature_role || "web a vizualizace pro architekturu"}</span><br/>
+                  <span style={{ display: "block", marginBottom: "0px", color: ink }}>{form.signature_greeting ?? "S pozdravem"}</span>
+                  <strong style={{ color: ink, fontSize: "13px", fontWeight: 700 }}>{form.worker?.full_name ?? "Ing. arch. Michal Kašpárek"}</strong><br/>
+                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; {form.signature_role ?? "web a vizualizace pro architekturu"}</span><br/>
                   <span style={{ color: acc }}>info@atmosferi.com</span> <span style={{ color: "#A8A398" }}>&middot; atmosferi.com</span>
                 </div>
               </div>
@@ -974,6 +974,7 @@ export function ModularEmailEditorDialogInner({
       obor: "Řemeslné práce", obor_2pad: "řemeslníka", nazev_zakazky: "Rekonstrukce bytového jádra",
       popis_zakazky: "Hledám spolehlivého řemeslníka na kompletní obklad koupelny...",
       cena_rozpocet: "15 000 Kč", zakaznik: "Jan", odkaz_zakazky: "https://zrobee.cz",
+      projekt: "Váš projekt",
       icebreaker: form?.icebreaker || "Všimli jsme si vašeho skvělého profilu."
     };
     
@@ -1015,6 +1016,11 @@ export function ModularEmailEditorDialogInner({
       defaultData.jmeno = name;
       
       const job = form.job;
+      const lead = form.lead;
+      if (lead && lead.last_project) {
+        defaultData.projekt = lead.last_project;
+      }
+
       if (job) {
         defaultData.nazev_zakazky = job.title || defaultData.nazev_zakazky;
         defaultData.mesto = job.city || defaultData.mesto;
@@ -1058,6 +1064,7 @@ export function ModularEmailEditorDialogInner({
       .replace(/{{popis_zakazky}}/g, previewData.popis_zakazky)
       .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, previewData.cena_rozpocet)
       .replace(/{{zakaznik}}|{{studio}}/g, previewData.zakaznik)
+      .replace(/{{projekt}}/g, previewData.projekt)
       .replace(/{{odkaz_zakazky}}/g, previewData.odkaz_zakazky)
       .replace(/{{icebreaker}}/g, previewData.icebreaker);
   };

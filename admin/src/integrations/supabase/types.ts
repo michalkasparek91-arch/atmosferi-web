@@ -1406,6 +1406,7 @@ export type Database = {
           is_pro: boolean | null
           language: string | null
           last_activity: string | null
+          last_project: string | null
           latitude: number | null
           longitude: number | null
           marketing_notifications: boolean | null
@@ -1451,6 +1452,7 @@ export type Database = {
           is_pro?: boolean | null
           language?: string | null
           last_activity?: string | null
+          last_project?: string | null
           latitude?: number | null
           longitude?: number | null
           marketing_notifications?: boolean | null
