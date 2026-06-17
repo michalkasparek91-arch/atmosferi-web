@@ -135,6 +135,17 @@ Deno.serve(async (req) => {
           }
         } else {
           failed_count++;
+          // If we hit a quota or rate limit, break immediately to avoid spamming the API and wasting time
+          const errStr = String(result.error || "").toLowerCase();
+          if (errStr.includes("quota") || errStr.includes("limit") || errStr.includes("429") || errStr.includes("too many") || errStr.includes("plan")) {
+            return new Response(JSON.stringify({ 
+              sent_count, 
+              failed_count: failed_count + (draftIds.length - sent_count - failed_count),
+              error: `Odesílání přerušeno: Dosažen limit e-mailů (${result.error}). Zbývající e-maily zůstaly v konceptech pro odeslání zítra.`
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
         }
       }
 

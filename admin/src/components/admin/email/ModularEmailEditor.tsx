@@ -868,20 +868,20 @@ export function ModularEmailEditorDialogInner({
         promo_banner_text: initialData.promo_banner_text || "Zaváděcí akce: Protože Zrobee právě spouštíme, neplatíte za kontakt žádnou provizi.",
         job_description_snippet: initialData.job_description_snippet || "",
         ps_footer_enabled: initialData.ps_footer_enabled !== undefined ? initialData.ps_footer_enabled : false,
-        ps_footer_text: initialData.ps_footer_text || "P.S. Pokud už máte plno a další zakázky teď nepotřebujete, stačí mi odepsat 'Ne' a už Vás nebudu nabídkami rušit.",
-        show_job_widget: initialData.show_job_widget !== undefined ? initialData.show_job_widget : true,
-        show_cta_button: initialData.show_cta_button !== undefined ? initialData.show_cta_button : true,
+        ps_footer_text: initialData.ps_footer_text ?? "P.S. Pokud už máte plno a další zakázky teď nepotřebujete, stačí mi odepsat 'Ne' a už Vás nebudu nabídkami rušit.",
+        show_job_widget: initialData.show_job_widget ?? true,
+        show_cta_button: initialData.show_cta_button ?? true,
         icebreaker: initialData.icebreaker || "",
         worker: initialData.worker || null,
         lead: initialData.lead || null,
         job: initialData.job || null,
         recipient_email: initialData.recipient_email || (initialData.worker?.email || initialData.lead?.email) || "",
         recipient_name: initialData.recipient_name || (initialData.worker?.full_name || initialData.lead?.company_name || initialData.lead?.full_name) || "",
-        hero_caption: initialData.hero_caption || filters.hero_caption || null,
-        hero_tagline: initialData.hero_tagline || filters.hero_tagline || null,
-        signature_greeting: initialData.signature_greeting || filters.signature_greeting || null,
-        signature_role: initialData.signature_role || filters.signature_role || null,
-        signature_email: initialData.signature_email || filters.signature_email || null,
+        hero_caption: initialData.hero_caption ?? filters.hero_caption ?? null,
+        hero_tagline: initialData.hero_tagline ?? filters.hero_tagline ?? null,
+        signature_greeting: initialData.signature_greeting ?? filters.signature_greeting ?? null,
+        signature_role: initialData.signature_role ?? filters.signature_role ?? null,
+        signature_email: initialData.signature_email ?? filters.signature_email ?? null,
         stealth_tracking_enabled: initialData.stealth_tracking_enabled ?? filters.stealth_tracking_enabled ?? true,
       };
 
@@ -1511,9 +1511,16 @@ export function ModularEmailEditorDialogInner({
                             className="h-8 text-xs bg-background/50 border-border/50"
                             placeholder="https://..."
                           />
+                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mt-2 block">Tagline v hlavičce (vedle loga Atmosferi)</Label>
+                          <Input 
+                            value={form.hero_tagline ?? "WEB A VIZUALIZACE"} 
+                            onChange={(e) => setForm({ ...form, hero_tagline: e.target.value })} 
+                            className="h-8 text-xs bg-background/50 border-border/50"
+                            placeholder="WEB A VIZUALIZACE"
+                          />
                           <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mt-2 block">Popis pod obrázkem (Caption)</Label>
                           <Input 
-                            value={form.hero_caption || ""} 
+                            value={form.hero_caption ?? ""} 
                             onChange={(e) => setForm({ ...form, hero_caption: e.target.value })} 
                             className="h-8 text-xs bg-background/50 border-border/50"
                             placeholder="UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°"
@@ -1547,15 +1554,6 @@ export function ModularEmailEditorDialogInner({
                             onChange={(e) => setForm({ ...form, signature_role: e.target.value })} 
                             className="h-8 text-xs bg-background/50 border-border/50 mt-1"
                             placeholder="web a vizualizace pro architekturu"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Tagline v hlavičce (vedle loga)</Label>
-                          <Input 
-                            value={form.hero_tagline ?? "WEB A VIZUALIZACE"} 
-                            onChange={(e) => setForm({ ...form, hero_tagline: e.target.value })} 
-                            className="h-8 text-xs bg-background/50 border-border/50 mt-1"
-                            placeholder="WEB A VIZUALIZACE"
                           />
                         </div>
                       </div>
