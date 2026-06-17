@@ -244,14 +244,14 @@ export function ModularLivePreview({
           <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: panel, overflow: "hidden", color: ink }}>
             <div style={{ backgroundColor: "#16140F", padding: "16px 24px", color: "#EFEDE6", display: "flex", alignItems: "center" }}>
               <span style={{ fontFamily: "'Geist', system-ui, sans-serif", fontSize: "18px", fontWeight: 600, letterSpacing: "-0.02em" }}>Atmosferi<sup style={{ color: "#D97757", fontSize: "0.6em" }}>&deg;</sup></span>
-              <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "9px", letterSpacing: "0.18em", opacity: 0.6, marginLeft: "14px", borderLeft: "1px solid rgba(244,242,236,0.3)", paddingLeft: "14px", textTransform: "uppercase" }}>{form.hero_tagline || "WEB A VIZUALIZACE"}</span>
+              <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "9px", letterSpacing: "0.18em", opacity: 0.6, marginLeft: "14px", borderLeft: "1px solid rgba(244,242,236,0.3)", paddingLeft: "14px", textTransform: "uppercase" }}>{form.segment_filters?.hero_tagline || "WEB A VIZUALIZACE"}</span>
             </div>
 
             {form.hero_image_url && (
                <div>
                  <img src={previewReplace(form.hero_image_url)} alt="Hero" style={{ width: "100%", height: "auto", display: "block" }} />
                  <div style={{ backgroundColor: "#16140F", padding: "12px 24px", color: "#A8A398", fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "10.5px", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-                   {previewReplace(form.hero_caption || "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°")}
+                   {previewReplace(form.segment_filters?.hero_caption || "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°")}
                  </div>
                </div>
             )}
@@ -303,12 +303,12 @@ export function ModularLivePreview({
               )}
               
               <div style={{ display: "flex", alignItems: "center", marginTop: "32px", borderTop: `1px solid ${isDark ? "#444" : "rgba(22,20,15,0.12)"}`, paddingTop: "24px", color: muted, fontSize: "11px", lineHeight: "1.5" }}>
-                <img src="https://atmosferi.com/img/michal.jpg" alt="Michal Kašpárek" style={{ width: "44px", height: "44px", borderRadius: "50%", marginRight: "16px", display: "block", objectFit: "cover", objectPosition: "center top" }} />
+                <img src={form.segment_filters?.signature_avatar_url || "https://atmosferi.com/img/michal.jpg"} alt="Michal Kašpárek" style={{ width: "44px", height: "44px", borderRadius: "50%", marginRight: "16px", display: "block", objectFit: "cover", objectPosition: "center top" }} />
                 <div>
-                  <span style={{ display: "block", marginBottom: "0px", color: ink }}>{form.signature_greeting ?? "S pozdravem"}</span>
+                  <span style={{ display: "block", marginBottom: "0px", color: ink }}>{form.segment_filters?.signature_greeting ?? "S pozdravem"}</span>
                   <strong style={{ color: ink, fontSize: "13px", fontWeight: 700 }}>{form.worker?.full_name ?? "Ing. arch. Michal Kašpárek"}</strong><br/>
-                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; {form.signature_role ?? "web a vizualizace pro architekturu"}</span><br/>
-                  <span style={{ color: acc }}>info@atmosferi.com</span> <span style={{ color: "#A8A398" }}>&middot; atmosferi.com</span>
+                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; {form.segment_filters?.signature_role ?? "web a vizualizace pro architekturu"}</span><br/>
+                  <span style={{ color: acc }}>{form.segment_filters?.signature_email ?? "info@atmosferi.com"}</span> <span style={{ color: "#A8A398" }}>&middot; atmosferi.com</span>
                 </div>
               </div>
 
@@ -558,14 +558,14 @@ export function ModularLivePreview({
           <h3 className={`text-[11px] font-medium tracking-[0.15em] uppercase mb-5 ${
             isDark ? "text-zinc-500" : "text-[#807d73]"
           }`}>
-            CO DĚLÁME
+            {form.segment_filters?.services_widget_title || "CO DĚLÁME"}
           </h3>
           <div className="space-y-4">
             <div className={`pb-4 border-b ${isDark ? "border-[#2d2d2a]" : "border-[#e6e4dc]"}`}>
               <div className="flex gap-2.5">
                 <span className={`text-[16px] font-bold ${isDark ? "text-[#d67a65]" : "text-[#c16c5b]"}`}>1</span>
                 <p className={`text-[15px] leading-relaxed m-0 ${isDark ? "text-zinc-300" : "text-[#333333]"}`}>
-                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>Špičkové weby pro architektonická studia</strong> — portfolia, která drží krok s vaší prací.
+                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>{form.segment_filters?.service_1_title || "Špičkové weby pro architektonická studia"}</strong> — portfolia, která drží krok s vaší prací.
                 </p>
               </div>
             </div>
@@ -573,7 +573,7 @@ export function ModularLivePreview({
               <div className="flex gap-2.5">
                 <span className={`text-[16px] font-bold ${isDark ? "text-[#d67a65]" : "text-[#c16c5b]"}`}>2</span>
                 <p className={`text-[15px] leading-relaxed m-0 ${isDark ? "text-zinc-300" : "text-[#333333]"}`}>
-                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>Prodejní prezentace architektonických projektů</strong> — web, dostupnost jednotek, 360° prohlídky.
+                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>{form.segment_filters?.service_2_title || "Prodejní prezentace architektonických projektů"}</strong> — web, dostupnost jednotek, 360° prohlídky.
                 </p>
               </div>
             </div>
@@ -581,7 +581,7 @@ export function ModularLivePreview({
               <div className="flex gap-2.5">
                 <span className={`text-[16px] font-bold ${isDark ? "text-[#d67a65]" : "text-[#c16c5b]"}`}>3</span>
                 <p className={`text-[15px] leading-relaxed m-0 ${isDark ? "text-zinc-300" : "text-[#333333]"}`}>
-                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>Profesionální architektonické vizualizace</strong> — nasvícené jako fotografie, ne jako strojový render.
+                  <strong className={isDark ? "font-semibold text-zinc-100" : "font-semibold text-[#111111]"}>{form.segment_filters?.service_3_title || "Profesionální architektonické vizualizace"}</strong> — nasvícené jako fotografie, ne jako strojový render.
                 </p>
               </div>
             </div>
@@ -877,12 +877,6 @@ export function ModularEmailEditorDialogInner({
         job: initialData.job || null,
         recipient_email: initialData.recipient_email || (initialData.worker?.email || initialData.lead?.email) || "",
         recipient_name: initialData.recipient_name || (initialData.worker?.full_name || initialData.lead?.company_name || initialData.lead?.full_name) || "",
-        hero_caption: initialData.hero_caption ?? filters.hero_caption ?? null,
-        hero_tagline: initialData.hero_tagline ?? filters.hero_tagline ?? null,
-        signature_greeting: initialData.signature_greeting ?? filters.signature_greeting ?? null,
-        signature_role: initialData.signature_role ?? filters.signature_role ?? null,
-        signature_email: initialData.signature_email ?? filters.signature_email ?? null,
-        stealth_tracking_enabled: initialData.stealth_tracking_enabled ?? filters.stealth_tracking_enabled ?? true,
       };
 
       setForm(initialEditorState);
@@ -1376,15 +1370,7 @@ export function ModularEmailEditorDialogInner({
               disabled={isSaving || (mode !== "outbox" && !form.name)}
               onClick={() => {
                 const finalForm = { ...form };
-                finalForm.segment_filters = {
-                  ...(finalForm.segment_filters || {}),
-                  hero_caption: finalForm.hero_caption,
-                  hero_tagline: finalForm.hero_tagline,
-                  signature_greeting: finalForm.signature_greeting,
-                  signature_role: finalForm.signature_role,
-                  signature_email: finalForm.signature_email,
-                  stealth_tracking_enabled: finalForm.stealth_tracking_enabled,
-                };
+                // No need to merge here anymore, because they are already in segment_filters
                 onSave(finalForm);
               }}
             >
@@ -1507,7 +1493,7 @@ export function ModularEmailEditorDialogInner({
                         <Label className="text-xs font-bold text-foreground">Aktivovat chytré měření</Label>
                         <p className="text-[10px] text-muted-foreground">Sleduje otevření přes maskovaný obrázek (Stealth Tracking).</p>
                       </div>
-                      <Switch checked={form.stealth_tracking_enabled ?? true} onCheckedChange={(c) => setVal("stealth_tracking_enabled", c)} />
+                      <Switch checked={!!form.segment_filters?.stealth_tracking_enabled} onCheckedChange={(c) => setSegmentFilter("stealth_tracking_enabled", c)} />
                     </div>
                   </div>
 
@@ -1536,15 +1522,15 @@ export function ModularEmailEditorDialogInner({
                           />
                           <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mt-2 block">Tagline v hlavičce (vedle loga Atmosferi)</Label>
                           <Input 
-                            value={form.hero_tagline ?? "WEB A VIZUALIZACE"} 
-                            onChange={(e) => setForm({ ...form, hero_tagline: e.target.value })} 
+                            value={form.segment_filters?.hero_tagline ?? "WEB A VIZUALIZACE"} 
+                            onChange={(e) => setSegmentFilter("hero_tagline", e.target.value)} 
                             className="h-8 text-xs bg-background/50 border-border/50"
                             placeholder="WEB A VIZUALIZACE"
                           />
                           <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mt-2 block">Popis pod obrázkem (Caption)</Label>
                           <Input 
-                            value={form.hero_caption ?? ""} 
-                            onChange={(e) => setForm({ ...form, hero_caption: e.target.value })} 
+                            value={form.segment_filters?.hero_caption ?? ""} 
+                            onChange={(e) => setSegmentFilter("hero_caption", e.target.value)} 
                             className="h-8 text-xs bg-background/50 border-border/50"
                             placeholder="UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°"
                           />
@@ -1564,8 +1550,8 @@ export function ModularEmailEditorDialogInner({
                         <div>
                           <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Pozdrav</Label>
                           <Input 
-                            value={form.signature_greeting ?? "S pozdravem"} 
-                            onChange={(e) => setForm({ ...form, signature_greeting: e.target.value })} 
+                            value={form.segment_filters?.signature_greeting ?? "S pozdravem"} 
+                            onChange={(e) => setSegmentFilter("signature_greeting", e.target.value)} 
                             className="h-8 text-xs bg-background/50 border-border/50 mt-1"
                             placeholder="S pozdravem"
                           />
@@ -1573,10 +1559,19 @@ export function ModularEmailEditorDialogInner({
                         <div>
                           <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Role / Pozice</Label>
                           <Input 
-                            value={form.signature_role ?? "web a vizualizace pro architekturu"} 
-                            onChange={(e) => setForm({ ...form, signature_role: e.target.value })} 
+                            value={form.segment_filters?.signature_role ?? "web a vizualizace pro architekturu"} 
+                            onChange={(e) => setSegmentFilter("signature_role", e.target.value)} 
                             className="h-8 text-xs bg-background/50 border-border/50 mt-1"
                             placeholder="web a vizualizace pro architekturu"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">E-mail v podpisu</Label>
+                          <Input 
+                            value={form.segment_filters?.signature_email ?? "info@atmosferi.com"} 
+                            onChange={(e) => setSegmentFilter("signature_email", e.target.value)} 
+                            className="h-8 text-xs bg-background/50 border-border/50 mt-1"
+                            placeholder="info@atmosferi.com"
                           />
                         </div>
                       </div>

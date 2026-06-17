@@ -162,8 +162,8 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
             const lead = leadsToProcess.find(l => l.id === extracted.id);
             if (!lead) continue;
             
-            const updatePayload: any = {
-              company_name: lead.company_name || extracted.company_name || null,
+              const updatePayload: any = {
+                company_name: lead.company_name || extracted.company_name || null,
                 city: lead.city || extracted.city || null,
                 country: lead.country || extracted.country || "Česká republika",
                 language: lead.language || extracted.language || null,
@@ -172,6 +172,9 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
                 category: lead.category || extracted.category || null,
                 subcategory: lead.subcategory || extracted.subcategory || null,
                 premium_score: lead.premium_score || extracted.premium_score || 50,
+                decision_maker_name: lead.decision_maker_name || extracted.decision_maker_name || null,
+                last_project: lead.last_project || extracted.last_project || null,
+                ai_icebreaker: lead.ai_icebreaker || extracted.ai_icebreaker || null,
               };
 
               if (extracted.email && extracted.email.includes("@") && extracted.email.toLowerCase() !== lead.email.toLowerCase()) {
