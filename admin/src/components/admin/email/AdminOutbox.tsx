@@ -60,7 +60,7 @@ export const AdminOutbox = () => {
         .from("email_outbox")
         .select(`
           *,
-          lead:marketing_leads(id, full_name, email, company_name),
+          lead:marketing_leads(id, full_name, email, company_name, decision_maker_name),
           worker:profiles(id, full_name, email),
           job:jobs(title, city, description, budget_min, budget_max, price_note, service_subcategories(name, category_form))
         `)
@@ -410,7 +410,7 @@ export const AdminOutbox = () => {
               </div>
             ) : drafts.filter((d: any) => filterType === "all" ? true : filterType === "job" ? !!d.job_id : !d.job_id).map((draft: any) => {
               const isSel = selectedIds.has(draft.id);
-              const name = draft.worker?.full_name || draft.lead?.company_name || draft.lead?.full_name || "Neznámý";
+              const name = draft.worker?.full_name || draft.lead?.decision_maker_name || draft.lead?.full_name || draft.lead?.company_name || "Neznámý";
               const email = draft.worker?.email || draft.lead?.email;
               const subcatName = draft.job?.service_subcategories?.name || "Neznámý obor";
 
@@ -593,7 +593,7 @@ export const AdminOutbox = () => {
               <div className="space-y-1 bg-primary/5 p-4 rounded-xl border border-primary/10">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-primary/70">Příjemce</p>
                 <p className="font-semibold text-sm">
-                  {editingDraft.worker?.full_name || editingDraft.lead?.company_name || editingDraft.lead?.full_name}
+                  {editingDraft.worker?.full_name || editingDraft.lead?.decision_maker_name || editingDraft.lead?.full_name || editingDraft.lead?.company_name}
                 </p>
                 <p className="text-xs text-muted-foreground">{editingDraft.worker?.email || editingDraft.lead?.email}</p>
               </div>
