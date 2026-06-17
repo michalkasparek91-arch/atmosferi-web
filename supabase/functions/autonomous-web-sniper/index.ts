@@ -30,28 +30,53 @@ async function logJobFailure(supabase: any, jobName: string, error: string) {
   }).eq("job_name", jobName);
 }
 
-async function runGeminiEngine(targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string): Promise<{ discoveredList?: any[], error?: string }> {
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) {
-      return { error: "Chybí GEMINI_API_KEY v Supabase Secrets!" };
+async function logApiUsage(supabase: any, engine: string, serviceName: string) {
+  try {
+    const { error } = await supabase.from("api_usage_logs").insert({
+      engine, service_name: serviceName, requests_count: 1
+    });
+    if (error) console.error(`Chyba pri zapisu do api_usage_logs (${engine}):`, error);
+  } catch(e) { console.error("Vyjimka pri zapisu api_usage_logs:", e); }
+}
+
+// Gemini model cascade: try cheapest free-tier model first, fall back on quota/overload
+async function callGeminiWithFallback(apiKey: string, body: any): Promise<Response> {
+  // Free-tier RPD: gemini-2.0-flash=200, gemini-2.5-flash=20, gemini-1.5-flash=1500
+  const models = [
+    "gemini-2.0-flash",      // 200 req/day — best balance
+    "gemini-2.5-flash-lite", // lightweight fallback
+    "gemini-1.5-flash",      // 1500 req/day — last resort
+  ];
+  let lastRes: Response | null = null;
+  for (const model of models) {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+    });
+    if (res.ok) return res;
+    if (res.status === 429 || res.status === 503) {
+      console.warn(`Gemini model ${model} unavailable (${res.status}), trying next...`);
+      lastRes = res;
+      continue;
     }
+    return res; // other error — return immediately
+  }
+  return lastRes!;
+}
+
+async function runGeminiEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string): Promise<{ discoveredList?: any[], error?: string }> {
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!apiKey) return { error: "Chybi GEMINI_API_KEY v Supabase Secrets!" };
     
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
-      .replace(/{{targetCity}}/g, targetCity || "náhodně vybrané město");
+      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
-    let geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7, maxOutputTokens: 8192 } }) 
+    const geminiRes = await callGeminiWithFallback(apiKey, {
+      contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }],
+      tools: [{ googleSearch: {} }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 16000 }
     });
-
-    if (!geminiRes.ok && geminiRes.status === 503) {
-       geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
-         method: "POST", headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }], tools: [{ googleSearch: {} }], generationConfig: { temperature: 0.7, maxOutputTokens: 8192 } })
-       });
-    }
 
     if (!geminiRes.ok) {
        const errBody = await geminiRes.text();
@@ -63,48 +88,82 @@ async function runGeminiEngine(targetCountry: string, targetKeyword: string, tar
     
     if (!textOut) {
        const finishReason = resJson.candidates?.[0]?.finishReason || "UNKNOWN_REASON";
-       return { error: `Odpověď od AI je prázdná (finishReason: ${finishReason}). Může se jednat o bezpečnostní filtr nebo chybu generování.` };
+       return { error: `Odpoved od AI je prazdna (finishReason: ${finishReason}).` };
     }
     
     textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
     const firstBracket = textOut.indexOf('[');
     const lastBracket = textOut.lastIndexOf(']');
-    
     if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
       textOut = textOut.substring(firstBracket, lastBracket + 1);
     }
 
     try { 
       const parsed = JSON.parse(textOut);
-      // Log api usage
-      try {
-         await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/api_usage_logs`, {
-             method: "POST",
-             headers: {
-                 "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-                 "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
-                 "Content-Type": "application/json",
-                 "Prefer": "return=minimal"
-             },
-             body: JSON.stringify({ engine: "gemini", service_name: "autonomous-web-sniper", requests_count: 1 })
-         });
-      } catch(e) {}
-      
+      await logApiUsage(supabase, "gemini", "autonomous-web-sniper");
       return { discoveredList: parsed };
     } catch (e: any) { 
-      return { error: `JSON CHYBA: ${e.message}. Úryvek: ${textOut.substring(0, 500)}` };
+      return { error: `JSON CHYBA (Gemini): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
     }
 }
 
-async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string, targetCity: string): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
+async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string): Promise<{ discoveredList?: any[], error?: string }> {
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    if (!apiKey) return { error: "Chybi OPENROUTER_API_KEY v Supabase Secrets!" };
+
+    const SEARCH_PROMPT = promptTemplate
+      .replace(/{{targetCountry}}/g, targetCountry)
+      .replace(/{{targetKeyword}}/g, targetKeyword)
+      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
+
+    const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://atmosferi.cz",
+        "X-Title": "Atmosferi CRM"
+      },
+      body: JSON.stringify({
+        model: "meta-llama/llama-3.3-70b-instruct:free",
+        messages: [{ role: "user", content: SEARCH_PROMPT }],
+        temperature: 0.7
+      })
+    });
+
+    if (!orRes.ok) {
+      const errBody = await orRes.text();
+      return { error: `Chyba od OpenRouter API: ${errBody}` };
+    }
+
+    const resJson = await orRes.json();
+    let textOut = resJson.choices?.[0]?.message?.content?.trim() || "";
+    if (!textOut) return { error: "Odpoved od OpenRouter je prazdna." };
+
+    textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
+    const firstBracket = textOut.indexOf('[');
+    const lastBracket = textOut.lastIndexOf(']');
+    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+      textOut = textOut.substring(firstBracket, lastBracket + 1);
+    }
+
+    try {
+      const parsed = JSON.parse(textOut);
+      await logApiUsage(supabase, "openrouter", "autonomous-web-sniper");
+      return { discoveredList: parsed };
+    } catch (e: any) {
+      return { error: `JSON CHYBA (OpenRouter): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
+    }
+}
+
+async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
     const placesKey = Deno.env.get("GOOGLE_PLACES_API_KEY") || Deno.env.get("GOOGLE_MAPS_API_KEY");
     const groqKey = Deno.env.get("GROQ_API_KEY");
     
     if (!placesKey || !groqKey) {
-        return { error: "Chybí GOOGLE_PLACES_API_KEY (nebo GOOGLE_MAPS_API_KEY) či GROQ_API_KEY v Supabase Secrets!" };
+        return { error: "Chybi GOOGLE_PLACES_API_KEY ci GROQ_API_KEY v Supabase Secrets!" };
     }
 
-    // 1. Vyhledání přes Google Places API
     const query = `${targetKeyword} ${targetCity}`;
     const placesRes = await fetch("https://places.googleapis.com/v1/places:searchText", {
         method: "POST",
@@ -116,46 +175,37 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
         body: JSON.stringify({ textQuery: query, languageCode: "cs" })
     });
 
-    if (!placesRes.ok) {
-        return { error: `Google Places API chyba: ${await placesRes.text()}` };
-    }
+    if (!placesRes.ok) return { error: `Google Places API chyba: ${await placesRes.text()}` };
 
     const placesData = await placesRes.json();
     const places = placesData.places || [];
     const validPlaces = places.filter((p: any) => p.websiteUri);
 
     if (validPlaces.length === 0) {
-        return { discoveredList: [], debug: `Nalezeno ${places.length} míst v Google Places pro '${query}', ale žádné nemělo websiteUri.` };
+        return { discoveredList: [], debug: `Nalezeno ${places.length} mist v Google Places pro '${query}', ale zadne nemelo websiteUri.` };
     }
 
-    // 2. Pro každý nalezený web stáhneme HTML a pošleme do Groq
     const discoveredList: any[] = [];
     let groqErrors = 0;
     let fetchErrors = 0;
     let noEmailFound = 0;
     
-    // Vrátíme limit na 5, protože Groq Llama 3.3 70B má na free tieru limit jen 100 000 tokenů za den (což je cca 30-40 webů).
+    // Limit na 5 kvuli Groq TPD free-tier limitu (100k tokenu/den).
     const promises = validPlaces.slice(0, 5).map(async (place: any) => { 
         try {
-            // fetch with timeout
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 8000);
-            
             const pageRes = await fetch(place.websiteUri, { signal: controller.signal }).catch(() => null);
             clearTimeout(timeoutId);
             
-            if (!pageRes || !pageRes.ok) {
-                fetchErrors++;
-                return null;
-            }
+            if (!pageRes || !pageRes.ok) { fetchErrors++; return null; }
             
             let html = await pageRes.text();
-            // clean HTML
             html = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
                        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
                        .replace(/<[^>]+>/g, ' ')
                        .replace(/\s+/g, ' ')
-                       .substring(0, 10000); // 10k znaků stačí
+                       .substring(0, 10000);
                        
             const companyName = place.displayName?.text || "";
             const address = place.formattedAddress || "";
@@ -163,66 +213,51 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
 
             const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${groqKey}`,
-                    "Content-Type": "application/json"
-                },
+                headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
                     model: "llama-3.3-70b-versatile",
                     messages: [
                         { role: "system", content: "You are a precise data extractor. Extract the requested info and return ONLY a valid JSON array. DO NOT wrap it in markdown or provide any other text." },
-                        { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object exactly matching this format: [{"company_name": "${companyName}", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "", "premium_score": 50, "ai_icebreaker": "..."}]. If no email is found, return an empty array []. Text: ${html}` }
+                        { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object: [{"company_name": "${companyName}", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "", "premium_score": 50, "ai_icebreaker": "..."}]. If no email found, return []. Text: ${html}` }
                     ],
                     temperature: 0.1
                 })
             });
 
             if (groqRes.ok) {
-                // Log api usage
-                try {
-                    const { error: usageErr } = await supabase.from("api_usage_logs").insert({
-                        engine: "groq", 
-                        service_name: "autonomous-web-sniper", 
-                        requests_count: 1
-                    });
-                    if (usageErr) console.error("Chyba při zápisu do api_usage_logs:", usageErr);
-                } catch(e) { console.error("Vyjimka pri zapisu api_usage_logs:", e); }
-
+                await logApiUsage(supabase, "groq", "autonomous-web-sniper");
                 const groqData = await groqRes.json();
                 let textOut = groqData.choices?.[0]?.message?.content || "";
-                
-                const firstBracket = textOut.indexOf('[');
-                const lastBracket = textOut.lastIndexOf(']');
-                if (firstBracket !== -1 && lastBracket !== -1) {
-                    textOut = textOut.substring(firstBracket, lastBracket + 1);
-                } else {
-                    textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-                }
+                const fb = textOut.indexOf('[');
+                const lb = textOut.lastIndexOf(']');
+                if (fb !== -1 && lb !== -1) textOut = textOut.substring(fb, lb + 1);
+                else textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
                 
                 try {
                     const parsed = JSON.parse(textOut);
                     if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].email && parsed[0].email.includes("@")) {
                         discoveredList.push(parsed[0]);
-                    } else {
-                        noEmailFound++;
-                    }
-                } catch (parseErr) {
-                    groqErrors++;
-                    console.error("JSON parse error:", textOut);
-                }
-            } else {
-                groqErrors++;
-            }
-        } catch (e) {
-            console.error("Error processing place", place.websiteUri, e);
-            fetchErrors++;
-        }
+                    } else { noEmailFound++; }
+                } catch { groqErrors++; }
+            } else { groqErrors++; }
+        } catch (e) { fetchErrors++; console.error("Error processing place", place.websiteUri, e); }
     });
 
     await Promise.all(promises);
 
-    const debugMsg = `Google Places API vrátilo ${places.length} výsledků, z toho ${validPlaces.length} mělo web. Zkusili jsme zpracovat max 10. Chyby stahování webu: ${fetchErrors}. Groq/AI chyby: ${groqErrors}. Weby bez nalezeného emailu: ${noEmailFound}. Nalezeno platných kontaktů s e-mailem: ${discoveredList.length}.`;
+    const debugMsg = `Google Places: ${places.length} vysledku, ${validPlaces.length} melo web. Zpracovano max 5. Chyby fetch: ${fetchErrors}, Groq chyby: ${groqErrors}, bez emailu: ${noEmailFound}, platnych kontaktu: ${discoveredList.length}.`;
     return { discoveredList, debug: debugMsg };
+}
+
+function deduplicateByEmail(list: any[]): any[] {
+  const seen = new Set<string>();
+  return list.filter(item => {
+    if (!item.email || !item.email.includes("@")) return false;
+    const key = item.email.toLowerCase().trim();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 Deno.serve(async (req) => {
@@ -246,9 +281,9 @@ Deno.serve(async (req) => {
 
     const defaultConfig = {
       is_enabled: false,
-      keywords: ["architekt", "interiérový design", "developer"],
+      keywords: ["architekt", "interierovy design", "developer"],
       cities: [],
-      countries: ["Česká republika", "Německo"]
+      countries: ["Ceska republika", "Nemecko"]
     };
 
     const config = configData?.value || defaultConfig;
@@ -267,79 +302,88 @@ Deno.serve(async (req) => {
     const activeCountries = (config.active_countries && config.active_countries.length > 0) ? config.active_countries : config.countries;
     const countries = (activeCountries && activeCountries.length > 0) ? activeCountries : defaultConfig.countries;
     const targetCountries = body.targetCountries && body.targetCountries.length > 0 ? body.targetCountries : countries;
-    const targetCountry = targetCountries[Math.floor(Math.random() * targetCountries.length)] || "Česká republika";
+    const targetCountry = targetCountries[Math.floor(Math.random() * targetCountries.length)] || "Ceska republika";
     
     const activeCities = (config.active_cities && config.active_cities.length > 0) ? config.active_cities : config.cities;
     let targetCities = body.targetCities && body.targetCities.length > 0 ? body.targetCities : (activeCities || []);
     
     const TOP_CITIES_BY_COUNTRY: Record<string, string[]> = {
-      "Česká republika": ["Praha", "Brno", "Ostrava", "Plzeň", "Liberec", "Olomouc", "České Budějovice", "Hradec Králové", "Pardubice", "Zlín", "Ústí nad Labem", "Kladno", "Karlovy Vary", "Jihlava"],
-      "Německo": ["Berlín", "Hamburk", "Mnichov", "Kolín nad Rýnem", "Frankfurt nad Mohanem", "Stuttgart", "Düsseldorf", "Lipsko", "Dortmund", "Essen", "Brémy", "Drážďany", "Hannover", "Norimberk"],
-      "Slovensko": ["Bratislava", "Košice", "Prešov", "Žilina", "Nitra", "Banská Bystrica", "Trnava", "Martin", "Trenčín", "Poprad"],
-      "Rakousko": ["Vídeň", "Štýrský Hradec", "Linec", "Salcburk", "Innsbruck", "Klagenfurt", "Villach", "Wels", "Sankt Pölten", "Dornbirn"]
+      "Ceska republika": ["Praha", "Brno", "Ostrava", "Plzen", "Liberec", "Olomouc", "Ceske Budejovice", "Hradec Kralove", "Pardubice", "Zlin"],
+      "Nemecko": ["Berlin", "Hamburg", "Mnichov", "Koln", "Frankfurt", "Stuttgart", "Dusseldorf", "Lipsko", "Dortmund", "Essen"],
+      "Slovensko": ["Bratislava", "Kosice", "Presov", "Zilina", "Nitra", "Banska Bystrica", "Trnava", "Martin", "Trencin", "Poprad"],
+      "Rakousko": ["Viden", "Styrsky Hradec", "Linec", "Salcburk", "Innsbruck", "Klagenfurt", "Villach", "Wels"]
     };
 
     if (TOP_CITIES_BY_COUNTRY[targetCountry]) {
-        const validCitiesForCountry = TOP_CITIES_BY_COUNTRY[targetCountry];
-        targetCities = targetCities.filter((city: string) => validCitiesForCountry.includes(city));
+        targetCities = targetCities.filter((city: string) => TOP_CITIES_BY_COUNTRY[targetCountry].includes(city));
     } else {
         targetCities = [];
     }
 
     const targetCity = targetCities.length > 0 ? targetCities[Math.floor(Math.random() * targetCities.length)] : "";
-    
-    // Zjištění enginu k použití
-    let engineToUse = body.engine;
-    if (!engineToUse) {
-        // pro CRON běh si vybereme aktivní engine
-        const activeEngines = [];
-        if (config.use_gemini_engine !== false) activeEngines.push("gemini");
-        if (config.use_groq_places_engine === true) activeEngines.push("groq_places");
-        
-        if (activeEngines.length === 0) {
-            return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: "Všechny enginy jsou vypnuté." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-        engineToUse = activeEngines[Math.floor(Math.random() * activeEngines.length)];
-    }
 
-    console.log(`Používám vyhledávací engine: ${engineToUse} pro klíčové slovo: ${targetKeyword} a město: ${targetCity}`);
+    const DEFAULT_PROMPT = `Jsi autonomni vyhledavaci agent pro B2B akviziciu. Cilovy stat: {{targetCountry}}. Obor: "{{targetKeyword}}". 
+TVUJ UKOL: 
+1. Zamer se PRESNE na toto mesto: {{targetCity}} (pokud chybi, vymysli si nahodne jine nez hlavni mesto).
+2. Pomoci nastroje Google Search najdi realne firmy v tomto meste pro zadany obor.
+3. Extrahuj z jejich webu nebo z Googlu kontakty. Najdi MAXIMALNE 15 firem, ktere maji uvedenou E-MAILOVOU ADRESU. Firmy bez e-mailu ignoruj!
 
-    let discoveredList: any[] = [];
-    
-    if (engineToUse === "groq_places") {
-        const result = await runGroqPlacesEngine(targetCountry, targetKeyword, targetCity);
-        if (result.error) {
-            await logJobFailure(supabase, jobName, result.error);
-            return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: result.error }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-        discoveredList = result.discoveredList || [];
-        
-        if (discoveredList.length === 0) {
-            await logJobSuccess(supabase, jobName, { discovered_count: 0 });
-            return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: result.debug || `Groq Engine nenašel žádné firmy s emailem.` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
+Vrat JSON pole. Povinna pole pro kazdy objekt: company_name, email, phone, website, city, country (nazev zeme VZDY V CESTINE, napr. Finsko, Australie), language (cs, en, de...), full_address, description, decision_maker_name (prazdny retezec pokud nelze), premium_score (1-100).
+Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych hodnot nesmi byt neescapovane uvozovky!`;
+    const promptTemplate = config.prompt_template || DEFAULT_PROMPT;
+
+    // --- Determine which discovery engines are active ---
+    // Each enabled engine runs independently; results are merged & deduplicated.
+    const engineOverride = body.engine;
+    const activeEngines: string[] = [];
+
+    if (engineOverride) {
+      activeEngines.push(engineOverride);
     } else {
-        // default to gemini
-        const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
-TVŮJ ÚKOL: 
-1. Zaměř se PŘESNĚ na toto město: {{targetCity}} (pokud chybí, vymysli si náhodně jiné než hlavní město).
-2. Pomocí nástroje Google Search najdi reálné firmy v tomto městě pro zadaný obor.
-3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 30-40 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Vzhledem k obrovskému limitu tokenů se neboj vypsat až 40 firem najednou!
-
-Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country (Název země MUSÍ BÝT VŽDY V ČEŠTINĚ, např. Finsko, Austrálie, USA), language (např. cs, en, de), full_address, description, decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
-Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř textových hodnot nesmíš používat neescapované uvozovky!`;
-        const promptTemplate = config.prompt_template || DEFAULT_PROMPT;
-        const result = await runGeminiEngine(targetCountry, targetKeyword, targetCity, promptTemplate);
-        if (result.error) {
-            await logJobFailure(supabase, jobName, result.error);
-            return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: result.error }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-        discoveredList = result.discoveredList || [];
+      if (config.use_gemini_engine !== false)       activeEngines.push("gemini");
+      if (config.use_groq_places_engine === true)   activeEngines.push("groq_places");
+      if (config.use_openrouter_engine === true)    activeEngines.push("openrouter");
     }
 
-    if (!Array.isArray(discoveredList) || discoveredList.length === 0) {
+    if (activeEngines.length === 0) {
+      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: "Vsechny enginy jsou vypnute." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    console.log(`Aktivni enginy: ${activeEngines.join(", ")} | kw: ${targetKeyword} | mesto: ${targetCity}`);
+
+    const engineResults = await Promise.allSettled(
+      activeEngines.map((eng) => {
+        if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity);
+        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate);
+        return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate);
+      })
+    );
+
+    let allDiscovered: any[] = [];
+    const debugParts: string[] = [];
+
+    for (let i = 0; i < engineResults.length; i++) {
+      const eng = activeEngines[i];
+      const result = engineResults[i];
+      if (result.status === "rejected") {
+        debugParts.push(`${eng}: selhalo (${result.reason})`);
+        continue;
+      }
+      const value = result.value as any;
+      if (value.error) {
+        debugParts.push(`${eng}: chyba - ${value.error}`);
+      } else {
+        const list = value.discoveredList || [];
+        debugParts.push(`${eng}: nalezeno ${list.length} kontaktu`);
+        allDiscovered = allDiscovered.concat(list);
+      }
+    }
+
+    const discoveredList = deduplicateByEmail(allDiscovered);
+
+    if (discoveredList.length === 0) {
       await logJobSuccess(supabase, jobName, { discovered_count: 0 });
-      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `Engine ${engineToUse} nenašel žádné firmy s e-mailem.` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: debugParts.join(" | ") }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     let newSavedCount = 0;
@@ -350,29 +394,28 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
 
       const { data: pExist } = await supabase.from("profiles").select("id").eq("email", cleanEmail).maybeSingle();
       if (pExist) continue;
-
       const { data: lExist } = await supabase.from("marketing_leads").select("id").eq("email", cleanEmail).maybeSingle();
       if (lExist) continue;
 
       let marketId = "cz";
       const tc = targetCountry.toLowerCase();
-      if (tc === "česká republika" || tc === "ceska republika" || tc === "czech republic" || tc === "czechia") marketId = "cz";
-      else if (tc === "německo" || tc === "nemecko" || tc === "deutschland" || tc === "germany") marketId = "de";
-      else if (tc === "rakousko" || tc === "austria" || tc === "österreich") marketId = "at";
-      else if (tc === "slovensko" || tc === "slovakia") marketId = "sk";
-      else if (tc === "austrálie" || tc === "australie" || tc === "australia") marketId = "au";
-      else if (tc === "finsko" || tc === "finland" || tc === "suomi") marketId = "f";
-      else if (tc === "usa" || tc === "spojené státy" || tc === "united states") marketId = "us";
-      else if (tc === "švýcarsko" || tc === "svycarsko" || tc === "switzerland" || tc === "schweiz") marketId = "ch";
-      else if (tc === "norsko" || tc === "norway") marketId = "no";
+      if (tc.includes("cesk") || tc.includes("czech")) marketId = "cz";
+      else if (tc.includes("nemeck") || tc.includes("deutsch") || tc.includes("german")) marketId = "de";
+      else if (tc.includes("rakous") || tc.includes("austria") || tc.includes("sterreich")) marketId = "at";
+      else if (tc.includes("slovensko") || tc.includes("slovak")) marketId = "sk";
+      else if (tc.includes("australi")) marketId = "au";
+      else if (tc.includes("finsko") || tc.includes("finland")) marketId = "f";
+      else if (tc.includes("usa") || tc.includes("united states")) marketId = "us";
+      else if (tc.includes("vcarsko") || tc.includes("switzerland") || tc.includes("schweiz")) marketId = "ch";
+      else if (tc.includes("norsko") || tc.includes("norway")) marketId = "no";
       else marketId = item.language || "cs";
 
       let categoryId = "architekti";
       const tk = targetKeyword.toLowerCase();
-      if (tk.includes("interiér") || tk.includes("interier")) categoryId = "interiery";
+      if (tk.includes("interier") || tk.includes("design")) categoryId = "interiery";
       else if (tk.includes("develop")) categoryId = "developeri";
-      else if (tk.includes("urban") || tk.includes("veřejn") || tk.includes("verejn")) categoryId = "urbanismus";
-      else if (tk === "samostatný architekt" || tk === "samostatny architekt") categoryId = "architekt";
+      else if (tk.includes("urban") || tk.includes("verejn")) categoryId = "urbanismus";
+      else if (tk === "samostatny architekt") categoryId = "architekt";
 
       const { data: newLead, error: insertErr } = await supabase.from("marketing_leads").insert({
           email: cleanEmail,
@@ -380,7 +423,7 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
           company_name: item.company_name || "B2B Partner",
           phone: normalizePhone(item.phone || ""),
           website: item.website || "",
-          city: item.city || "Neznámé město",
+          city: item.city || "Nezname mesto",
           country: item.country || targetCountry,
           language: marketId,
           ai_icebreaker: null,
@@ -389,41 +432,29 @@ Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř tex
           full_address: item.full_address || `${item.city || ""}, ${targetCountry}`,
           category: categoryId,
           subcategory: targetKeyword,
-          description: item.description || "Nalezeno autonomně",
-          company_description: item.description || "Nalezeno autonomně",
+          description: item.description || "Nalezeno autonomne",
+          company_description: item.description || "Nalezeno autonomne",
           source: "ai_web_sniper",
       }).select().single();
 
-      if (!insertErr && newLead) {
-          newSavedCount++;
-      } else if (insertErr) {
-          lastInsertError = insertErr.message;
-      }
+      if (!insertErr && newLead) newSavedCount++;
+      else if (insertErr) lastInsertError = insertErr.message;
     }
 
-    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount });
+    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, engines: activeEngines });
     
     if (newSavedCount === 0 && discoveredList.length > 0) {
-       if (lastInsertError) {
-          return new Response(JSON.stringify({ 
-            ok: true, 
-            discovered_count: 0, 
-            debug_output: `Kritická chyba: AI našla kontakty, ale databáze je odmítla uložit! Důvod z DB: ${lastInsertError}` 
-          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-       }
        return new Response(JSON.stringify({ 
-         ok: true, 
-         discovered_count: 0, 
-         total_found_by_ai: discoveredList.length,
-         message: "Nalezeno, ale přeskočeno (chyběl e-mail nebo už v CRM existují).",
-         debug_output: JSON.stringify(discoveredList, null, 2)
+         ok: true, discovered_count: 0, total_found_by_ai: discoveredList.length,
+         message: "Nalezeno, ale preskoceno (chybal e-mail nebo uz v CRM existuji).",
+         debug_output: `${debugParts.join(" | ")} | DB chyba: ${lastInsertError || "zadna"}`
        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ ok: true, discovered_count: newSavedCount, message: "Hotovo." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, discovered_count: newSavedCount, engines: activeEngines, message: "Hotovo." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
     if (supabase) await logJobFailure(supabase, jobName, err.message);
-    return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `INTERNÍ CHYBA FUNKCE: ${String(err.message || err)}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: `INTERNI CHYBA FUNKCE: ${String(err.message || err)}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

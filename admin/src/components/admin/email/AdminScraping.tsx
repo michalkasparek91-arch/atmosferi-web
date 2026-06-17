@@ -205,29 +205,17 @@ export const AdminScraping = () => {
     saveConfigMutation.mutate(updated);
   };
 
-  const handleToggleEngine = (engine: "gemini" | "groq", checked: boolean) => {
+  const handleToggleEngine = (engine: "gemini" | "groq" | "openrouter", checked: boolean) => {
     const updated = { ...config };
     if (engine === "gemini") updated.use_gemini_engine = checked;
     if (engine === "groq") updated.use_groq_places_engine = checked;
+    if (engine === "openrouter") updated.use_openrouter_engine = checked;
     setConfig(updated);
     saveConfigMutation.mutate(updated);
   };
 
-  const handleToggleEnrichEngine = (engine: "gemini" | "groq", checked: boolean) => {
-    let currentEnrich = config.enrich_engine || "gemini";
-    let isGemini = currentEnrich === "gemini" || currentEnrich === "both";
-    let isGroq = currentEnrich === "groq" || currentEnrich === "both";
-
-    if (engine === "gemini") isGemini = checked;
-    if (engine === "groq") isGroq = checked;
-
-    let newVal: "gemini" | "groq" | "both" = "gemini";
-    if (isGemini && isGroq) newVal = "both";
-    else if (isGemini) newVal = "gemini";
-    else if (isGroq) newVal = "groq";
-    else newVal = engine === "gemini" ? "groq" : "gemini"; // pokud vypne poslední aktivní, zapne se ten druhý
-
-    const updated = { ...config, enrich_engine: newVal };
+  const handleEnrichEngineChange = (val: string) => {
+    const updated = { ...config, enrich_engine: val as any };
     setConfig(updated);
     saveConfigMutation.mutate(updated);
   };
@@ -672,35 +660,54 @@ export const AdminScraping = () => {
                   />
                 </div>
 
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-sm">OpenRouter <span className="text-xs font-normal text-violet-500">(Free modely)</span></Label>
+                    <p className="text-[10px] text-muted-foreground">Agregátor desítek AI modelů zdarma. Paralelní s Gemini.</p>
+                  </div>
+                  <Switch 
+                    checked={config.use_openrouter_engine === true} 
+                    onCheckedChange={(c) => handleToggleEngine("openrouter", c)}
+                  />
+                </div>
+
                 <div className="pt-4 mt-2 border-t border-border/50 space-y-4">
                   <Label className="font-bold text-sm">Engine pro obohacování dat (Enrichment)</Label>
-                  <p className="text-[10px] text-muted-foreground mb-3">Které modely se mají používat při obohacování firem na pozadí.</p>
+                  <p className="text-[10px] text-muted-foreground mb-3">Které modely se mají používat při obohacování firem na pozadí. Každý zapnutý engine zpracuje dávku nezávisle – více enginů = více výsledků.</p>
 
                   <RadioGroup
                     value={config.enrich_engine || "gemini"}
-                    onValueChange={(val: any) => {
-                      const updated = { ...config, enrich_engine: val };
-                      setConfig(updated);
-                      saveConfigMutation.mutate(updated);
-                    }}
+                    onValueChange={handleEnrichEngineChange}
                     className="flex flex-col space-y-3"
                   >
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="gemini" id="enrich-gemini" />
                       <Label htmlFor="enrich-gemini" className="font-normal text-sm cursor-pointer">
-                        Pouze Gemini <span className="text-muted-foreground text-xs">(Chytrý)</span>
+                        Pouze Gemini <span className="text-muted-foreground text-xs">(Chytrý, velký denní limit)</span>
                       </Label>
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="groq" id="enrich-groq" />
                       <Label htmlFor="enrich-groq" className="font-normal text-sm cursor-pointer">
-                        Pouze Groq <span className="text-muted-foreground text-xs">(Rychlý)</span>
+                        Pouze Groq <span className="text-muted-foreground text-xs">(Rychlý, 100k tokenů/den)</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="openrouter" id="enrich-openrouter" />
+                      <Label htmlFor="enrich-openrouter" className="font-normal text-sm cursor-pointer">
+                        Pouze OpenRouter <span className="text-muted-foreground text-xs">(Free modely, agregátor)</span>
                       </Label>
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="both" id="enrich-both" />
                       <Label htmlFor="enrich-both" className="font-normal text-sm cursor-pointer">
-                        Střídat obě <span className="text-muted-foreground text-xs">(Polovina dotazů půjde na Gemini, polovina na Groq)</span>
+                        Gemini + Groq <span className="text-muted-foreground text-xs">(Oba paralelně)</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="all" id="enrich-all" />
+                      <Label htmlFor="enrich-all" className="font-normal text-sm cursor-pointer">
+                        Všechny tři <span className="text-muted-foreground text-xs">(Gemini + Groq + OpenRouter paralelně – max. výsledků)</span>
                       </Label>
                     </div>
                   </RadioGroup>

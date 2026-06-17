@@ -53,9 +53,10 @@ Deno.serve(async (req) => {
        if (configData.value.enrich_engine) enrichEngine = configData.value.enrich_engine;
     }
 
-    if (enrichEngine === "both") {
-       enrichEngine = Math.random() > 0.5 ? "gemini" : "groq";
-    }
+    // Determine active enrich engines (independently toggled)
+    const useGemini = enrichEngine === "gemini" || enrichEngine === "both" || enrichEngine === "all";
+    const useGroq   = enrichEngine === "groq"   || enrichEngine === "both" || enrichEngine === "all";
+    const useOpenRouter = enrichEngine === "openrouter" || enrichEngine === "all";
 
     // Select oldest updated leads that need enrichment
     const { data: leads } = await supabase
@@ -81,7 +82,7 @@ Deno.serve(async (req) => {
           targetUrl = `https://www.${domain}`;
         }
       }
-      return { id: lead.id, company_name: lead.company_name || lead.full_name || "Neznámý", email: lead.email, website: targetUrl };
+      return { id: lead.id, company_name: lead.company_name || lead.full_name || "Neznamy", email: lead.email, website: targetUrl };
     });
 
     const PROMPT = `Jsi B2B akviziční agent. 
@@ -103,94 +104,85 @@ Vrať validní JSON POLE objektů. Každý objekt MUSÍ obsahovat:
 - email: Výsledná e-mailová adresa (nová nalezená, nebo původní)
 Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čisté pole).`;
 
-    let textOut = "";
-    
-    if (enrichEngine === "groq") {
-        const groqApiKey = Deno.env.get("GROQ_API_KEY");
-        if (!groqApiKey) {
-            const errMsg = "Missing GROQ_API_KEY";
-            await logJobFailure(supabase, jobName, errMsg);
-            return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
-            body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
-        });
-        
-        if (!groqRes.ok) {
-            const errBody = await groqRes.text();
-            const errMsg = `Chyba od Groq API: ${errBody}`;
-            await logJobFailure(supabase, jobName, errMsg);
-            return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-        
-        try {
-            const { error: usageErr } = await supabase.from("api_usage_logs").insert({
-                engine: "groq", 
-                service_name: "auto-enrich-leads", 
-                requests_count: 1
-            });
-            if (usageErr) console.error("Chyba při zápisu do api_usage_logs:", usageErr);
-        } catch(e) { console.error("Vyjimka pri zapisu api_usage_logs:", e); }
-
-        const resJson = await groqRes.json();
-        textOut = resJson.choices?.[0]?.message?.content?.trim() || "";
-        
-        if (!textOut) {
-            const errMsg = `Odpověď od Groq je prázdná.`;
-            await logJobFailure(supabase, jobName, errMsg);
-            return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-    } else {
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1 } }) 
-        });
-
-        if (!geminiRes.ok) {
-          const errBody = await geminiRes.text();
-          const errMsg = `Chyba od Google API: ${errBody}`;
-          await logJobFailure(supabase, jobName, errMsg);
-          return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-
-        try {
-            const { error: usageErr } = await supabase.from("api_usage_logs").insert({
-                engine: "gemini", 
-                service_name: "auto-enrich-leads", 
-                requests_count: 1
-            });
-            if (usageErr) console.error("Chyba při zápisu do api_usage_logs:", usageErr);
-        } catch(e) { console.error("Vyjimka pri zapisu api_usage_logs:", e); }
-
-        const resJson = await geminiRes.json();
-        textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-        
-        if (!textOut) {
-           const finishReason = resJson.candidates?.[0]?.finishReason || "UNKNOWN_REASON";
-           const errMsg = `Odpověď od AI je prázdná (finishReason: ${finishReason}). Může se jednat o bezpečnostní filtr.`;
-           await logJobFailure(supabase, jobName, errMsg);
-           return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
+    // Helper to parse AI JSON output
+    function parseAIJson(raw: string): any[] {
+      let text = raw.replace(/```json/g, "").replace(/```/g, "").trim();
+      const fb = text.indexOf('[');
+      const lb = text.lastIndexOf(']');
+      if (fb !== -1 && lb !== -1 && lb > fb) text = text.substring(fb, lb + 1);
+      try { return JSON.parse(text); } catch { return []; }
     }
 
-    // Odstranění formátování Markdownu
-    textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-
-    const firstBracket = textOut.indexOf('[');
-    const lastBracket = textOut.lastIndexOf(']');
-    
-    let extractedArray: any[] = [];
-    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-      textOut = textOut.substring(firstBracket, lastBracket + 1);
+    // Helper to log api usage
+    async function logUsage(engine: string) {
       try {
-        extractedArray = JSON.parse(textOut);
-      } catch (e: any) {
-        const errMsg = `JSON Parse Chyba: ${e.message}`;
-        await logJobFailure(supabase, jobName, errMsg);
-        return new Response(JSON.stringify({ ok: false, error: errMsg }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
+        const { error } = await supabase.from("api_usage_logs").insert({ engine, service_name: "auto-enrich-leads", requests_count: 1 });
+        if (error) console.error(`api_usage_logs error (${engine}):`, error);
+      } catch(e) { console.error("api_usage_logs exception:", e); }
     }
+
+    // Call each active engine and merge results (later entries overwrite earlier for same id)
+    const mergedResults: Record<string, any> = {};
+
+    const engineTasks: Promise<void>[] = [];
+
+    if (useGroq) {
+      engineTasks.push((async () => {
+        const groqApiKey = Deno.env.get("GROQ_API_KEY");
+        if (!groqApiKey) { console.warn("Missing GROQ_API_KEY, skipping Groq enrichment"); return; }
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
+          body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+        });
+        if (!groqRes.ok) { console.error("Groq error:", await groqRes.text()); return; }
+        await logUsage("groq");
+        const arr = parseAIJson((await groqRes.json()).choices?.[0]?.message?.content || "");
+        for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+      })());
+    }
+
+    if (useOpenRouter) {
+      engineTasks.push((async () => {
+        const orKey = Deno.env.get("OPENROUTER_API_KEY");
+        if (!orKey) { console.warn("Missing OPENROUTER_API_KEY, skipping OpenRouter enrichment"); return; }
+        const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
+          body: JSON.stringify({ model: "meta-llama/llama-3.3-70b-instruct:free", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+        });
+        if (!orRes.ok) { console.error("OpenRouter error:", await orRes.text()); return; }
+        await logUsage("openrouter");
+        const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
+        for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+      })());
+    }
+
+    if (useGemini) {
+      engineTasks.push((async () => {
+        // Cascade through Gemini models: 2.0-flash(200/day) → 2.5-flash-lite → 1.5-flash(1500/day)
+        const models = ["gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
+        let geminiRes: Response | null = null;
+        for (const model of models) {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 16000 } })
+          });
+          if (res.ok) { geminiRes = res; break; }
+          if (res.status === 429 || res.status === 503) { console.warn(`Gemini ${model} unavailable (${res.status}), trying next`); geminiRes = res; continue; }
+          geminiRes = res; break;
+        }
+        if (!geminiRes || !geminiRes.ok) { console.error("Gemini error:", await geminiRes?.text()); return; }
+        await logUsage("gemini");
+        const resJson = await geminiRes.json();
+        const arr = parseAIJson(resJson.candidates?.[0]?.content?.parts?.[0]?.text || "");
+        // Gemini result is authoritative – overrides others
+        for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+      })());
+    }
+
+    await Promise.allSettled(engineTasks);
+
+    const extractedArray = Object.values(mergedResults);
 
     let updatedCount = 0;
     
