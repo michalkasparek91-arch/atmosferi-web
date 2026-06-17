@@ -77,7 +77,10 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
   const signatureHtml = data.signatureEnabled ? `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 40px; border-top: 1px solid #EAEAEA; padding-top: 20px;">
       <tr>
-        <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #807C72;">
+        <td width="48" style="padding-right: 16px; vertical-align: top;">
+          <img src="${data.signatureAvatarUrl || 'https://atmosferi.com/img/michal.jpg'}" width="48" height="48" alt="${data.signatureName}" style="display: block; width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: none; outline: none;" />
+        </td>
+        <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #807C72; vertical-align: top;">
           <span style="display:block; margin-bottom: 2px;">${data.signatureGreeting}</span>
           <strong style="color: #16140F;">${data.signatureName}</strong><br/>
           Atmosferi&deg; &mdash; ${data.signatureRole}<br/>
