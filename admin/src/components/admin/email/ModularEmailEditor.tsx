@@ -877,6 +877,12 @@ export function ModularEmailEditorDialogInner({
         job: initialData.job || null,
         recipient_email: initialData.recipient_email || (initialData.worker?.email || initialData.lead?.email) || "",
         recipient_name: initialData.recipient_name || (initialData.worker?.full_name || initialData.lead?.company_name || initialData.lead?.full_name) || "",
+        hero_caption: initialData.hero_caption || filters.hero_caption || null,
+        hero_tagline: initialData.hero_tagline || filters.hero_tagline || null,
+        signature_greeting: initialData.signature_greeting || filters.signature_greeting || null,
+        signature_role: initialData.signature_role || filters.signature_role || null,
+        signature_email: initialData.signature_email || filters.signature_email || null,
+        stealth_tracking_enabled: initialData.stealth_tracking_enabled ?? filters.stealth_tracking_enabled ?? true,
       };
 
       setForm(initialEditorState);
@@ -1345,7 +1351,19 @@ export function ModularEmailEditorDialogInner({
               size="sm" 
               className="h-8 px-3 sm:px-4 text-[11px] font-bold rounded-full gap-1.5 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer transition-all shrink-0" 
               disabled={isSaving || (mode !== "outbox" && !form.name)}
-              onClick={() => onSave(form)}
+              onClick={() => {
+                const finalForm = { ...form };
+                finalForm.segment_filters = {
+                  ...(finalForm.segment_filters || {}),
+                  hero_caption: finalForm.hero_caption,
+                  hero_tagline: finalForm.hero_tagline,
+                  signature_greeting: finalForm.signature_greeting,
+                  signature_role: finalForm.signature_role,
+                  signature_email: finalForm.signature_email,
+                  stealth_tracking_enabled: finalForm.stealth_tracking_enabled,
+                };
+                onSave(finalForm);
+              }}
             >
               {isSaving ? <Loader2 className="h-3 w-3 animate-spin shrink-0" /> : <Save className="h-3 w-3 shrink-0" />}
               <span className="hidden sm:inline">{mode === "campaign" ? "Uložit a použít" : "Uložit"}</span>
