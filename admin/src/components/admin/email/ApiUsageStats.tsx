@@ -101,6 +101,18 @@ export const ApiUsageStats = () => {
           </div>
         </div>
 
+        {/* Groq Stats */}
+        <div className="space-y-2 pt-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="font-semibold">Groq (Llama 3) - Dnes</span>
+            <span className="font-mono text-muted-foreground">{stats?.groqDaily} / {groqLimitDaily} dotazů</span>
+          </div>
+          <Progress value={groqDailyPct} className={`h-2 ${groqDailyPct > 90 ? "bg-red-500/20" : ""}`} indicatorClassName={groqDailyPct > 90 ? "bg-red-500" : ""} />
+          <div className="text-[10px] text-muted-foreground text-right">
+            Za tento měsíc celkem: {stats?.groqMonthly} dotazů
+          </div>
+        </div>
+
 
         {/* Breakdown */}
         <div className="pt-4 border-t border-border/40">

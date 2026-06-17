@@ -103,6 +103,7 @@ export const AudienceManager = (props: any) => {
     searchTerm, setSearchTerm,
     minEngagement, setMinEngagement,
     minPremiumScore, setMinPremiumScore,
+    crmSort, setCrmSort,
     leadSheet, leadsLoading,
     leadTotalCount,
     crmPage, setCrmPage,
@@ -470,6 +471,17 @@ export const AudienceManager = (props: any) => {
             />
           </div>
 
+          <Select value={crmSort} onValueChange={setCrmSort}>
+            <SelectTrigger className="h-9 w-[160px] rounded-full border shadow-sm transition-colors text-xs">
+              <SelectValue placeholder="Řadit podle" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl text-[12px]">
+              <SelectItem value="engagement">Nejaktivnější</SelectItem>
+              <SelectItem value="newest">Nejnovější</SelectItem>
+              <SelectItem value="oldest">Nejstarší</SelectItem>
+            </SelectContent>
+          </Select>
+
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <Select value={countryFilter} onValueChange={setCountryFilter}>
               <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${countryFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
@@ -650,22 +662,23 @@ export const AudienceManager = (props: any) => {
                     className="rounded-md border-muted-foreground/30"
                   />
                 </TableHead>
-                <TableHead className="w-[45%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2">Kontakt</TableHead>
-                <TableHead className="w-[35%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2">Lokalita & Zdroj</TableHead>
+                <TableHead className="w-[35%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2">Kontakt</TableHead>
+                <TableHead className="w-[25%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2">Lokalita & Zdroj</TableHead>
+                <TableHead className="w-[15%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2 text-center">Přidáno</TableHead>
                 <TableHead className="w-[20%] text-[9px] font-bold uppercase tracking-widest text-muted-foreground py-2 text-center">Engagement</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {leadsLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-64 text-center">
+                  <TableCell colSpan={5} className="h-64 text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary/20" />
                     <p className="text-xs text-muted-foreground mt-4 font-medium italic">Načítám publikum...</p>
                   </TableCell>
                 </TableRow>
               ) : leadSheet.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-64 text-center">
+                  <TableCell colSpan={5} className="h-64 text-center">
                     <p className="text-sm text-muted-foreground italic font-medium">Žádné kontakty neodpovídají filtrům.</p>
                   </TableCell>
                 </TableRow>
@@ -739,17 +752,21 @@ export const AudienceManager = (props: any) => {
                       </div>
                     </TableCell>
                     <TableCell className="py-2 text-center align-top">
+                      <div className="flex flex-col items-center justify-center gap-1 mt-0.5">
+                        <span className="text-[11px] font-medium text-foreground">
+                          {new Date(lead.created_at).toLocaleDateString("cs-CZ")}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground">
+                          {new Date(lead.created_at).toLocaleTimeString("cs-CZ", { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-2 text-center align-top">
                        <div className="flex flex-col items-center justify-center gap-1.5 mt-0.5">
                          <div className="text-[11px] text-muted-foreground flex items-center justify-center gap-2">
                            <span className="flex items-center gap-1" title="Odeslané e-maily"><Mail className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : lead.engagement_score > 0 ? "1" : "0"}</span>
                            <span className="opacity-30">|</span>
                            <span className="flex items-center gap-1" title="Otevřené e-maily"><MailOpen className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : "0"}</span>
-                         </div>
-                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
-                           <Calendar className="h-2.5 w-2.5 opacity-50 shrink-0" /> 
-                           {lead.last_activity 
-                             ? `${new Date(lead.last_activity).toLocaleDateString("cs-CZ")}` 
-                             : `${new Date(lead.created_at).toLocaleDateString("cs-CZ")}`}
                          </div>
                        </div>
                     </TableCell>

@@ -223,6 +223,7 @@ export default function AdminEmails() {
   const [radiusFilter, setRadiusFilter] = useState("50");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [enrichFilter, setEnrichFilter] = useState("all");
+  const [crmSort, setCrmSort] = useState<"engagement" | "newest" | "oldest">("engagement");
   const [crmPage, setCrmPage] = useState(0);
   const pageSize = 200;
   
@@ -650,9 +651,17 @@ export default function AdminEmails() {
   }, [suitableWorkers]);
 
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, enrichFilter, crmPage],
+    queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, enrichFilter, crmPage, crmSort],
     queryFn: async () => {
-      let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' }).order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
+      let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' });
+      
+      if (crmSort === "engagement") {
+         query = query.order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
+      } else if (crmSort === "newest") {
+         query = query.order("created_at", { ascending: false });
+      } else if (crmSort === "oldest") {
+         query = query.order("created_at", { ascending: true });
+      }
       
       if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
@@ -705,7 +714,14 @@ export default function AdminEmails() {
 
   const fetchAllMatchingContacts = async () => {
     const buildQuery = () => {
-      let query = supabase.from("unified_contacts" as any).select("id, contact_source").order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
+      let query = supabase.from("unified_contacts" as any).select("id, contact_source");
+      if (crmSort === "engagement") {
+         query = query.order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
+      } else if (crmSort === "newest") {
+         query = query.order("created_at", { ascending: false });
+      } else if (crmSort === "oldest") {
+         query = query.order("created_at", { ascending: true });
+      }
       
       if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
@@ -1414,6 +1430,7 @@ export default function AdminEmails() {
                     searchTerm, setSearchTerm,
                     minEngagement: minEngagement, setMinEngagement: setMinEngagement,
                     minPremiumScore: minPremiumScore, setMinPremiumScore: setMinPremiumScore,
+                    crmSort, setCrmSort,
                     leadSheet, leadsLoading,
                     leadTotalCount,
                     crmPage, setCrmPage,
