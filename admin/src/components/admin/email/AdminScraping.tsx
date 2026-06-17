@@ -105,7 +105,8 @@ export const AdminScraping = () => {
         ai_rpm_limit: serverConfig.ai_rpm_limit || 5,
         ai_batch_size: serverConfig.ai_batch_size || 50,
         use_gemini_engine: serverConfig.use_gemini_engine !== false,
-        use_groq_places_engine: serverConfig.use_groq_places_engine === true
+        use_groq_places_engine: serverConfig.use_groq_places_engine === true,
+        enrich_engine: serverConfig.enrich_engine || "gemini"
       });
       setSelectedKeywords(serverConfig.active_keywords || []);
       setSelectedCities(serverConfig.active_cities || []);

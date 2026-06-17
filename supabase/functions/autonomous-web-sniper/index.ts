@@ -134,7 +134,8 @@ async function runGroqPlacesEngine(targetCountry: string, targetKeyword: string,
     let fetchErrors = 0;
     let noEmailFound = 0;
     
-    const promises = validPlaces.slice(0, 25).map(async (place: any) => { // Zvýšený limit na 25 pro Groq (Free tier zvládá 30 RPM)
+    // Vrátíme limit na 5, protože Groq Llama 3.3 70B má na free tieru limit jen 100 000 tokenů za den (což je cca 30-40 webů).
+    const promises = validPlaces.slice(0, 5).map(async (place: any) => { 
         try {
             // fetch with timeout
             const controller = new AbortController();
