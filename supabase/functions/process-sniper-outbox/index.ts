@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
         } else if (companyName) {
           const lang = template.language || 'cz';
           if (lang === 'de') {
-            name = `Team von ${companyName}`;
+            name = `liebes Team von ${companyName}`;
           } else if (lang === 'en') {
             name = `Team at ${companyName}`;
           } else {
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
         const replaceVars = (txt: string | null | undefined) => {
           if (!txt) return "";
-          return txt
+          let replaced = txt
             .replace(/{{osloveni}}/g, name.split(" ")[0]) // better parsing of name for osloveni
             .replace(/{{jmeno}}/g, name)
             .replace(/{{mesto_v_meste}}/g, draft.job?.city ? `v ${draft.job.city}` : "v okolí")
@@ -149,6 +149,10 @@ Deno.serve(async (req) => {
             .replace(/{{projekt}}/g, draft.lead?.last_project || filters.project_fallback || "Váš projekt")
             .replace(/{{firma}}|{{studio}}/g, companyName || name || "Vaše studio")
             .replace(/{{odkaz_zakazky}}/g, template.cta_url || "https://zrobee.cz");
+            
+          replaced = replaced.replace(/Guten Tag liebes Team/gi, "Guten Tag, liebes Team");
+          replaced = replaced.replace(/Hallo liebes Team/gi, "Hallo, liebes Team");
+          return replaced;
         };
 
         const result = await sendEmail({

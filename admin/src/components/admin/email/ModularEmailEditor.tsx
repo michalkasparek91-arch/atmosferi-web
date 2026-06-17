@@ -1020,7 +1020,7 @@ export function ModularEmailEditorDialogInner({
       } else if (companyName) {
         const lang = form.language || 'cz';
         if (lang === 'de') {
-          name = `Team von ${companyName}`;
+          name = `liebes Team von ${companyName}`;
         } else if (lang === 'en') {
           name = `Team at ${companyName}`;
         } else {
@@ -1077,7 +1077,7 @@ export function ModularEmailEditorDialogInner({
        }
        const lang = form?.language || 'cz';
        let simName = `týme z ${companyName}`;
-       if (lang === 'de') simName = `Team von ${companyName}`;
+       if (lang === 'de') simName = `liebes Team von ${companyName}`;
        if (lang === 'en') simName = `Team at ${companyName}`;
        
        defaultData.osloveni = simName.split(" ")[0] || "týme";
@@ -1095,7 +1095,7 @@ export function ModularEmailEditorDialogInner({
 
   const previewReplace = (txt: string | null | undefined) => {
     if (!txt) return "";
-    return txt
+    let replaced = txt
       .replace(/{{osloveni}}/g, previewData.osloveni)
       .replace(/{{jmeno}}/g, previewData.jmeno)
       .replace(/{{mesto}}/g, previewData.mesto)
@@ -1110,6 +1110,10 @@ export function ModularEmailEditorDialogInner({
       .replace(/{{odkaz_zakazky}}/g, previewData.odkaz_zakazky)
       .replace(/{{firma}}|{{studio}}/g, previewData.firma || "Ukázkové Studio")
       .replace(/{{icebreaker}}/g, previewData.icebreaker);
+      
+    replaced = replaced.replace(/Guten Tag liebes Team/gi, "Guten Tag, liebes Team");
+    replaced = replaced.replace(/Hallo liebes Team/gi, "Hallo, liebes Team");
+    return replaced;
   };
 
   const setVal = (key: keyof EmailEditorState, val: any) => setForm((p) => p ? ({ ...p, [key]: val }) : null);
