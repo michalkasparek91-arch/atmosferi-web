@@ -969,12 +969,12 @@ export function ModularEmailEditorDialogInner({
   }, [selectedJobId, openJobs, form?.job, mode]);
 
   const previewData = useMemo(() => {
-    const defaultData = {
+    const defaultData: Record<string, string> = {
       osloveni: "Petře", jmeno: "Petr Novák", mesto: "Praha", mesto_v_meste: "v Praze",
       obor: "Řemeslné práce", obor_2pad: "řemeslníka", nazev_zakazky: "Rekonstrukce bytového jádra",
       popis_zakazky: "Hledám spolehlivého řemeslníka na kompletní obklad koupelny...",
       cena_rozpocet: "15 000 Kč", zakaznik: "Jan", odkaz_zakazky: "https://zrobee.cz",
-      projekt: "Váš projekt",
+      projekt: "Váš projekt", firma: "Ukázkové Studio",
       icebreaker: form?.icebreaker || "Všimli jsme si vašeho skvělého profilu."
     };
     
@@ -1014,6 +1014,7 @@ export function ModularEmailEditorDialogInner({
 
       defaultData.osloveni = name.split(" ")[0] || "kolego";
       defaultData.jmeno = name;
+      if (companyName) defaultData.firma = companyName;
       
       const job = form.job;
       const lead = form.lead;
@@ -1037,6 +1038,7 @@ export function ModularEmailEditorDialogInner({
         defaultData.jmeno = selectedJob.customer_name;
         defaultData.zakaznik = selectedJob.customer_name;
         defaultData.osloveni = selectedJob.customer_name.split(" ")[0];
+        defaultData.firma = selectedJob.customer_name;
       }
       defaultData.mesto = selectedJob.city || defaultData.mesto;
       defaultData.mesto_v_meste = getCityIn(selectedJob.city);
@@ -1063,6 +1065,7 @@ export function ModularEmailEditorDialogInner({
        
        defaultData.osloveni = simName.split(" ")[0] || "týme";
        defaultData.jmeno = simName;
+       defaultData.firma = companyName;
     }
     
     // Přepis projekt fallbacku, pokud je v segment filters
@@ -1088,7 +1091,7 @@ export function ModularEmailEditorDialogInner({
       .replace(/{{zakaznik}}/g, previewData.zakaznik)
       .replace(/{{projekt}}/g, previewData.projekt || "Národní muzeum")
       .replace(/{{odkaz_zakazky}}/g, previewData.odkaz_zakazky)
-      .replace(/{{firma}}|{{studio}}/g, previewData.firma || "Atmosferi Studio")
+      .replace(/{{firma}}|{{studio}}/g, previewData.firma || "Ukázkové Studio")
       .replace(/{{icebreaker}}/g, previewData.icebreaker);
   };
 

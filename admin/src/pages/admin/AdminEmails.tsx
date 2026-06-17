@@ -885,7 +885,7 @@ export default function AdminEmails() {
       .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, priceNote || "15 000 Kč")
       .replace(/{{zakaznik}}/g, customerName || "Jan Novák")
       .replace(/{{odkaz_zakazky}}/g, ctaUrl || "https://zrobee.cz/sdilena-zakazka/123")
-      .replace(/{{firma}}|{{studio}}/g, "Atmosferi Studio")
+      .replace(/{{firma}}|{{studio}}/g, "Ukázkové Studio")
       .replace(/{{projekt}}/g, "Národní muzeum")
       .replace(/{{icebreaker}}/g, "Všimli jsme si vašeho skvělého profilu na Zrobee.");
   };
