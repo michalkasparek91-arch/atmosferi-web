@@ -996,7 +996,7 @@ export function ModularEmailEditorDialogInner({
     
     if (mode === "outbox" && form) {
       const personName = form.worker?.full_name || form.lead?.decision_maker_name;
-      const companyName = form.lead?.company_name || form.lead?.full_name;
+      const companyName = cleanCompanyName(form.lead?.company_name || form.lead?.full_name);
       
       let name = form.recipient_name || "kolego";
       if (personName) {
@@ -1035,10 +1035,11 @@ export function ModularEmailEditorDialogInner({
       }
     } else if (selectedJob) {
       if (selectedJob.customer_name) {
-        defaultData.jmeno = selectedJob.customer_name;
-        defaultData.zakaznik = selectedJob.customer_name;
-        defaultData.osloveni = selectedJob.customer_name.split(" ")[0];
-        defaultData.firma = selectedJob.customer_name;
+        const cName = cleanCompanyName(selectedJob.customer_name);
+        defaultData.jmeno = cName;
+        defaultData.zakaznik = cName;
+        defaultData.osloveni = cName.split(" ")[0];
+        defaultData.firma = cName;
       }
       defaultData.mesto = selectedJob.city || defaultData.mesto;
       defaultData.mesto_v_meste = getCityIn(selectedJob.city);
@@ -1052,11 +1053,11 @@ export function ModularEmailEditorDialogInner({
     }
     
     if (simulateCompanyOnly) {
-       let companyName = "Ukázková Firma s.r.o.";
+       let companyName = "Ukázková Firma";
        if (selectedJob && (selectedJob as any).company_name) {
-          companyName = (selectedJob as any).company_name;
+          companyName = cleanCompanyName((selectedJob as any).company_name);
        } else if (selectedJob && selectedJob.customer_name) {
-          companyName = selectedJob.customer_name;
+          companyName = cleanCompanyName(selectedJob.customer_name);
        }
        const lang = form?.language || 'cz';
        let simName = `týme z ${companyName}`;

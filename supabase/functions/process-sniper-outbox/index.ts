@@ -6,6 +6,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function cleanCompanyName(name: string | null | undefined): string {
+  if (!name) return "";
+  let cleaned = name.replace(/\b(gmbh|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.)\b/gi, "").trim();
+  cleaned = cleaned.replace(/,\s*$/, "").trim();
+  
+  if (cleaned === cleaned.toUpperCase() && cleaned.match(/[A-Z]/)) {
+    cleaned = cleaned.split(" ").map(word => {
+      if (word.length > 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      }
+      return word;
+    }).join(" ");
+  }
+  return cleaned;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -83,7 +99,7 @@ Deno.serve(async (req) => {
         if (personName?.trim().toLowerCase() === "studio") {
           personName = null;
         }
-        const companyName = draft.lead?.company_name || draft.lead?.full_name;
+        const companyName = cleanCompanyName(draft.lead?.company_name || draft.lead?.full_name);
         
         let name = "Neznámý";
         if (personName) {
