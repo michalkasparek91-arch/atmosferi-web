@@ -221,7 +221,7 @@ export const AdminScraping = () => {
     if (isGemini && isGroq) newVal = "both";
     else if (isGemini) newVal = "gemini";
     else if (isGroq) newVal = "groq";
-    else newVal = "gemini"; // fallback if both false
+    else newVal = engine === "gemini" ? "groq" : "gemini"; // pokud vypne poslední aktivní, zapne se ten druhý
 
     const updated = { ...config, enrich_engine: newVal };
     setConfig(updated);
