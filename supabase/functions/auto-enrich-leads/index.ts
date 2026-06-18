@@ -161,8 +161,8 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
     if (useGemini) {
       engineTasks.push((async () => {
-        // Cascade through Gemini models: 2.0-flash(200/day) → 2.5-flash-lite → 1.5-flash(1500/day)
-        const models = ["gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"];
+        // Cascade through Gemini models
+        const models = ["gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash"];
         let geminiRes: Response | null = null;
         for (const model of models) {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
@@ -170,7 +170,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
             body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 16000 } })
           });
           if (res.ok) { geminiRes = res; break; }
-          if (res.status === 429 || res.status === 503) { geminiRes = res; continue; }
+          if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) { geminiRes = res; continue; }
           geminiRes = res; break;
         }
         if (!geminiRes || !geminiRes.ok) { engineErrors.gemini = await geminiRes?.text() || "Unknown Gemini error"; return; }

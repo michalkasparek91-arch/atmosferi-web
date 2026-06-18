@@ -41,11 +41,10 @@ async function logApiUsage(supabase: any, engine: string, serviceName: string) {
 
 // Gemini model cascade: try cheapest free-tier model first, fall back on quota/overload
 async function callGeminiWithFallback(apiKey: string, body: any): Promise<Response> {
-  // Free-tier RPD: gemini-2.0-flash=200, gemini-2.5-flash=20, gemini-1.5-flash=1500
   const models = [
-    "gemini-2.0-flash",      // 200 req/day — best balance
-    "gemini-2.5-flash-lite", // lightweight fallback
-    "gemini-1.5-flash",      // 1500 req/day — last resort
+    "gemini-2.0-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
   ];
   let lastRes: Response | null = null;
   for (const model of models) {
@@ -53,7 +52,7 @@ async function callGeminiWithFallback(apiKey: string, body: any): Promise<Respon
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
     });
     if (res.ok) return res;
-    if (res.status === 429 || res.status === 503) {
+    if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) {
       console.warn(`Gemini model ${model} unavailable (${res.status}), trying next...`);
       lastRes = res;
       continue;
