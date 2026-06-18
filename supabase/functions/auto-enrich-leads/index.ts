@@ -146,12 +146,31 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       engineTasks.push((async () => {
         const orKey = Deno.env.get("OPENROUTER_API_KEY");
         if (!orKey) { engineErrors.openrouter = "Missing OPENROUTER_API_KEY"; return; }
-        const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
-          body: JSON.stringify({ model: "meta-llama/llama-3.3-70b-instruct:free", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
-        });
-        if (!orRes.ok) { engineErrors.openrouter = await orRes.text(); return; }
+        const models = [
+          "meta-llama/llama-3.3-70b-instruct:free",
+          "qwen/qwen-2.5-72b-instruct:free",
+          "google/gemini-2.0-pro-exp-02-05:free"
+        ];
+        let orRes: Response | null = null;
+        const orErrors: string[] = [];
+
+        for (const model of models) {
+          const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
+            body: JSON.stringify({ model: model, messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+          });
+          if (res.ok) { orRes = res; break; }
+          const errText = await res.text();
+          orErrors.push(`${model}: ${res.status} - ${errText}`);
+          if (res.status === 429 || res.status === 503 || res.status === 502) { continue; }
+          break; // other error
+        }
+
+        if (!orRes || !orRes.ok) { 
+          engineErrors.openrouter = `All OR models failed: ${orErrors.join(" | ")}`; 
+          return; 
+        }
         await logUsage("openrouter");
         const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
         if (arr.length === 0) engineErrors.openrouter = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";

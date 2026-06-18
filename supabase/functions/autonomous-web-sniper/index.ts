@@ -120,30 +120,35 @@ async function runGeminiEngine(supabase: any, targetCountry: string, targetKeywo
 async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string): Promise<{ discoveredList?: any[], error?: string }> {
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
     if (!apiKey) return { error: "Chybi OPENROUTER_API_KEY v Supabase Secrets!" };
-
+    
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
       .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
-    const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://atmosferi.cz",
-        "X-Title": "Atmosferi CRM"
-      },
-      body: JSON.stringify({
-        model: "meta-llama/llama-3.3-70b-instruct:free",
-        messages: [{ role: "user", content: SEARCH_PROMPT }],
-        temperature: 0.7
-      })
-    });
+    const models = [
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "qwen/qwen-2.5-72b-instruct:free",
+      "google/gemini-2.0-pro-exp-02-05:free"
+    ];
+    let orRes: Response | null = null;
+    const orErrors: string[] = [];
 
-    if (!orRes.ok) {
-      const errBody = await orRes.text();
-      return { error: `Chyba od OpenRouter API: ${errBody}` };
+    for (const model of models) {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
+          body: JSON.stringify({ model: model, messages: [{ role: "user", content: SEARCH_PROMPT }], temperature: 0.1 })
+      });
+      if (res.ok) { orRes = res; break; }
+      const errText = await res.text();
+      orErrors.push(`${model}: ${res.status} - ${errText}`);
+      if (res.status === 429 || res.status === 503 || res.status === 502) { continue; }
+      break; // other error
+    }
+
+    if (!orRes || !orRes.ok) {
+       return { error: `Vsechny OR modely selhaly: ${orErrors.join(" | ")}` };
     }
 
     const resJson = await orRes.json();
