@@ -8,11 +8,12 @@ const corsHeaders = {
 
 function cleanCompanyName(name: string | null | undefined): string {
   if (!name) return "";
-  let cleaned = name.replace(/\b(gmbh|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.)\b/gi, "").trim();
+  let cleaned = name.replace(/\b(gmbh|gbr|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.|e\.v\.|kgaa|ohg|kg|partg)\b/gi, "").trim();
+  cleaned = cleaned.replace(/\s*&\s*co\.?\s*/gi, "").trim();
   cleaned = cleaned.replace(/,\s*$/, "").trim();
   
   if (cleaned === cleaned.toUpperCase() && cleaned.match(/[A-Z]/)) {
-    cleaned = cleaned.split(" ").map(word => {
+    cleaned = cleaned.split(" ").map((word: string) => {
       if (word.length > 0) {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       }

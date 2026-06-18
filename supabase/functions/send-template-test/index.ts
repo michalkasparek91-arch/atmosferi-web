@@ -1,6 +1,23 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendEmail } from "../_shared/email.ts";
 
+function cleanCompanyName(name: string | null | undefined): string {
+  if (!name) return "";
+  let cleaned = name.replace(/\b(gmbh|gbr|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.|e\.v\.|kgaa|ohg|kg|partg)\b/gi, "").trim();
+  cleaned = cleaned.replace(/\s*&\s*co\.?\s*/gi, "").trim();
+  cleaned = cleaned.replace(/,\s*$/, "").trim();
+  
+  if (cleaned === cleaned.toUpperCase() && cleaned.match(/[A-Z]/)) {
+    cleaned = cleaned.split(" ").map((word: string) => {
+      if (word.length > 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      }
+      return word;
+    }).join(" ");
+  }
+  return cleaned;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -109,8 +126,49 @@ Deno.serve(async (req) => {
         };
       }
 
-      const custFullName = jobData.customer_name || "Zákazník";
-      const custFirstName = custFullName !== "Zákazník" && custFullName ? custFullName.split(" ")[0] : "Jan";
+      let custFullName = jobData.customer_name || "Zákazník";
+      let personName = "";
+      let companyName = "";
+
+      if (custFullName !== "Zákazník" && custFullName) {
+        if (custFullName.includes(" (") && custFullName.includes(")")) {
+          const m = custFullName.match(/^(.*?)\s*\((.*?)\)/);
+          if (m) {
+            personName = m[1].trim();
+            companyName = m[2].split(",")[0].trim();
+          } else {
+            companyName = custFullName;
+          }
+        } else {
+          companyName = custFullName;
+        }
+      }
+
+      companyName = cleanCompanyName(companyName);
+
+      let name = "Michale";
+      let jmeno = "Michal Kašpárek";
+
+      if (personName && personName.length > 2) {
+        name = personName.split(" ")[0] || "Michale";
+        jmeno = personName;
+      } else if (companyName) {
+        const lang = template.language || 'cz';
+        const fallbackTemplate = template.segment_filters?.jmeno_fallback;
+        if (fallbackTemplate) {
+          name = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
+        } else {
+          if (lang === 'de') {
+            name = `liebes Team von ${companyName}`;
+          } else if (lang === 'en') {
+            name = `Team at ${companyName}`;
+          } else {
+            name = `týme z ${companyName}`;
+          }
+        }
+        jmeno = name;
+      }
+
       const jobCat = jobData.service_subcategories?.name || "Řemeslné práce";
       const jobCatForm = jobData.service_subcategories?.category_form || jobData.service_subcategories?.name || "řemeslníka";
       const budget = jobData.price_note || (jobData.budget_min ? `${jobData.budget_min.toLocaleString('cs-CZ')} Kč` : "Není stanovena");
@@ -143,8 +201,8 @@ Deno.serve(async (req) => {
       }
 
       return {
-        osloveni: "Michale",
-        jmeno: "Michal Kašpárek",
+        osloveni: name,
+        jmeno: jmeno,
         mesto: jobData.city || "Celá ČR",
         mesto_v_meste: cityIn,
         obor: jobCat,
