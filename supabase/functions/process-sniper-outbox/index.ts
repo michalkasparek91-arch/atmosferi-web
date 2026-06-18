@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
           urgencyBannerEnabled: template.urgency_banner_enabled ?? false,
           promoBannerEnabled: template.promo_banner_enabled ?? false,
           psFooterEnabled: template.ps_footer_enabled ?? false,
-          psFooterText: template.ps_footer_text || filters.ps_footer_text,
+          psFooterText: template.ps_footer_text ?? filters.ps_footer_text,
           showJobWidget: template.show_job_widget ?? false,
           showCtaButton: template.show_cta_button ?? true,
           signatureGreeting: template.signature_greeting || filters.signature_greeting,

@@ -374,6 +374,7 @@ export default function AdminEmails() {
             show_job_widget: overrideData.show_job_widget,
             show_cta_button: overrideData.show_cta_button,
             segment_filters: {
+              ...(overrideData.segment_filters || {}),
               preview_theme: previewTheme,
               secondary_text_below_job: overrideData.segment_filters?.secondary_text_below_job
             }
