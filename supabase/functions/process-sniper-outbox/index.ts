@@ -218,9 +218,7 @@ Deno.serve(async (req) => {
       for (let i = 0; i < idsThisRun.length; i++) {
         const draftId = idsThisRun[i];
 
-        if (i > 0) {
-          await sleep(SEND_DELAY_MS[provider]);
-        }
+        await sleep(SEND_DELAY_MS[provider]);
 
         const { data: draft, error: fetchErr } = await supabaseAdmin
           .from("email_outbox")
