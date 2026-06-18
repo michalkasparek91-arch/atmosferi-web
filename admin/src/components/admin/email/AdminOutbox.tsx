@@ -50,7 +50,9 @@ export const AdminOutbox = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
     },
     onError: (err: any) => {
-      toast.error("Chyba při odesílání dávky: " + err.message);
+      const detail = err?.context?.body ? (() => { try { return JSON.parse(err.context.body)?.error; } catch { return null; } })() : null;
+      toast.error("Chyba při odesílání dávky: " + (detail || err.message), { duration: 8000 });
+      console.error("Batch send error detail:", err);
     }
   });
   const { data: drafts = [], isLoading } = useQuery({

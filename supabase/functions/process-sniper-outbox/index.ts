@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
       }
 
       resolvedDraftIds = draftsToSend.map((d: any) => d.id);
+      console.log(`[send_template_batch] Found ${resolvedDraftIds.length} drafts for template ${template_id}`);
     }
 
     if (action === "send_selected_drafts" || action === "send_template_batch") {
@@ -243,8 +244,8 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
   } catch (error: any) {
-    console.error("[ProcessSniperOutbox] Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("[ProcessSniperOutbox] Unhandled error:", error?.message, error?.stack);
+    return new Response(JSON.stringify({ error: error.message, stack: error?.stack?.split("\n").slice(0,5).join("\n") }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
