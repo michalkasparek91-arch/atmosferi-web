@@ -108,10 +108,13 @@ export const AdminScraping = () => {
         active_cities: serverConfig.active_cities || [],
         active_countries: serverConfig.active_countries || [],
         prompt_template: serverConfig.prompt_template || DEFAULT_PROMPT,
-        ai_rpm_limit: serverConfig.ai_rpm_limit || 5,
+        gemini_rpm_limit: serverConfig.gemini_rpm_limit || 15,
+        groq_rpm_limit: serverConfig.groq_rpm_limit || 30,
+        openrouter_rpm_limit: serverConfig.openrouter_rpm_limit || 20,
         ai_batch_size: serverConfig.ai_batch_size || 50,
         use_gemini_engine: serverConfig.use_gemini_engine !== false,
         use_groq_places_engine: serverConfig.use_groq_places_engine === true,
+        use_openrouter_engine: serverConfig.use_openrouter_engine === true,
         enrich_engine: serverConfig.enrich_engine || "gemini"
       });
       setSelectedKeywords(serverConfig.active_keywords || []);
@@ -323,6 +326,7 @@ export const AdminScraping = () => {
       const activeEngines = [];
       if (config.use_gemini_engine !== false) activeEngines.push("gemini");
       if (config.use_groq_places_engine === true) activeEngines.push("groq_places");
+      if (config.use_openrouter_engine === true) activeEngines.push("openrouter");
 
       if (activeEngines.length === 0) {
         toast.error("Není zapnutý žádný vyhledávací engine (Gemini ani Groq).");
