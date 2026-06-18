@@ -309,39 +309,69 @@ Deno.serve(async (req) => {
           return replaced;
         };
 
-        const result = await sendEmail({
-          from: template.sender_email,
-          to: recipientEmail,
-          subject: replaceVars(template.subject || template.name),
-          title: replaceVars(template.heading || template.title || template.name),
-          body: replaceVars(bodyWithIcebreaker),
-          emoji: template.emoji || "",
-          ctaText: replaceVars(template.cta_text || template.ctaText || "Zobrazit"),
-          ctaUrl: replaceVars(template.cta_url || "https://zrobee.cz"),
-          secondaryText: template.secondary_text ? replaceVars(template.secondary_text) : undefined,
-          layoutType: template.layout_type || "standard",
-          jobCity: replaceVars(draft.job?.city || template.job_city),
-          jobCategory: replaceVars(draft.job?.service_subcategories?.name || template.job_category),
-          jobDescription: replaceVars(draft.job?.description || template.job_description),
-          priceNote: replaceVars(draft.job?.price_note || template.price_note),
-          customerName: "Zákazník",
-          workerName: isWorker ? name : undefined,
-          urgencyBannerEnabled: template.urgency_banner_enabled ?? false,
-          promoBannerEnabled: template.promo_banner_enabled ?? false,
-          psFooterEnabled: template.ps_footer_enabled ?? false,
-          psFooterText: template.ps_footer_text ?? (filters.ps_footer_text as string),
-          showJobWidget: template.show_job_widget ?? false,
-          showCtaButton: template.show_cta_button ?? true,
-          signatureGreeting: (filters.signature_greeting as string) || template.signature_greeting,
-          signatureRole: (filters.signature_role as string) || template.signature_role,
-          signatureEmail: (filters.signature_email as string) || template.signature_email,
-          heroCaption: (filters.hero_caption as string) || template.hero_caption,
-          heroTagline: (filters.hero_tagline as string) || template.hero_tagline,
-          segmentFilters: filters,
-          provider,
-        });
+        let currentProvider = provider;
+        let providersTried = 0;
+        let success = false;
+        let lastError = "";
 
-        if (result.success) {
+        while (providersTried < 2 && !success) {
+          providersTried++;
+
+          const result = await sendEmail({
+            from: template.sender_email,
+            to: recipientEmail,
+            subject: replaceVars(template.subject || template.name),
+            title: replaceVars(template.heading || template.title || template.name),
+            body: replaceVars(bodyWithIcebreaker),
+            emoji: template.emoji || "",
+            ctaText: replaceVars(template.cta_text || template.ctaText || "Zobrazit"),
+            ctaUrl: replaceVars(template.cta_url || "https://zrobee.cz"),
+            secondaryText: template.secondary_text ? replaceVars(template.secondary_text) : undefined,
+            layoutType: template.layout_type || "standard",
+            jobCity: replaceVars(draft.job?.city || template.job_city),
+            jobCategory: replaceVars(draft.job?.service_subcategories?.name || template.job_category),
+            jobDescription: replaceVars(draft.job?.description || template.job_description),
+            priceNote: replaceVars(draft.job?.price_note || template.price_note),
+            customerName: "Zákazník",
+            workerName: isWorker ? name : undefined,
+            urgencyBannerEnabled: template.urgency_banner_enabled ?? false,
+            promoBannerEnabled: template.promo_banner_enabled ?? false,
+            psFooterEnabled: template.ps_footer_enabled ?? false,
+            psFooterText: template.ps_footer_text ?? (filters.ps_footer_text as string),
+            showJobWidget: template.show_job_widget ?? false,
+            showCtaButton: template.show_cta_button ?? true,
+            signatureGreeting: (filters.signature_greeting as string) || template.signature_greeting,
+            signatureRole: (filters.signature_role as string) || template.signature_role,
+            signatureEmail: (filters.signature_email as string) || template.signature_email,
+            heroCaption: (filters.hero_caption as string) || template.hero_caption,
+            heroTagline: (filters.hero_tagline as string) || template.hero_tagline,
+            segmentFilters: filters,
+            provider: currentProvider,
+          });
+
+          if (result.success) {
+            success = true;
+          } else {
+            lastError = String(result.error);
+            const errStr = lastError.toLowerCase();
+            const isQuota = errStr.includes("quota") || errStr.includes("limit") || errStr.includes("429") || errStr.includes("too many") || errStr.includes("plan") || errStr.includes("throttl") || errStr.includes("rate") || errStr.includes("credit");
+
+            if (isQuota) {
+              console.log(`[ProcessSniperOutbox] Quota hit for ${currentProvider}: ${lastError}. Falling back...`);
+              if (providersTried < 2) {
+                currentProvider = currentProvider === "ses" ? "brevo" : "ses";
+                await sleep(SEND_DELAY_MS[currentProvider]);
+              } else {
+                quotaHit = true;
+                quotaMessage = lastError;
+              }
+            } else {
+              break; // Not a quota error, break and fail this draft
+            }
+          }
+        }
+
+        if (success) {
           sent_count++;
           if (!targetEmail) {
             await supabaseAdmin.from("email_outbox").update({
@@ -349,21 +379,16 @@ Deno.serve(async (req) => {
               sent_at: new Date().toISOString(),
             }).eq("id", draftId);
           }
+        } else if (quotaHit) {
+          break; // Break the outer loop for the chunk
         } else {
+          // Hard fail for this draft (e.g. invalid email)
           failed_count++;
-          const errStr = String(result.error || "").toLowerCase();
-          if (
-            errStr.includes("quota") ||
-            errStr.includes("limit") ||
-            errStr.includes("429") ||
-            errStr.includes("too many") ||
-            errStr.includes("plan") ||
-            errStr.includes("throttl") ||
-            errStr.includes("rate")
-          ) {
-            quotaHit = true;
-            quotaMessage = String(result.error);
-            break;
+          if (!targetEmail) {
+            await supabaseAdmin.from("email_outbox").update({
+              status: "failed",
+              // We can't easily add an error_message column if it doesn't exist, but changing status is enough to prevent infinite loop.
+            }).eq("id", draftId);
           }
         }
       }
