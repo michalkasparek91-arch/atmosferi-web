@@ -184,11 +184,11 @@ Deno.serve(async (req) => {
           psFooterText: template.ps_footer_text ?? filters.ps_footer_text,
           showJobWidget: template.show_job_widget ?? false,
           showCtaButton: template.show_cta_button ?? true,
-          signatureGreeting: template.signature_greeting || filters.signature_greeting,
-          signatureRole: template.signature_role || filters.signature_role,
-          signatureEmail: template.signature_email || filters.signature_email,
-          heroCaption: template.hero_caption || filters.hero_caption,
-          heroTagline: template.hero_tagline || filters.hero_tagline,
+          signatureGreeting: filters.signature_greeting || template.signature_greeting,
+          signatureRole: filters.signature_role || template.signature_role,
+          signatureEmail: filters.signature_email || template.signature_email,
+          heroCaption: filters.hero_caption || template.hero_caption,
+          heroTagline: filters.hero_tagline || template.hero_tagline,
           segmentFilters: filters,
         });
 
