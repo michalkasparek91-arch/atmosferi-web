@@ -84,11 +84,17 @@ Deno.serve(async (req) => {
       console.error("Failed to update email_logs:", logsError);
     }
 
-    // Also try to update email_outbox (since we show it in history sometimes)
-    // Note: email_outbox doesn't have a direct email field at the top level, 
-    // it references lead_id or worker_id, so it's harder to match by email.
-    // If we have resend_id (which might be stored in email_logs), we can't easily match email_outbox.
-    // However, the main history comes from email_logs for sent emails anyway.
+    // Also update email_outbox
+    if (messageId) {
+      const { error: outboxError } = await supabase
+        .from("email_outbox")
+        .update({ delivery_status: newStatus })
+        .eq("provider_message_id", messageId);
+        
+      if (outboxError) {
+        console.error("Failed to update email_outbox:", outboxError);
+      }
+    }
 
     return new Response(JSON.stringify({ ok: true, message: "Webhook processed", status: newStatus }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 

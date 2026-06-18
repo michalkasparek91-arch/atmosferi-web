@@ -313,6 +313,8 @@ Deno.serve(async (req) => {
         let providersTried = 0;
         let success = false;
         let lastError = "";
+        let finalMessageId: string | undefined;
+        let finalHtml: string | undefined;
 
         while (providersTried < 2 && !success) {
           providersTried++;
@@ -351,6 +353,8 @@ Deno.serve(async (req) => {
 
           if (result.success) {
             success = true;
+            finalMessageId = result.messageId;
+            finalHtml = result.html;
           } else {
             lastError = String(result.error);
             const errStr = lastError.toLowerCase();
@@ -374,9 +378,27 @@ Deno.serve(async (req) => {
         if (success) {
           sent_count++;
           if (!targetEmail) {
+            let htmlArchiveUrl = null;
+            if (finalHtml) {
+              const filename = `${draftId}.html`;
+              const { error: uploadError } = await supabaseAdmin.storage
+                .from("email_archive")
+                .upload(filename, finalHtml, { contentType: "text/html", upsert: true });
+              if (!uploadError) {
+                const { data } = supabaseAdmin.storage.from("email_archive").getPublicUrl(filename);
+                htmlArchiveUrl = data.publicUrl;
+              } else {
+                console.error("[ProcessSniperOutbox] Failed to upload HTML archive:", uploadError);
+              }
+            }
+
             await supabaseAdmin.from("email_outbox").update({
               status: "sent",
               sent_at: new Date().toISOString(),
+              provider: currentProvider,
+              provider_message_id: finalMessageId,
+              delivery_status: "sent",
+              html_archive_url: htmlArchiveUrl,
             }).eq("id", draftId);
           }
         } else if (quotaHit) {

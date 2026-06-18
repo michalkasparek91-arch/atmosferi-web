@@ -56,4 +56,5 @@ jobs:
       - name: Deploy email-delivery-webhook
         run: supabase functions deploy email-delivery-webhook --no-verify-jwt --project-ref $PROJECT_ID
 
-
+      - name: Deploy ses-delivery-webhook
+        run: supabase functions deploy ses-delivery-webhook --no-verify-jwt --project-ref $PROJECT_ID

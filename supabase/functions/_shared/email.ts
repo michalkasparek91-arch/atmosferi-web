@@ -56,7 +56,7 @@ export interface EmailPayload {
   provider?: 'brevo' | 'ses';
 }
 
-export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; resendId?: string }> {
+export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; messageId?: string; html?: string }> {
   try {
     const apiKey = Deno.env.get("BREVO_API_KEY") || Deno.env.get("RESEND_API_KEY");
     if (!apiKey && payload.provider !== 'ses') {
@@ -189,7 +189,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         subject: payload.subject,
         html: html,
       });
-      return { success: sesResult.success, error: sesResult.error, resendId: sesResult.messageId };
+      return { success: sesResult.success, error: sesResult.error, messageId: sesResult.messageId, html: html };
     }
 
     // ─── Default: Brevo API ───
@@ -215,7 +215,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
 
     const data = await response.json();
     console.log('[Email] Sent successfully via Brevo to:', payload.to);
-    return { success: true, resendId: data.messageId };
+    return { success: true, messageId: data.messageId, html: html };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[Email] Error:', errorMessage);
