@@ -97,7 +97,7 @@ async function ensureDraftsForTemplate(
 
   const { error: upsertErr } = await supabaseAdmin
     .from("email_outbox")
-    .upsert(outboxInserts, { onConflict: "template_slug,lead_id", ignoreDuplicates: true });
+    .insert(outboxInserts);
 
   if (upsertErr) throw upsertErr;
   return leadsToProcess.length;
