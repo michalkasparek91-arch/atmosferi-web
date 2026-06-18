@@ -58,17 +58,41 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
     }
 
-    const { action, draftIds, targetEmail } = await req.json();
+    const { action, draftIds, targetEmail, template_id, batch_limit } = await req.json();
 
-    if (action === "send_selected_drafts") {
-      if (!draftIds || !Array.isArray(draftIds)) {
+    // Send all draft emails for a given template (batch send from outbox view)
+    let resolvedDraftIds = draftIds;
+    if (action === "send_template_batch") {
+      if (!template_id) throw new Error("Missing template_id");
+
+      const limit = batch_limit || 300;
+      const { data: draftsToSend, error: fetchDraftsErr } = await supabaseAdmin
+        .from("email_outbox")
+        .select("id")
+        .eq("template_id", template_id)
+        .eq("status", "draft")
+        .order("created_at", { ascending: true })
+        .limit(limit);
+
+      if (fetchDraftsErr) throw fetchDraftsErr;
+      if (!draftsToSend || draftsToSend.length === 0) {
+        return new Response(JSON.stringify({ sent_count: 0, failed_count: 0, message: "No drafts found" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      resolvedDraftIds = draftsToSend.map((d: any) => d.id);
+    }
+
+    if (action === "send_selected_drafts" || action === "send_template_batch") {
+      if (!resolvedDraftIds || !Array.isArray(resolvedDraftIds)) {
         throw new Error("Missing draftIds");
       }
 
       let sent_count = 0;
       let failed_count = 0;
 
-      for (const draftId of draftIds) {
+      for (const draftId of resolvedDraftIds) {
         const { data: draft, error: fetchErr } = await supabaseAdmin
           .from("email_outbox")
           .select(`

@@ -37,15 +37,15 @@ export const AdminOutbox = () => {
 
   const sendBatchMutation = useMutation({
     mutationFn: async ({ template_id, batch_size }: { template_id: string, batch_size: number }) => {
-      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
-        body: { action: "process_batch", template_id, batch_size }
+      const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
+        body: { action: "send_template_batch", template_id, batch_limit: batch_size }
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: (data) => {
-      toast.success(`Dávka úspěšně zpracována a odeslána (${data?.processed || 0} e-mailů).`);
+      toast.success(`Dávka úspěšně odeslána (Odesláno: ${data?.sent_count || 0}, Chyb: ${data?.failed_count || 0}).`);
       queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
       queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
     },
