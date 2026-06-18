@@ -7,8 +7,8 @@ const corsHeaders = {
 };
 
 const CHUNK_SIZE = {
-  brevo: 20,
-  ses: 5,
+  brevo: 10,
+  ses: 2,
 } as const;
 
 const SEND_DELAY_MS = {
@@ -418,7 +418,7 @@ Deno.serve(async (req) => {
       error: err?.message || String(error),
       stack: err?.stack?.split("\n").slice(0, 5).join("\n"),
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
