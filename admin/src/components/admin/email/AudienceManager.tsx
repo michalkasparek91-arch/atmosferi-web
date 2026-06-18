@@ -1032,6 +1032,33 @@ export const AudienceManager = (props: any) => {
                       <span className="font-medium text-foreground">{selectedContactForSheet.decision_maker_name}</span>
                     </div>
                   )}
+                  <div className="flex items-center justify-between pb-1 border-b border-border/30">
+                    <span className="text-muted-foreground">{'{{jmeno}}'} <span className="text-[9px]">(v šabloně)</span></span>
+                    <code className="bg-muted/50 px-1.5 py-0.5 rounded text-[11px] font-medium text-foreground">
+                      {(() => {
+                        const dm = selectedContactForSheet.decision_maker_name;
+                        if (dm && dm.toLowerCase() !== 'studio') return dm;
+                        const raw = selectedContactForSheet.company_name || selectedContactForSheet.full_name;
+                        if (raw) {
+                          const cleaned = raw.replace(/\s*,?\s*(s\.?\s*r\.?\s*o\.?|a\.?\s*s\.?|spol\.\s*s\s*r\.?\s*o\.?|z\.?\s*s\.?|v\.?\s*o\.?\s*s\.?|k\.?\s*s\.?|s\.?\s*e\.?)\s*,?$/i, '').trim();
+                          return `týme z ${cleaned}`;
+                        }
+                        return 'Neznámý';
+                      })()}
+                    </code>
+                  </div>
+                  <div className="flex items-center justify-between pb-1 border-b border-border/30">
+                    <span className="text-muted-foreground">{'{{projekt}}'} <span className="text-[9px]">(v šabloně)</span></span>
+                    {selectedContactForSheet.last_project ? (
+                      <code className="bg-muted/50 px-1.5 py-0.5 rounded text-[11px] font-medium text-foreground">
+                        {selectedContactForSheet.last_project}
+                      </code>
+                    ) : (
+                      <code className="bg-muted/50 px-1.5 py-0.5 rounded text-[11px] text-muted-foreground/60 italic">
+                        Váš projekt
+                      </code>
+                    )}
+                  </div>
                   {selectedContactForSheet.phone && (
                     <div className="flex items-center justify-between pb-1 border-b border-border/30">
                       <span className="text-muted-foreground">Telefon</span>

@@ -4,6 +4,7 @@ import { MagazineTemplate } from "./email-templates/MagazineTemplate.tsx";
 import { SniperTemplate } from "./email-templates/SniperTemplate.tsx";
 import { SniperRecruitmentEmail } from "./email-templates/SniperRecruitmentEmail.tsx";
 import { generateAtmosferiEmailHtml, EmailTemplateData } from "./EmailTemplateGenerator.ts";
+import { sendViaSes } from "./ses.ts";
 
 export interface EmailPayload {
   to: string;
@@ -52,12 +53,13 @@ export interface EmailPayload {
   segmentFilters?: any;
   heroCaption?: string;
   heroTagline?: string;
+  provider?: 'brevo' | 'ses';
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; resendId?: string }> {
   try {
     const apiKey = Deno.env.get("BREVO_API_KEY") || Deno.env.get("RESEND_API_KEY");
-    if (!apiKey) {
+    if (!apiKey && payload.provider !== 'ses') {
        console.error('[Email] Missing BREVO_API_KEY environment variable');
        return { success: false, error: 'Missing BREVO_API_KEY environment variable' };
     }
@@ -178,6 +180,19 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       }
     }
 
+    // ─── Provider Routing: SES or Brevo ───
+    if (payload.provider === 'ses') {
+      console.log(`[Email] Routing via Amazon SES to: ${payload.to}`);
+      const sesResult = await sendViaSes({
+        from: payload.from || `${senderName} <${senderEmail}>`,
+        to: payload.to,
+        subject: payload.subject,
+        html: html,
+      });
+      return { success: sesResult.success, error: sesResult.error, resendId: sesResult.messageId };
+    }
+
+    // ─── Default: Brevo API ───
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
@@ -199,7 +214,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
     }
 
     const data = await response.json();
-    console.log('[Email] Sent successfully to:', payload.to);
+    console.log('[Email] Sent successfully via Brevo to:', payload.to);
     return { success: true, resendId: data.messageId };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

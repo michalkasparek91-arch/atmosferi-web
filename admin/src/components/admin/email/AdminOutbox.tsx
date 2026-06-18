@@ -22,6 +22,7 @@ export const AdminOutbox = () => {
   const [previewDraft, setPreviewDraft] = useState<any | null>(null);
   const [isOpeningEditor, setIsOpeningEditor] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<"all" | "job" | "general" | "campaigns">("all");
+  const [emailProvider, setEmailProvider] = useState<"brevo" | "ses">("brevo");
 
   const { data: virtualBatches = [], isLoading: isLoadingBatches } = useQuery({
     queryKey: ["admin-outbox-batches"],
@@ -38,7 +39,7 @@ export const AdminOutbox = () => {
   const sendBatchMutation = useMutation({
     mutationFn: async ({ template_id, batch_size }: { template_id: string, batch_size: number }) => {
       const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
-        body: { action: "send_template_batch", template_id, batch_limit: batch_size }
+        body: { action: "send_template_batch", template_id, batch_limit: batch_size, provider: emailProvider }
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -346,6 +347,27 @@ export const AdminOutbox = () => {
                   
                   <div className="text-xs text-muted-foreground">
                     Celkové dostupné publikum: <strong className="text-foreground">{v.total_audience}</strong>
+                  </div>
+
+                  {/* Provider toggle */}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] text-muted-foreground font-medium">Odesílat přes:</span>
+                    <button
+                      onClick={() => setEmailProvider('brevo')}
+                      className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                        emailProvider === 'brevo'
+                          ? 'bg-blue-500/15 border-blue-500/40 text-blue-700 dark:text-blue-300 font-bold'
+                          : 'bg-transparent border-border/40 text-muted-foreground hover:border-blue-500/30'
+                      }`}
+                    >Brevo</button>
+                    <button
+                      onClick={() => setEmailProvider('ses')}
+                      className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                        emailProvider === 'ses'
+                          ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300 font-bold'
+                          : 'bg-transparent border-border/40 text-muted-foreground hover:border-amber-500/30'
+                      }`}
+                    >Amazon SES</button>
                   </div>
 
                   <div className="space-y-2 mt-2">

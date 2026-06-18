@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { action, draftIds, targetEmail, template_id, batch_limit } = await req.json();
+    const { action, draftIds, targetEmail, template_id, batch_limit, provider } = await req.json();
 
     // Send all draft emails for a given template (batch send from outbox view)
     let resolvedDraftIds = draftIds;
@@ -221,6 +221,7 @@ Deno.serve(async (req) => {
           heroCaption: filters.hero_caption || template.hero_caption,
           heroTagline: filters.hero_tagline || template.hero_tagline,
           segmentFilters: filters,
+          provider: provider || 'brevo',
         });
 
         if (result.success) {
