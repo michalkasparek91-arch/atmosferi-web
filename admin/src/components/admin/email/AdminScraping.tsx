@@ -26,7 +26,9 @@ interface ScraperConfig {
   active_cities?: string[];
   active_countries?: string[];
   prompt_template?: string;
-  ai_rpm_limit?: number;
+  gemini_rpm_limit?: number;
+  groq_rpm_limit?: number;
+  openrouter_rpm_limit?: number;
   ai_batch_size?: number;
   use_gemini_engine?: boolean;
   use_groq_places_engine?: boolean;
@@ -52,7 +54,9 @@ const DEFAULT_CONFIG: ScraperConfig = {
   active_cities: [],
   active_countries: [],
   prompt_template: DEFAULT_PROMPT,
-  ai_rpm_limit: 5,
+  gemini_rpm_limit: 15,
+  groq_rpm_limit: 30,
+  openrouter_rpm_limit: 20,
   ai_batch_size: 50,
   use_openrouter_engine: false,
   use_gemini_engine: true,
@@ -411,10 +415,10 @@ export const AdminScraping = () => {
 
       <AiJobsMonitor />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         {/* Levý sloupec - Nastavení */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           <Card className="border-border/40 shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-base flex items-center gap-2">
@@ -590,7 +594,7 @@ export const AdminScraping = () => {
         </div>
 
         {/* Pravý sloupec - Spouštění */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card className={`border-border/40 shadow-sm overflow-hidden transition-colors ${config.is_enabled ? 'border-zinc-500/30 shadow-[0_0_20px_-10px_rgba(24,24,27,0.15)]' : ''}`}>
             <CardHeader className={`pb-4 ${config.is_enabled ? 'bg-zinc-100/50 dark:bg-zinc-800/20' : 'bg-muted/10'}`}>
               <CardTitle className="text-base flex items-center gap-2">
@@ -719,31 +723,53 @@ export const AdminScraping = () => {
           <Card className="border-border/40 shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-base flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" /> Limity AI (Gemini)
+                <Zap className="h-4 w-4 text-primary" /> Limity AI (Požadavky za minutu)
               </CardTitle>
               <CardDescription>
-                Zabraňte chybám "Rate Limit Exceeded" omezením rychlosti.
+                Zabraňte chybám "Rate Limit Exceeded" u jednotlivých AI modelů.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-bold">Požadavky za minutu (RPM)</Label>
-                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.ai_rpm_limit || 5}</span>
+                  <Label className="text-sm font-bold">Gemini (Google)</Label>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.gemini_rpm_limit || 15}</span>
                 </div>
                 <Slider 
-                  value={[config.ai_rpm_limit || 5]} 
-                  min={1} max={15} step={1}
-                  onValueChange={(vals) => {
-                    const updated = { ...config, ai_rpm_limit: vals[0] };
-                    setConfig(updated);
-                  }}
-                  onValueCommit={(vals) => {
-                    const updated = { ...config, ai_rpm_limit: vals[0] };
-                    saveConfigMutation.mutate(updated);
-                  }}
+                  value={[config.gemini_rpm_limit || 15]} 
+                  min={1} max={30} step={1}
+                  onValueChange={(vals) => setConfig({ ...config, gemini_rpm_limit: vals[0] })}
+                  onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, gemini_rpm_limit: vals[0] })}
                 />
-                <p className="text-[10px] text-muted-foreground">Free tier limit pro Gemini 2.5 Flash je obvykle 5 nebo 15 RPM. Doporučujeme nastavit 5.</p>
+                <p className="text-[10px] text-muted-foreground">Free tier limit pro Gemini 2.5 Flash je 15 RPM.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold">Groq (Llama 3)</Label>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.groq_rpm_limit || 30}</span>
+                </div>
+                <Slider 
+                  value={[config.groq_rpm_limit || 30]} 
+                  min={1} max={60} step={1}
+                  onValueChange={(vals) => setConfig({ ...config, groq_rpm_limit: vals[0] })}
+                  onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, groq_rpm_limit: vals[0] })}
+                />
+                <p className="text-[10px] text-muted-foreground">Free tier limit pro Llama 3 na Groq je 30 RPM.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold">OpenRouter (Free modely)</Label>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.openrouter_rpm_limit || 20}</span>
+                </div>
+                <Slider 
+                  value={[config.openrouter_rpm_limit || 20]} 
+                  min={1} max={40} step={1}
+                  onValueChange={(vals) => setConfig({ ...config, openrouter_rpm_limit: vals[0] })}
+                  onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, openrouter_rpm_limit: vals[0] })}
+                />
+                <p className="text-[10px] text-muted-foreground">Free tier limit pro OpenRouter zdarma modely je 20 RPM.</p>
               </div>
 
               <div className="space-y-4 pt-4 border-t border-border/50">
@@ -839,10 +865,10 @@ export const AdminScraping = () => {
             Zatím nebyly nalezeny žádné kontakty. Zapněte Autonomní režim nebo spusťte hledání manuálně.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {recentLeads.map((lead: any) => (
               <Card key={lead.id} className="border-border/40 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-4 space-y-3">
+                <CardContent className="p-3 space-y-2">
                   <div>
                     <h4 className="font-bold text-sm truncate" title={lead.company_name}>{lead.company_name}</h4>
                     <p className="text-xs text-primary truncate" title={lead.email}>{lead.email}</p>
@@ -858,7 +884,7 @@ export const AdminScraping = () => {
                   )}
                   <div className="flex justify-between items-center text-[9px] text-muted-foreground pt-1">
                     <span>{lead.city}</span>
-                    <span>{new Date(lead.created_at).toLocaleDateString('cs-CZ')}</span>
+                    <span>{new Date(lead.created_at).toLocaleString('cs-CZ', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                 </CardContent>
               </Card>
