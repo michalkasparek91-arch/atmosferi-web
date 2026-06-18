@@ -16,6 +16,26 @@ Deno.serve(async (req: any) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    const fetchAllOutboxLeadIds = async (templateId: string) => {
+      let allLeadIds: string[] = [];
+      let from = 0;
+      let limit = 1000;
+      while (true) {
+        const { data } = await supabaseClient
+          .from("email_outbox")
+          .select("lead_id")
+          .eq("template_id", templateId)
+          .not("lead_id", "is", null)
+          .range(from, from + limit - 1);
+        
+        if (!data || data.length === 0) break;
+        allLeadIds.push(...data.map((o: any) => o.lead_id));
+        if (data.length < limit) break;
+        from += limit;
+      }
+      return allLeadIds;
+    };
+
     const { action, template_id, batch_size } = await req.json();
 
     if (action === "get_batches") {
@@ -33,13 +53,7 @@ Deno.serve(async (req: any) => {
         if (!t.category || !t.language) continue;
 
         // Fetch all outboxed lead_ids for this template
-        const { data: outbox } = await supabaseClient
-          .from("email_outbox")
-          .select("lead_id")
-          .eq("template_id", t.id)
-          .not("lead_id", "is", null);
-          
-        const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
+        const excludedLeadIds = await fetchAllOutboxLeadIds(t.id);
 
         let langFilter = [t.language];
         if (t.language === 'cs' || t.language === 'cz') langFilter = ['cs', 'cz', 'sk'];
@@ -111,13 +125,7 @@ Deno.serve(async (req: any) => {
       if (!template) throw new Error("Template not found");
 
       // Fetch all outboxed lead_ids for this template
-      const { data: outbox } = await supabaseClient
-        .from("email_outbox")
-        .select("lead_id")
-        .eq("template_id", template.id)
-        .not("lead_id", "is", null);
-        
-      const excludedLeadIds = outbox?.map((o: any) => o.lead_id) || [];
+      const excludedLeadIds = await fetchAllOutboxLeadIds(template.id);
 
       // Fetch available leads
       let langFilter = [template.language];
