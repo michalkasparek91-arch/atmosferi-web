@@ -26,6 +26,7 @@ export interface EmailPayload {
   jobCity?: string;
   signatureGreeting?: string;
   signatureRole?: string;
+  signatureEmail?: string;
   jobCategory?: string;
   jobDescription?: string;
   jobDescriptionSnippet?: string;
@@ -47,12 +48,10 @@ export interface EmailPayload {
   previewTheme?: "light" | "dark";
   carouselImages?: string[];
   articlesEnabled?: boolean;
-  carouselImages?: string[];
-  articlesEnabled?: boolean;
   from?: string;
   segmentFilters?: any;
-  signatureGreeting?: string;
-  signatureRole?: string;
+  heroCaption?: string;
+  heroTagline?: string;
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; resendId?: string }> {
