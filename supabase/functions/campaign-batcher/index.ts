@@ -142,30 +142,58 @@ Deno.serve(async (req: any) => {
         .filter((l: any) => !excludedLeadIds.includes(l.id))
         .slice(0, limit);
 
-      if (leadsToProcess.length === 0) {
+      // If there are new leads to add, insert them (ignoring duplicates)
+      if (leadsToProcess.length > 0) {
+        const outboxInserts = leadsToProcess.map((lead: any) => ({
+          template_id: template.id,
+          template_slug: template.slug,
+          lead_id: lead.id,
+          status: "draft",
+          icebreaker: lead.ai_icebreaker || "Zaujala mě vaše práce.",
+        }));
+
+        // Use upsert with ignoreDuplicates so existing records don't cause errors
+        await supabaseClient
+          .from("email_outbox")
+          .upsert(outboxInserts, { onConflict: "template_id,lead_id", ignoreDuplicates: true });
+      }
+
+      // Now send all current drafts for this template via process-sniper-outbox
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+      const { data: draftsToSend } = await supabaseClient
+        .from("email_outbox")
+        .select("id")
+        .eq("template_id", template.id)
+        .eq("status", "draft")
+        .order("created_at", { ascending: true })
+        .limit(batch_size || 300);
+
+      if (!draftsToSend || draftsToSend.length === 0) {
         return new Response(
-          JSON.stringify({ success: true, processed: 0 }),
+          JSON.stringify({ success: true, processed: 0, message: "No drafts to send" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Prepare outbox inserts
-      const outboxInserts = leadsToProcess.map((lead: any) => ({
-        template_id: template.id,
-        template_slug: template.slug,
-        lead_id: lead.id,
-        status: "draft",
-        icebreaker: lead.ai_icebreaker || "Zaujala mě vaše práce.",
-      }));
+      const draftIds = draftsToSend.map((d: any) => d.id);
 
-      const { error: insertErr } = await supabaseClient
-        .from("email_outbox")
-        .insert(outboxInserts);
-        
-      if (insertErr) throw insertErr;
+      const sendRes = await fetch(`${supabaseUrl}/functions/v1/process-sniper-outbox`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${serviceKey}`,
+          "apikey": serviceKey,
+        },
+        body: JSON.stringify({ action: "send_selected_drafts", draftIds }),
+      });
+
+      const sendData = await sendRes.json();
+      console.log("[campaign-batcher] process-sniper-outbox response:", sendData);
 
       return new Response(
-        JSON.stringify({ success: true, processed: outboxInserts.length }),
+        JSON.stringify({ success: true, processed: draftIds.length, sent_count: sendData?.sent_count, failed_count: sendData?.failed_count }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
