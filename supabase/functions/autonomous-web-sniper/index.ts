@@ -361,17 +361,20 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
 
     let allDiscovered: any[] = [];
     const debugParts: string[] = [];
+    const engineErrors: Record<string, string> = {};
 
     for (let i = 0; i < engineResults.length; i++) {
       const eng = activeEngines[i];
       const result = engineResults[i];
       if (result.status === "rejected") {
         debugParts.push(`${eng}: selhalo (${result.reason})`);
+        engineErrors[eng] = String(result.reason);
         continue;
       }
       const value = result.value as any;
       if (value.error) {
         debugParts.push(`${eng}: chyba - ${value.error}`);
+        engineErrors[eng] = String(value.error);
       } else {
         const list = value.discoveredList || [];
         debugParts.push(`${eng}: nalezeno ${list.length} kontaktu`);
@@ -382,7 +385,7 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     const discoveredList = deduplicateByEmail(allDiscovered);
 
     if (discoveredList.length === 0) {
-      await logJobSuccess(supabase, jobName, { discovered_count: 0 });
+      await logJobSuccess(supabase, jobName, { discovered_count: 0, engines: activeEngines, errors: engineErrors, debug_output: debugParts.join(" | ") });
       return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: debugParts.join(" | ") }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -442,7 +445,7 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       else if (insertErr) lastInsertError = insertErr.message;
     }
 
-    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, engines: activeEngines });
+    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, engines: activeEngines, errors: engineErrors, debug_output: debugParts.join(" | ") });
     
     if (newSavedCount === 0 && discoveredList.length > 0) {
        return new Response(JSON.stringify({ 
