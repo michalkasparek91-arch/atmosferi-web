@@ -106,13 +106,18 @@ Deno.serve(async (req) => {
           name = personName;
         } else if (companyName) {
           const lang = template.language || 'cz';
-          if (lang === 'de') {
-            name = `liebes Team von ${companyName}`;
-          } else if (lang === 'en') {
-            name = `Team at ${companyName}`;
+          const fallbackTemplate = filters?.jmeno_fallback;
+          if (fallbackTemplate) {
+            name = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
           } else {
-            // CZ/SK fallback
-            name = `týme z ${companyName}`;
+            if (lang === 'de') {
+              name = `liebes Team von ${companyName}`;
+            } else if (lang === 'en') {
+              name = `Team at ${companyName}`;
+            } else {
+              // CZ/SK fallback
+              name = `týme z ${companyName}`;
+            }
           }
         }
         const isWorker = !!draft.worker;

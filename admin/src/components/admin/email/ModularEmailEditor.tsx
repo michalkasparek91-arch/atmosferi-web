@@ -1019,12 +1019,17 @@ export function ModularEmailEditorDialogInner({
         name = personName;
       } else if (companyName) {
         const lang = form.language || 'cz';
-        if (lang === 'de') {
-          name = `liebes Team von ${companyName}`;
-        } else if (lang === 'en') {
-          name = `Team at ${companyName}`;
+        const fallbackTemplate = form?.segment_filters?.jmeno_fallback;
+        if (fallbackTemplate) {
+          name = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
         } else {
-          name = `týme z ${companyName}`;
+          if (lang === 'de') {
+            name = `liebes Team von ${companyName}`;
+          } else if (lang === 'en') {
+            name = `Team at ${companyName}`;
+          } else {
+            name = `týme z ${companyName}`;
+          }
         }
       }
 
@@ -1093,9 +1098,16 @@ export function ModularEmailEditorDialogInner({
           companyName = cleanCompanyName(selectedJob.customer_name);
        }
        const lang = form?.language || 'cz';
-       let simName = `týme z ${companyName}`;
-       if (lang === 'de') simName = `liebes Team von ${companyName}`;
-       if (lang === 'en') simName = `Team at ${companyName}`;
+       const fallbackTemplate = form?.segment_filters?.jmeno_fallback;
+       let simName = "";
+       
+       if (fallbackTemplate) {
+         simName = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
+       } else {
+         simName = `týme z ${companyName}`;
+         if (lang === 'de') simName = `liebes Team von ${companyName}`;
+         if (lang === 'en') simName = `Team at ${companyName}`;
+       }
        
        defaultData.osloveni = simName.split(" ")[0] || "týme";
        defaultData.jmeno = simName;
@@ -1565,6 +1577,23 @@ export function ModularEmailEditorDialogInner({
                       placeholder="Např. Váš projekt" 
                       className="h-8 text-xs bg-background" 
                     />
+                  </div>
+
+                  {/* Jméno Fallback */}
+                  <div className="space-y-1 mt-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[11px] font-medium text-muted-foreground/80">Náhradní text pro {'{{jmeno}}'} (u firem)</Label>
+                      <span className="text-[10px] text-muted-foreground font-medium">Volitelné</span>
+                    </div>
+                    <Input 
+                      value={form.segment_filters?.jmeno_fallback || ""} 
+                      onChange={(e) => setSegmentFilter("jmeno_fallback", e.target.value)} 
+                      placeholder="Např. liebes Team von {{firma}}" 
+                      className="h-8 text-xs bg-background" 
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Zadejte text, který nahradí {'{{jmeno}}'}, pokud chybí kontaktní osoba. Můžete použít značku {'{{firma}}'}.
+                    </p>
                   </div>
 
 
