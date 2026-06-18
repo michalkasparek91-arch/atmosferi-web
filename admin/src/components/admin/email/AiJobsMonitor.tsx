@@ -160,6 +160,15 @@ export const AiJobsMonitor = () => {
                           {job.metadata.debug_output}
                         </div>
                       )}
+                      {job.metadata.errors && Object.keys(job.metadata.errors).length > 0 && (
+                        <div className="mt-1 flex flex-col gap-1">
+                          {Object.entries(job.metadata.errors).map(([engine, err]) => (
+                            <div key={engine} className="text-[9px] text-amber-700 bg-amber-500/10 p-1.5 rounded border border-amber-500/20 break-words">
+                              <strong className="uppercase">{engine}:</strong> {String(err)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

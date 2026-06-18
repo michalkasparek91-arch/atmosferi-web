@@ -123,38 +123,40 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
     // Call each active engine and merge results (later entries overwrite earlier for same id)
     const mergedResults: Record<string, any> = {};
-
+    const engineErrors: Record<string, string> = {};
     const engineTasks: Promise<void>[] = [];
 
     if (useGroq) {
       engineTasks.push((async () => {
         const groqApiKey = Deno.env.get("GROQ_API_KEY");
-        if (!groqApiKey) { console.warn("Missing GROQ_API_KEY, skipping Groq enrichment"); return; }
+        if (!groqApiKey) { engineErrors.groq = "Missing GROQ_API_KEY"; return; }
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
           body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
         });
-        if (!groqRes.ok) { console.error("Groq error:", await groqRes.text()); return; }
+        if (!groqRes.ok) { engineErrors.groq = await groqRes.text(); return; }
         await logUsage("groq");
         const arr = parseAIJson((await groqRes.json()).choices?.[0]?.message?.content || "");
+        if (arr.length === 0) engineErrors.groq = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";
         for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
-      })());
+      })().catch(e => { engineErrors.groq = e.message; }));
     }
 
     if (useOpenRouter) {
       engineTasks.push((async () => {
         const orKey = Deno.env.get("OPENROUTER_API_KEY");
-        if (!orKey) { console.warn("Missing OPENROUTER_API_KEY, skipping OpenRouter enrichment"); return; }
+        if (!orKey) { engineErrors.openrouter = "Missing OPENROUTER_API_KEY"; return; }
         const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
           body: JSON.stringify({ model: "meta-llama/llama-3.3-70b-instruct:free", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
         });
-        if (!orRes.ok) { console.error("OpenRouter error:", await orRes.text()); return; }
+        if (!orRes.ok) { engineErrors.openrouter = await orRes.text(); return; }
         await logUsage("openrouter");
         const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
+        if (arr.length === 0) engineErrors.openrouter = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";
         for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
-      })());
+      })().catch(e => { engineErrors.openrouter = e.message; }));
     }
 
     if (useGemini) {
@@ -168,16 +170,17 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
             body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 16000 } })
           });
           if (res.ok) { geminiRes = res; break; }
-          if (res.status === 429 || res.status === 503) { console.warn(`Gemini ${model} unavailable (${res.status}), trying next`); geminiRes = res; continue; }
+          if (res.status === 429 || res.status === 503) { geminiRes = res; continue; }
           geminiRes = res; break;
         }
-        if (!geminiRes || !geminiRes.ok) { console.error("Gemini error:", await geminiRes?.text()); return; }
+        if (!geminiRes || !geminiRes.ok) { engineErrors.gemini = await geminiRes?.text() || "Unknown Gemini error"; return; }
         await logUsage("gemini");
         const resJson = await geminiRes.json();
         const arr = parseAIJson(resJson.candidates?.[0]?.content?.parts?.[0]?.text || "");
+        if (arr.length === 0) engineErrors.gemini = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";
         // Gemini result is authoritative – overrides others
         for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
-      })());
+      })().catch(e => { engineErrors.gemini = e.message; }));
     }
 
     await Promise.allSettled(engineTasks);
@@ -222,7 +225,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
     const idsToTouch = leads.map((l: any) => l.id);
     await supabase.from("marketing_leads").update({ updated_at: now }).in("id", idsToTouch);
 
-    await logJobSuccess(supabase, jobName, { processed: leads.length, updated: updatedCount });
+    await logJobSuccess(supabase, jobName, { processed: leads.length, updated: updatedCount, errors: engineErrors });
 
     return new Response(JSON.stringify({ ok: true, processed: leads.length, updated: updatedCount }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
