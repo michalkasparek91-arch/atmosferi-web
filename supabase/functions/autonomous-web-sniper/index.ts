@@ -43,21 +43,32 @@ async function logApiUsage(supabase: any, engine: string, serviceName: string) {
 async function callGeminiWithFallback(apiKey: string, body: any): Promise<Response> {
   const models = [
     "gemini-2.0-flash",
+    "gemini-2.0-flash-exp",
     "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
+    "gemini-1.5-pro"
   ];
   let lastRes: Response | null = null;
+  const errors: string[] = [];
+
   for (const model of models) {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
     });
     if (res.ok) return res;
+    
+    const errText = await res.text();
+    errors.push(`${model}: ${res.status} - ${errText}`);
+    
     if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) {
       console.warn(`Gemini model ${model} unavailable (${res.status}), trying next...`);
-      lastRes = res;
+      lastRes = new Response(JSON.stringify({ error: `All models failed. Details: ${errors.join(" | ")}` }), { status: 500 });
       continue;
     }
-    return res; // other error — return immediately
+    
+    // Other error
+    lastRes = new Response(JSON.stringify({ error: `Failed on ${model}. Details: ${errors.join(" | ")}` }), { status: res.status });
+    break;
   }
   return lastRes!;
 }

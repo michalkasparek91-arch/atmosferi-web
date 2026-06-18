@@ -162,18 +162,28 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
     if (useGemini) {
       engineTasks.push((async () => {
         // Cascade through Gemini models
-        const models = ["gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash"];
+        const models = ["gemini-2.0-flash", "gemini-2.0-flash-exp", "gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-1.5-pro"];
         let geminiRes: Response | null = null;
+        const geminiErrors: string[] = [];
+        
         for (const model of models) {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 16000 } })
           });
           if (res.ok) { geminiRes = res; break; }
-          if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) { geminiRes = res; continue; }
-          geminiRes = res; break;
+          
+          const errText = await res.text();
+          geminiErrors.push(`${model}: ${res.status} - ${errText}`);
+          
+          if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) { continue; }
+          break; // other error
         }
-        if (!geminiRes || !geminiRes.ok) { engineErrors.gemini = await geminiRes?.text() || "Unknown Gemini error"; return; }
+        
+        if (!geminiRes || !geminiRes.ok) { 
+            engineErrors.gemini = `All models failed: ${geminiErrors.join(" | ")}`; 
+            return; 
+        }
         await logUsage("gemini");
         const resJson = await geminiRes.json();
         const arr = parseAIJson(resJson.candidates?.[0]?.content?.parts?.[0]?.text || "");
