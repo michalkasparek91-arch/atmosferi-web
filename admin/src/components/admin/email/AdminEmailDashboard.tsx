@@ -106,6 +106,8 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
         .select(`
           id,
           status,
+          delivery_status,
+          html_archive_url,
           sent_at,
           created_at,
           subject,
@@ -124,11 +126,16 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
 
   const getStatusColor = (status: string | null) => {
     switch (status) {
-      case 'sent': return 'bg-emerald-500';
-      case 'delivered': return 'bg-emerald-600';
+      case 'sent': return 'bg-blue-500';
+      case 'delivered': return 'bg-emerald-500';
+      case 'opened': return 'bg-emerald-400';
+      case 'clicked': return 'bg-emerald-300';
+      case 'converted': return 'bg-purple-500';
+      case 'bounced': return 'bg-red-500';
+      case 'spam': return 'bg-rose-600';
       case 'failed': return 'bg-rose-500';
-      case 'pending': return 'bg-blue-500';
-      case 'ready_for_outbox': return 'bg-blue-400';
+      case 'pending': return 'bg-slate-500';
+      case 'ready_for_outbox': return 'bg-slate-400';
       default: return 'bg-slate-300';
     }
   };
@@ -137,6 +144,11 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
     switch (status) {
       case 'sent': return 'Odesláno';
       case 'delivered': return 'Doručeno';
+      case 'opened': return 'Otevřeno';
+      case 'clicked': return 'Proklik';
+      case 'converted': return 'Konverze';
+      case 'bounced': return 'Odraženo (Bounce)';
+      case 'spam': return 'Spam';
       case 'failed': return 'Chyba';
       case 'pending': return 'Ve frontě';
       case 'ready_for_outbox': return 'Příprava';
@@ -265,8 +277,18 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${getStatusColor(item.status)}`} />
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{getStatusLabel(item.status)}</span>
+                      <span className={`w-2 h-2 rounded-full ${getStatusColor(item.delivery_status || item.status)}`} />
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{getStatusLabel(item.delivery_status || item.status)}</span>
+                      {item.html_archive_url && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="ml-2 h-7 text-xs px-2"
+                          onClick={() => window.open(item.html_archive_url, '_blank')}
+                        >
+                          Zobrazit
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );

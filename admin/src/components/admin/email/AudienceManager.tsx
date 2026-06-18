@@ -195,33 +195,54 @@ export const AudienceManager = (props: any) => {
           return;
         }
         try {
-          const { data, error } = await supabase
+          // Fetch from email_logs
+          const { data: logsData, error: logsError } = await supabase
             .from("email_logs")
             .select("*")
             .eq("recipient_email", selectedContactForSheet.email)
             .order("created_at", { ascending: false });
-          if (error) throw error;
-          
-          if (!data || data.length === 0) {
-            setRealTimeline([]);
-            return;
+            
+          // Fetch from email_outbox
+          let outboxData: any[] = [];
+          if (selectedContactForSheet.id) {
+            const { data: obData } = await supabase
+              .from("email_outbox")
+              .select("id, status, delivery_status, html_archive_url, sent_at, created_at, subject")
+              .or(`worker_id.eq.${selectedContactForSheet.id},lead_id.eq.${selectedContactForSheet.id}`)
+              .in("status", ["sent", "delivered", "failed"])
+              .order("created_at", { ascending: false });
+            outboxData = obData || [];
           }
+
+          let combined: any[] = [];
           
-          const formatted = data.map((log: any) => {
-            let title = "Odesláno";
-            let status = "Doručeno";
-            if (log.status === "opened") { title = "E-mail otevřen"; status = "Otevřeno"; }
-            if (log.status === "clicked") { title = "Odkaz prokliknut"; status = "Kliknuto"; }
-            if (log.status === "failed" || log.status === "bounced") { title = "Chyba doručení"; status = "Odmítnuto"; }
-            return {
+          if (logsData) {
+            combined = [...combined, ...logsData.map(log => ({
               id: log.id,
               date: log.created_at,
-              title,
-              status,
-              details: log.status
-            };
-          });
-          setRealTimeline(formatted);
+              title: log.status === "opened" ? "E-mail otevřen" : log.status === "clicked" ? "Odkaz prokliknut" : (log.status === "failed" || log.status === "bounced") ? "Chyba doručení" : "Odesláno",
+              status: log.status === "opened" ? "Otevřeno" : log.status === "clicked" ? "Kliknuto" : (log.status === "failed" || log.status === "bounced") ? "Odmítnuto" : "Doručeno",
+              details: log.status,
+              htmlUrl: null,
+              subject: "E-mail (Log)"
+            }))];
+          }
+
+          if (outboxData) {
+            combined = [...combined, ...outboxData.map(ob => ({
+              id: ob.id,
+              date: ob.sent_at || ob.created_at,
+              title: "Odesláno z Outboxu",
+              status: ob.delivery_status || ob.status,
+              details: ob.status,
+              htmlUrl: ob.html_archive_url,
+              subject: ob.subject || "Bez předmětu"
+            }))];
+          }
+
+          combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          
+          setRealTimeline(combined);
         } catch (e) {
           console.error("Timeline error", e);
           setRealTimeline([]);
@@ -1007,11 +1028,22 @@ export const AudienceManager = (props: any) => {
                       <div key={idx} className="flex items-start gap-3 bg-muted/20 p-2.5 rounded-lg border border-border/40">
                         <div className="flex-1 min-w-0 flex items-center justify-between">
                           <div className="flex items-center gap-2 truncate">
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${event.status === "Kliknuto" ? "bg-amber-500" : event.status === "Otevřeno" ? "bg-emerald-500" : "bg-blue-500"}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${event.status === "Kliknuto" ? "bg-amber-500" : event.status === "Otevřeno" ? "bg-emerald-500" : event.status === "Doručeno" ? "bg-emerald-600" : event.status === "Odmítnuto" ? "bg-red-500" : "bg-blue-500"}`} />
                             <p className="text-xs font-medium text-foreground truncate">{event.subject}</p>
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1">{event.status}</span>
+                            {event.htmlUrl && (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-5 text-[10px] px-1.5 py-0"
+                                onClick={() => window.open(event.htmlUrl, '_blank')}
+                              >
+                                Zobrazit
+                              </Button>
+                            )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-[10px] text-muted-foreground">{event.date}</span>
+                            <span className="text-[10px] text-muted-foreground">{new Date(event.date).toLocaleDateString('cs-CZ')}</span>
                           </div>
                         </div>
                       </div>
