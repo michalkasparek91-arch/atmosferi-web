@@ -16,7 +16,7 @@ Deno.serve(async (req: any) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const fetchAllOutboxLeadIds = async (templateId: string) => {
+    const fetchAllOutboxLeadIds = async (templateSlug: string) => {
       let allLeadIds: string[] = [];
       let from = 0;
       let limit = 1000;
@@ -24,7 +24,7 @@ Deno.serve(async (req: any) => {
         const { data } = await supabaseClient
           .from("email_outbox")
           .select("lead_id")
-          .eq("template_id", templateId)
+          .eq("template_slug", templateSlug)
           .not("lead_id", "is", null)
           .range(from, from + limit - 1);
         
@@ -53,7 +53,7 @@ Deno.serve(async (req: any) => {
         if (!t.category || !t.language) continue;
 
         // Fetch all outboxed lead_ids for this template
-        const excludedLeadIds = await fetchAllOutboxLeadIds(t.id);
+        const excludedLeadIds = await fetchAllOutboxLeadIds(t.slug);
 
         let langFilter = [t.language];
         if (t.language === 'cs' || t.language === 'cz') langFilter = ['cs', 'cz', 'sk'];
@@ -125,7 +125,7 @@ Deno.serve(async (req: any) => {
       if (!template) throw new Error("Template not found");
 
       // Fetch all outboxed lead_ids for this template
-      const excludedLeadIds = await fetchAllOutboxLeadIds(template.id);
+      const excludedLeadIds = await fetchAllOutboxLeadIds(template.slug);
 
       // Fetch available leads
       let langFilter = [template.language];
@@ -145,7 +145,6 @@ Deno.serve(async (req: any) => {
       // If there are new leads to add, insert them (ignoring duplicates)
       if (leadsToProcess.length > 0) {
         const outboxInserts = leadsToProcess.map((lead: any) => ({
-          template_id: template.id,
           template_slug: template.slug,
           lead_id: lead.id,
           status: "draft",
@@ -155,7 +154,7 @@ Deno.serve(async (req: any) => {
         // Use upsert with ignoreDuplicates so existing records don't cause errors
         await supabaseClient
           .from("email_outbox")
-          .upsert(outboxInserts, { onConflict: "template_id,lead_id", ignoreDuplicates: true });
+          .upsert(outboxInserts, { onConflict: "template_slug,lead_id", ignoreDuplicates: true });
       }
 
       // Now send all current drafts for this template via process-sniper-outbox
@@ -165,7 +164,7 @@ Deno.serve(async (req: any) => {
       const { data: draftsToSend } = await supabaseClient
         .from("email_outbox")
         .select("id")
-        .eq("template_id", template.id)
+        .eq("template_slug", template.slug)
         .eq("status", "draft")
         .order("created_at", { ascending: true })
         .limit(batch_size || 300);

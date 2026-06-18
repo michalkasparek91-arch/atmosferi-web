@@ -38,12 +38,48 @@ export const AdminOutbox = () => {
 
   const sendBatchMutation = useMutation({
     mutationFn: async ({ template_id, batch_size }: { template_id: string, batch_size: number }) => {
-      const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
-        body: { action: "send_template_batch", template_id, batch_limit: batch_size, provider: emailProvider }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
+      let totalSent = 0;
+      let totalFailed = 0;
+      let hasMore = true;
+      let quotaError: string | null = null;
+
+      while (hasMore) {
+        const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
+          body: {
+            action: "send_template_batch",
+            template_id,
+            batch_limit: batch_size,
+            provider: emailProvider,
+            create_drafts: totalSent === 0 && totalFailed === 0,
+          },
+        });
+
+        if (error) throw error;
+        if (data?.error) {
+          quotaError = data.error;
+          totalSent += data?.sent_count || 0;
+          totalFailed += data?.failed_count || 0;
+          break;
+        }
+
+        totalSent += data?.sent_count || 0;
+        totalFailed += data?.failed_count || 0;
+        hasMore = !!data?.has_more;
+
+        if (hasMore) {
+          toast.info(`Odesílám dávku… (${totalSent} odesláno, zbývá ~${data?.remaining || "?"})`, { duration: 2000 });
+        }
+      }
+
+      if (quotaError) {
+        if (totalSent > 0) {
+          toast.warning(`Odesláno ${totalSent} e-mailů, poté dosažen limit: ${quotaError}`, { duration: 10000 });
+          return { sent_count: totalSent, failed_count: totalFailed, partial: true };
+        }
+        throw new Error(quotaError);
+      }
+
+      return { sent_count: totalSent, failed_count: totalFailed };
     },
     onSuccess: (data) => {
       toast.success(`Dávka úspěšně odeslána (Odesláno: ${data?.sent_count || 0}, Chyb: ${data?.failed_count || 0}).`);
@@ -54,6 +90,8 @@ export const AdminOutbox = () => {
       const detail = err?.context?.body ? (() => { try { return JSON.parse(err.context.body)?.error; } catch { return null; } })() : null;
       toast.error("Chyba při odesílání dávky: " + (detail || err.message), { duration: 8000 });
       console.error("Batch send error detail:", err);
+      queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
     }
   });
   const { data: drafts = [], isLoading } = useQuery({
@@ -132,7 +170,7 @@ export const AdminOutbox = () => {
     setSendingBatch(true);
     try {
       const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
-        body: { action: "send_selected_drafts", draftIds: idsToSend }
+        body: { action: "send_selected_drafts", draftIds: idsToSend, provider: emailProvider }
       });
 
       if (error) throw error;
@@ -155,7 +193,7 @@ export const AdminOutbox = () => {
     setSendingBatch(true);
     try {
       const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
-        body: { action: "send_selected_drafts", draftIds: idsToSend, targetEmail: "michal.kasparek91@gmail.com" }
+        body: { action: "send_selected_drafts", draftIds: idsToSend, targetEmail: "michal.kasparek91@gmail.com", provider: emailProvider }
       });
 
       if (error) throw error;
