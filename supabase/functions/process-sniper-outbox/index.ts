@@ -102,6 +102,12 @@ Deno.serve(async (req) => {
         }
         const companyName = cleanCompanyName(draft.lead?.company_name || draft.lead?.full_name);
         
+        let filters: any = {};
+        if (typeof template.segment_filters === "string") {
+          try { filters = JSON.parse(template.segment_filters); } catch(e) {}
+        } else if (template.segment_filters && typeof template.segment_filters === "object") {
+          filters = template.segment_filters;
+        }
         let name = "Neznámý";
         if (personName) {
           name = personName;
@@ -122,13 +128,6 @@ Deno.serve(async (req) => {
           }
         }
         const isWorker = !!draft.worker;
-
-        let filters: any = {};
-        if (typeof template.segment_filters === "string") {
-          try { filters = JSON.parse(template.segment_filters); } catch(e) {}
-        } else if (template.segment_filters && typeof template.segment_filters === "object") {
-          filters = template.segment_filters;
-        }
 
         const isCompanyOnly = !personName && !!companyName;
         const activeBody = (isCompanyOnly && filters.body_fallback) ? filters.body_fallback : (template.body || "");
