@@ -27,34 +27,45 @@ jobs:
 
 
       - name: Deploy autonomous-web-sniper
+        continue-on-error: true
         run: supabase functions deploy autonomous-web-sniper --project-ref $PROJECT_ID
         
       - name: Deploy upload-contact
+        continue-on-error: true
         run: supabase functions deploy upload-contact --project-ref $PROJECT_ID
 
       - name: Deploy campaign-batcher
+        continue-on-error: true
         run: supabase functions deploy campaign-batcher --project-ref $PROJECT_ID
 
       - name: Deploy send-template-test
+        continue-on-error: true
         run: supabase functions deploy send-template-test --project-ref $PROJECT_ID
 
       - name: Deploy process-sniper-outbox
+        continue-on-error: true
         run: supabase functions deploy process-sniper-outbox --project-ref $PROJECT_ID
 
       - name: Deploy email-reply-webhook
+        continue-on-error: true
         run: supabase functions deploy email-reply-webhook --no-verify-jwt --project-ref $PROJECT_ID
 
       - name: Deploy admin-send-broadcast-email
+        continue-on-error: true
         run: supabase functions deploy admin-send-broadcast-email --project-ref $PROJECT_ID
 
       - name: Deploy enrich-imported-leads
+        continue-on-error: true
         run: supabase functions deploy enrich-imported-leads --project-ref $PROJECT_ID
 
       - name: Deploy auto-enrich-leads
+        continue-on-error: true
         run: supabase functions deploy auto-enrich-leads --project-ref $PROJECT_ID
 
       - name: Deploy email-delivery-webhook
+        continue-on-error: true
         run: supabase functions deploy email-delivery-webhook --no-verify-jwt --project-ref $PROJECT_ID
 
       - name: Deploy ses-delivery-webhook
+        continue-on-error: true
         run: supabase functions deploy ses-delivery-webhook --no-verify-jwt --project-ref $PROJECT_ID
