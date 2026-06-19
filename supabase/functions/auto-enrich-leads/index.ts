@@ -99,6 +99,8 @@ Vrať validní JSON POLE objektů. Každý objekt MUSÍ obsahovat:
 - language: Zkratka jazyka webu (cs, sk, de, en atd.)
 - phone: Telefonní číslo ve formátu s předvolbou
 - description: Krátký popis toho, co firma dělá (1-2 věty)
+- decision_maker_name: Jméno kontaktní osoby (majitel, jednatel, hlavní architekt). DŮLEŽITÉ: Uveď celé jméno, pokud ho na webu najdeš, jinak prázdný řetězec.
+- last_project: Název posledního nebo hlavního projektu/reference, pokud je na webu uveden, jinak prázdný řetězec.
 - category: Hlavní kategorie (MUSÍŠ vybrat přesně jednu: architekti, interiery, developeri, realitky, urbanismus, architekt, remeslnici)
 - subcategory: Specifická podkategorie
 - email: Výsledná e-mailová adresa (nová nalezená, nebo původní)
@@ -238,6 +240,8 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         language: lead.language || extracted.language || null,
         phone: lead.phone || extracted.phone || null,
         description: lead.description || extracted.description || null,
+        decision_maker_name: lead.decision_maker_name || extracted.decision_maker_name || null,
+        last_project: lead.last_project || extracted.last_project || null,
         category: lead.category || extracted.category || null,
         subcategory: lead.subcategory || extracted.subcategory || null,
         premium_score: lead.premium_score || extracted.premium_score || 50,
