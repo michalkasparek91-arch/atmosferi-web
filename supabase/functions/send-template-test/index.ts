@@ -242,6 +242,7 @@ Deno.serve(async (req) => {
       return {
         osloveni: name,
         jmeno: jmeno,
+        firma: companyName,
         mesto: jobData.city || "Celá ČR",
         mesto_v_meste: cityIn,
         obor: jobCat,
@@ -261,6 +262,7 @@ Deno.serve(async (req) => {
       return txt
         .replace(/{{osloveni}}/g, previewData.osloveni)
         .replace(/{{jmeno}}/g, previewData.jmeno)
+        .replace(/{{firma}}|{{studio}}/g, previewData.firma)
         .replace(/{{mesto_v_meste}}/g, previewData.mesto_v_meste)
         .replace(/{{mesto}}/g, previewData.mesto)
         .replace(/{{obor_2pad}}|{{podkategorie_2pad}}/g, previewData.obor_2pad)

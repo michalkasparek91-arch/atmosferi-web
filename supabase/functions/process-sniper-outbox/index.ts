@@ -12,8 +12,8 @@ const CHUNK_SIZE = {
 } as const;
 
 const SEND_DELAY_MS = {
-  brevo: 100,
-  ses: 1100,
+  brevo: 20000,
+  ses: 20000,
 } as const;
 
 function sleep(ms: number) {
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         throw new Error(`Template not found: ${templateErr?.message || template_id}`);
       }
 
-      const requestedBatchSize = batch_limit || 300;
+      const requestedBatchSize = Math.min(batch_limit || 300, 6); // Hard limit to 6 to prevent Supabase 150s timeout due to 20s delay
 
       if (create_drafts !== false) {
         const created = await ensureDraftsForTemplate(supabaseAdmin, template, requestedBatchSize);
@@ -456,7 +456,7 @@ Deno.serve(async (req) => {
           if (!targetEmail) {
             await supabaseAdmin.from("email_outbox").update({
               status: "failed",
-              // We can't easily add an error_message column if it doesn't exist, but changing status is enough to prevent infinite loop.
+              error_message: String(lastError || "Unknown error"),
             }).eq("id", draftId);
           }
         }
