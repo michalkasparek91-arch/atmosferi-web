@@ -263,12 +263,13 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
               className="h-7 text-[10px] font-bold px-2 gap-1.5"
               onClick={async () => {
                 try {
-                  const { error, data } = await supabase.from('email_outbox').update({ status: 'draft', error_message: null }).eq('status', 'failed').select('id');
+                  const { error, data } = await supabase.from('email_outbox').delete().eq('status', 'failed').select('id');
                   if (error) throw error;
-                  toast.success(`Vráceno do konceptů`, { description: `Počet vrácených e-mailů: ${data?.length || 0}`});
+                  toast.success(`Vráceno do Volného náboru`, { description: `Smazáno chybných záznamů: ${data?.length || 0}. Můžete je znovu odeslat v záložce Outbox.`});
                   queryClient.invalidateQueries({ queryKey: ["admin-email-history"] });
+                  queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
                 } catch (e) {
-                  toast.error("Chyba při vracení do konceptů", { description: String(e) });
+                  toast.error("Chyba při vracení do Volného náboru", { description: String(e) });
                 }
               }}
             >

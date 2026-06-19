@@ -21,7 +21,7 @@ export const AdminOutbox = () => {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [previewDraft, setPreviewDraft] = useState<any | null>(null);
   const [isOpeningEditor, setIsOpeningEditor] = useState<string | null>(null);
-  const [filterType, setFilterType] = useState<"all" | "job" | "general" | "campaigns">("all");
+  const [filterType, setFilterType] = useState<"all" | "job" | "general" | "campaigns">("general");
   const [emailProvider, setEmailProvider] = useState<"brevo" | "ses">("brevo");
 
   const { data: virtualBatches = [], isLoading: isLoadingBatches } = useQuery({
@@ -319,18 +319,7 @@ export const AdminOutbox = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 font-sans w-full pb-24">
       {/* Filters (Sablony style) */}
-      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-        <button 
-          onClick={() => setFilterType("all")}
-          className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${filterType === "all" ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20" : "bg-card text-card-foreground border-border hover:border-primary/30 shadow-sm"}`}
-        >
-          <div className="flex items-center justify-between mb-0.5">
-            <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "all" ? "font-black" : "text-muted-foreground"}`}>Vše (Ke schválení)</p>
-          </div>
-          <p className={`text-xl font-black ${filterType === "all" ? "" : "text-foreground/80"}`}>{drafts.length}</p>
-        </button>
-
-        <button 
+      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">        <button 
           onClick={() => setFilterType("general")}
           className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${filterType === "general" ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20" : "bg-card text-card-foreground border-border hover:border-primary/30 shadow-sm"}`}
         >
