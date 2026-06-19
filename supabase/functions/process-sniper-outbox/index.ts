@@ -230,6 +230,19 @@ Deno.serve(async (req) => {
         ? resolvedDraftIds.slice(0, chunkSize)
         : resolvedDraftIds;
 
+      // Check Brevo daily usage to avoid hitting backlog limit
+      const startOfDay = new Date();
+      startOfDay.setUTCHours(0, 0, 0, 0);
+      const { count: brevoSentToday } = await supabaseAdmin
+        .from("email_history")
+        .select("*", { count: "exact", head: true })
+        .gte("sent_at", startOfDay.toISOString())
+        .eq("status", "sent")
+        .eq("provider", "brevo");
+
+      let brevoRemaining = Math.max(0, 300 - (brevoSentToday || 0));
+      console.log(`[ProcessSniperOutbox] Brevo remaining today: ${brevoRemaining}`);
+
       let sent_count = 0;
       let failed_count = 0;
       let quotaHit = false;
@@ -356,15 +369,24 @@ Deno.serve(async (req) => {
           return replaced;
         };
 
-        let currentProvider = provider;
-        let providersTried = 0;
         let success = false;
         let lastError = "";
+        let currentProvider = provider || "brevo";
+        let providersTried = 0;
         let finalMessageId: string | undefined;
         let finalHtml: string | undefined;
 
-        while (providersTried < 2 && !success) {
+        while (!success && providersTried < 2) {
           providersTried++;
+
+          if (currentProvider === "brevo" && brevoRemaining <= 0) {
+            console.log(`[send] Brevo daily limit reached locally. Forcing SES.`);
+            if (providersTried === 1) {
+              currentProvider = "ses";
+            } else {
+              break; // Already tried SES or forced Brevo
+            }
+          }
 
           const result = await sendEmail({
             from: template.sender_email,
@@ -402,6 +424,7 @@ Deno.serve(async (req) => {
             success = true;
             finalMessageId = result.messageId;
             finalHtml = result.html;
+            if (currentProvider === "brevo") brevoRemaining--;
           } else {
             lastError = String(result.error);
             const errStr = lastError.toLowerCase();

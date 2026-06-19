@@ -12,7 +12,7 @@ export interface SesEmailPayload {
 
 export async function sendViaSes(payload: SesEmailPayload): Promise<{ success: boolean; error?: string; messageId?: string }> {
   const host = Deno.env.get("SMTP_HOST");
-  const port = parseInt(Deno.env.get("SMTP_PORT") || "587");
+  const port = parseInt(Deno.env.get("SMTP_PORT") || "465");
   const username = Deno.env.get("SMTP_USERNAME");
   const password = Deno.env.get("SMTP_PASSWORD");
 
@@ -26,7 +26,7 @@ export async function sendViaSes(payload: SesEmailPayload): Promise<{ success: b
       connection: {
         hostname: host,
         port: port,
-        tls: false,       // Start unencrypted, upgrade via STARTTLS
+        tls: port === 465, // Use true implicit TLS if port is 465
         auth: {
           username,
           password,
