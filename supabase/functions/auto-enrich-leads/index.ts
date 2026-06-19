@@ -149,7 +149,9 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const models = [
           "meta-llama/llama-3.3-70b-instruct:free",
           "qwen/qwen-2.5-72b-instruct:free",
-          "google/gemini-2.0-pro-exp-02-05:free"
+          "google/gemini-2.0-pro-exp-02-05:free",
+          "deepseek/deepseek-r1:free",
+          "deepseek/deepseek-chat:free"
         ];
         let orRes: Response | null = null;
         const orErrors: string[] = [];
@@ -163,7 +165,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
           if (res.ok) { orRes = res; break; }
           const errText = await res.text();
           orErrors.push(`${model}: ${res.status} - ${errText}`);
-          if (res.status === 429 || res.status === 503 || res.status === 502) { continue; }
+          if (res.status === 429 || res.status === 503 || res.status === 502 || res.status === 400 || res.status === 404) { continue; }
           break; // other error
         }
 
