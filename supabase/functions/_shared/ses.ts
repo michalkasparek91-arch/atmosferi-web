@@ -1,6 +1,7 @@
-// ses.ts — Amazon SES SMTP transport for Deno Edge Functions
-// Uses denomailer for SMTP/STARTTLS on port 587
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+// ses.ts — Amazon SES HTTP API transport for Deno Edge Functions
+// Uses the official AWS SDK for JavaScript v3
+
+import { SESClient, SendEmailCommand } from "npm:@aws-sdk/client-ses";
 
 export interface SesEmailPayload {
   from: string;       // e.g. "Atmosferi <info@atmosferi.com>" or just "info@atmosferi.com"
@@ -11,49 +12,52 @@ export interface SesEmailPayload {
 }
 
 export async function sendViaSes(payload: SesEmailPayload): Promise<{ success: boolean; error?: string; messageId?: string }> {
-  const host = Deno.env.get("SMTP_HOST");
-  const port = parseInt(Deno.env.get("SMTP_PORT") || "465");
-  const username = Deno.env.get("SMTP_USERNAME");
-  const password = Deno.env.get("SMTP_PASSWORD");
+  const accessKeyId = Deno.env.get("AWS_ACCESS_KEY_ID");
+  const secretAccessKey = Deno.env.get("AWS_SECRET_ACCESS_KEY");
+  const region = Deno.env.get("AWS_REGION") || "eu-central-1"; // Assume Frankfurt by default
 
-  if (!host || !username || !password) {
-    console.error("[SES] Missing SMTP credentials in environment (SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD)");
-    return { success: false, error: "Missing SES SMTP credentials in environment variables" };
+  if (!accessKeyId || !secretAccessKey) {
+    console.error("[SES] Missing AWS credentials in environment (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)");
+    return { success: false, error: "Missing AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)" };
   }
 
   try {
-    const client = new SMTPClient({
-      connection: {
-        hostname: host,
-        port: port,
-        tls: port === 465, // Use true implicit TLS if port is 465
-        auth: {
-          username,
-          password,
-        },
+    const client = new SESClient({
+      region,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
       },
     });
 
-    // Parse from address: "Name <email>" or just "email"
-    let fromStr = payload.from;
-    
-    const sendResult = await client.send({
-      from: fromStr,
-      to: payload.to,
-      subject: payload.subject,
-      html: payload.html,
-      ...(payload.replyTo ? { inReplyTo: payload.replyTo } : {}),
+    const command = new SendEmailCommand({
+      Source: payload.from,
+      Destination: {
+        ToAddresses: [payload.to],
+      },
+      Message: {
+        Subject: {
+          Data: payload.subject,
+          Charset: "UTF-8",
+        },
+        Body: {
+          Html: {
+            Data: payload.html,
+            Charset: "UTF-8",
+          },
+        },
+      },
+      ReplyToAddresses: payload.replyTo ? [payload.replyTo] : undefined,
     });
 
-    await client.close();
+    const response = await client.send(command);
 
-    console.log(`[SES] Email sent successfully to: ${payload.to}`);
-    return { success: true, messageId: typeof sendResult === "object" ? (sendResult as any)?.messageId : undefined };
+    console.log(`[SES] Email sent successfully via HTTP API to: ${payload.to}`);
+    return { success: true, messageId: response.MessageId };
   } catch (error: any) {
     const errMsg = error?.message || String(error);
     console.error(`[SES] Failed to send to ${payload.to}:`, errMsg);
 
-    // Detect SES sandbox / quota / verification limits
     if (
       errMsg.includes("Daily sending quota exceeded") ||
       errMsg.includes("Maximum sending rate exceeded") ||
