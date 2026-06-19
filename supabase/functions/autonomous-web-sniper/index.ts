@@ -128,10 +128,9 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
 
     const models = [
       "meta-llama/llama-3.3-70b-instruct:free",
-      "qwen/qwen-2.5-72b-instruct:free",
-      "google/gemini-2.0-pro-exp-02-05:free",
-      "deepseek/deepseek-r1:free",
-      "deepseek/deepseek-chat:free"
+      "google/gemma-4-31b-it:free",
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "openrouter/free"
     ];
     let orRes: Response | null = null;
     const orErrors: string[] = [];
