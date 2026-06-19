@@ -100,7 +100,7 @@ function cleanCompanyName(name: string | null | undefined): string {
   let baseCleaned = name.replace(/\s*\(.*?\)/g, "").trim();
   baseCleaned = baseCleaned.replace(/\b(spol\.?\s*s\.?\s*r\.?\s*o\.?|s\.?\s*r\.?\s*o\.?|a\.?\s*s\.?|gmbh|gbr|ltd|inc|llc|mbh|ug|ag|k\.?\s*s\.?|v\.?\s*o\.?\s*s\.?|e\.?\s*v\.?|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
   
-  let cleaned = baseCleaned.replace(/\b(stavební společnost|stavební firma|architektonické studio|architektonická kancelář|architekti|studio|atelier|firma|společnost|stavitelství|stavby|holding|group)\b/gi, "").trim();
+  let cleaned = baseCleaned.replace(/\b(stavební společnost|stavební firma|architektonické studio|architektonická kancelář|architekti|studio|atelier|firma|společnost|stavitelství|stavby|holding|group|finalizace staveb|realizace staveb)\b/gi, "").trim();
   cleaned = cleaned.replace(/\s*&\s*co\.?\s*/gi, "").trim();
   cleaned = cleaned.replace(/,\s*$/, "").trim();
   
