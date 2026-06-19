@@ -23,20 +23,17 @@ export const ApiUsageStats = () => {
       if (error) {
         console.error("Error fetching API usage:", error);
         return {
-          geminiDaily: 0,
-          geminiMonthly: 0,
-          groqDaily: 0,
-          groqMonthly: 0,
-          services: {} as Record<string, number>
+          geminiDaily: 0, geminiMonthly: 0,
+          groqDaily: 0, groqMonthly: 0,
+          openrouterDaily: 0, openrouterMonthly: 0,
+          services: {} as Record<string, number>,
+          error: error.message || "Unknown error"
         };
       }
 
-      let geminiDaily = 0;
-      let geminiMonthly = 0;
-      let groqDaily = 0;
-      let groqMonthly = 0;
-      let openrouterDaily = 0;
-      let openrouterMonthly = 0;
+      let geminiDaily = 0, geminiMonthly = 0;
+      let groqDaily = 0, groqMonthly = 0;
+      let openrouterDaily = 0, openrouterMonthly = 0;
       const services: Record<string, number> = {};
 
       data.forEach(log => {
@@ -58,7 +55,7 @@ export const ApiUsageStats = () => {
         services[log.service_name] = (services[log.service_name] || 0) + count;
       });
 
-      return { geminiDaily, geminiMonthly, groqDaily, groqMonthly, openrouterDaily, openrouterMonthly, services };
+      return { geminiDaily, geminiMonthly, groqDaily, groqMonthly, openrouterDaily, openrouterMonthly, services, error: null };
     },
     refetchInterval: 60000 // refresh every minute
   });
@@ -87,14 +84,21 @@ export const ApiUsageStats = () => {
   const openrouterDailyPct = stats ? Math.min(100, Math.round((stats.openrouterDaily / openrouterLimitDaily) * 100)) : 0;
 
   return (
-    <Card className="border-border/40 shadow-sm mt-4">
+    <Card className="border-border/40 shadow-sm mt-6">
       <CardHeader className="pb-4">
         <CardTitle className="text-base flex items-center gap-2">
           <Activity className="h-4 w-4 text-primary" /> Spotřeba API Limitů (Free Tier)
         </CardTitle>
-        <CardDescription>Aktuální čerpání denních limitů pro vyhledávání a obohacování dat.</CardDescription>
+        <CardDescription>
+          Aktuální čerpání denních limitů pro vyhledávání a obohacování dat.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
+        {stats?.error && (
+          <div className="text-red-500 text-sm font-medium mb-4">
+            Data nelze načíst (možná chybí SQL tabulka): {stats.error}
+          </div>
+        )}
         
         {/* Gemini Stats */}
         <div className="space-y-2">
