@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
         const replaceVars = (txt: string | null | undefined) => {
           if (!txt) return "";
           const projektValue = draft.lead?.last_project 
-            ? (filters.project_format as string ? (filters.project_format as string).replace("{value}", draft.lead.last_project) : draft.lead.last_project)
+            ? (filters.project_format as string ? (filters.project_format as string).replace(/\{value\}|\{\{projekt\}\}/gi, draft.lead.last_project) : draft.lead.last_project)
             : ((filters.project_fallback as string) || "Váš projekt");
 
           let replaced = txt

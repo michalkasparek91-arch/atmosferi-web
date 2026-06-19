@@ -1120,7 +1120,7 @@ export function ModularEmailEditorDialogInner({
     
     if (projectValue) {
       if (form?.segment_filters?.project_format) {
-         defaultData.projekt = (form.segment_filters.project_format as string).replace("{value}", projectValue);
+         defaultData.projekt = (form.segment_filters.project_format as string).replace(/\{value\}|\{\{projekt\}\}/gi, projectValue);
       }
     } else {
       defaultData.projekt = form?.segment_filters?.project_fallback || "Váš projekt";
@@ -1579,11 +1579,11 @@ export function ModularEmailEditorDialogInner({
                   <div className="grid grid-cols-2 gap-3 mt-4 p-3 bg-muted/20 border border-border/50 rounded-xl">
                     <div className="space-y-1">
                       <Label className="text-[11px] font-bold text-foreground">Když AI projekt NAJDE</Label>
-                      <p className="text-[10px] text-muted-foreground mb-2 leading-tight">Formátovací text. Zástupce {'{value}'} se nahradí názvem nalezeného projektu z webu.</p>
+                      <p className="text-[10px] text-muted-foreground mb-2 leading-tight">Formátovací text. Zástupce {'{{projekt}}'} se nahradí názvem nalezeného projektu z webu.</p>
                       <Input 
                         value={form.segment_filters?.project_format || ""} 
                         onChange={(e) => setSegmentFilter("project_format", e.target.value)} 
-                        placeholder="Např. projektu {value}" 
+                        placeholder="Např. projektu {{projekt}}" 
                         className="h-8 text-xs bg-background" 
                       />
                     </div>
