@@ -1062,19 +1062,29 @@ export function ModularEmailEditorDialogInner({
         const isCompany = cName.toLowerCase().match(/architekten|studio|atelier|gmbh|s\.r\.o|a\.s|ltd|inc|llc|partners/);
         
         if (isCompany) {
-           if (lang === 'de') {
-               defaultData.jmeno = `liebes Team von ${cName}`;
-               defaultData.osloveni = "týme";
-           } else if (lang === 'en') {
-               defaultData.jmeno = `Team at ${cName}`;
-               defaultData.osloveni = "team";
+           const fallbackTemplate = form?.segment_filters?.jmeno_fallback;
+           if (fallbackTemplate) {
+              const simName = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, cName);
+              defaultData.jmeno = simName;
+              defaultData.osloveni = simName;
            } else {
-               defaultData.jmeno = `týme z ${cName}`;
-               defaultData.osloveni = "týme";
+               if (lang === 'de') {
+                   defaultData.jmeno = `liebes Team von ${cName}`;
+                   defaultData.osloveni = "týme";
+               } else if (lang === 'en') {
+                   defaultData.jmeno = `Team at ${cName}`;
+                   defaultData.osloveni = "team";
+               } else {
+                   defaultData.jmeno = `týme z ${cName}`;
+                   defaultData.osloveni = "týme";
+               }
            }
         } else {
            defaultData.jmeno = cName;
            defaultData.osloveni = cName.split(" ")[0];
+           if (form?.segment_filters?.osloveni_format) {
+               defaultData.osloveni = (form.segment_filters.osloveni_format as string).replace(/\{value\}|\{\{jmeno\}\}/gi, defaultData.jmeno).replace(/\{\{osloveni\}\}/gi, defaultData.osloveni);
+           }
         }
         
         defaultData.zakaznik = cName;
@@ -1104,14 +1114,16 @@ export function ModularEmailEditorDialogInner({
        
        if (fallbackTemplate) {
          simName = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
+         defaultData.jmeno = simName;
+         defaultData.osloveni = simName;
        } else {
          simName = `týme z ${companyName}`;
          if (lang === 'de') simName = `liebes Team von ${companyName}`;
          if (lang === 'en') simName = `Team at ${companyName}`;
+         defaultData.jmeno = simName;
+         defaultData.osloveni = "týme";
        }
        
-       defaultData.osloveni = simName.split(" ")[0] || "týme";
-       defaultData.jmeno = simName;
        defaultData.firma = companyName;
     }
     
@@ -1599,21 +1611,28 @@ export function ModularEmailEditorDialogInner({
                     </div>
                   </div>
 
-                  {/* Jméno Fallback */}
-                  <div className="space-y-1 mt-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-[11px] font-medium text-muted-foreground/80">Náhradní text pro {'{{jmeno}}'} (u firem)</Label>
-                      <span className="text-[10px] text-muted-foreground font-medium">Volitelné</span>
+                  {/* Jméno a Oslovení Format & Fallback */}
+                  <div className="grid grid-cols-2 gap-3 mt-4 p-3 bg-muted/20 border border-border/50 rounded-xl">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-bold text-foreground">Když AI jméno NAJDE</Label>
+                      <p className="text-[10px] text-muted-foreground mb-2 leading-tight">Formátovací text pro {'{{osloveni}}'}. Zástupci se nahradí za jméno osoby z webu.</p>
+                      <Input 
+                        value={form.segment_filters?.osloveni_format || ""} 
+                        onChange={(e) => setSegmentFilter("osloveni_format", e.target.value)} 
+                        placeholder="Např. Vážený pane / Vážená paní {{jmeno}}" 
+                        className="h-8 text-xs bg-background" 
+                      />
                     </div>
-                    <Input 
-                      value={form.segment_filters?.jmeno_fallback || ""} 
-                      onChange={(e) => setSegmentFilter("jmeno_fallback", e.target.value)} 
-                      placeholder="Např. liebes Team von {{firma}}" 
-                      className="h-8 text-xs bg-background" 
-                    />
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      Zadejte text, který nahradí {'{{jmeno}}'}, pokud chybí kontaktní osoba. Můžete použít značku {'{{firma}}'}.
-                    </p>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-bold text-foreground">Když AI jméno NENAJDE</Label>
+                      <p className="text-[10px] text-muted-foreground mb-2 leading-tight">Náhradní text pro {'{{osloveni}}'} i {'{{jmeno}}'}. Lze použít značku {'{{firma}}'}.</p>
+                      <Input 
+                        value={form.segment_filters?.jmeno_fallback || ""} 
+                        onChange={(e) => setSegmentFilter("jmeno_fallback", e.target.value)} 
+                        placeholder="Např. týme z {{firma}}" 
+                        className="h-8 text-xs bg-background" 
+                      />
+                    </div>
                   </div>
 
 

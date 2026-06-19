@@ -152,21 +152,27 @@ Deno.serve(async (req) => {
       if (personName && personName.length > 2) {
         name = personName.split(" ")[0] || "Michale";
         jmeno = personName;
+        if (template.segment_filters?.osloveni_format) {
+            name = (template.segment_filters.osloveni_format as string).replace(/\{value\}|\{\{jmeno\}\}/gi, jmeno).replace(/\{\{osloveni\}\}/gi, name);
+        }
       } else if (companyName) {
         const lang = template.language || 'cz';
         const fallbackTemplate = template.segment_filters?.jmeno_fallback;
         if (fallbackTemplate) {
-          name = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
+          jmeno = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
+          name = jmeno;
         } else {
           if (lang === 'de') {
-            name = `liebes Team von ${companyName}`;
+            jmeno = `liebes Team von ${companyName}`;
+            name = "týme";
           } else if (lang === 'en') {
-            name = `Team at ${companyName}`;
+            jmeno = `Team at ${companyName}`;
+            name = "team";
           } else {
-            name = `týme z ${companyName}`;
+            jmeno = `týme z ${companyName}`;
+            name = "týme";
           }
         }
-        jmeno = name;
       }
 
       const jobCat = jobData.service_subcategories?.name || "Řemeslné práce";

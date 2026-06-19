@@ -258,20 +258,32 @@ Deno.serve(async (req) => {
           filters = template.segment_filters;
         }
 
-        let name = "Neznámý";
+        let jmenoValue = "Neznámý";
+        let osloveniValue = "Neznámý";
+
         if (personName) {
-          name = personName;
+          jmenoValue = personName;
+          osloveniValue = personName.split(" ")[0];
+          if (filters.osloveni_format) {
+            osloveniValue = (filters.osloveni_format as string)
+              .replace(/\{value\}|\{\{jmeno\}\}/gi, jmenoValue)
+              .replace(/\{\{osloveni\}\}/gi, osloveniValue);
+          }
         } else if (companyName) {
           const lang = template.language || "cz";
           const fallbackTemplate = filters?.jmeno_fallback as string | undefined;
           if (fallbackTemplate) {
-            name = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
+            jmenoValue = fallbackTemplate.replace(/{{firma}}|{{studio}}/g, companyName);
+            osloveniValue = jmenoValue;
           } else if (lang === "de") {
-            name = `liebes Team von ${companyName}`;
+            jmenoValue = `liebes Team von ${companyName}`;
+            osloveniValue = "týme";
           } else if (lang === "en") {
-            name = `Team at ${companyName}`;
+            jmenoValue = `Team at ${companyName}`;
+            osloveniValue = "team";
           } else {
-            name = `týme z ${companyName}`;
+            jmenoValue = `týme z ${companyName}`;
+            osloveniValue = "týme";
           }
         }
         const isWorker = !!draft.worker;
@@ -294,8 +306,8 @@ Deno.serve(async (req) => {
             : ((filters.project_fallback as string) || "Váš projekt");
 
           let replaced = txt
-            .replace(/{{osloveni}}/g, name.split(" ")[0])
-            .replace(/{{jmeno}}/g, name)
+            .replace(/{{osloveni}}/g, osloveniValue)
+            .replace(/{{jmeno}}/g, jmenoValue)
             .replace(/{{mesto_v_meste}}/g, draft.job?.city ? `v ${draft.job.city}` : "v okolí")
             .replace(/{{mesto}}/g, draft.job?.city || "Vaše město")
             .replace(/{{obor_2pad}}|{{podkategorie_2pad}}/g, draft.job?.service_subcategories?.category_form || "oboru")
