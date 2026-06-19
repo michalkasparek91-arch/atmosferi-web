@@ -182,7 +182,14 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
     if (useGemini) {
       engineTasks.push((async () => {
         // Cascade through Gemini models
-        const models = ["gemini-2.0-flash", "gemini-2.0-flash-exp", "gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-1.5-pro"];
+        const models = [
+          "gemini-2.5-flash",
+          "gemini-2.0-flash", 
+          "gemini-2.0-flash-exp", 
+          "gemini-1.5-flash-latest", 
+          "gemini-1.5-flash", 
+          "gemini-1.5-pro"
+        ];
         let geminiRes: Response | null = null;
         const geminiErrors: string[] = [];
         

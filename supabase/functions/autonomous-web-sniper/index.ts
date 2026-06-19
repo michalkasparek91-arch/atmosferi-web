@@ -42,6 +42,7 @@ async function logApiUsage(supabase: any, engine: string, serviceName: string) {
 // Gemini model cascade: try cheapest free-tier model first, fall back on quota/overload
 async function callGeminiWithFallback(apiKey: string, body: any): Promise<Response> {
   const models = [
+    "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-2.0-flash-exp",
     "gemini-1.5-flash-latest",
