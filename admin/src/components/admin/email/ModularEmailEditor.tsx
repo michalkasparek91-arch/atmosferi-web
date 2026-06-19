@@ -97,7 +97,8 @@ export function getCzechGender(fullName: string): "M" | "F" {
 
 function cleanCompanyName(name: string | null | undefined): string {
   if (!name) return "";
-  let cleaned = name.replace(/\b(spol\.?\s*s\.?\s*r\.?\s*o\.?|s\.?\s*r\.?\s*o\.?|a\.?\s*s\.?|gmbh|gbr|ltd|inc|llc|mbh|ug|ag|k\.?\s*s\.?|v\.?\s*o\.?\s*s\.?|e\.?\s*v\.?|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
+  let cleaned = name.replace(/\s*\(.*?\)/g, "").trim();
+  cleaned = cleaned.replace(/\b(spol\.?\s*s\.?\s*r\.?\s*o\.?|s\.?\s*r\.?\s*o\.?|a\.?\s*s\.?|gmbh|gbr|ltd|inc|llc|mbh|ug|ag|k\.?\s*s\.?|v\.?\s*o\.?\s*s\.?|e\.?\s*v\.?|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
   cleaned = cleaned.replace(/\s*&\s*co\.?\s*/gi, "").trim();
   cleaned = cleaned.replace(/,\s*$/, "").trim();
   
