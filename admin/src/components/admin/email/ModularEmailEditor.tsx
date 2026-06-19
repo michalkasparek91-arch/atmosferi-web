@@ -1075,7 +1075,9 @@ export function ModularEmailEditorDialogInner({
       if (selectedJob.customer_name) {
         const cName = cleanCompanyName(selectedJob.customer_name);
         const lang = form?.language || 'cz';
-        const isCompany = cName.toLowerCase().match(/architekten|studio|atelier|gmbh|s\.?\s*r\.?\s*o|a\.?\s*s|ltd|inc|llc|partners/);
+        const isCompany = 
+            (selectedJob.customer_name || "").toLowerCase().match(/architekten|studio|atelier|gmbh|s\.?\s*r\.?\s*o|a\.?\s*s|ltd|inc|llc|partners|holding|group|stavitelství|stavby/) ||
+            cName.trim().split(/\s+/).length === 1;
         
         if (isCompany) {
            const fallbackTemplate = form?.segment_filters?.jmeno_fallback;

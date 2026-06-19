@@ -144,7 +144,10 @@ Deno.serve(async (req) => {
       let companyName = "";
 
       if (custFullName !== "Zákazník" && custFullName) {
-        if (custFullName.includes(" (") && custFullName.includes(")")) {
+        const isSingleWord = custFullName.trim().split(/\s+/).length === 1;
+        if (isSingleWord) {
+            companyName = custFullName;
+        } else if (custFullName.includes(" (") && custFullName.includes(")")) {
           const m = custFullName.match(/^(.*?)\s*\((.*?)\)/);
           if (m) {
             personName = m[1].trim();
