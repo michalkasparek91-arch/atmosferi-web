@@ -20,6 +20,19 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export function getCzechGender(fullName: string): "M" | "F" {
+  if (!fullName) return "M";
+  const parts = fullName.trim().split(" ");
+  const firstName = parts[0].toLowerCase();
+  const lastName = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+  if (lastName.endsWith("ová") || lastName.endsWith("á")) return "F";
+  if (firstName.endsWith("a") || firstName.endsWith("e") || firstName === "dagmar" || firstName === "miriam") {
+    const maleExceptions = ["honza", "míša", "mára", "sáva", "baťa", "přemek", "péťa", "jirka", "tomáša"];
+    if (!maleExceptions.includes(firstName)) return "F";
+  }
+  return "M";
+}
+
 function cleanCompanyName(name: string | null | undefined): string {
   if (!name) return "";
   let cleaned = name.replace(/\b(gmbh|gbr|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.|e\.v\.|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
@@ -264,8 +277,14 @@ Deno.serve(async (req) => {
         if (personName) {
           jmenoValue = personName;
           osloveniValue = personName.split(" ")[0];
-          if (filters.osloveni_format) {
-            osloveniValue = (filters.osloveni_format as string)
+          
+          const gender = getCzechGender(jmenoValue);
+          const formatStr = gender === "M" 
+             ? (filters.osloveni_format_m || filters.osloveni_format) 
+             : (filters.osloveni_format_f || filters.osloveni_format); // Fallback to generic if missing
+
+          if (formatStr) {
+            osloveniValue = (formatStr as string)
               .replace(/\{value\}|\{\{jmeno\}\}/gi, jmenoValue)
               .replace(/\{\{osloveni\}\}/gi, osloveniValue);
           }

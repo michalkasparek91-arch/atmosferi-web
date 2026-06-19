@@ -1,6 +1,19 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendEmail } from "../_shared/email.ts";
 
+export function getCzechGender(fullName: string): "M" | "F" {
+  if (!fullName) return "M";
+  const parts = fullName.trim().split(" ");
+  const firstName = parts[0].toLowerCase();
+  const lastName = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+  if (lastName.endsWith("ová") || lastName.endsWith("á")) return "F";
+  if (firstName.endsWith("a") || firstName.endsWith("e") || firstName === "dagmar" || firstName === "miriam") {
+    const maleExceptions = ["honza", "míša", "mára", "sáva", "baťa", "přemek", "péťa", "jirka", "tomáša"];
+    if (!maleExceptions.includes(firstName)) return "F";
+  }
+  return "M";
+}
+
 function cleanCompanyName(name: string | null | undefined): string {
   if (!name) return "";
   let cleaned = name.replace(/\b(gmbh|gbr|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.|e\.v\.|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
@@ -152,8 +165,14 @@ Deno.serve(async (req) => {
       if (personName && personName.length > 2) {
         name = personName.split(" ")[0] || "Michale";
         jmeno = personName;
-        if (template.segment_filters?.osloveni_format) {
-            name = (template.segment_filters.osloveni_format as string).replace(/\{value\}|\{\{jmeno\}\}/gi, jmeno).replace(/\{\{osloveni\}\}/gi, name);
+        
+        const gender = getCzechGender(jmeno);
+        const formatStr = gender === "M" 
+           ? (template.segment_filters?.osloveni_format_m || template.segment_filters?.osloveni_format) 
+           : (template.segment_filters?.osloveni_format_f || template.segment_filters?.osloveni_format);
+
+        if (formatStr) {
+            name = (formatStr as string).replace(/\{value\}|\{\{jmeno\}\}/gi, jmeno).replace(/\{\{osloveni\}\}/gi, name);
         }
       } else if (companyName) {
         const lang = template.language || 'cz';

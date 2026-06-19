@@ -79,6 +79,22 @@ const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
   b2b: { label: "B2B / Ostatní", color: "bg-purple-100 text-purple-700 border-purple-200" },
 };
 
+export function getCzechGender(fullName: string): "M" | "F" {
+  if (!fullName) return "M";
+  const parts = fullName.trim().split(" ");
+  const firstName = parts[0].toLowerCase();
+  const lastName = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+  
+  if (lastName.endsWith("ová") || lastName.endsWith("á")) return "F";
+  
+  if (firstName.endsWith("a") || firstName.endsWith("e") || firstName === "dagmar" || firstName === "miriam") {
+    const maleExceptions = ["honza", "míša", "mára", "sáva", "baťa", "přemek", "péťa", "jirka", "tomáša"];
+    if (!maleExceptions.includes(firstName)) return "F";
+  }
+  
+  return "M";
+}
+
 function cleanCompanyName(name: string | null | undefined): string {
   if (!name) return "";
   let cleaned = name.replace(/\b(gmbh|gbr|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.|e\.v\.|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
@@ -1082,8 +1098,12 @@ export function ModularEmailEditorDialogInner({
         } else {
            defaultData.jmeno = cName;
            defaultData.osloveni = cName.split(" ")[0];
-           if (form?.segment_filters?.osloveni_format) {
-               defaultData.osloveni = (form.segment_filters.osloveni_format as string).replace(/\{value\}|\{\{jmeno\}\}/gi, defaultData.jmeno).replace(/\{\{osloveni\}\}/gi, defaultData.osloveni);
+           const gender = getCzechGender(defaultData.jmeno);
+           const formatStr = gender === "M" 
+              ? (form?.segment_filters?.osloveni_format_m || form?.segment_filters?.osloveni_format) 
+              : form?.segment_filters?.osloveni_format_f;
+           if (formatStr) {
+               defaultData.osloveni = (formatStr as string).replace(/\{value\}|\{\{jmeno\}\}/gi, defaultData.jmeno).replace(/\{\{osloveni\}\}/gi, defaultData.osloveni);
            }
         }
         
@@ -1612,18 +1632,30 @@ export function ModularEmailEditorDialogInner({
                   </div>
 
                   {/* Jméno a Oslovení Format & Fallback */}
-                  <div className="grid grid-cols-2 gap-3 mt-4 p-3 bg-muted/20 border border-border/50 rounded-xl">
-                    <div className="space-y-1">
-                      <Label className="text-[11px] font-bold text-foreground">Když AI jméno NAJDE</Label>
-                      <p className="text-[10px] text-muted-foreground mb-2 leading-tight">Formátovací text pro {'{{osloveni}}'}. Zástupci se nahradí za jméno osoby z webu.</p>
-                      <Input 
-                        value={form.segment_filters?.osloveni_format || ""} 
-                        onChange={(e) => setSegmentFilter("osloveni_format", e.target.value)} 
-                        placeholder="Např. Vážený pane / Vážená paní {{jmeno}}" 
-                        className="h-8 text-xs bg-background" 
-                      />
+                  <div className="grid grid-cols-2 gap-4 mt-4 p-3 bg-muted/20 border border-border/50 rounded-xl">
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-foreground">Když se jméno najde (MUŽ)</Label>
+                        <p className="text-[10px] text-muted-foreground mb-1 leading-tight">Např. Vážený pane {'{{jmeno}}'}</p>
+                        <Input 
+                          value={form.segment_filters?.osloveni_format_m || form.segment_filters?.osloveni_format || ""} 
+                          onChange={(e) => setSegmentFilter("osloveni_format_m", e.target.value)} 
+                          placeholder="Vážený pane {{jmeno}}" 
+                          className="h-8 text-xs bg-background" 
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-foreground">Když se jméno najde (ŽENA)</Label>
+                        <p className="text-[10px] text-muted-foreground mb-1 leading-tight">Např. Vážená paní {'{{jmeno}}'}</p>
+                        <Input 
+                          value={form.segment_filters?.osloveni_format_f || ""} 
+                          onChange={(e) => setSegmentFilter("osloveni_format_f", e.target.value)} 
+                          placeholder="Vážená paní {{jmeno}}" 
+                          className="h-8 text-xs bg-background" 
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 border-l border-border/50 pl-4">
                       <Label className="text-[11px] font-bold text-foreground">Když AI jméno NENAJDE</Label>
                       <p className="text-[10px] text-muted-foreground mb-2 leading-tight">Náhradní text pro {'{{osloveni}}'} i {'{{jmeno}}'}. Lze použít značku {'{{firma}}'}.</p>
                       <Input 
