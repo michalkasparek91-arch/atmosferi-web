@@ -12,8 +12,8 @@ const CHUNK_SIZE = {
 } as const;
 
 const SEND_DELAY_MS = {
-  brevo: 20000,
-  ses: 20000,
+  brevo: 100, // Small delay to prevent API flooding, but small enough to complete batch in time
+  ses: 100,
 } as const;
 
 function sleep(ms: number) {
