@@ -73,11 +73,11 @@ Deno.serve(async (req: any) => {
         // so we fetch the leads ids and filter
         const { data: allLeads } = await supabaseClient
           .from("marketing_leads")
-          .select("id")
+          .select("id, tags")
           .eq("category", t.category)
           .in("language", langFilter);
 
-        const availableLeads = (allLeads || []).filter((l: any) => !excludedLeadIds.includes(l.id));
+        const availableLeads = (allLeads || []).filter((l: any) => !excludedLeadIds.includes(l.id) && !(l.tags || []).includes("známé"));
         const totalAudience = availableLeads.length;
 
         if (totalAudience > 0) {
@@ -139,7 +139,7 @@ Deno.serve(async (req: any) => {
       if (leadsErr) throw leadsErr;
       
       const leadsToProcess = (availableLeads || [])
-        .filter((l: any) => !excludedLeadIds.includes(l.id))
+        .filter((l: any) => !excludedLeadIds.includes(l.id) && !(l.tags || []).includes("známé"))
         .slice(0, limit);
 
       // If there are new leads to add, insert them (ignoring duplicates)

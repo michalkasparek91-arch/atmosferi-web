@@ -98,13 +98,12 @@ async function ensureDraftsForTemplate(
     .from("marketing_leads")
     .select("*")
     .eq("category", template.category)
-    .in("language", langFilter)
-    .or("tags.is.null,not.tags.cs.{\"známé\"}");
+    .in("language", langFilter);
 
   if (leadsErr) throw leadsErr;
 
   const leadsToProcess = (availableLeads || [])
-    .filter((l: { id: string }) => !excludedLeadIds.includes(l.id))
+    .filter((l: any) => !excludedLeadIds.includes(l.id) && !(l.tags || []).includes("známé"))
     .slice(0, limit);
 
   if (leadsToProcess.length === 0) return 0;
