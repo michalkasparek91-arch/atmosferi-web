@@ -235,7 +235,7 @@ async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetK
                     model: "llama-3.3-70b-versatile",
                     messages: [
                         { role: "system", content: "You are a precise data extractor. Extract the requested info and return ONLY a valid JSON array. DO NOT wrap it in markdown or provide any other text." },
-                        { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object: [{"company_name": "${companyName}", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "(Try hard to find the name of the owner, manager, or main architect. Put their full name here, or leave empty if not found)", "last_project": "(Name of the most prominent or recent project/reference found on the website. Leave empty if none found)", "premium_score": 50, "ai_icebreaker": "..."}]. If no email found, return []. Text: ${html}` }
+                        { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object: [{"company_name": "${companyName}", "brand_name": "(Short conversational brand name without legal entity or descriptive words like 'stavební společnost', e.g. 'Chrpa')", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "(Try hard to find the name of the owner, manager, or main architect. Put their full name here, or leave empty if not found)", "last_project": "(Name of the most prominent or recent project/reference found on the website. Leave empty if none found)", "premium_score": 50, "ai_icebreaker": "..."}]. If no email found, return []. Text: ${html}` }
                     ],
                     temperature: 0.1
                 })
@@ -345,7 +345,7 @@ TVUJ UKOL:
 2. Pomoci nastroje Google Search najdi realne firmy v tomto meste pro zadany obor.
 3. Extrahuj z jejich webu nebo z Googlu kontakty. Najdi MAXIMALNE 15 firem, ktere maji uvedenou E-MAILOVOU ADRESU. Firmy bez e-mailu ignoruj!
 
-Vrat JSON pole. Povinna pole pro kazdy objekt: company_name, email, phone, website, city, country (nazev zeme VZDY V CESTINE, napr. Finsko, Australie), language (cs, en, de...), full_address, description, decision_maker_name (DULEZITE: Pokus se aktivne dohledat jmeno konkretni kontaktni osoby - napr. majitel, jednatel, nebo hlavni architekt. Pokud najdes, uved jeji cele jmeno, jinak prazdny retezec), last_project (Nazev posledniho/hlavniho projektu nebo reference, napr. "Vila v Praze" nebo "Rekonstrukce skoly", prazdny retezec pokud nelze najit), premium_score (1-100).
+Vrat JSON pole. Povinna pole pro kazdy objekt: company_name, brand_name (Cisty, hovorovy nazev firmy bez s.r.o. a privlastku typu 'stavebni spolecnost', 'architekti'. Z 'Kvalitni stavby s.r.o.' udelej 'Kvalitni stavby', ze 'Studio Velehradsky' udelej 'Studio Velehradsky', z 'CHRPA stavebni spolecnost Pardubice' udelej 'Chrpa'), email, phone, website, city, country (nazev zeme VZDY V CESTINE, napr. Finsko, Australie), language (cs, en, de...), full_address, description, decision_maker_name (DULEZITE: Pokus se aktivne dohledat jmeno konkretni kontaktni osoby - napr. majitel, jednatel, nebo hlavni architekt. Pokud najdes, uved jeji cele jmeno, jinak prazdny retezec), last_project (Nazev posledniho/hlavniho projektu nebo reference, napr. "Vila v Praze" nebo "Rekonstrukce skoly", prazdny retezec pokud nelze najit), premium_score (1-100).
 Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych hodnot nesmi byt neescapovane uvozovky!`;
     const promptTemplate = config.prompt_template || DEFAULT_PROMPT;
 
@@ -441,6 +441,7 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
           email: cleanEmail,
           full_name: item.company_name || "B2B Partner",
           company_name: item.company_name || "B2B Partner",
+          brand_name: item.brand_name || null,
           phone: normalizePhone(item.phone || ""),
           website: item.website || "",
           city: item.city || "Nezname mesto",

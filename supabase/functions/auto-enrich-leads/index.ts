@@ -94,6 +94,7 @@ Využij své rozsáhlé znalostní databáze a doplň základní údaje o každ�
 Vrať validní JSON POLE objektů. Každý objekt MUSÍ obsahovat:
 - id: ID firmy (převezmi ze vstupu)
 - company_name: Oficiální název firmy
+- brand_name: Krátký hovorový název firmy bez s.r.o. a přívlastků typu 'stavební společnost'. Z 'Kvalitní stavby s.r.o.' udělej 'Kvalitní stavby'. Z 'CHRPA stavební společnost' udělej 'Chrpa'.
 - city: Město působnosti (např. Praha, Brno)
 - country: Oficiální název země působnosti. Název země MUSÍ BÝT VŽDY V ČEŠTINĚ (např. "Finsko", "Austrálie").
 - language: Zkratka jazyka webu (cs, sk, de, en atd.)
@@ -235,6 +236,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       
       const updatePayload: any = {
         company_name: lead.company_name || extracted.company_name || null,
+        brand_name: lead.brand_name || extracted.brand_name || null,
         city: lead.city || extracted.city || null,
         country: lead.country || extracted.country || "Česká republika",
         language: lead.language || extracted.language || null,

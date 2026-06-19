@@ -97,10 +97,16 @@ export function getCzechGender(fullName: string): "M" | "F" {
 
 function cleanCompanyName(name: string | null | undefined): string {
   if (!name) return "";
-  let cleaned = name.replace(/\s*\(.*?\)/g, "").trim();
-  cleaned = cleaned.replace(/\b(spol\.?\s*s\.?\s*r\.?\s*o\.?|s\.?\s*r\.?\s*o\.?|a\.?\s*s\.?|gmbh|gbr|ltd|inc|llc|mbh|ug|ag|k\.?\s*s\.?|v\.?\s*o\.?\s*s\.?|e\.?\s*v\.?|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
+  let baseCleaned = name.replace(/\s*\(.*?\)/g, "").trim();
+  baseCleaned = baseCleaned.replace(/\b(spol\.?\s*s\.?\s*r\.?\s*o\.?|s\.?\s*r\.?\s*o\.?|a\.?\s*s\.?|gmbh|gbr|ltd|inc|llc|mbh|ug|ag|k\.?\s*s\.?|v\.?\s*o\.?\s*s\.?|e\.?\s*v\.?|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
+  
+  let cleaned = baseCleaned.replace(/\b(stavební společnost|stavební firma|architektonické studio|architektonická kancelář|architekti|studio|atelier|firma|společnost|stavitelství|stavby|holding|group)\b/gi, "").trim();
   cleaned = cleaned.replace(/\s*&\s*co\.?\s*/gi, "").trim();
   cleaned = cleaned.replace(/,\s*$/, "").trim();
+  
+  if (cleaned.length === 0) {
+      cleaned = baseCleaned;
+  }
   
   if (cleaned === cleaned.toUpperCase() && cleaned.match(/[A-Z]/)) {
     cleaned = cleaned.split(" ").map(word => {
@@ -1030,7 +1036,8 @@ export function ModularEmailEditorDialogInner({
     
     if (mode === "outbox" && form) {
       const personName = form.worker?.full_name || form.lead?.decision_maker_name;
-      const companyName = cleanCompanyName(form.lead?.company_name || form.lead?.full_name);
+      const companyRawName = form.lead?.brand_name || form.lead?.company_name || form.lead?.full_name;
+      const companyName = form.lead?.brand_name ? form.lead.brand_name : cleanCompanyName(companyRawName);
       
       let name = form.recipient_name || "kolego";
       if (personName) {
