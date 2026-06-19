@@ -22,7 +22,7 @@ function sleep(ms: number) {
 
 function cleanCompanyName(name: string | null | undefined): string {
   if (!name) return "";
-  let cleaned = name.replace(/\b(gmbh|gbr|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.|e\.v\.|kgaa|ohg|kg|partg)\b/gi, "").trim();
+  let cleaned = name.replace(/\b(gmbh|gbr|s\.r\.o\.|a\.s\.|ltd|inc|llc|mbh|ug|ag|k\.s\.|v\.o\.s\.|e\.v\.|kgaa|ohg|kg|partg)(?!\w)/gi, "").trim();
   cleaned = cleaned.replace(/\s*&\s*co\.?\s*/gi, "").trim();
   cleaned = cleaned.replace(/,\s*$/, "").trim();
 
