@@ -1115,9 +1115,15 @@ export function ModularEmailEditorDialogInner({
        defaultData.firma = companyName;
     }
     
-    // Přepis projekt fallbacku, pokud je v segment filters
-    if (defaultData.projekt === "Váš projekt" && form?.segment_filters?.project_fallback) {
-      defaultData.projekt = form.segment_filters.project_fallback;
+    // Přepis projekt fallbacku a formatu, pokud je v segment filters
+    const projectValue = defaultData.projekt !== "Váš projekt" && defaultData.projekt ? defaultData.projekt : null;
+    
+    if (projectValue) {
+      if (form?.segment_filters?.project_format) {
+         defaultData.projekt = (form.segment_filters.project_format as string).replace("{value}", projectValue);
+      }
+    } else {
+      defaultData.projekt = form?.segment_filters?.project_fallback || "Váš projekt";
     }
 
     return defaultData;
@@ -1569,15 +1575,28 @@ export function ModularEmailEditorDialogInner({
                     />
                   </div>
 
-                  {/* Projekt Fallback */}
-                  <div className="space-y-1 mt-4">
-                    <Label className="text-[11px] font-medium text-muted-foreground/80">Náhradní text pro {'{{projekt}}'}</Label>
-                    <Input 
-                      value={form.segment_filters?.project_fallback || ""} 
-                      onChange={(e) => setSegmentFilter("project_fallback", e.target.value)} 
-                      placeholder="Např. Váš projekt" 
-                      className="h-8 text-xs bg-background" 
-                    />
+                  {/* Projekt Format & Fallback */}
+                  <div className="grid grid-cols-2 gap-3 mt-4 p-3 bg-muted/20 border border-border/50 rounded-xl">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-bold text-foreground">Když AI projekt NAJDE</Label>
+                      <p className="text-[10px] text-muted-foreground mb-2 leading-tight">Formátovací text. Zástupce {'{value}'} se nahradí názvem nalezeného projektu z webu.</p>
+                      <Input 
+                        value={form.segment_filters?.project_format || ""} 
+                        onChange={(e) => setSegmentFilter("project_format", e.target.value)} 
+                        placeholder="Např. projektu {value}" 
+                        className="h-8 text-xs bg-background" 
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-bold text-foreground">Když AI projekt NENAJDE</Label>
+                      <p className="text-[10px] text-muted-foreground mb-2 leading-tight">Náhradní text. Použije se, pokud se nepodaří projekt u firmy dohledat.</p>
+                      <Input 
+                        value={form.segment_filters?.project_fallback || ""} 
+                        onChange={(e) => setSegmentFilter("project_fallback", e.target.value)} 
+                        placeholder="Např. vašich projektů" 
+                        className="h-8 text-xs bg-background" 
+                      />
+                    </div>
                   </div>
 
                   {/* Jméno Fallback */}

@@ -289,6 +289,10 @@ Deno.serve(async (req) => {
 
         const replaceVars = (txt: string | null | undefined) => {
           if (!txt) return "";
+          const projektValue = draft.lead?.last_project 
+            ? (filters.project_format as string ? (filters.project_format as string).replace("{value}", draft.lead.last_project) : draft.lead.last_project)
+            : ((filters.project_fallback as string) || "Váš projekt");
+
           let replaced = txt
             .replace(/{{osloveni}}/g, name.split(" ")[0])
             .replace(/{{jmeno}}/g, name)
@@ -300,7 +304,7 @@ Deno.serve(async (req) => {
             .replace(/{{popis_zakazky}}/g, draft.job?.description || "")
             .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, draft.job?.price_note || "Není stanovena")
             .replace(/{{zakaznik}}/g, "Zákazník")
-            .replace(/{{projekt}}/g, draft.lead?.last_project || (filters.project_fallback as string) || "Váš projekt")
+            .replace(/{{projekt}}/g, projektValue)
             .replace(/{{firma}}|{{studio}}/g, companyName || name || "Vaše studio")
             .replace(/{{odkaz_zakazky}}/g, template.cta_url || "https://zrobee.cz");
 
