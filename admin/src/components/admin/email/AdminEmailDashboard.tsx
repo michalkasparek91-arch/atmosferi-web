@@ -108,6 +108,7 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           status,
           delivery_status,
           html_archive_url,
+          error_message,
           sent_at,
           created_at,
           subject,
@@ -276,9 +277,11 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
                         Pro: {recipientName} • {formatTime(item.sent_at || item.created_at)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" title={item.error_message || undefined}>
                       <span className={`w-2 h-2 rounded-full ${getStatusColor(item.delivery_status || item.status)}`} />
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{getStatusLabel(item.delivery_status || item.status)}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        {getStatusLabel(item.delivery_status || item.status)}
+                      </span>
                       {item.html_archive_url && (
                         <Button 
                           variant="outline" 
