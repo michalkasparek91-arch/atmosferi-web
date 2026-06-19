@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import {
   ArrowUpRight, ArrowDownRight, Clock, Plus, Sparkles, AlertCircle, ShieldAlert, UserMinus
 } from "lucide-react";
 import { FilteredEmailList, MetricFilter } from "./FilteredEmailList";
+import { toast } from "sonner";
 
 interface FilterTabProps {
   title: string;
@@ -54,12 +55,11 @@ const FilterTab = ({ title, value, icon: Icon, color, metricKey, isActive, onCli
 };
 
 export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => void }) => {
-  const [activeMetric, setActiveMetric] = useState<MetricFilter>(null);
-
+  const [activeMetric, setActiveMetric] = useState<MetricFilter | null>(null);
+  const queryClient = useQueryClient();
   const handleMetricClick = (key: MetricFilter) => {
     setActiveMetric(key);
   };
-
   // Real metrics from email_logs AND email_outbox (last 30 days)
   const { data: stats } = useQuery({
     queryKey: ["admin-email-stats-30d"],
@@ -253,10 +253,28 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
       {/* History / Recent Activity */}
       <div className="grid grid-cols-1 gap-4">
         <Card className="border-border/50 bg-card/30">
-          <CardHeader className="py-4">
+          <CardHeader className="py-4 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" /> Nedávná historie aktivit
             </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] font-bold px-2 gap-1.5"
+              onClick={async () => {
+                try {
+                  const { error, data } = await supabase.from('email_outbox').update({ status: 'draft', error_message: null }).eq('status', 'failed').select('id');
+                  if (error) throw error;
+                  toast.success(`Vráceno do konceptů`, { description: `Počet vrácených e-mailů: ${data?.length || 0}`});
+                  queryClient.invalidateQueries({ queryKey: ["admin-email-history"] });
+                } catch (e) {
+                  toast.error("Chyba při vracení do konceptů", { description: String(e) });
+                }
+              }}
+            >
+              <Zap className="h-3 w-3" />
+              Zkusit znovu CHYBY
+            </Button>
           </CardHeader>
           <CardContent className="space-y-0 p-0">
             {historyLoading ? (
