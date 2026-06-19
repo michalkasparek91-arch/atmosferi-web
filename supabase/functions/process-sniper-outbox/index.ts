@@ -98,7 +98,8 @@ async function ensureDraftsForTemplate(
     .from("marketing_leads")
     .select("*")
     .eq("category", template.category)
-    .in("language", langFilter);
+    .in("language", langFilter)
+    .or("tags.is.null,not.tags.cs.{\"známé\"}");
 
   if (leadsErr) throw leadsErr;
 

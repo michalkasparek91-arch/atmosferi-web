@@ -276,11 +276,33 @@ export const AudienceManager = (props: any) => {
         setSelectedContactForSheet((prev: any) => ({ ...prev, outbox_id: data.id, icebreaker: newText }));
         toast.success("Nový AI Icebreaker byl úspěšně uložen.");
       }
-    } catch (err: any) {
-      console.error("Failed to save icebreaker:", err);
-      toast.error("Chyba při ukládání Icebreakeru.");
+    } catch (err) {
+      toast.error("Chyba při ukládání icebreakeru");
     } finally {
       setIsSavingIcebreaker(false);
+    }
+  };
+
+  const handleToggleZnameTag = async () => {
+    if (!selectedContactForSheet) return;
+    const currentTags = selectedContactForSheet.tags || [];
+    const isZname = currentTags.includes("známé");
+    const newTags = isZname ? currentTags.filter((t: string) => t !== "známé") : [...currentTags, "známé"];
+    
+    try {
+      if (selectedContactForSheet.outbox_id) {
+         // It's in outbox, outbox doesn't have tags natively mapped to lead/worker easily here, so we update lead/worker directly
+      }
+      const table = selectedContactForSheet.contact_source === 'lead' || selectedContactForSheet.contact_source === 'ai_web_sniper' ? 'marketing_leads' : 'profiles';
+      const { error } = await supabase.from(table).update({ tags: newTags }).eq('id', selectedContactForSheet.id);
+      if (error) throw error;
+      
+      setSelectedContactForSheet({ ...selectedContactForSheet, tags: newTags });
+      queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-workers"] });
+      toast.success(isZname ? "Štítek 'známé' odebrán" : "Označeno jako 'známé'");
+    } catch (e) {
+      toast.error("Chyba při úpravě štítků", { description: String(e) });
     }
   };
 
@@ -969,16 +991,27 @@ export const AudienceManager = (props: any) => {
                     <h2 className="text-xl font-extrabold text-foreground truncate">
                       {selectedContactForSheet.full_name || selectedContactForSheet.company_name || "Bezejmenný kontakt"}
                     </h2>
-                    <Button
-                      size="sm"
-                      className="rounded-full font-bold text-xs gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-                      onClick={() => {
-                        toast.success("Příprava e-mailu", { description: `Otevírám editor pro ${selectedContactForSheet.full_name || selectedContactForSheet.email}` });
-                      }}
-                    >
-                      <PenLine className="h-3 w-3" />
-                      Napsat e-mail
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant={(selectedContactForSheet.tags || []).includes("známé") ? "default" : "outline"}
+                        className={`rounded-full font-bold text-xs gap-1.5 transition-all ${(selectedContactForSheet.tags || []).includes("známé") ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}
+                        onClick={handleToggleZnameTag}
+                      >
+                        <UserMinus className="h-3 w-3" />
+                        Známé
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="rounded-full font-bold text-xs gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                        onClick={() => {
+                          toast.success("Příprava e-mailu", { description: `Otevírám editor pro ${selectedContactForSheet.full_name || selectedContactForSheet.email}` });
+                        }}
+                      >
+                        <PenLine className="h-3 w-3" />
+                        Napsat e-mail
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
                     <Mail className="h-4 w-4 opacity-60 text-primary" />
