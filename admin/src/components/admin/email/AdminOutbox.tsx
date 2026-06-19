@@ -318,6 +318,25 @@ export const AdminOutbox = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 font-sans w-full pb-24">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold">Email Marketing Studio</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-xs text-red-500"
+          onClick={async () => {
+            const { error, data } = await supabase.from('email_outbox').delete().eq('status', 'draft').select('id');
+            if (error) alert(error.message);
+            else {
+              alert(`Smazáno ${data?.length} starých konceptů. Jsou zpět ve Volném náboru!`);
+              queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
+            }
+          }}
+        >
+          Vyčistit skryté koncepty (Stuck drafts)
+        </Button>
+      </div>
+      
       {/* Filters (Sablony style) */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">        <button 
           onClick={() => setFilterType("general")}
