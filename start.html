@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start your project — Atmosferi°</title>
+<meta name="description" content="Show us how you imagine it. Click through a look for your website, or brief a visualisation — references, budget, done in two minutes.">
+<meta property="og:title" content="Start your project — Atmosferi°">
+<meta property="og:description" content="Click how you imagine your website. Or brief a visualisation — drop references, set a budget.">
+<meta property="og:image" content="og.png">
+<meta name="theme-color" content="#F2F1EC">
+<link rel="stylesheet" href="colors_and_type.css">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+  img{display:block;max-width:100%;}
+  ::selection{background:var(--ink);color:var(--canvas);}
+  .meta{font-family:var(--font-mono);font-size:var(--text-meta);font-weight:500;letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);}
+
+  /* ---------- shell ---------- */
+  .top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--canvas) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+  .top__in{max-width:var(--maxw);margin-inline:auto;padding:0 var(--gutter);height:62px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .wm{font-weight:700;font-size:19px;letter-spacing:-.02em;display:inline-flex;align-items:baseline;}
+  .wm sup{font-size:.5em;font-weight:500;margin-left:1px;}
+  .back{display:inline-flex;align-items:center;gap:8px;}
+  /* mode switch */
+  .swx{position:relative;display:inline-flex;align-items:center;padding:3px;border:1px solid var(--line-strong);border-radius:999px;}
+  .swx__seg{position:relative;z-index:1;padding:8px 15px;border-radius:999px;font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--neutral-500);transition:color .4s var(--curve);}
+  .swx__seg.is-on{color:var(--canvas);}
+  .swx__knob{position:absolute;z-index:0;top:3px;bottom:3px;border-radius:999px;background:var(--ink);transition:left .5s var(--curve),width .5s var(--curve);}
+
+  .builder{max-width:var(--maxw);margin-inline:auto;padding:0 var(--gutter);display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,4vw,64px);align-items:start;}
+  @media(max-width:880px){.builder{grid-template-columns:1fr;gap:0;}}
+
+  /* ---------- left: form ---------- */
+  .form{padding:clamp(30px,5vw,64px) 0 120px;}
+  .lead{margin:0 0 6px;}
+  .lead h1{font-size:var(--text-6xl);font-weight:600;line-height:.96;letter-spacing:-.03em;margin:10px 0 0;}
+  .lead h1 .it{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.01em;}
+  .lead p{font-size:var(--text-lg);line-height:1.5;color:var(--neutral-700);max-width:40ch;margin:18px 0 0;}
+
+  .step{border-top:1px solid var(--line);padding:clamp(26px,3.4vw,40px) 0;}
+  .step__h{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;}
+  .step__n{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);color:var(--neutral-400);}
+  .step__t{font-size:var(--text-2xl);font-weight:600;letter-spacing:-.02em;}
+  .step__hint{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:.12em;text-transform:uppercase;color:var(--neutral-400);margin-left:auto;}
+
+  /* option cards */
+  .opts{display:grid;gap:10px;}
+  .opts.c2{grid-template-columns:1fr 1fr;}
+  .opts.c3{grid-template-columns:1fr 1fr 1fr;}
+  @media(max-width:460px){.opts.c3{grid-template-columns:1fr 1fr;}}
+  .opt{position:relative;border:1px solid var(--line-strong);padding:15px 16px;text-align:left;transition:border-color .25s var(--curve),background .25s var(--curve),transform .25s var(--curve);min-height:62px;display:flex;flex-direction:column;justify-content:center;gap:3px;}
+  .opt:hover{border-color:var(--ink);transform:translateY(-2px);}
+  .opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--canvas);}
+  .opt__t{font-size:var(--text-md);font-weight:600;letter-spacing:-.01em;}
+  .opt__d{font-family:var(--font-mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--neutral-500);}
+  .opt[aria-pressed="true"] .opt__d{color:rgba(242,241,236,.6);}
+  .opt__sw{display:flex;gap:4px;margin-top:7px;}
+  .opt__sw i{width:14px;height:14px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.12);}
+  .opt[aria-pressed="true"] .opt__sw i{border-color:rgba(255,255,255,.25);}
+
+  /* reference chips (like / dislike) */
+  .refs{display:grid;gap:8px;}
+  .ref{display:flex;align-items:center;gap:14px;border:1px solid var(--line-strong);padding:11px 12px 11px 14px;}
+  .ref__t{font-size:var(--text-md);font-weight:500;}
+  .ref__c{font-family:var(--font-mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--neutral-500);}
+  .ref__sp{flex:1;}
+  .ref__b{width:36px;height:36px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;transition:.2s var(--curve);flex:none;}
+  .ref__b svg{width:15px;height:15px;}
+  .ref__b.like[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--canvas);}
+  .ref__b.no[aria-pressed="true"]{background:#fff;border-color:var(--ink);}
+  .ref__b:hover{border-color:var(--ink);}
+
+  /* deliverables (multi) */
+  .delv{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  @media(max-width:460px){.delv{grid-template-columns:1fr;}}
+
+  /* dropzone */
+  .drop{border:1px dashed var(--line-strong);padding:26px 18px;text-align:center;transition:.25s var(--curve);cursor:pointer;}
+  .drop.drag{border-color:var(--ink);background:var(--canvas-pure);}
+  .drop__ic{width:34px;height:34px;margin:0 auto 12px;}
+  .drop__t{font-size:var(--text-md);font-weight:600;}
+  .drop__d{font-family:var(--font-mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--neutral-500);margin-top:6px;}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;margin-top:14px;}
+  .thumb{position:relative;aspect-ratio:1;border:1px solid var(--line-strong);overflow:hidden;background:var(--canvas-pure);}
+  .thumb img{width:100%;height:100%;object-fit:cover;}
+  .thumb.pdf{display:flex;align-items:center;justify-content:center;}
+  .thumb.pdf span{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--neutral-500);padding:4px;text-align:center;word-break:break-word;}
+  .thumb__x{position:absolute;top:3px;right:3px;width:18px;height:18px;background:var(--ink);color:var(--canvas);font-size:11px;line-height:18px;text-align:center;}
+
+  /* budget */
+  .bud__val{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;}
+  .bud__num{font-size:var(--text-4xl);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
+  .bud__tier{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:.16em;text-transform:uppercase;color:var(--canvas);background:var(--ink);padding:5px 9px;}
+  .rng{-webkit-appearance:none;appearance:none;width:100%;height:1px;background:var(--ink);outline:none;margin:20px 0 8px;}
+  .rng::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--canvas);border:1.5px solid var(--ink);border-radius:50%;cursor:pointer;transition:transform .2s var(--curve);}
+  .rng::-webkit-slider-thumb:hover{transform:scale(1.12);}
+  .rng::-moz-range-thumb{width:22px;height:22px;background:var(--canvas);border:1.5px solid var(--ink);border-radius:50%;cursor:pointer;}
+  .bud__ticks{display:flex;justify-content:space-between;}
+  .bud__ticks span{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--neutral-400);}
+
+  /* fields */
+  .fields{display:grid;gap:14px;}
+  .field label{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--neutral-500);margin-bottom:7px;}
+  .field input,.field textarea{width:100%;background:var(--canvas-pure);border:1px solid var(--line-strong);padding:13px 14px;font-family:var(--font-sans);font-size:var(--text-md);color:var(--ink);transition:border-color .2s var(--curve);}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--ink);}
+  .field textarea{resize:vertical;min-height:84px;line-height:1.5;}
+
+  .submit{position:sticky;bottom:0;background:linear-gradient(0deg,var(--canvas) 64%,transparent);padding:22px 0 18px;margin-top:8px;z-index:5;}
+  .submit__btn{width:100%;display:flex;align-items:center;justify-content:center;gap:14px;background:var(--ink);color:var(--canvas);border:1px solid var(--ink);padding:19px 22px;font-family:var(--font-mono);font-size:var(--text-sm);letter-spacing:.14em;text-transform:uppercase;transition:.3s var(--curve);}
+  .submit__btn:hover{background:var(--canvas);color:var(--ink);}
+  .submit__btn .ar{transition:transform .4s var(--curve);}
+  .submit__btn:hover .ar{transform:translateX(7px);}
+  .submit__note{text-align:center;font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--neutral-400);margin-top:10px;}
+
+  /* ---------- right: live preview ---------- */
+  .stage{position:sticky;top:62px;height:calc(100svh - 62px);display:flex;flex-direction:column;justify-content:center;padding:24px 0;border-left:1px solid var(--line);padding-left:clamp(28px,4vw,64px);}
+  @media(max-width:880px){
+    .stage{position:sticky;top:62px;height:auto;border-left:0;border-bottom:1px solid var(--line);padding:14px 0;background:var(--canvas);z-index:30;}
+    .builder{display:block;}
+  }
+  .stage__lab{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  @media(max-width:880px){.stage__lab{display:none;}}
+
+  /* preview = mini website (website mode) */
+  .pv{--pv-bg:#F2F1EC;--pv-ink:#0A0A0A;--pv-ac:#0A0A0A;--pv-mut:rgba(10,10,10,.5);
+      background:var(--pv-bg);color:var(--pv-ink);border:1px solid var(--line-strong);width:100%;aspect-ratio:16/11;overflow:hidden;display:flex;flex-direction:column;transition:background .5s var(--curve),color .5s var(--curve);}
+  @media(max-width:880px){.pv{aspect-ratio:16/9;max-height:30vh;}}
+  .pv__bar{flex:none;display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid color-mix(in srgb,var(--pv-ink) 12%,transparent);}
+  .pv__bar i{width:7px;height:7px;border-radius:50%;border:1px solid color-mix(in srgb,var(--pv-ink) 30%,transparent);}
+  .pv__url{margin-left:6px;font-family:var(--font-mono);font-size:8px;letter-spacing:.1em;color:var(--pv-mut);}
+  .pv__body{flex:1;min-height:0;padding:clamp(14px,2.4vw,26px);display:flex;flex-direction:column;}
+  .pv__nav{display:flex;align-items:center;justify-content:space-between;}
+  .pv__brand{font-weight:700;font-size:clamp(11px,1.4vw,15px);letter-spacing:-.01em;}
+  .pv__menu{display:flex;gap:10px;}
+  .pv__menu span{font-family:var(--font-mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--pv-mut);}
+  .pv__hero{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:clamp(6px,1.6vw,16px) 0;overflow:hidden;}
+  .pv__hl{font-weight:700;letter-spacing:-.035em;line-height:.94;font-size:clamp(18px,3.4vw,34px);}
+  .pv__sub{font-family:var(--font-mono);font-size:clamp(8px,1.1vw,11px);letter-spacing:.06em;color:var(--pv-mut);max-width:32ch;}
+  .pv__img{flex:none;background:color-mix(in srgb,var(--pv-ink) 9%,var(--pv-bg));border:1px solid color-mix(in srgb,var(--pv-ink) 10%,transparent);position:relative;overflow:hidden;}
+  .pv__img img{width:100%;height:100%;object-fit:cover;}
+  .pv__grid{flex:none;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:auto;}
+  .pv__grid div{aspect-ratio:1;background:color-mix(in srgb,var(--pv-ink) 8%,var(--pv-bg));border:1px solid color-mix(in srgb,var(--pv-ink) 8%,transparent);}
+  .pv__cta{flex:none;align-self:flex-start;margin-top:10px;background:var(--pv-ac);color:var(--pv-bg);font-family:var(--font-mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;}
+
+  /* vibe variants */
+  .pv[data-vibe="editorial"] .pv__hl{font-family:'Instrument Serif',serif;font-weight:400;font-style:italic;letter-spacing:-.01em;line-height:1;}
+  .pv[data-vibe="minimal"] .pv__hl{font-weight:300;letter-spacing:-.02em;}
+  .pv[data-vibe="bold"] .pv__hl{font-weight:800;letter-spacing:-.045em;text-transform:uppercase;}
+  .pv[data-vibe="warm"] .pv__hl{font-weight:600;}
+  .pv[data-vibe="minimal"] .pv__body{gap:4px;}
+
+  /* layout variants */
+  .pv[data-layout="image"] .pv__hero{justify-content:flex-start;}
+  .pv[data-layout="image"] .pv__img{order:2;height:34%;min-height:54px;margin-top:auto;}
+  .pv[data-layout="image"] .pv__grid{display:none;}
+  .pv[data-layout="split"]{}
+  .pv[data-layout="split"] .pv__hero{flex-direction:row;align-items:center;gap:14px;}
+  .pv[data-layout="split"] .pv__img{order:0;width:42%;height:100%;align-self:stretch;flex:none;}
+  .pv[data-layout="split"] .pv__grid{display:none;}
+  .pv[data-layout="type"] .pv__img{display:none;}
+  .pv[data-layout="type"] .pv__hero{justify-content:flex-start;}
+  .pv[data-layout="type"] .pv__hl{font-size:clamp(22px,4.4vw,42px);}
+  .pv[data-layout="grid"] .pv__img{display:none;}
+  .pv[data-layout="grid"] .pv__hero{flex:none;padding-bottom:8px;}
+
+  /* preview = brief sheet (visual mode) */
+  .sheet{background:var(--canvas-pure);border:1px solid var(--line-strong);width:100%;padding:clamp(18px,2.6vw,30px);display:flex;flex-direction:column;gap:0;}
+  .sheet__top{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--ink);padding-bottom:12px;}
+  .sheet__ttl{font-weight:700;font-size:var(--text-xl);letter-spacing:-.02em;}
+  .sheet__r{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .sheet__k{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--neutral-500);flex:none;padding-top:2px;}
+  .sheet__v{font-size:var(--text-md);font-weight:500;text-align:right;color:var(--ink);}
+  .sheet__v.empty{color:var(--neutral-400);font-weight:400;}
+  .sheet__thumbs{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+  .sheet__thumbs i{width:26px;height:26px;border:1px solid var(--line-strong);overflow:hidden;display:block;}
+  .sheet__thumbs i img{width:100%;height:100%;object-fit:cover;}
+  .sheet__foot{margin-top:14px;font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--neutral-400);}
+
+  .hide{display:none !important;}
+
+  /* ---------- success overlay ---------- */
+  .done{position:fixed;inset:0;z-index:90;background:color-mix(in srgb,var(--canvas) 96%,transparent);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;}
+  .done.show{display:flex;}
+  .done__card{background:var(--canvas);border:1px solid var(--ink);max-width:560px;width:100%;max-height:90svh;overflow:auto;}
+  .done__hd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line);}
+  .done__hd .meta{color:var(--ink);}
+  .done__x{width:30px;height:30px;border:1px solid var(--line-strong);font-size:15px;}
+  .done__b{padding:24px 22px 26px;}
+  .done__b h2{font-size:var(--text-4xl);font-weight:600;letter-spacing:-.03em;line-height:1;margin:0 0 6px;}
+  .done__b h2 .it{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;}
+  .done__b p{color:var(--neutral-700);font-size:var(--text-md);line-height:1.5;margin:12px 0 0;}
+  .done__sum{margin-top:20px;border-top:1px solid var(--line);}
+  .done__btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;}
+  .done__btns a,.done__btns button{flex:1;min-width:150px;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px;font-family:var(--font-mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;border:1px solid var(--ink);transition:.25s var(--curve);}
+  .done__btns .pri{background:var(--ink);color:var(--canvas);}
+  .done__btns .pri:hover{background:var(--canvas);color:var(--ink);}
+  .done__btns .sec:hover{background:var(--ink);color:var(--canvas);}
+
+  @media(prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top__in">
+    <a href="index.html" class="wm">Atmosferi<sup>°</sup></a>
+    <div class="swx" id="swx" role="tablist" aria-label="What are you starting?">
+      <span class="swx__knob" id="swxKnob"></span>
+      <button class="swx__seg is-on" data-mode="web" role="tab" aria-selected="true">Website</button>
+      <button class="swx__seg" data-mode="viz" role="tab" aria-selected="false">Visualisation</button>
+    </div>
+    <a href="index.html" class="meta back" aria-label="Back to Atmosferi">Close ✕</a>
+  </div>
+</header>
+
+<main class="builder">
+  <!-- ===================== LEFT: FORM ===================== -->
+  <section class="form">
+    <div class="lead">
+      <span class="meta" id="leadEyebrow">Start your project · 02 min</span>
+      <h1 id="leadTitle">Show us how <span class="it">you</span> imagine it.</h1>
+      <p id="leadText">Click a direction for your site — the preview builds itself as you go. No commitment, no forms to dread.</p>
+    </div>
+
+    <!-- ---------- WEBSITE STEPS ---------- -->
+    <div id="webSteps">
+      <div class="step">
+        <div class="step__h"><span class="step__n">01</span><span class="step__t">The feeling</span><span class="step__hint">Pick one</span></div>
+        <div class="opts c2" data-single="vibe">
+          <button class="opt" data-val="minimal" aria-pressed="true"><span class="opt__t">Minimal</span><span class="opt__d">Quiet · spacious · light</span></button>
+          <button class="opt" data-val="editorial"><span class="opt__t">Editorial</span><span class="opt__d">Serif · refined · magazine</span></button>
+          <button class="opt" data-val="bold"><span class="opt__t">Bold</span><span class="opt__d">Heavy · confident · loud</span></button>
+          <button class="opt" data-val="warm"><span class="opt__t">Warm</span><span class="opt__d">Soft · human · inviting</span></button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step__h"><span class="step__n">02</span><span class="step__t">The palette</span><span class="step__hint">Pick one</span></div>
+        <div class="opts c3" data-single="pal">
+          <button class="opt" data-val="obsidian" aria-pressed="true"><span class="opt__t">Obsidian</span><span class="opt__sw"><i style="background:#F2F1EC"></i><i style="background:#0A0A0A"></i></span></button>
+          <button class="opt" data-val="sand"><span class="opt__t">Sand</span><span class="opt__sw"><i style="background:#E9E3D6"></i><i style="background:#B07B4F"></i></span></button>
+          <button class="opt" data-val="forest"><span class="opt__t">Forest</span><span class="opt__sw"><i style="background:#EEF0EB"></i><i style="background:#3F6B4C"></i></span></button>
+          <button class="opt" data-val="clay"><span class="opt__t">Clay</span><span class="opt__sw"><i style="background:#F0E7E1"></i><i style="background:#B5563B"></i></span></button>
+          <button class="opt" data-val="night"><span class="opt__t">Night</span><span class="opt__sw"><i style="background:#14140F"></i><i style="background:#C08B5C"></i></span></button>
+          <button class="opt" data-val="ink"><span class="opt__t">Ink + Blue</span><span class="opt__sw"><i style="background:#EEF1F4"></i><i style="background:#2A6FDB"></i></span></button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step__h"><span class="step__n">03</span><span class="step__t">The layout</span><span class="step__hint">Pick one</span></div>
+        <div class="opts c2" data-single="layout">
+          <button class="opt" data-val="image" aria-pressed="true"><span class="opt__t">Image-led</span><span class="opt__d">Big photography hero</span></button>
+          <button class="opt" data-val="split"><span class="opt__t">Split</span><span class="opt__d">Type left · image right</span></button>
+          <button class="opt" data-val="type"><span class="opt__t">Type-first</span><span class="opt__d">Huge headline, no hero</span></button>
+          <button class="opt" data-val="grid"><span class="opt__t">Gallery grid</span><span class="opt__d">Work-forward mosaic</span></button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step__h"><span class="step__n">04</span><span class="step__t">What you need</span><span class="step__hint">Pick any</span></div>
+        <div class="opts c3" data-multi="scope">
+          <button class="opt" data-val="Portfolio" aria-pressed="true"><span class="opt__t">Portfolio</span><span class="opt__d">Project work</span></button>
+          <button class="opt" data-val="About" aria-pressed="true"><span class="opt__t">About</span><span class="opt__d">Studio &amp; people</span></button>
+          <button class="opt" data-val="Journal"><span class="opt__t">Journal</span><span class="opt__d">News / blog</span></button>
+          <button class="opt" data-val="Shop"><span class="opt__t">Shop</span><span class="opt__d">Sell online</span></button>
+          <button class="opt" data-val="Multilingual"><span class="opt__t">Multilingual</span><span class="opt__d">2+ languages</span></button>
+          <button class="opt" data-val="CMS"><span class="opt__t">Self-edit (CMS)</span><span class="opt__d">You run it</span></button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step__h"><span class="step__n">05</span><span class="step__t">Your current site</span><span class="step__hint">If you have one</span></div>
+        <div class="opts c3" data-single="sitestatus" style="margin-bottom:12px">
+          <button class="opt" data-val="Redesign" aria-pressed="true"><span class="opt__t">Redesign</span><span class="opt__d">Have a site, want better</span></button>
+          <button class="opt" data-val="Brand new"><span class="opt__t">Brand new</span><span class="opt__d">Starting fresh</span></button>
+          <button class="opt" data-val="Rebrand"><span class="opt__t">Rebrand</span><span class="opt__d">New name &amp; look</span></button>
+        </div>
+        <div class="field" id="siteField"><label for="fSite">Current website <span style="opacity:.5">/ link to copy</span></label><input type="text" id="fSite" placeholder="yourstudio.com — or a site you love" autocomplete="url"></div>
+      </div>
+
+      <div class="step">
+        <div class="step__h"><span class="step__n">06</span><span class="step__t">References</span><span class="step__hint">Like / not for me</span></div>
+        <div class="refs" id="refs"></div>
+      </div>
+    </div>
+
+    <!-- ---------- VISUALISATION STEPS ---------- -->
+    <div id="vizSteps" class="hide">
+      <div class="step">
+        <div class="step__h"><span class="step__n">01</span><span class="step__t">What are we picturing?</span><span class="step__hint">Pick one</span></div>
+        <div class="opts c2" data-single="ptype">
+          <button class="opt" data-val="residential" aria-pressed="true"><span class="opt__t">Residential</span><span class="opt__d">House · villa · apartment</span></button>
+          <button class="opt" data-val="cultural"><span class="opt__t">Cultural / Public</span><span class="opt__d">Library · museum · civic</span></button>
+          <button class="opt" data-val="workplace"><span class="opt__t">Workplace</span><span class="opt__d">Office · mixed-use</span></button>
+          <button class="opt" data-val="interior"><span class="opt__t">Interior</span><span class="opt__d">Rooms · hospitality</span></button>
+          <button class="opt" data-val="masterplan"><span class="opt__t">Masterplan</span><span class="opt__d">District · landscape</span></button>
+          <button class="opt" data-val="other"><span class="opt__t">Something else</span><span class="opt__d">Tell us below</span></button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step__h"><span class="step__n">02</span><span class="step__t">Deliverables</span><span class="step__hint">Pick any</span></div>
+        <div class="delv" data-multi="deliver">
+          <button class="opt" data-val="Stills"><span class="opt__t">Stills</span><span class="opt__d">Photoreal images</span></button>
+          <button class="opt" data-val="Film"><span class="opt__t">Film</span><span class="opt__d">Animated walkthrough</span></button>
+          <button class="opt" data-val="360° Tour"><span class="opt__t">360° Tour</span><span class="opt__d">Interactive panoramas</span></button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step__h"><span class="step__n">03</span><span class="step__t">Your references</span><span class="step__hint">Drop images / PDF</span></div>
+        <div class="drop" id="drop">
+          <input type="file" id="file" multiple accept="image/*,application/pdf" hidden>
+          <svg class="drop__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 16V4M12 4l-4 4M12 4l4 4"></path><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+          <div class="drop__t">Drag plans, moodboards, photos here</div>
+          <div class="drop__d">Or tap to browse · JPG, PNG, PDF</div>
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+
+      <div class="step">
+        <div class="step__h"><span class="step__n">04</span><span class="step__t">Budget</span><span class="step__hint">Rough is fine</span></div>
+        <div class="bud__val"><span class="bud__num" id="budNum">€1,200</span><span class="bud__tier" id="budTier">Studio</span></div>
+        <input type="range" class="rng" id="bud" min="400" max="10000" step="100" value="1200">
+        <div class="bud__ticks"><span>€400</span><span>€2k</span><span>€5k</span><span>€10k+</span></div>
+      </div>
+    </div>
+
+    <!-- ---------- SHARED: CONTACT ---------- -->
+    <div class="step">
+      <div class="step__h"><span class="step__n" id="contactN">05</span><span class="step__t">You</span><span class="step__hint">So we can reply</span></div>
+      <div style="margin-bottom:18px">
+        <label style="display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--neutral-500);margin-bottom:9px">When do you need it?</label>
+        <div class="opts c3" data-single="timeline">
+          <button class="opt" data-val="ASAP"><span class="opt__t">ASAP</span></button>
+          <button class="opt" data-val="1–3 months" aria-pressed="true"><span class="opt__t">1–3 months</span></button>
+          <button class="opt" data-val="Flexible"><span class="opt__t">Flexible</span></button>
+        </div>
+      </div>
+      <div class="fields">
+        <div class="field"><label for="fName">Name <span style="opacity:.5">/ studio</span></label><input type="text" id="fName" placeholder="Jane Doe · Studio Name" autocomplete="name"></div>
+        <div class="field"><label for="fEmail">Email</label><input type="email" id="fEmail" placeholder="you@studio.com" autocomplete="email"></div>
+        <div class="field"><label for="fNote" id="noteLbl">Anything else?</label><textarea id="fNote" placeholder="A line about the project, the site, the deadline…"></textarea></div>
+      </div>
+    </div>
+
+    <div class="submit">
+      <button class="submit__btn" id="send"><span id="sendTxt">Send my brief</span><span class="ar">→</span></button>
+      <div class="submit__note">Opens your email to info@atmosferi.com · plus a summary you can save</div>
+    </div>
+  </section>
+
+  <!-- ===================== RIGHT: LIVE PREVIEW ===================== -->
+  <aside class="stage">
+    <div class="stage__lab"><span class="meta">Live preview</span><span class="meta" id="stageMode">Your website</span></div>
+
+    <!-- website preview -->
+    <div class="pv" id="pv" data-vibe="minimal" data-layout="image">
+      <div class="pv__bar"><i></i><i></i><i></i><span class="pv__url" id="pvUrl">yourstudio.com</span></div>
+      <div class="pv__body">
+        <div class="pv__nav"><span class="pv__brand" id="pvBrand">Your Studio</span><span class="pv__menu" id="pvMenu"><span>Work</span><span>About</span><span>Contact</span></span></div>
+        <div class="pv__hero">
+          <div class="pv__img"><img id="pvImg" src="demos/atmosferi-viz/img/04-tidewater.webp" alt=""></div>
+          <div class="pv__hl" id="pvHl">Space, made visible.</div>
+          <div class="pv__sub" id="pvSub">A portfolio that lets the work breathe.</div>
+          <span class="pv__cta">View work →</span>
+        </div>
+        <div class="pv__grid"><div></div><div></div><div></div></div>
+      </div>
+    </div>
+
+    <!-- visualisation preview (brief sheet) -->
+    <div class="sheet hide" id="sheet">
+      <div class="sheet__top"><span class="sheet__ttl">Visualisation brief</span><span class="meta" id="sheetId">ATM·VIZ</span></div>
+      <div class="sheet__r"><span class="sheet__k">Subject</span><span class="sheet__v empty" id="shType">—</span></div>
+      <div class="sheet__r"><span class="sheet__k">Deliverables</span><span class="sheet__v empty" id="shDeliver">—</span></div>
+      <div class="sheet__r"><span class="sheet__k">References</span><span class="sheet__v empty" id="shRefs">None yet</span></div>
+      <div class="sheet__r"><span class="sheet__k">Budget</span><span class="sheet__v" id="shBud">€1,200 · Studio</span></div>
+      <div class="sheet__r"><span class="sheet__k">From</span><span class="sheet__v empty" id="shFrom">—</span></div>
+      <div class="sheet__foot" id="shFoot">11 years of architectural images · Prague</div>
+    </div>
+  </aside>
+</main>
+
+<!-- success overlay -->
+<div class="done" id="done">
+  <div class="done__card">
+    <div class="done__hd"><span class="meta">Brief ready</span><button class="done__x" id="doneX" aria-label="Close">✕</button></div>
+    <div class="done__b">
+      <h2>That's a <span class="it">brief.</span></h2>
+      <p id="doneMsg">Your email just opened, pre-filled and addressed to info@atmosferi.com — hit send and we'll reply within a day. Here's a copy you can screenshot too.</p>
+      <div class="done__sum" id="doneSum"></div>
+      <div class="done__btns">
+        <a class="pri" id="doneMail" href="#">Open email again</a>
+        <button class="sec" id="doneCopy">Copy as text</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(s,c){return (c||document).querySelector(s);};
+  var $$=function(s,c){return [].slice.call((c||document).querySelectorAll(s));};
+
+  var REFS=[
+    {k:"volum",t:"VOLUM",c:"Architecture portfolio · BIG-like"},
+    {k:"voss",t:"Atelier Voss",c:"Architecture portfolio · warm"},
+    {k:"meridian",t:"Meridian",c:"Project presentation · luxury"},
+    {k:"quay",t:"Quay 9",c:"Project presentation · friendly"},
+    {k:"objekt",t:"OBJEKT",c:"Interior studio · cinematic"}
+  ];
+  var PAL={
+    obsidian:{bg:"#F2F1EC",ink:"#0A0A0A",ac:"#0A0A0A"},
+    sand:{bg:"#E9E3D6",ink:"#2A2520",ac:"#B07B4F"},
+    forest:{bg:"#EEF0EB",ink:"#1E2A22",ac:"#3F6B4C"},
+    clay:{bg:"#F0E7E1",ink:"#2B211C",ac:"#B5563B"},
+    night:{bg:"#14140F",ink:"#ECE6DA",ac:"#C08B5C"},
+    ink:{bg:"#EEF1F4",ink:"#10202E",ac:"#2A6FDB"}
+  };
+  var HL={
+    minimal:"Space, made visible.",
+    editorial:"Of light & structure.",
+    bold:"BUILD BOLDLY.",
+    warm:"Come on in."
+  };
+  var IMG={
+    obsidian:"demos/atmosferi-viz/img/04-tidewater.webp",
+    sand:"demos/atmosferi-viz/img/sol-06.webp",
+    forest:"demos/atmosferi-viz/img/06-canopy.webp",
+    clay:"demos/atmosferi-viz/img/kg-02.webp",
+    night:"demos/atmosferi-viz/img/02-ascension.webp",
+    ink:"demos/atmosferi-viz/img/09-horizon.webp"
+  };
+
+  var state={
+    mode:"web",
+    vibe:"minimal", pal:"obsidian", layout:"image",
+    scope:{Portfolio:1,About:1}, sitestatus:"Redesign", timeline:"1–3 months",
+    refs:{}, // k -> 'like'|'no'
+    ptype:"residential", deliver:{}, budget:1200,
+    files:[]
+  };
+
+  /* ---------- mode switch ---------- */
+  var swx=$("#swx"), knob=$("#swxKnob");
+  function positionKnob(){
+    var on=$(".swx__seg.is-on",swx); if(!on)return;
+    knob.style.left=on.offsetLeft+"px"; knob.style.width=on.offsetWidth+"px";
+  }
+  function setMode(m){
+    state.mode=m;
+    $$(".swx__seg",swx).forEach(function(b){var on=b.dataset.mode===m;b.classList.toggle("is-on",on);b.setAttribute("aria-selected",on?"true":"false");});
+    positionKnob();
+    $("#webSteps").classList.toggle("hide",m!=="web");
+    $("#vizSteps").classList.toggle("hide",m!=="viz");
+    $("#pv").classList.toggle("hide",m!=="web");
+    $("#sheet").classList.toggle("hide",m!=="viz");
+    $("#contactN").textContent = m==="web" ? "07" : "05";
+    $("#stageMode").textContent = m==="web" ? "Your website" : "Your brief";
+    $("#sendTxt").textContent = m==="web" ? "Send my brief" : "Send my brief";
+    if(m==="web"){
+      $("#leadEyebrow").textContent="Start a website · 02 min";
+      $("#leadTitle").innerHTML='Show us how <span class="it">you</span> imagine it.';
+      $("#leadText").textContent="Click a direction for your site — the preview builds itself as you go. No commitment, no forms to dread.";
+    }else{
+      $("#leadEyebrow").textContent="Brief a visualisation · 02 min";
+      $("#leadTitle").innerHTML='Picture it <span class="it">before</span> it\u2019s built.';
+      $("#leadText").textContent="Tell us what to visualise, drop your references and a rough budget. We reply with directions and a quote.";
+    }
+    history.replaceState(null,"","?from="+(m==="viz"?"viz":"web"));
+  }
+  $$(".swx__seg",swx).forEach(function(b){b.addEventListener("click",function(){setMode(b.dataset.mode);});});
+
+  /* ---------- single-select groups ---------- */
+  $$("[data-single]").forEach(function(grp){
+    var key=grp.dataset.single;
+    grp.addEventListener("click",function(e){
+      var b=e.target.closest(".opt"); if(!b)return;
+      $$(".opt",grp).forEach(function(o){o.setAttribute("aria-pressed","false");});
+      b.setAttribute("aria-pressed","true");
+      state[key]=b.dataset.val;
+      applyPreview();
+    });
+  });
+  /* ---------- multi-select ---------- */
+  $$("[data-multi]").forEach(function(grp){
+    var key=grp.dataset.multi;
+    grp.addEventListener("click",function(e){
+      var b=e.target.closest(".opt"); if(!b)return;
+      var on=b.getAttribute("aria-pressed")==="true";
+      b.setAttribute("aria-pressed",on?"false":"true");
+      if(on) delete state[key][b.dataset.val]; else state[key][b.dataset.val]=1;
+      applyPreview();
+    });
+  });
+
+  /* ---------- references ---------- */
+  var refsWrap=$("#refs");
+  REFS.forEach(function(r){
+    var el=document.createElement("div"); el.className="ref";
+    el.innerHTML='<span class="ref__t">'+r.t+'</span><span class="ref__c">'+r.c+'</span><span class="ref__sp"></span>'+
+      '<button class="ref__b like" data-k="'+r.k+'" data-v="like" aria-pressed="false" aria-label="Like '+r.t+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20s-7-4.5-7-10a3.5 3.5 0 0 1 7-1 3.5 3.5 0 0 1 7 1c0 5.5-7 10-7 10z"/></svg></button>'+
+      '<button class="ref__b no" data-k="'+r.k+'" data-v="no" aria-pressed="false" aria-label="Not for me '+r.t+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+    refsWrap.appendChild(el);
+  });
+  refsWrap.addEventListener("click",function(e){
+    var b=e.target.closest(".ref__b"); if(!b)return;
+    var k=b.dataset.k, v=b.dataset.v, row=b.closest(".ref");
+    if(state.refs[k]===v){ delete state.refs[k]; } else { state.refs[k]=v; }
+    $$(".ref__b",row).forEach(function(x){x.setAttribute("aria-pressed", state.refs[k]===x.dataset.v ? "true":"false");});
+  });
+
+  /* ---------- budget ---------- */
+  var bud=$("#bud");
+  function tierOf(v){ return v<900?"Essential":v<3000?"Studio":"Signature"; }
+  function money(v){ return "€"+Number(v).toLocaleString("en-US"); }
+  bud.addEventListener("input",function(){
+    state.budget=+bud.value;
+    var label=(+bud.value>=10000)?"€10,000+":money(bud.value);
+    $("#budNum").textContent=label;
+    $("#budTier").textContent=tierOf(+bud.value);
+    applyPreview();
+  });
+
+  /* ---------- uploads ---------- */
+  var drop=$("#drop"), fileInput=$("#file"), thumbs=$("#thumbs");
+  drop.addEventListener("click",function(){fileInput.click();});
+  ["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("drag");});});
+  ["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("drag");});});
+  drop.addEventListener("drop",function(e){ if(e.dataTransfer&&e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+  fileInput.addEventListener("change",function(){ addFiles(fileInput.files); fileInput.value=""; });
+  function addFiles(list){
+    [].slice.call(list).forEach(function(f){
+      if(state.files.length>=12) return;
+      var item={name:f.name,type:f.type,url:null};
+      if(f.type.indexOf("image")===0){ item.url=URL.createObjectURL(f); }
+      state.files.push(item); renderThumb(item);
+    });
+    applyPreview();
+  }
+  function renderThumb(item){
+    var d=document.createElement("div"); d.className="thumb"+(item.url?"":" pdf");
+    if(item.url){ d.innerHTML='<img src="'+item.url+'" alt=""><button class="thumb__x" aria-label="Remove">✕</button>'; }
+    else { d.innerHTML='<span>'+item.name.slice(0,18)+'</span><button class="thumb__x" aria-label="Remove">✕</button>'; }
+    d.querySelector(".thumb__x").addEventListener("click",function(){
+      var i=state.files.indexOf(item); if(i>-1)state.files.splice(i,1);
+      d.remove(); applyPreview();
+    });
+    thumbs.appendChild(d);
+  }
+
+  /* ---------- contact live ---------- */
+  ["fName","fEmail","fNote","fSite"].forEach(function(id){ var el=$("#"+id); if(el) el.addEventListener("input",applyPreview); });
+
+  /* ---------- apply preview ---------- */
+  function applyPreview(){
+    // website
+    var pv=$("#pv");
+    pv.dataset.vibe=state.vibe; pv.dataset.layout=state.layout;
+    var p=PAL[state.pal];
+    pv.style.setProperty("--pv-bg",p.bg); pv.style.setProperty("--pv-ink",p.ink); pv.style.setProperty("--pv-ac",p.ac);
+    pv.style.setProperty("--pv-mut","color-mix(in srgb,"+p.ink+" 50%, transparent)");
+    $("#pvHl").textContent=HL[state.vibe]||HL.minimal;
+    var nm=$("#fName").value.trim();
+    $("#pvBrand").textContent= nm ? nm.split("·")[0].trim().slice(0,22) : "Your Studio";
+    $("#pvUrl").textContent=(nm? nm.split("·")[0].trim().toLowerCase().replace(/[^a-z0-9]+/g,"") : "yourstudio")+".com";
+    var img=$("#pvImg"); var want=IMG[state.pal]; if(img.getAttribute("src")!==want) img.setAttribute("src",want);
+    // preview nav menu reflects chosen scope
+    var navMap={Portfolio:"Work",About:"About",Journal:"Journal",Shop:"Shop"};
+    var items=Object.keys(state.scope).map(function(k){return navMap[k];}).filter(Boolean);
+    if(!items.length) items=["Work","About"];
+    items=items.slice(0,3); items.push("Contact");
+    $("#pvMenu").innerHTML=items.map(function(t){return "<span>"+t+"</span>";}).join("");
+
+    // visualisation sheet
+    var typeMap={residential:"Residential",cultural:"Cultural / Public",workplace:"Workplace",interior:"Interior",masterplan:"Masterplan",other:"Other"};
+    setSheet("#shType",typeMap[state.ptype]);
+    var dl=Object.keys(state.deliver); setSheet("#shDeliver",dl.length?dl.join(" · "):"");
+    var nf=state.files.length;
+    var rf=$("#shRefs");
+    if(nf){ rf.classList.remove("empty"); rf.innerHTML='<span class="sheet__thumbs">'+state.files.slice(0,6).map(function(f){return '<i>'+(f.url?'<img src="'+f.url+'" alt="">':'<span style="font:8px monospace;color:#999;display:flex;align-items:center;justify-content:center;height:100%">PDF</span>')+'</i>';}).join("")+'</span>'; }
+    else { rf.classList.add("empty"); rf.textContent="None yet"; }
+    $("#shBud").textContent=((state.budget>=10000?"€10,000+":money(state.budget))+" · "+tierOf(state.budget));
+    var who=nm || $("#fEmail").value.trim();
+    setSheet("#shFrom",who);
+  }
+  function setSheet(sel,val){ var el=$(sel); if(val){el.classList.remove("empty");el.textContent=val;} else {el.classList.add("empty");el.textContent="—";} }
+
+  /* ---------- build + submit ---------- */
+  function refList(v){ return REFS.filter(function(r){return state.refs[r.k]===v;}).map(function(r){return r.t;}); }
+  function buildText(){
+    var L=[]; var nm=$("#fName").value.trim(), em=$("#fEmail").value.trim(), note=$("#fNote").value.trim();
+    if(state.mode==="web"){
+      L.push("— WEBSITE BRIEF —","");
+      L.push("Feeling:   "+cap(state.vibe));
+      L.push("Palette:   "+cap(state.pal));
+      L.push("Layout:    "+({image:"Image-led",split:"Split",type:"Type-first",grid:"Gallery grid"}[state.layout]));
+      var sc=Object.keys(state.scope); if(sc.length) L.push("Needs:     "+sc.join(", "));
+      var site=$("#fSite")?$("#fSite").value.trim():"";
+      L.push("Project:   "+state.sitestatus+(site?" — current/ref: "+site:""));
+      var lk=refList("like"), no=refList("no");
+      if(lk.length) L.push("Likes:     "+lk.join(", "));
+      if(no.length) L.push("Not for me:"+no.join(", "));
+    } else {
+      L.push("— VISUALISATION BRIEF —","");
+      L.push("Subject:      "+cap(state.ptype));
+      var dl=Object.keys(state.deliver); L.push("Deliverables: "+(dl.length?dl.join(", "):"(open to suggestions)"));
+      L.push("Budget:       "+(state.budget>=10000?"€10,000+":money(state.budget))+" ("+tierOf(state.budget)+")");
+      if(state.files.length) L.push("References:   "+state.files.length+" file(s) — "+state.files.map(function(f){return f.name;}).join(", "));
+    }
+    L.push("");
+    L.push("Timeline: "+state.timeline);
+    L.push("Name:  "+(nm||"—"));
+    L.push("Email: "+(em||"—"));
+    if(note) L.push("Note:  "+note);
+    L.push("","Sent from atmosferi.com/start");
+    return L.join("\n");
+  }
+  function cap(s){return s? s.charAt(0).toUpperCase()+s.slice(1):s;}
+
+  function mailHref(){
+    var subj=state.mode==="web" ? "Website brief — "+( $("#fName").value.trim()||"new enquiry") : "Visualisation brief — "+($("#fName").value.trim()||"new enquiry");
+    return "mailto:info@atmosferi.com?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(buildText());
+  }
+
+  var done=$("#done");
+
+  /* ---------- Supabase (saves a copy of every brief to the DB) ---------- */
+  var SB_URL="https://paryiowezqlnffanxtnt.supabase.co";
+  var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhcnlpb3dlenFsbmZmYW54dG50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MzM3MzYsImV4cCI6MjA5NjQwOTczNn0.yyd-pRRXds1o8lU9mVWk21zu-5l_dcdxiBjDSKfKw5o";
+  function buildDetails(){
+    if(state.mode==="web"){
+      return {vibe:state.vibe,palette:state.pal,layout:state.layout,needs:Object.keys(state.scope),
+              project:state.sitestatus,current_site:($("#fSite")?$("#fSite").value.trim():""),
+              likes:refList("like"),dislikes:refList("no")};
+    }
+    return {subject:state.ptype,deliverables:Object.keys(state.deliver),
+            references:state.files.map(function(f){return f.name;})};
+  }
+  function saveToDB(){
+    var row={
+      mode:state.mode,
+      name:($("#fName").value.trim()||null),
+      email:$("#fEmail").value.trim(),
+      budget:(state.mode==="viz"?state.budget:null),
+      timeline:state.timeline,
+      summary:buildText(),
+      details:buildDetails(),
+      source:"start"
+    };
+    try{
+      return fetch(SB_URL+"/rest/v1/project_briefs",{
+        method:"POST",
+        headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
+        body:JSON.stringify(row)
+      }).catch(function(){/* never block the email */});
+    }catch(e){ return Promise.resolve(); }
+  }
+
+  $("#send").addEventListener("click",function(){
+    var em=$("#fEmail").value.trim();
+    if(!em || em.indexOf("@")<1){ $("#fEmail").focus(); $("#fEmail").style.borderColor="var(--ink)"; return; }
+    saveToDB();
+    var href=mailHref();
+    $("#doneMail").setAttribute("href",href);
+    // summary in overlay
+    $("#doneSum").innerHTML="";
+    var pre=document.createElement("div");
+    pre.style.cssText="font-family:var(--font-mono);font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--ink);padding-top:18px;";
+    pre.textContent=buildText();
+    $("#doneSum").appendChild(pre);
+    if(state.mode==="viz" && state.files.length){
+      var note=document.createElement("p"); note.className="meta"; note.style.cssText="margin-top:14px;color:var(--neutral-500);text-transform:none;letter-spacing:.04em;line-height:1.5;";
+      note.textContent="Tip: your "+state.files.length+" reference file(s) can't ride along in the email automatically — just drag them into the message that opened, and you're set.";
+      $("#doneSum").appendChild(note);
+    }
+    done.classList.add("show");
+    try{ window.location.href=href; }catch(e){}
+  });
+  $("#doneX").addEventListener("click",function(){done.classList.remove("show");});
+  done.addEventListener("click",function(e){ if(e.target===done) done.classList.remove("show"); });
+  $("#doneCopy").addEventListener("click",function(){
+    var t=buildText();
+    if(navigator.clipboard){ navigator.clipboard.writeText(t).then(function(){ $("#doneCopy").textContent="Copied ✓"; setTimeout(function(){$("#doneCopy").textContent="Copy as text";},1600); }); }
+  });
+
+  /* ---------- init ---------- */
+  var from=(location.search.match(/from=(\w+)/)||[])[1];
+  setMode(from==="viz"?"viz":"web");
+  applyPreview();
+  window.addEventListener("resize",positionKnob);
+  window.addEventListener("load",positionKnob);
+  setTimeout(positionKnob,60);
+})();
+</script>
+</body>
+</html>

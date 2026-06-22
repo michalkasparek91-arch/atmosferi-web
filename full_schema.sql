@@ -13525,26 +13525,3 @@ CREATE INDEX IF NOT EXISTS idx_pages_gsc_sync
 ON public.pages (gsc_last_checked NULLS FIRST, created_at DESC);
 
 
-- -   C r e a t e   a p i _ u s a g e _ l o g s   t a b l e   t o   t r a c k   A I   u s a g e  
- C R E A T E   T A B L E   I F   N O T   E X I S T S   a p i _ u s a g e _ l o g s   (  
-         i d   U U I D   P R I M A R Y   K E Y   D E F A U L T   g e n _ r a n d o m _ u u i d ( ) ,  
-         e n g i n e   T E X T   N O T   N U L L ,  
-         s e r v i c e _ n a m e   T E X T   N O T   N U L L ,  
-         r e q u e s t s _ c o u n t   I N T E G E R   N O T   N U L L   D E F A U L T   1 ,  
-         c r e a t e d _ a t   T I M E S T A M P   W I T H   T I M E   Z O N E   D E F A U L T   N O W ( )  
- ) ;  
-  
- - -   I n d e x   f o r   f a s t e r   q u e r y i n g   b y   e n g i n e   a n d   d a t e  
- C R E A T E   I N D E X   I F   N O T   E X I S T S   i d x _ a p i _ u s a g e _ l o g s _ e n g i n e _ c r e a t e d _ a t   O N   a p i _ u s a g e _ l o g s ( e n g i n e ,   c r e a t e d _ a t ) ;  
-  
- - -   A l l o w   a u t h e n t i c a t e d   a n d   a n o n   ( f o r   e d g e   f u n c t i o n s   a c t i n g   a s   s e r v i c e   r o l e ,   R L S   i s   b y p a s s e d ,   b u t   g o o d   p r a c t i c e   t o   e n a b l e   i t )  
- A L T E R   T A B L E   a p i _ u s a g e _ l o g s   E N A B L E   R O W   L E V E L   S E C U R I T Y ;  
-  
- C R E A T E   P O L I C Y   " A l l o w   p u b l i c   i n s e r t   f o r   e d g e   f u n c t i o n s "  
-         O N   a p i _ u s a g e _ l o g s   F O R   I N S E R T  
-         W I T H   C H E C K   ( t r u e ) ;  
-  
- C R E A T E   P O L I C Y   " A l l o w   s e l e c t   f o r   a u t h e n t i c a t e d "  
-         O N   a p i _ u s a g e _ l o g s   F O R   S E L E C T  
-         U S I N G   ( a u t h . r o l e ( )   =   ' a u t h e n t i c a t e d ' ) ;  
- 

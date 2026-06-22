@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VR Tour — Atmosferi° Visualisation</title>
+<meta name="description" content="Step inside the visualisation — a browser VR walkthrough. Works on phone, desktop and VR headset, no app to install.">
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<style>
+  :root{--ink:#16140F;--canvas:#F4F2EC;--mono:'Geist Mono',ui-monospace,monospace;--sans:'Geist',system-ui,sans-serif;}
+  html,body{margin:0;height:100%;background:#000;font-family:var(--sans);overflow:hidden;}
+  a{color:inherit;text-decoration:none;}
+
+  /* loading veil */
+  #veil{position:fixed;inset:0;z-index:60;background:#16140F;color:var(--canvas);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .8s ease;}
+  #veil.gone{opacity:0;pointer-events:none;}
+  #veil .mk{font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;opacity:.6;}
+  #veil .ti{font-size:clamp(22px,4vw,34px);font-weight:600;letter-spacing:-.02em;}
+  #veil .ld{width:140px;height:2px;background:rgba(244,242,236,.18);overflow:hidden;}
+  #veil .ld i{display:block;height:100%;width:40%;background:var(--canvas);animation:sl 1.1s ease-in-out infinite;}
+  @keyframes sl{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+
+  /* top chrome */
+  .ui{position:fixed;left:0;right:0;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 18px;pointer-events:none;}
+  .ui a,.ui button{pointer-events:auto;}
+  .brand{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.5);}
+  .exit{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.34);padding:9px 13px;backdrop-filter:blur(6px);}
+  .exit:hover{background:rgba(0,0,0,.5);}
+
+  /* room name */
+  .room{position:fixed;left:18px;bottom:78px;z-index:40;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.6);pointer-events:none;}
+  .room .n{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.7;}
+  .room .t{font-size:clamp(26px,5vw,40px);font-weight:600;letter-spacing:-.02em;margin-top:4px;}
+
+  /* room dock */
+  .dock{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:8px;justify-content:center;padding:14px;flex-wrap:wrap;background:linear-gradient(0deg,rgba(0,0,0,.5),transparent);}
+  .dock button{pointer-events:auto;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.28);padding:11px 15px;backdrop-filter:blur(6px);transition:.25s;}
+  .dock button:hover{background:rgba(255,255,255,.16);}
+  .dock button.on{background:var(--canvas);color:var(--ink);border-color:var(--canvas);}
+
+  /* hint */
+  .hint{position:fixed;left:50%;top:56%;transform:translateX(-50%);z-index:35;color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.7);opacity:0;transition:opacity .6s;pointer-events:none;text-align:center;}
+  .hint.show{opacity:.85;}
+
+  /* VR button restyle (a-scene injects .a-enter-vr) */
+  .a-enter-vr-button{background:rgba(0,0,0,.4) !important;}
+</style>
+</head>
+<body>
+
+<div id="veil">
+  <span class="mk">Atmosferi° · Visualisation</span>
+  <span class="ti">Entering the space…</span>
+  <span class="ld"><i></i></span>
+</div>
+
+<div class="ui">
+  <span class="brand">Larch House · VR Tour</span>
+  <a class="exit" href="index.html">✕ Exit</a>
+</div>
+
+<div class="room"><span class="n" id="roomN">Room 01 / 04</span><span class="t" id="roomT">Living Room</span></div>
+
+<div class="dock" id="dock"></div>
+<div class="hint" id="hint">Drag to look around · tap a marker to move</div>
+
+<a-scene id="scene" loading-screen="enabled:false" vr-mode-ui="enabled: true" renderer="colorManagement:true; antialias:true" background="color:#000">
+  <a-assets>
+    <img id="px-living"  src="img/tour-living.webp"  crossorigin="anonymous">
+    <img id="px-dining"  src="img/tour-dining.webp"  crossorigin="anonymous">
+    <img id="px-bedroom" src="img/tour-bedroom.webp" crossorigin="anonymous">
+    <img id="px-bath"    src="img/tour-bath.webp"    crossorigin="anonymous">
+  </a-assets>
+
+  <!-- the panorama sphere -->
+  <a-sky id="sky" src="#px-living" rotation="0 -90 0" animation__fade="property: components.material.material.opacity; isRawProperty: true; from: 1; to: 1; dur: 1"></a-sky>
+
+  <!-- camera rig at standing height; look-controls gives magic-window + drag + headset -->
+  <a-entity id="rig" position="0 1.6 0">
+    <a-camera id="cam" look-controls="reverseMouseDrag: false; magicWindowTrackingEnabled: true" wasd-controls="enabled: false" position="0 0 0">
+      <!-- gaze cursor (for VR/cardboard: stare to select). Fuse on for headset. -->
+      <a-entity id="reticle" cursor="fuse: true; fuseTimeout: 1200"
+        position="0 0 -1.2"
+        geometry="primitive: ring; radiusInner: 0.012; radiusOuter: 0.02"
+        material="color: #FFFFFF; shader: flat; opacity: 0.9"
+        raycaster="objects: .hotspot">
+        <a-entity geometry="primitive: ring; radiusInner: 0.022; radiusOuter: 0.03"
+          material="color: #FFFFFF; shader: flat; opacity: 0.35"
+          animation__grow="property: scale; startEvents: fusing; from: 1 1 1; to: 1.9 1.9 1.9; dur: 1200; easing: linear"
+          animation__reset="property: scale; startEvents: mouseleave; to: 1 1 1; dur: 120"></a-entity>
+      </a-entity>
+    </a-camera>
+  </a-entity>
+
+  <!-- hotspots are added by JS per room -->
+  <a-entity id="spots"></a-entity>
+</a-scene>
+
+<script>
+  /* billboard: keep an entity facing the camera (look-at was removed from core A-Frame) */
+  AFRAME.registerComponent('billboard',{
+    tick:function(){
+      var cam=this.el.sceneEl.camera; if(!cam) return;
+      var o=this.el.object3D;
+      cam.getWorldPosition(this._v=this._v||new THREE.Vector3());
+      o.lookAt(this._v.x, o.getWorldPosition(this._w=this._w||new THREE.Vector3()).y, this._v.z);
+    }
+  });
+</script>
+<script>
+(function(){
+  "use strict";
+  var ROOMS={
+    living:{ t:"Living Room", n:"Room 01 / 04", img:"#px-living",  rot:"0 -90 0",
+      spots:[ {to:"dining", x:-6, y:-0.6, z:-3, label:"Kitchen / Dining"},
+              {to:"bedroom", x:7, y:-0.4, z:-2, label:"Bedroom"} ] },
+    dining:{ t:"Kitchen / Dining", n:"Room 02 / 04", img:"#px-dining", rot:"0 -60 0",
+      spots:[ {to:"living", x:6, y:-0.5, z:-3, label:"Living Room"},
+              {to:"bath", x:-6, y:-0.4, z:-3, label:"Bathroom"} ] },
+    bedroom:{ t:"Bedroom", n:"Room 03 / 04", img:"#px-bedroom", rot:"0 -90 0",
+      spots:[ {to:"living", x:-6, y:-0.5, z:-3, label:"Living Room"},
+              {to:"bath", x:6, y:-0.4, z:-2, label:"Bathroom"} ] },
+    bath:{ t:"Bathroom", n:"Room 04 / 04", img:"#px-bath", rot:"0 -90 0",
+      spots:[ {to:"bedroom", x:6, y:-0.5, z:-3, label:"Bedroom"},
+              {to:"dining", x:-6, y:-0.4, z:-3, label:"Kitchen / Dining"} ] }
+  };
+  var ORDER=["living","dining","bedroom","bath"];
+  var sky=document.getElementById("sky");
+  var spotsRoot=document.getElementById("spots");
+  var current=null, busy=false;
+
+  function clearSpots(){ while(spotsRoot.firstChild) spotsRoot.removeChild(spotsRoot.firstChild); }
+
+  function makeSpot(s){
+    var wrap=document.createElement("a-entity");
+    wrap.setAttribute("position", s.x+" "+s.y+" "+s.z);
+    wrap.setAttribute("billboard","");
+    // disc
+    var disc=document.createElement("a-circle");
+    disc.setAttribute("radius","0.42");
+    disc.setAttribute("class","hotspot");
+    disc.setAttribute("material","color:#F4F2EC; shader:flat; opacity:0.92; side:double");
+    disc.setAttribute("animation__pulse","property: scale; dir: alternate; loop: true; dur: 1100; from: 1 1 1; to: 1.12 1.12 1.12; easing: easeInOutSine");
+    // chevron
+    var ar=document.createElement("a-triangle");
+    ar.setAttribute("rotation","0 0 -90");
+    ar.setAttribute("scale","0.34 0.34 0.34");
+    ar.setAttribute("position","0 0 0.01");
+    ar.setAttribute("material","color:#16140F; shader:flat");
+    // label
+    var lab=document.createElement("a-text");
+    lab.setAttribute("value", s.label.toUpperCase());
+    lab.setAttribute("align","center");
+    lab.setAttribute("position","0 -0.7 0");
+    lab.setAttribute("width","6");
+    lab.setAttribute("color","#FFFFFF");
+    lab.setAttribute("font","mozillavr");
+    var go=function(){ if(!busy) travel(s.to); };
+    disc.addEventListener("click", go);
+    wrap.appendChild(disc); wrap.appendChild(ar); wrap.appendChild(lab);
+    return wrap;
+  }
+
+  function setRoom(key){
+    var r=ROOMS[key]; current=key;
+    sky.setAttribute("src", r.img);
+    sky.setAttribute("rotation", r.rot);
+    document.getElementById("roomT").textContent=r.t;
+    document.getElementById("roomN").textContent=r.n;
+    clearSpots();
+    r.spots.forEach(function(s){ spotsRoot.appendChild(makeSpot(s)); });
+    // dock active state
+    [].forEach.call(document.querySelectorAll("#dock button"),function(b){ b.classList.toggle("on", b.dataset.k===key); });
+  }
+
+  function travel(key){
+    if(busy||key===current) { setRoom(key); return; }
+    busy=true;
+    // quick fade through black
+    sky.setAttribute("animation__out","property: components.material.material.opacity; isRawProperty: true; to: 0; dur: 260; easing: easeInQuad");
+    setTimeout(function(){
+      setRoom(key);
+      sky.setAttribute("animation__in","property: components.material.material.opacity; isRawProperty: true; from: 0; to: 1; dur: 420; easing: easeOutQuad");
+      busy=false;
+    },280);
+  }
+
+  // build dock
+  var dock=document.getElementById("dock");
+  ORDER.forEach(function(k){
+    var b=document.createElement("button");
+    b.dataset.k=k; b.textContent=ROOMS[k].t;
+    b.addEventListener("click",function(){ travel(k); });
+    dock.appendChild(b);
+  });
+
+  // init once assets are ready
+  var scene=document.getElementById("scene");
+  function start(){
+    setRoom("living");
+    setTimeout(function(){ document.getElementById("veil").classList.add("gone"); },500);
+    var hint=document.getElementById("hint");
+    hint.classList.add("show");
+    setTimeout(function(){ hint.classList.remove("show"); },4200);
+  }
+  if(scene.hasLoaded) start(); else scene.addEventListener("loaded", start);
+
+  // iOS magic-window needs a tap to grant motion permission — A-Frame prompts automatically,
+  // but we nudge on first touch just in case.
+  window.addEventListener("touchend", function once(){
+    if(typeof DeviceOrientationEvent!=="undefined" && DeviceOrientationEvent.requestPermission){
+      DeviceOrientationEvent.requestPermission().catch(function(){});
+    }
+    window.removeEventListener("touchend", once);
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
