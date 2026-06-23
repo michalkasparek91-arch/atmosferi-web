@@ -116,7 +116,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
             for (const gModel of groqModels) {
                 groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
-                    body: JSON.stringify({ model: gModel, messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+                    body: JSON.stringify({ model: gModel, messages: [{ role: "user", content: PROMPT }], temperature: 0.1, max_tokens: 8000 })
                 });
                 if (groqRes.ok) break;
             }
