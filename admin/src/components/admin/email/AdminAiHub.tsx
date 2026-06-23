@@ -429,8 +429,8 @@ export const AdminAiHub = () => {
         </TabsContent>
 
         {/* 2. MODELY & KLÍČE */}
-        <TabsContent value="models" className="pt-4 flex justify-center">
-          <div className="w-full max-w-4xl">
+        <TabsContent value="models" className="pt-4">
+          <div className="w-full">
             <AiProvidersConfig config={config} setConfig={setConfig} saveConfigMutation={saveConfigMutation} />
           </div>
         </TabsContent>
