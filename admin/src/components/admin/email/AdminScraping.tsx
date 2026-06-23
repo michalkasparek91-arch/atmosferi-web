@@ -336,6 +336,8 @@ export const AdminScraping = () => {
       if (config.use_gemini_engine !== false) activeEngines.push("gemini");
       if (config.use_groq_places_engine === true) activeEngines.push("groq_places");
       if (config.use_openrouter_engine === true) activeEngines.push("openrouter");
+      if (config.use_deepseek_engine === true) activeEngines.push("deepseek");
+      if (config.use_siliconflow_engine === true) activeEngines.push("siliconflow");
 
       if (activeEngines.length === 0) {
         toast.error("Není zapnutý žádný vyhledávací engine (Gemini ani Groq).");

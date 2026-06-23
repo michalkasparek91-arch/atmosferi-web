@@ -127,28 +127,35 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
       .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
     const models = [
-      "qwen/qwen-2.5-72b-instruct:free",
       "meta-llama/llama-3.3-70b-instruct:free",
-      "mistralai/mistral-7b-instruct:free",
-      "google/gemma-2-9b-it:free",
       "google/gemma-4-31b-it:free",
-      "nvidia/nemotron-3-super-120b-a12b:free",
       "openrouter/free"
     ];
+
     let orRes: Response | null = null;
     const orErrors: string[] = [];
 
     for (const model of models) {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
-          body: JSON.stringify({ model: model, messages: [{ role: "user", content: SEARCH_PROMPT }], temperature: 0.1 })
-      });
-      if (res.ok) { orRes = res; break; }
-      const errText = await res.text();
-      orErrors.push(`${model}: ${res.status} - ${errText}`);
-      if (res.status === 429 || res.status === 503 || res.status === 502 || res.status === 400 || res.status === 404) { continue; }
-      break; // other error
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 10000);
+      try {
+          const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+              method: "POST",
+              signal: controller.signal,
+              headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
+              body: JSON.stringify({ model: model, messages: [{ role: "user", content: SEARCH_PROMPT }], temperature: 0.1 })
+          });
+          clearTimeout(id);
+          if (res.ok) { orRes = res; break; }
+          const errText = await res.text();
+          orErrors.push(`${model}: ${res.status} - ${errText}`);
+          if (res.status === 429 || res.status === 503 || res.status === 502 || res.status === 400 || res.status === 404) { continue; }
+          break; // other error
+      } catch (e: any) {
+          clearTimeout(id);
+          orErrors.push(`${model}: FETCH ERROR - ${e.message}`);
+          continue;
+      }
     }
 
     if (!orRes || !orRes.ok) {
@@ -549,7 +556,6 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
           email: cleanEmail,
           full_name: item.company_name || "B2B Partner",
           company_name: item.company_name || "B2B Partner",
-          brand_name: item.brand_name || null,
           phone: normalizePhone(item.phone || ""),
           website: item.website || "",
           city: item.city || "Nezname mesto",
