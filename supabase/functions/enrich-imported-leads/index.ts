@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, error: "No emails provided" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const keys = await getApiKeys(supabaseAdmin);
+    const keys = await getApiKeys(supabase);
     const apiKey = keys.GEMINI_API_KEY;
     if (!apiKey) {
       return new Response(JSON.stringify({ ok: false, error: "Missing GEMINI_API_KEY" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });

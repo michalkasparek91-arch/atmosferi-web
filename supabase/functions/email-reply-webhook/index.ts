@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
         fromName = fromStr.replace(/<[^>]+>/, "").trim() || fromEmail;
     }
 
-    const keys = await getApiKeys(supabaseAdmin);
+    const keys = await getApiKeys(supabase);
     const apiKey = keys.GEMINI_API_KEY;
     let aiSentiment = "other";
     let aiDraftReply = "";

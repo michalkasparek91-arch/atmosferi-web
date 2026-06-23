@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
 
     await logJobStart(supabase, jobName);
 
-    const keys = await getApiKeys(supabaseAdmin);
+    const keys = await getApiKeys(supabase);
     const apiKey = keys.GEMINI_API_KEY;
     if (!apiKey) {
       const errMsg = "Missing GEMINI_API_KEY";
