@@ -12,12 +12,13 @@ export async function getApiKeys(supabase: any) {
   const dbKeys = (data?.value as Record<string, string>) || {};
 
   // Merge DB keys with Deno.env fallbacks
+  const cleanKey = (k: string) => k ? k.trim().replace(/^Bearer\s+/i, "") : "";
   return {
-    GEMINI_API_KEY: (dbKeys.GEMINI_API_KEY || Deno.env.get("GEMINI_API_KEY") || "").trim(),
-    OPENROUTER_API_KEY: (dbKeys.OPENROUTER_API_KEY || Deno.env.get("OPENROUTER_API_KEY") || "").trim(),
-    GROQ_API_KEY: (dbKeys.GROQ_API_KEY || Deno.env.get("GROQ_API_KEY") || "").trim(),
-    GOOGLE_PLACES_API_KEY: (dbKeys.GOOGLE_PLACES_API_KEY || Deno.env.get("GOOGLE_PLACES_API_KEY") || Deno.env.get("GOOGLE_MAPS_API_KEY") || "").trim(),
-    DEEPSEEK_API_KEY: (dbKeys.DEEPSEEK_API_KEY || Deno.env.get("DEEPSEEK_API_KEY") || "").trim(),
-    SILICONFLOW_API_KEY: (dbKeys.SILICONFLOW_API_KEY || Deno.env.get("SILICONFLOW_API_KEY") || "").trim(),
+    GEMINI_API_KEY: cleanKey(dbKeys.GEMINI_API_KEY || Deno.env.get("GEMINI_API_KEY")),
+    OPENROUTER_API_KEY: cleanKey(dbKeys.OPENROUTER_API_KEY || Deno.env.get("OPENROUTER_API_KEY")),
+    GROQ_API_KEY: cleanKey(dbKeys.GROQ_API_KEY || Deno.env.get("GROQ_API_KEY")),
+    GOOGLE_PLACES_API_KEY: cleanKey(dbKeys.GOOGLE_PLACES_API_KEY || Deno.env.get("GOOGLE_PLACES_API_KEY") || Deno.env.get("GOOGLE_MAPS_API_KEY")),
+    DEEPSEEK_API_KEY: cleanKey(dbKeys.DEEPSEEK_API_KEY || Deno.env.get("DEEPSEEK_API_KEY")),
+    SILICONFLOW_API_KEY: cleanKey(dbKeys.SILICONFLOW_API_KEY || Deno.env.get("SILICONFLOW_API_KEY")),
   };
 }

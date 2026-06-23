@@ -248,7 +248,8 @@ async function runSiliconFlowEngine(supabase: any, targetCountry: string, target
     
     if (!res.ok) {
        const err = await res.text();
-       return { error: `SiliconFlow API Chyba: ${res.status} - ${err}` };
+       const partialKey = sfKey ? (sfKey.substring(0, 5) + "...") : "null";
+       return { error: `SiliconFlow API Chyba: ${res.status} - ${err} (Key: ${partialKey})` };
     }
 
     const resJson = await res.json();
