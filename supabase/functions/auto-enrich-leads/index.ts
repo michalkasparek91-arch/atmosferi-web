@@ -137,11 +137,18 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       engineTasks.push((async () => {
         const groqApiKey = keys.GROQ_API_KEY;
         if (!groqApiKey) { engineErrors.groq = "Missing GROQ_API_KEY"; return; }
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
-          body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
-        });
-        if (!groqRes.ok) { engineErrors.groq = await groqRes.text(); return; }
+        const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"];
+        let groqRes;
+        let lastErr = "";
+        for (const gModel of groqModels) {
+          groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
+            body: JSON.stringify({ model: gModel, messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+          });
+          if (groqRes.ok) break;
+          lastErr = await groqRes.text();
+        }
+        if (!groqRes || !groqRes.ok) { engineErrors.groq = lastErr || "All Groq models failed"; return; }
         await logUsage("groq");
         const arr = parseAIJson((await groqRes.json()).choices?.[0]?.message?.content || "");
         if (arr.length === 0) engineErrors.groq = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";

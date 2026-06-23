@@ -324,20 +324,25 @@ async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetK
             const address = place.formattedAddress || "";
             const phone = place.nationalPhoneNumber || "";
 
-            const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        { role: "system", content: "You are a precise data extractor. Extract the requested info and return ONLY a valid JSON array. DO NOT wrap it in markdown or provide any other text." },
-                        { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object: [{"company_name": "${companyName}", "brand_name": "(Short conversational brand name without legal entity or descriptive words like 'stavební společnost', e.g. 'Chrpa')", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "(Try hard to find the name of the owner, manager, or main architect. Put their full name here, or leave empty if not found)", "last_project": "(Name of the most prominent or recent project/reference found on the website. Leave empty if none found)", "premium_score": 50, "ai_icebreaker": "..."}]. If no email found, return []. Text: ${html}` }
-                    ],
-                    temperature: 0.1
-                })
-            });
+            const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"];
+            let groqRes;
+            for (const gModel of groqModels) {
+                groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: gModel,
+                        messages: [
+                            { role: "system", content: "You are a precise data extractor. Extract the requested info and return ONLY a valid JSON array. DO NOT wrap it in markdown or provide any other text." },
+                            { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object: [{"company_name": "${companyName}", "brand_name": "(Short conversational brand name without legal entity or descriptive words like 'stavební společnost', e.g. 'Chrpa')", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "(Try hard to find the name of the owner, manager, or main architect. Put their full name here, or leave empty if not found)", "last_project": "(Name of the most prominent or recent project/reference found on the website. Leave empty if none found)", "premium_score": 50, "ai_icebreaker": "..."}]. If no email found, return []. Text: ${html}` }
+                        ],
+                        temperature: 0.1
+                    })
+                });
+                if (groqRes.ok) break;
+            }
 
-            if (groqRes.ok) {
+            if (groqRes && groqRes.ok) {
                 await logApiUsage(supabase, "groq", "autonomous-web-sniper");
                 const groqData = await groqRes.json();
                 let textOut = groqData.choices?.[0]?.message?.content || "";
