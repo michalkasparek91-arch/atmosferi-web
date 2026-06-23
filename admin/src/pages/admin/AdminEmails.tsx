@@ -43,12 +43,11 @@ import PlainTextEmail from "@/components/email/PlainTextEmail";
 import { CITY_COORDINATES, getLocativeForCity, getPreposition } from "@/lib/city-regions";
 import ModularEmailEditorDialog, { ModularLivePreview } from "@/components/admin/email/ModularEmailEditor";
 
-// New Modular Components
 import { EmailTopNav } from "@/components/admin/email/EmailTopNav";
 import { AdminEmailDashboard } from "@/components/admin/email/AdminEmailDashboard";
 import { CampaignManager } from "@/components/admin/email/CampaignManager";
 import { AudienceManager } from "@/components/admin/email/AudienceManager";
-import { AdminScraping } from "@/components/admin/email/AdminScraping";
+import { AdminAiHub } from "@/components/admin/email/AdminAiHub";
 import { AdminOutbox } from "@/components/admin/email/AdminOutbox";
 import { ProposalsManager } from "@/components/admin/email/ProposalsManager";
 import { AiInsightsTab } from "@/components/admin/email/AiInsightsTab";
@@ -1464,7 +1463,7 @@ export default function AdminEmails() {
 
               <Route path="sablony" element={<EmailTemplatesTab />} />
               <Route path="ai-data" element={<AiInsightsTab />} />
-              <Route path="sber" element={<AdminScraping />} />
+              <Route path="sber" element={<AdminAiHub />} />
               <Route path="outbox" element={<AdminOutbox />} />
 
               <Route path="nastaveni" element={

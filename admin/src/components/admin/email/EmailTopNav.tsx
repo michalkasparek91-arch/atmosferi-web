@@ -79,7 +79,7 @@ export const EmailTopNav = () => {
         <div className="bg-muted/40 p-1 rounded-full h-9 flex items-center shrink-0">
           <NavItem 
             id="sber" 
-            label="Sběr" 
+            label="AI Hub" 
             icon={Sparkles} 
             active={activeTab === "sber"} 
             onClick={onTabChange} 
