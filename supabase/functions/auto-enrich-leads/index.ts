@@ -180,9 +180,10 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
           return; 
         }
         await logUsage("openrouter");
-        const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
-        if (arr.length === 0) engineErrors.openrouter = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";
-        for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+        try {
+          const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
+          if (arr.length === 0) engineErrors.openrouter = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";
+          for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
         } catch(e: any) { engineErrors.openrouter = e.message; }
       }));
     }
