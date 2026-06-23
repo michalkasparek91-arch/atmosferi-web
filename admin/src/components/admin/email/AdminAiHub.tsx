@@ -429,63 +429,12 @@ export const AdminAiHub = () => {
         </TabsContent>
 
         {/* 2. MODELY & KLÍČE */}
-        <TabsContent value="models" className="space-y-6 pt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-6">
-              <ApiKeysSettings />
+        <TabsContent value="models" className="pt-4 flex justify-center">
+          <div className="w-full max-w-4xl space-y-8">
+            <ApiKeysSettings />
 
-              <Card className="border-border/40 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-primary" /> Rychlostní limity AI (RPM)
-                  </CardTitle>
-                  <CardDescription>
-                    Zabraňte chybám "Rate Limit Exceeded" omezením počtu požadavků za minutu.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-bold">Gemini (Google)</Label>
-                      <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.gemini_rpm_limit || 15}</span>
-                    </div>
-                    <Slider 
-                      value={[config.gemini_rpm_limit || 15]} min={1} max={30} step={1}
-                      onValueChange={(vals) => setConfig({ ...config, gemini_rpm_limit: vals[0] })}
-                      onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, gemini_rpm_limit: vals[0] })}
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-bold">Groq (Llama 3)</Label>
-                      <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.groq_rpm_limit || 30}</span>
-                    </div>
-                    <Slider 
-                      value={[config.groq_rpm_limit || 30]} min={1} max={60} step={1}
-                      onValueChange={(vals) => setConfig({ ...config, groq_rpm_limit: vals[0] })}
-                      onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, groq_rpm_limit: vals[0] })}
-                    />
-                  </div>
-
-                  <div className="space-y-4 pt-4 border-t border-border/50">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-bold">Velikost AI dávky</Label>
-                      <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.ai_batch_size || 50}</span>
-                    </div>
-                    <Slider 
-                      value={[config.ai_batch_size || 50]} min={10} max={100} step={5}
-                      onValueChange={(vals) => setConfig({ ...config, ai_batch_size: vals[0] })}
-                      onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, ai_batch_size: vals[0] })}
-                    />
-                    <p className="text-[10px] text-muted-foreground">Kolik leadů se zpracuje v 1 požadavku (šetří tokeny).</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="border-border/40 shadow-sm">
+            <div className="flex flex-col gap-6">
+              <Card className="border-border/40 shadow-sm h-full">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Search className="h-4 w-4 text-primary" /> Enginy pro Vyhledávání
@@ -534,7 +483,7 @@ export const AdminAiHub = () => {
                   <CardTitle className="text-base flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-primary" /> Engine pro Obohacování (Enrichment)
                   </CardTitle>
-                  <CardDescription>Jaký model analyzuje obsah vyhledaných webů pro e-maily a oslovení.</CardDescription>
+                  <CardDescription>Jaký model analyzuje obsah webů.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <RadioGroup value={config.enrich_engine || "gemini"} onValueChange={handleEnrichEngineChange} className="flex flex-col space-y-3">
@@ -544,7 +493,7 @@ export const AdminAiHub = () => {
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="groq" id="enrich-groq" />
-                      <Label htmlFor="enrich-groq" className="cursor-pointer">Groq (Velmi rychlý Llama 3.3)</Label>
+                      <Label htmlFor="enrich-groq" className="cursor-pointer">Groq (Llama 3.3)</Label>
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="openrouter" id="enrich-openrouter" />
@@ -552,20 +501,52 @@ export const AdminAiHub = () => {
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="deepseek" id="enrich-deepseek" />
-                      <Label htmlFor="enrich-deepseek" className="cursor-pointer">DeepSeek (deepseek.com)</Label>
+                      <Label htmlFor="enrich-deepseek" className="cursor-pointer">DeepSeek</Label>
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="siliconflow" id="enrich-siliconflow" />
-                      <Label htmlFor="enrich-siliconflow" className="cursor-pointer">SiliconFlow (siliconflow.cn)</Label>
+                      <Label htmlFor="enrich-siliconflow" className="cursor-pointer">SiliconFlow</Label>
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="all" id="enrich-all" />
-                      <Label htmlFor="enrich-all" className="cursor-pointer font-bold text-primary">Všechny (Paralelně pro max. stabilitu)</Label>
+                      <Label htmlFor="enrich-all" className="cursor-pointer font-bold text-primary">Všechny (Paralelně)</Label>
                     </div>
                   </RadioGroup>
                 </CardContent>
               </Card>
+
+              <Card className="border-border/40 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-primary" /> Rychlostní limity AI (RPM)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-bold">Gemini</Label>
+                      <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.gemini_rpm_limit || 15}</span>
+                    </div>
+                    <Slider value={[config.gemini_rpm_limit || 15]} min={1} max={30} step={1} onValueChange={(vals) => setConfig({ ...config, gemini_rpm_limit: vals[0] })} onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, gemini_rpm_limit: vals[0] })} />
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-bold">Groq</Label>
+                      <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.groq_rpm_limit || 30}</span>
+                    </div>
+                    <Slider value={[config.groq_rpm_limit || 30]} min={1} max={60} step={1} onValueChange={(vals) => setConfig({ ...config, groq_rpm_limit: vals[0] })} onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, groq_rpm_limit: vals[0] })} />
+                  </div>
+                  <div className="space-y-4 pt-4 border-t border-border/50">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-bold">Velikost dávky</Label>
+                      <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{config.ai_batch_size || 50}</span>
+                    </div>
+                    <Slider value={[config.ai_batch_size || 50]} min={10} max={100} step={5} onValueChange={(vals) => setConfig({ ...config, ai_batch_size: vals[0] })} onValueCommit={(vals) => saveConfigMutation.mutate({ ...config, ai_batch_size: vals[0] })} />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+
           </div>
         </TabsContent>
 
