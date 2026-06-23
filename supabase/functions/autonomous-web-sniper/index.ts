@@ -256,13 +256,22 @@ async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetK
                         discoveredList.push(parsed[0]);
                     } else { noEmailFound++; }
                 } catch { groqErrors++; }
-            } else { groqErrors++; }
+            } else { 
+                groqErrors++;
+                if (groqErrors === 1) { // Log the first error from Groq directly so it doesn't get masked
+                  const errText = await groqRes.text().catch(() => "Unknown error");
+                  console.error(`Groq API Error: ${errText}`);
+                }
+            }
         } catch (e) { fetchErrors++; console.error("Error processing place", place.websiteUri, e); }
     });
 
     await Promise.all(promises);
 
-    const debugMsg = `Google Places: ${places.length} vysledku, ${validPlaces.length} melo web. Zpracovano max 5. Chyby fetch: ${fetchErrors}, Groq chyby: ${groqErrors}, bez emailu: ${noEmailFound}, platnych kontaktu: ${discoveredList.length}.`;
+    const debugMsg = `Google Places: ${places.length} vysledku, ${validPlaces.length} melo web. Chyby fetch: ${fetchErrors}, Groq chyby: ${groqErrors}, bez emailu: ${noEmailFound}, platnych kontaktu: ${discoveredList.length}.`;
+    if (groqErrors > 0 && discoveredList.length === 0) {
+       return { error: `Groq API selhalo u vsech pokusu. Pravdepodobne Rate Limit (chyb: ${groqErrors}).` };
+    }
     return { discoveredList, debug: debugMsg };
 }
 
