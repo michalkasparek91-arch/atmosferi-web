@@ -1,0 +1,7 @@
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient('https://paryiowezqlnffanxtnt.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhcnlpb3dlenFsbmZmYW54dG50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MzM3MzYsImV4cCI6MjA5NjQwOTczNn0.yyd-pRRXds1o8lU9mVWk21zu-5l_dcdxiBjDSKfKw5o');
+async function test() {
+  const { data, error } = await supabase.from('app_settings').select('*');
+  console.log(JSON.stringify(data, null, 2));
+}
+test();
