@@ -306,14 +306,12 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       
       const updatePayload: any = {
         company_name: lead.company_name || extracted.company_name || null,
-        brand_name: lead.brand_name || extracted.brand_name || null,
         city: lead.city || extracted.city || null,
         country: lead.country || extracted.country || "Česká republika",
         language: lead.language || extracted.language || null,
         phone: lead.phone || extracted.phone || null,
         description: lead.description || extracted.description || null,
         decision_maker_name: lead.decision_maker_name || extracted.decision_maker_name || null,
-        last_project: lead.last_project || extracted.last_project || null,
         category: lead.category || extracted.category || null,
         subcategory: lead.subcategory || extracted.subcategory || null,
         premium_score: lead.premium_score || extracted.premium_score || 50,
@@ -328,9 +326,14 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       
       if (updateError && updatePayload.email) {
         delete updatePayload.email;
-        await supabase.from("marketing_leads").update(updatePayload).eq("id", lead.id);
+        const { error: updErr2 } = await supabase.from("marketing_leads").update(updatePayload).eq("id", lead.id);
+        if (updErr2) engineErrors.db_update = updErr2.message;
+        else updatedCount++;
+      } else if (updateError) {
+        engineErrors.db_update = updateError.message;
+      } else {
+        updatedCount++;
       }
-      updatedCount++;
     }
 
     // Touch ALL processed leads' updated_at so they go to the back of the queue if AI failed to return them
