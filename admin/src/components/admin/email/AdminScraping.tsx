@@ -34,7 +34,9 @@ interface ScraperConfig {
   use_gemini_engine?: boolean;
   use_groq_places_engine?: boolean;
   use_openrouter_engine?: boolean;
-  enrich_engine?: "gemini" | "groq" | "openrouter" | "both";
+  use_deepseek_engine?: boolean;
+  use_siliconflow_engine?: boolean;
+  enrich_engine?: "gemini" | "groq" | "openrouter" | "deepseek" | "siliconflow" | "both" | "all";
 }
 
 const DEFAULT_PROMPT = `Jsi autonomní vyhledávací agent pro B2B akvizici. Cílový stát: {{targetCountry}}. Obor: "{{targetKeyword}}". 
@@ -62,6 +64,8 @@ const DEFAULT_CONFIG: ScraperConfig = {
   use_openrouter_engine: false,
   use_gemini_engine: true,
   use_groq_places_engine: false,
+  use_deepseek_engine: false,
+  use_siliconflow_engine: false,
   enrich_engine: "gemini"
 };
 
@@ -116,6 +120,8 @@ export const AdminScraping = () => {
         use_gemini_engine: serverConfig.use_gemini_engine !== false,
         use_groq_places_engine: serverConfig.use_groq_places_engine === true,
         use_openrouter_engine: serverConfig.use_openrouter_engine === true,
+        use_deepseek_engine: serverConfig.use_deepseek_engine === true,
+        use_siliconflow_engine: serverConfig.use_siliconflow_engine === true,
         enrich_engine: serverConfig.enrich_engine || "gemini"
       });
       setSelectedKeywords(serverConfig.active_keywords || []);
@@ -213,11 +219,13 @@ export const AdminScraping = () => {
     saveConfigMutation.mutate(updated);
   };
 
-  const handleToggleEngine = (engine: "gemini" | "groq" | "openrouter", checked: boolean) => {
+  const handleToggleEngine = (engine: "gemini" | "groq" | "openrouter" | "deepseek" | "siliconflow", checked: boolean) => {
     const updated = { ...config };
     if (engine === "gemini") updated.use_gemini_engine = checked;
     if (engine === "groq") updated.use_groq_places_engine = checked;
     if (engine === "openrouter") updated.use_openrouter_engine = checked;
+    if (engine === "deepseek") updated.use_deepseek_engine = checked;
+    if (engine === "siliconflow") updated.use_siliconflow_engine = checked;
     setConfig(updated);
     saveConfigMutation.mutate(updated);
   };
@@ -321,7 +329,7 @@ export const AdminScraping = () => {
     toast.loading("🌐 AI (Gemini) prohledává web ve 3 paralelních vláknech...", { id: "manual-sniper" });
     try {
       const promises = [];
-      const rpm = config.ai_rpm_limit || 5;
+      const rpm = config.gemini_rpm_limit || 15;
       const delayMs = 60000 / rpm;
       
       const activeEngines = [];
@@ -687,9 +695,31 @@ export const AdminScraping = () => {
                   />
                 </div>
 
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-sm">DeepSeek <span className="text-xs font-normal text-blue-500">(deepseek.com)</span></Label>
+                    <p className="text-[10px] text-muted-foreground">Velmi levný a chytrý čínský model.</p>
+                  </div>
+                  <Switch 
+                    checked={config.use_deepseek_engine === true} 
+                    onCheckedChange={(c) => handleToggleEngine("deepseek", c)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-sm">SiliconFlow <span className="text-xs font-normal text-teal-500">(Free modely)</span></Label>
+                    <p className="text-[10px] text-muted-foreground">Asijský agregátor s trvalým free tierem pro Qwen/DeepSeek.</p>
+                  </div>
+                  <Switch 
+                    checked={config.use_siliconflow_engine === true} 
+                    onCheckedChange={(c) => handleToggleEngine("siliconflow", c)}
+                  />
+                </div>
+
                 <div className="pt-4 mt-2 border-t border-border/50 space-y-4">
                   <Label className="font-bold text-sm">Engine pro obohacování dat (Enrichment)</Label>
-                  <p className="text-[10px] text-muted-foreground mb-3">Které modely se mají používat při obohacování firem na pozadí. Každý zapnutý engine zpracuje dávku nezávisle – více enginů = více výsledků.</p>
+                  <p className="text-[10px] text-muted-foreground mb-3">Které modely se mají používat při obohacování firem na pozadí.</p>
 
                   <RadioGroup
                     value={config.enrich_engine || "gemini"}
@@ -699,31 +729,33 @@ export const AdminScraping = () => {
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="gemini" id="enrich-gemini" />
                       <Label htmlFor="enrich-gemini" className="font-normal text-sm cursor-pointer">
-                        Pouze Gemini <span className="text-muted-foreground text-xs">(Chytrý, velký denní limit)</span>
+                        Gemini <span className="text-muted-foreground text-xs">(Chytrý, velký limit)</span>
                       </Label>
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="groq" id="enrich-groq" />
                       <Label htmlFor="enrich-groq" className="font-normal text-sm cursor-pointer">
-                        Pouze Groq <span className="text-muted-foreground text-xs">(Rychlý, 100k tokenů/den)</span>
+                        Groq <span className="text-muted-foreground text-xs">(Rychlý)</span>
                       </Label>
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="openrouter" id="enrich-openrouter" />
                       <Label htmlFor="enrich-openrouter" className="font-normal text-sm cursor-pointer">
-                        Pouze OpenRouter <span className="text-muted-foreground text-xs">(Free modely, agregátor)</span>
+                        OpenRouter (Free Modely)
                       </Label>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="both" id="enrich-both" />
-                      <Label htmlFor="enrich-both" className="font-normal text-sm cursor-pointer">
-                        Gemini + Groq <span className="text-muted-foreground text-xs">(Oba paralelně)</span>
-                      </Label>
+                      <RadioGroupItem value="deepseek" id="enrich-deepseek" />
+                      <Label htmlFor="enrich-deepseek" className="text-sm font-medium">DeepSeek (deepseek.com)</Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="siliconflow" id="enrich-siliconflow" />
+                      <Label htmlFor="enrich-siliconflow" className="text-sm font-medium">SiliconFlow (siliconflow.cn - zdarma)</Label>
                     </div>
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value="all" id="enrich-all" />
                       <Label htmlFor="enrich-all" className="font-normal text-sm cursor-pointer">
-                        Všechny tři <span className="text-muted-foreground text-xs">(Gemini + Groq + OpenRouter paralelně – max. výsledků)</span>
+                        Všechny dostupné <span className="text-muted-foreground text-xs">(Paralelně pro max. výsledků)</span>
                       </Label>
                     </div>
                   </RadioGroup>

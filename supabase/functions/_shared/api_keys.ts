@@ -17,5 +17,7 @@ export async function getApiKeys(supabase: any) {
     OPENROUTER_API_KEY: dbKeys.OPENROUTER_API_KEY || Deno.env.get("OPENROUTER_API_KEY") || "",
     GROQ_API_KEY: dbKeys.GROQ_API_KEY || Deno.env.get("GROQ_API_KEY") || "",
     GOOGLE_PLACES_API_KEY: dbKeys.GOOGLE_PLACES_API_KEY || Deno.env.get("GOOGLE_PLACES_API_KEY") || Deno.env.get("GOOGLE_MAPS_API_KEY") || "",
+    DEEPSEEK_API_KEY: dbKeys.DEEPSEEK_API_KEY || Deno.env.get("DEEPSEEK_API_KEY") || "",
+    SILICONFLOW_API_KEY: dbKeys.SILICONFLOW_API_KEY || Deno.env.get("SILICONFLOW_API_KEY") || "",
   };
 }

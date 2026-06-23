@@ -17,6 +17,8 @@ export const ApiKeysSettingsModal = () => {
     OPENROUTER_API_KEY: "",
     GROQ_API_KEY: "",
     GOOGLE_PLACES_API_KEY: "",
+    DEEPSEEK_API_KEY: "",
+    SILICONFLOW_API_KEY: "",
   });
 
   const { isLoading } = useQuery({
@@ -40,6 +42,8 @@ export const ApiKeysSettingsModal = () => {
           OPENROUTER_API_KEY: parsed.OPENROUTER_API_KEY || "",
           GROQ_API_KEY: parsed.GROQ_API_KEY || "",
           GOOGLE_PLACES_API_KEY: parsed.GOOGLE_PLACES_API_KEY || "",
+          DEEPSEEK_API_KEY: parsed.DEEPSEEK_API_KEY || "",
+          SILICONFLOW_API_KEY: parsed.SILICONFLOW_API_KEY || "",
         });
       }
       return data;
@@ -125,6 +129,26 @@ export const ApiKeysSettingsModal = () => {
                 placeholder="AIzaSy..." 
                 value={keys.GOOGLE_PLACES_API_KEY} 
                 onChange={(e) => setKeys({...keys, GOOGLE_PLACES_API_KEY: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="deepseek">DeepSeek API Key (deepseek.com)</Label>
+              <Input 
+                id="deepseek" 
+                type="password" 
+                placeholder="sk-..." 
+                value={keys.DEEPSEEK_API_KEY} 
+                onChange={(e) => setKeys({...keys, DEEPSEEK_API_KEY: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="siliconflow">SiliconFlow API Key (siliconflow.cn)</Label>
+              <Input 
+                id="siliconflow" 
+                type="password" 
+                placeholder="sk-..." 
+                value={keys.SILICONFLOW_API_KEY} 
+                onChange={(e) => setKeys({...keys, SILICONFLOW_API_KEY: e.target.value})} 
               />
             </div>
             

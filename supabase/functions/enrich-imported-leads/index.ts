@@ -37,6 +37,8 @@ Deno.serve(async (req) => {
     const useGemini = enrichEngine === "gemini" || enrichEngine === "both" || enrichEngine === "all";
     const useGroq   = enrichEngine === "groq"   || enrichEngine === "both" || enrichEngine === "all";
     const useOpenRouter = enrichEngine === "openrouter" || enrichEngine === "all";
+    const useDeepSeek = enrichEngine === "deepseek" || enrichEngine === "all";
+    const useSiliconFlow = enrichEngine === "siliconflow" || enrichEngine === "all";
 
     // We process the enrichment asynchronously and immediately return success to not block the frontend
     const batch = emails.slice(0, 50);
@@ -134,6 +136,70 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
             const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
             for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
           })());
+        }
+
+        if (useDeepSeek) {
+          engineTasks.push((async () => {
+            const dsKey = keys.DEEPSEEK_API_KEY;
+            if (!dsKey) { console.warn("Missing DEEPSEEK_API_KEY"); return; }
+            try {
+              const res = await fetch("https://api.deepseek.com/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${dsKey}` },
+                body: JSON.stringify({
+                  model: "deepseek-chat",
+                  messages: [{ role: "system", content: "You are data enrichment AI. Always reply with valid JSON array." }, { role: "user", content: PROMPT }],
+                  temperature: 0.1,
+                  response_format: { type: "json_object" }
+                })
+              });
+              if (!res.ok) { console.error("DeepSeek err:", await res.text()); return; }
+              const resJson = await res.json();
+              let text = resJson.choices?.[0]?.message?.content || "";
+              if (text) {
+                  text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+                  const fb = text.indexOf('['); const lb = text.lastIndexOf(']');
+                  if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
+              }
+              const parsed = JSON.parse(text);
+              const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find(v => Array.isArray(v)) || [];
+              if (finalArray.length > 0) {
+                for (const item of finalArray) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+                await logUsage("deepseek");
+              }
+            } catch(e: any) { console.error("DeepSeek exc:", e); }
+          }));
+        }
+
+        if (useSiliconFlow) {
+          engineTasks.push((async () => {
+            const sfKey = keys.SILICONFLOW_API_KEY;
+            if (!sfKey) { console.warn("Missing SILICONFLOW_API_KEY"); return; }
+            try {
+              const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sfKey}` },
+                body: JSON.stringify({
+                  model: "Qwen/Qwen2.5-7B-Instruct",
+                  messages: [{ role: "system", content: "Return only a JSON array." }, { role: "user", content: PROMPT }],
+                  temperature: 0.1
+                })
+              });
+              if (!res.ok) { console.error("SiliconFlow err:", await res.text()); return; }
+              const resJson = await res.json();
+              let text = resJson.choices?.[0]?.message?.content || "";
+              if (text) {
+                  text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+                  const fb = text.indexOf('['); const lb = text.lastIndexOf(']');
+                  if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
+              }
+              const parsed = JSON.parse(text);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                for (const item of parsed) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+                await logUsage("siliconflow");
+              }
+            } catch(e: any) { console.error("SiliconFlow exc:", e); }
+          }));
         }
 
         if (useGemini) {

@@ -175,6 +175,95 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
     }
 }
 
+async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, deepseekKey: string): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!deepseekKey) return { error: "Chybi DEEPSEEK_API_KEY v DB nebo Secrets!" };
+    
+    const SEARCH_PROMPT = promptTemplate
+      .replace(/{{targetCountry}}/g, targetCountry)
+      .replace(/{{targetKeyword}}/g, targetKeyword)
+      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
+
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${deepseekKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            model: "deepseek-chat", 
+            messages: [{ role: "system", content: "You are an expert data scraper. Always reply with valid JSON array." }, { role: "user", content: SEARCH_PROMPT }], 
+            temperature: 0.1,
+            response_format: { type: "json_object" } // deepseek supports this
+        })
+    });
+    
+    if (!res.ok) {
+       const err = await res.text();
+       return { error: `DeepSeek API Chyba: ${res.status} - ${err}` };
+    }
+
+    const resJson = await res.json();
+    let textOut = resJson.choices?.[0]?.message?.content || "";
+    if (textOut) {
+        textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
+        const firstBracket = textOut.indexOf('[');
+        const lastBracket = textOut.lastIndexOf(']');
+        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+            textOut = textOut.substring(firstBracket, lastBracket + 1);
+        }
+    }
+
+    try {
+      const parsed = JSON.parse(textOut);
+      // If it returned an object with a nested array (due to json_object), extract it
+      const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find(v => Array.isArray(v)) || [];
+      await logApiUsage(supabase, "deepseek", "autonomous-web-sniper");
+      return { discoveredList: finalArray as any[] };
+    } catch (e: any) {
+      return { error: `JSON CHYBA (DeepSeek): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
+    }
+}
+
+async function runSiliconFlowEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, sfKey: string): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!sfKey) return { error: "Chybi SILICONFLOW_API_KEY v DB nebo Secrets!" };
+    
+    const SEARCH_PROMPT = promptTemplate
+      .replace(/{{targetCountry}}/g, targetCountry)
+      .replace(/{{targetKeyword}}/g, targetKeyword)
+      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
+
+    const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${sfKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            model: "Qwen/Qwen2.5-7B-Instruct", // Free model on SiliconFlow
+            messages: [{ role: "system", content: "Return only a JSON array of objects." }, { role: "user", content: SEARCH_PROMPT }], 
+            temperature: 0.1 
+        })
+    });
+    
+    if (!res.ok) {
+       const err = await res.text();
+       return { error: `SiliconFlow API Chyba: ${res.status} - ${err}` };
+    }
+
+    const resJson = await res.json();
+    let textOut = resJson.choices?.[0]?.message?.content || "";
+    if (textOut) {
+        textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
+        const firstBracket = textOut.indexOf('[');
+        const lastBracket = textOut.lastIndexOf(']');
+        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+            textOut = textOut.substring(firstBracket, lastBracket + 1);
+        }
+    }
+
+    try {
+      const parsed = JSON.parse(textOut);
+      await logApiUsage(supabase, "siliconflow", "autonomous-web-sniper");
+      return { discoveredList: parsed };
+    } catch (e: any) {
+      return { error: `JSON CHYBA (SiliconFlow): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
+    }
+}
+
 async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, groqKey: string, placesKey: string): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
     if (!placesKey || !groqKey) {
         return { error: "Chybi GOOGLE_PLACES_API_KEY ci GROQ_API_KEY v DB nebo Secrets!" };
@@ -381,6 +470,8 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       activeEngines.map((eng) => {
         if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity, keys.GROQ_API_KEY, keys.GOOGLE_PLACES_API_KEY);
         if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.OPENROUTER_API_KEY);
+        if (eng === "deepseek")    return runDeepSeekEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.DEEPSEEK_API_KEY);
+        if (eng === "siliconflow") return runSiliconFlowEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.SILICONFLOW_API_KEY);
         return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.GEMINI_API_KEY);
       })
     );
