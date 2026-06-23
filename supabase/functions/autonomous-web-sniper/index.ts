@@ -457,6 +457,8 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       if (config.use_gemini_engine !== false)       activeEngines.push("gemini");
       if (config.use_groq_places_engine === true)   activeEngines.push("groq_places");
       if (config.use_openrouter_engine === true)    activeEngines.push("openrouter");
+      if (config.use_deepseek_engine === true)      activeEngines.push("deepseek");
+      if (config.use_siliconflow_engine === true)   activeEngines.push("siliconflow");
     }
 
     if (activeEngines.length === 0) {
@@ -507,15 +509,21 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     }
 
     let newSavedCount = 0;
+    let missingEmailCount = 0;
+    let duplicateCount = 0;
     let lastInsertError = null;
+    
     for (const item of discoveredList) {
-      if (!item.email || !item.email.includes("@")) continue;
+      if (!item.email || !item.email.includes("@")) {
+          missingEmailCount++;
+          continue;
+      }
       const cleanEmail = item.email.toLowerCase().trim();
 
       const { data: pExist } = await supabase.from("profiles").select("id").eq("email", cleanEmail).maybeSingle();
-      if (pExist) continue;
+      if (pExist) { duplicateCount++; continue; }
       const { data: lExist } = await supabase.from("marketing_leads").select("id").eq("email", cleanEmail).maybeSingle();
-      if (lExist) continue;
+      if (lExist) { duplicateCount++; continue; }
 
       let marketId = "cz";
       const tc = targetCountry.toLowerCase();
@@ -563,17 +571,20 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       else if (insertErr) lastInsertError = insertErr.message;
     }
 
-    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, engines: activeEngines, errors: engineErrors, debug_output: debugParts.join(" | ") });
+    const skipReport = `(zahozeno: ${missingEmailCount} bez mailu, ${duplicateCount} duplicit)`;
+    const finalDebug = `${debugParts.join(" | ")} | ${skipReport}`;
+
+    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, engines: activeEngines, errors: engineErrors, debug_output: finalDebug });
     
     if (newSavedCount === 0 && discoveredList.length > 0) {
        return new Response(JSON.stringify({ 
          ok: true, discovered_count: 0, total_found_by_ai: discoveredList.length,
-         message: "Nalezeno, ale preskoceno (chybal e-mail nebo uz v CRM existuji).",
-         debug_output: `${debugParts.join(" | ")} | DB chyba: ${lastInsertError || "zadna"}`
+         message: `Nalezeno, ale preskoceno ${skipReport}.`,
+         debug_output: `${finalDebug} | DB chyba: ${lastInsertError || "zadna"}`
        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ ok: true, discovered_count: newSavedCount, engines: activeEngines, message: "Hotovo." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, discovered_count: newSavedCount, engines: activeEngines, message: "Hotovo.", debug_output: finalDebug }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
     if (supabase) await logJobFailure(supabase, jobName, err.message);
