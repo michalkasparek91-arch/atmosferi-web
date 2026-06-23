@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AiJobsMonitor } from "./AiJobsMonitor";
+import { ApiKeysSettingsModal } from "./ApiKeysSettingsModal";
 import { ApiUsageStats } from "./ApiUsageStats";
 
 interface ScraperConfig {
@@ -417,7 +418,14 @@ export const AdminScraping = () => {
         </div>
       </div>
 
-      <AiJobsMonitor />
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="flex-1">
+          <AiJobsMonitor />
+        </div>
+        <div className="flex shrink-0 sm:pt-14 items-start">
+          <ApiKeysSettingsModal />
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         

@@ -1,4 +1,5 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.2";
+import { getApiKeys } from "../_shared/api_keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,7 +21,8 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, error: "No emails provided" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    const keys = await getApiKeys(supabaseAdmin);
+    const apiKey = keys.GEMINI_API_KEY;
     if (!apiKey) {
       return new Response(JSON.stringify({ ok: false, error: "Missing GEMINI_API_KEY" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -105,7 +107,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
         if (useGroq) {
           engineTasks.push((async () => {
-            const groqApiKey = Deno.env.get("GROQ_API_KEY");
+            const groqApiKey = keys.GROQ_API_KEY;
             if (!groqApiKey) { console.warn("Missing GROQ_API_KEY"); return; }
             const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
@@ -120,7 +122,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
         if (useOpenRouter) {
           engineTasks.push((async () => {
-            const orKey = Deno.env.get("OPENROUTER_API_KEY");
+            const orKey = keys.OPENROUTER_API_KEY;
             if (!orKey) { console.warn("Missing OPENROUTER_API_KEY"); return; }
             const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
               method: "POST",

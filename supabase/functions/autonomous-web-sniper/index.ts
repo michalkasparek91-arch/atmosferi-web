@@ -1,4 +1,5 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.2";
+import { getApiKeys } from "../_shared/api_keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,16 +75,15 @@ async function callGeminiWithFallback(apiKey: string, body: any): Promise<Respon
   return lastRes!;
 }
 
-async function runGeminiEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string): Promise<{ discoveredList?: any[], error?: string }> {
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) return { error: "Chybi GEMINI_API_KEY v Supabase Secrets!" };
+async function runGeminiEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, geminiKey: string): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!geminiKey) return { error: "Chybi GEMINI_API_KEY v DB nebo Secrets!" };
     
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
       .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
-    const geminiRes = await callGeminiWithFallback(apiKey, {
+    const geminiRes = await callGeminiWithFallback(geminiKey, {
       contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }],
       tools: [{ googleSearch: {} }],
       generationConfig: { temperature: 0.7, maxOutputTokens: 16000 }
@@ -118,9 +118,8 @@ async function runGeminiEngine(supabase: any, targetCountry: string, targetKeywo
     }
 }
 
-async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string): Promise<{ discoveredList?: any[], error?: string }> {
-    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
-    if (!apiKey) return { error: "Chybi OPENROUTER_API_KEY v Supabase Secrets!" };
+async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, orKey: string): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!orKey) return { error: "Chybi OPENROUTER_API_KEY v DB nebo Secrets!" };
     
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
@@ -128,7 +127,10 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
       .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
     const models = [
+      "qwen/qwen-2.5-72b-instruct:free",
       "meta-llama/llama-3.3-70b-instruct:free",
+      "mistralai/mistral-7b-instruct:free",
+      "google/gemma-2-9b-it:free",
       "google/gemma-4-31b-it:free",
       "nvidia/nemotron-3-super-120b-a12b:free",
       "openrouter/free"
@@ -139,7 +141,7 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
     for (const model of models) {
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
-          headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
+          headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
           body: JSON.stringify({ model: model, messages: [{ role: "user", content: SEARCH_PROMPT }], temperature: 0.1 })
       });
       if (res.ok) { orRes = res; break; }
@@ -173,12 +175,9 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
     }
 }
 
-async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
-    const placesKey = Deno.env.get("GOOGLE_PLACES_API_KEY") || Deno.env.get("GOOGLE_MAPS_API_KEY");
-    const groqKey = Deno.env.get("GROQ_API_KEY");
-    
+async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, groqKey: string, placesKey: string): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
     if (!placesKey || !groqKey) {
-        return { error: "Chybi GOOGLE_PLACES_API_KEY ci GROQ_API_KEY v Supabase Secrets!" };
+        return { error: "Chybi GOOGLE_PLACES_API_KEY ci GROQ_API_KEY v DB nebo Secrets!" };
     }
 
     const query = `${targetKeyword} ${targetCity}`;
@@ -377,11 +376,12 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
 
     console.log(`Aktivni enginy: ${activeEngines.join(", ")} | kw: ${targetKeyword} | mesto: ${targetCity}`);
 
+    const keys = await getApiKeys(supabase);
     const engineResults = await Promise.allSettled(
       activeEngines.map((eng) => {
-        if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity);
-        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate);
-        return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate);
+        if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity, keys.GROQ_API_KEY, keys.GOOGLE_PLACES_API_KEY);
+        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.OPENROUTER_API_KEY);
+        return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.GEMINI_API_KEY);
       })
     );
 

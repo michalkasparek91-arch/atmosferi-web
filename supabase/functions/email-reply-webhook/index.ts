@@ -1,4 +1,5 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.2";
+import { getApiKeys } from "../_shared/api_keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,7 +42,8 @@ Deno.serve(async (req) => {
         fromName = fromStr.replace(/<[^>]+>/, "").trim() || fromEmail;
     }
 
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    const keys = await getApiKeys(supabaseAdmin);
+    const apiKey = keys.GEMINI_API_KEY;
     let aiSentiment = "other";
     let aiDraftReply = "";
 
