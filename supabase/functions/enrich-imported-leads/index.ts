@@ -111,7 +111,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
           engineTasks.push((async () => {
             const groqApiKey = keys.GROQ_API_KEY;
             if (!groqApiKey) { console.warn("Missing GROQ_API_KEY"); return; }
-            const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"];
+            const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
             let groqRes;
             for (const gModel of groqModels) {
                 groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {

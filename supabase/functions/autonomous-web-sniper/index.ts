@@ -324,7 +324,7 @@ async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetK
             const address = place.formattedAddress || "";
             const phone = place.nationalPhoneNumber || "";
 
-            const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"];
+            const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
             let groqRes;
             for (const gModel of groqModels) {
                 groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
