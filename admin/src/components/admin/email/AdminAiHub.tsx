@@ -135,9 +135,9 @@ export const AdminAiHub = () => {
       const { data, error } = await supabase
         .from("marketing_leads")
         .select("*")
-        .eq("source", "ai_web_sniper")
+        .or("source.eq.ai_web_sniper,ai_icebreaker.not.is.null")
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(15);
       if (error) throw error;
       return data || [];
     },
@@ -621,7 +621,7 @@ export const AdminAiHub = () => {
         <TabsContent value="results" className="pt-4">
           <Card className="border-border/40 shadow-sm">
             <CardHeader>
-              <CardTitle>Nejnovější objevené firmy ({recentLeads.length})</CardTitle>
+              <CardTitle>Poslední úlovky a obohacení ({recentLeads.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {leadsLoading ? (
@@ -633,6 +633,8 @@ export const AdminAiHub = () => {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-left">
+                        <th className="pb-2">Datum</th>
+                        <th className="pb-2">Akce</th>
                         <th className="pb-2">Firma</th>
                         <th className="pb-2">E-mail</th>
                         <th className="pb-2">Město</th>
@@ -640,16 +642,29 @@ export const AdminAiHub = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {recentLeads.map((lead: any) => (
-                        <tr key={lead.id} className="border-b last:border-0 hover:bg-muted/30">
-                          <td className="py-3 font-medium">{lead.company_name}</td>
-                          <td className="py-3 text-muted-foreground">{lead.email}</td>
-                          <td className="py-3">{lead.city}</td>
-                          <td className="py-3">
-                            <Badge variant={lead.premium_score > 70 ? "default" : "secondary"}>{lead.premium_score}/100</Badge>
-                          </td>
-                        </tr>
-                      ))}
+                      {recentLeads.map((lead: any) => {
+                        const isSniper = lead.source === "ai_web_sniper";
+                        return (
+                          <tr key={lead.id} className="border-b last:border-0 hover:bg-muted/30">
+                            <td className="py-3 text-muted-foreground text-xs whitespace-nowrap">
+                              {lead.created_at ? new Date(lead.created_at).toLocaleDateString("cs-CZ", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Neznámé"}
+                            </td>
+                            <td className="py-3">
+                              {isSniper ? (
+                                <Badge variant="default" className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">Vyhledáno</Badge>
+                              ) : (
+                                <Badge variant="default" className="bg-purple-500/10 text-purple-500 hover:bg-purple-500/20">Obohaceno</Badge>
+                              )}
+                            </td>
+                            <td className="py-3 font-medium">{lead.company_name}</td>
+                            <td className="py-3 text-muted-foreground">{lead.email}</td>
+                            <td className="py-3">{lead.city}</td>
+                            <td className="py-3">
+                              <Badge variant={lead.premium_score > 70 ? "default" : "secondary"}>{lead.premium_score ? `${lead.premium_score}/100` : "-"}</Badge>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

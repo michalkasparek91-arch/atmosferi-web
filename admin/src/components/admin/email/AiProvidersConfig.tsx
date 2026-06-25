@@ -142,7 +142,15 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
             <Card key={p.id} className="border-border/50 shadow-sm overflow-hidden flex flex-col transition-all hover:border-primary/20">
               <div className="px-4 py-3 border-b border-border/30 flex items-center justify-between bg-muted/10">
                 <div>
-                  <h3 className="font-medium text-sm flex items-center gap-2">{p.name}</h3>
+                  <h3 className="font-medium text-sm flex items-center gap-2">
+                    {p.name}
+                    {primaryStatus && (
+                      <div 
+                        className={`w-2.5 h-2.5 rounded-full flex-shrink-0 cursor-help ${primaryStatus === 'ok' ? 'bg-green-500' : 'bg-red-500'}`} 
+                        title={testResults[p.id]?.message || (primaryStatus === 'ok' ? 'Online' : 'Error')}
+                      />
+                    )}
+                  </h3>
                   <p className="text-[11px] text-muted-foreground mt-0.5">{p.desc}</p>
                 </div>
               </div>
@@ -159,12 +167,6 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                       onChange={e => handleKeyChange(p.keyName, e.target.value)}
                       className="font-mono text-xs h-8 flex-1"
                     />
-                    {primaryStatus && (
-                      <div 
-                        className={`w-3 h-3 rounded-full flex-shrink-0 cursor-help ${primaryStatus === 'ok' ? 'bg-green-500' : 'bg-red-500'}`} 
-                        title={testResults[p.id]?.msg || (primaryStatus === 'ok' ? 'Online' : 'Error')}
-                      />
-                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <KeyRound className="h-3.5 w-3.5 text-muted-foreground/30" />
@@ -175,12 +177,6 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                       onChange={e => handleKeyChange(p.fallbackKeyName, e.target.value)}
                       className="font-mono text-xs h-8 flex-1"
                     />
-                    {fallbackStatus && (
-                      <div 
-                        className={`w-3 h-3 rounded-full flex-shrink-0 cursor-help ${fallbackStatus === 'ok' ? 'bg-green-500' : 'bg-red-500'}`} 
-                        title={testResults[`${p.id}_fallback`]?.msg || (fallbackStatus === 'ok' ? 'Online' : 'Error')}
-                      />
-                    )}
                   </div>
                   <div className="flex justify-end pt-1">
                     <Button variant="outline" size="sm" onClick={() => saveKeysMutation.mutate()} disabled={saveKeysMutation.isPending} className="h-7 px-3 text-xs">
