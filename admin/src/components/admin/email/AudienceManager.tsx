@@ -10,7 +10,7 @@ import {
   Users, Search, Download, Upload, Filter, 
   ChevronLeft, ChevronRight, Loader2, Tag, Star, Activity, Calendar, Globe, ExternalLink,
   MousePointer2, Mail, Phone, MapPin, Building2, Trash2, Database, X, Briefcase,
-  Send, MailOpen, Clock, PenLine, CheckCircle2, XCircle, AlertCircle, MoreHorizontal, MessageCircle, Zap, MessageSquare, Sparkles, RefreshCw
+  Send, MailOpen, Clock, PenLine, CheckCircle2, XCircle, AlertCircle, MoreHorizontal, MessageCircle, Zap, MessageSquare, Sparkles, RefreshCw, UserMinus
 } from "lucide-react";
 import { CITY_COORDINATES } from "@/lib/city-regions";
 import { format } from "date-fns";
@@ -994,8 +994,8 @@ export const AudienceManager = (props: any) => {
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
-                        variant={(selectedContactForSheet.tags || []).includes("známé") ? "default" : "outline"}
-                        className={`rounded-full font-bold text-xs gap-1.5 transition-all ${(selectedContactForSheet.tags || []).includes("známé") ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}
+                        variant={Array.isArray(selectedContactForSheet.tags) && selectedContactForSheet.tags.includes("známé") ? "default" : "outline"}
+                        className={`rounded-full font-bold text-xs gap-1.5 transition-all ${Array.isArray(selectedContactForSheet.tags) && selectedContactForSheet.tags.includes("známé") ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}
                         onClick={handleToggleZnameTag}
                       >
                         <UserMinus className="h-3 w-3" />
@@ -1226,7 +1226,7 @@ export const AudienceManager = (props: any) => {
                       );
                     })()}
                   </div>
-                  {(selectedContactForSheet.tags && selectedContactForSheet.tags.length > 0) && (
+                  {(Array.isArray(selectedContactForSheet.tags) && selectedContactForSheet.tags.length > 0) && (
                     <div className="pt-3 border-t border-border/50 flex flex-wrap gap-1.5 items-center">
                       <Tag className="h-3 w-3 text-muted-foreground shrink-0 mr-1" />
                       {selectedContactForSheet.tags.map((tag: string) => (
