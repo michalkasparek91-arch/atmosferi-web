@@ -69,3 +69,7 @@ jobs:
       - name: Deploy ses-delivery-webhook
         continue-on-error: true
         run: supabase functions deploy ses-delivery-webhook --no-verify-jwt --project-ref $PROJECT_ID
+
+      - name: Deploy test-api-keys
+        continue-on-error: true
+        run: supabase functions deploy test-api-keys --project-ref $PROJECT_ID

@@ -41,7 +41,7 @@ async function logApiUsage(supabase: any, engine: string, serviceName: string) {
 }
 
 // Gemini model cascade: try cheapest free-tier model first, fall back on quota/overload
-async function callGeminiWithFallback(apiKey: string, body: any): Promise<Response> {
+async function callGeminiWithFallback(authKeys: string[], body: any): Promise<Response> {
   const models = [
     "gemini-2.5-flash",
     "gemini-2.0-flash",
@@ -54,36 +54,35 @@ async function callGeminiWithFallback(apiKey: string, body: any): Promise<Respon
   const errors: string[] = [];
 
   for (const model of models) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
-    });
-    if (res.ok) return res;
-    
-    const errText = await res.text();
-    errors.push(`${model}: ${res.status} - ${errText}`);
-    
-    if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) {
-      console.warn(`Gemini model ${model} unavailable (${res.status}), trying next...`);
-      lastRes = new Response(JSON.stringify({ error: `All models failed. Details: ${errors.join(" | ")}` }), { status: 500 });
-      continue;
+    for (const ak of authKeys) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${ak}`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+      });
+      if (res.ok) return res;
+      
+      const errText = await res.text();
+      errors.push(`${model} (key: ${ak.slice(-4)}): ${res.status} - ${errText}`);
+      if (res.status === 429 || res.status === 401) continue;
+      lastRes = new Response(JSON.stringify({ error: `Failed on ${model}. Details: ${errors.join(" | ")}` }), { status: res.status });
+      break;
     }
+    if (lastRes && lastRes.status !== 429 && lastRes.status !== 401) break;
     
     // Other error
-    lastRes = new Response(JSON.stringify({ error: `Failed on ${model}. Details: ${errors.join(" | ")}` }), { status: res.status });
-    break;
+    lastRes = new Response(JSON.stringify({ error: `Failed on ${model}. Details: ${errors.join(" | ")}` }), { status: 500 });
   }
   return lastRes!;
 }
 
-async function runGeminiEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, geminiKey: string): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!geminiKey) return { error: "Chybi GEMINI_API_KEY v DB nebo Secrets!" };
+async function runGeminiEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!authKeys || authKeys.length === 0) return { error: "Chybi GEMINI_API_KEY v DB nebo Secrets!" };
     
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
       .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
-    const geminiRes = await callGeminiWithFallback(geminiKey, {
+    const geminiRes = await callGeminiWithFallback(authKeys, {
       contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }],
       tools: [{ googleSearch: {} }],
       generationConfig: { temperature: 0.7, maxOutputTokens: 16000 }
@@ -118,8 +117,8 @@ async function runGeminiEngine(supabase: any, targetCountry: string, targetKeywo
     }
 }
 
-async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, orKey: string): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!orKey) return { error: "Chybi OPENROUTER_API_KEY v DB nebo Secrets!" };
+async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!authKeys || authKeys.length === 0) return { error: "Chybi OPENROUTER_API_KEY v DB nebo Secrets!" };
     
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
@@ -136,26 +135,32 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
     const orErrors: string[] = [];
 
     for (const model of models) {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 10000);
-      try {
-          const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-              method: "POST",
-              signal: controller.signal,
-              headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
-              body: JSON.stringify({ model: model, messages: [{ role: "user", content: SEARCH_PROMPT }], temperature: 0.1 })
-          });
-          clearTimeout(id);
-          if (res.ok) { orRes = res; break; }
-          const errText = await res.text();
-          orErrors.push(`${model}: ${res.status} - ${errText}`);
-          if (res.status === 429 || res.status === 503 || res.status === 502 || res.status === 400 || res.status === 404) { continue; }
-          break; // other error
-      } catch (e: any) {
-          clearTimeout(id);
-          orErrors.push(`${model}: FETCH ERROR - ${e.message}`);
-          continue;
+      for (const ak of authKeys) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 10000);
+        try {
+            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                signal: controller.signal,
+                headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
+                body: JSON.stringify({ model: model, messages: [{ role: "user", content: SEARCH_PROMPT }], temperature: 0.1 })
+            });
+            clearTimeout(id);
+            if (res.ok) { orRes = res; break; }
+            const errText = await res.text();
+            orErrors.push(`${model} (${ak.slice(-4)}): ${res.status} - ${errText}`);
+            if (res.status === 401 || res.status === 429) continue;
+            break; // other error
+        } catch (e: any) {
+            clearTimeout(id);
+            orErrors.push(`${model} (${ak.slice(-4)}): FETCH ERROR - ${e.message}`);
+            continue; // Could be timeout, try next key
+        }
       }
+      if (orRes?.ok) break;
+      const lastStatus = orErrors[orErrors.length - 1];
+      if (lastStatus && (lastStatus.includes("429") || lastStatus.includes("503") || lastStatus.includes("502") || lastStatus.includes("400") || lastStatus.includes("404"))) continue;
+      break;
     }
 
     if (!orRes || !orRes.ok) {
@@ -182,28 +187,33 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
     }
 }
 
-async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, deepseekKey: string): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!deepseekKey) return { error: "Chybi DEEPSEEK_API_KEY v DB nebo Secrets!" };
+async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!authKeys || authKeys.length === 0) return { error: "Chybi DEEPSEEK_API_KEY v DB nebo Secrets!" };
     
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
       .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
-    const res = await fetch("https://api.deepseek.com/chat/completions", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${deepseekKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            model: "deepseek-chat", 
-            messages: [{ role: "system", content: "You are an expert data scraper. Always reply with valid JSON array." }, { role: "user", content: SEARCH_PROMPT }], 
-            temperature: 0.1,
-            response_format: { type: "json_object" } // deepseek supports this
-        })
-    });
+    let res;
+    for (const ak of authKeys) {
+      res = await fetch("https://api.deepseek.com/chat/completions", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+              model: "deepseek-chat", 
+              messages: [{ role: "system", content: "You are an expert data scraper. Always reply with valid JSON array." }, { role: "user", content: SEARCH_PROMPT }], 
+              temperature: 0.1,
+              response_format: { type: "json_object" } // deepseek supports this
+          })
+      });
+      if (res.ok) break;
+      if (res.status !== 401 && res.status !== 429) break;
+    }
     
-    if (!res.ok) {
-       const err = await res.text();
-       return { error: `DeepSeek API Chyba: ${res.status} - ${err}` };
+    if (!res || !res.ok) {
+       const err = await res?.text();
+       return { error: `DeepSeek API Chyba: ${res?.status} - ${err}` };
     }
 
     const resJson = await res.json();
@@ -228,26 +238,31 @@ async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKey
     }
 }
 
-async function runSiliconFlowEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, sfKey: string): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!sfKey) return { error: "Chybi SILICONFLOW_API_KEY v DB nebo Secrets!" };
+async function runSiliconFlowEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!authKeys || authKeys.length === 0) return { error: "Chybi SILICONFLOW_API_KEY v DB nebo Secrets!" };
     
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
       .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
-    const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${sfKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            model: "Qwen/Qwen2.5-7B-Instruct", // Free model on SiliconFlow
-            messages: [{ role: "system", content: "Return only a JSON array of objects." }, { role: "user", content: SEARCH_PROMPT }], 
-            temperature: 0.1 
-        })
-    });
+    let res;
+    for (const ak of authKeys) {
+      res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+              model: "Qwen/Qwen2.5-7B-Instruct", // Free model on SiliconFlow
+              messages: [{ role: "system", content: "Return only a JSON array of objects." }, { role: "user", content: SEARCH_PROMPT }], 
+              temperature: 0.1 
+          })
+      });
+      if (res.ok) break;
+      if (res.status !== 401 && res.status !== 429) break;
+    }
     
-    if (!res.ok) {
-       const err = await res.text();
+    if (!res || !res.ok) {
+       const err = await res?.text();
        const partialKey = sfKey ? (sfKey.substring(0, 5) + "...") : "null";
        return { error: `SiliconFlow API Chyba: ${res.status} - ${err} (Key: ${partialKey})` };
     }
@@ -272,23 +287,28 @@ async function runSiliconFlowEngine(supabase: any, targetCountry: string, target
     }
 }
 
-async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, groqKey: string, placesKey: string): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
-    if (!placesKey || !groqKey) {
+async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, groqKeys: string[], placesKeys: string[]): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
+    if (!placesKeys || placesKeys.length === 0 || !groqKeys || groqKeys.length === 0) {
         return { error: "Chybi GOOGLE_PLACES_API_KEY ci GROQ_API_KEY v DB nebo Secrets!" };
     }
 
     const query = `${targetKeyword} ${targetCity}`;
-    const placesRes = await fetch("https://places.googleapis.com/v1/places:searchText", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-Goog-Api-Key": placesKey,
-            "X-Goog-FieldMask": "places.displayName,places.websiteUri,places.formattedAddress,places.nationalPhoneNumber"
-        },
-        body: JSON.stringify({ textQuery: query, languageCode: "cs" })
-    });
+    let placesRes;
+    for (const pk of placesKeys) {
+      placesRes = await fetch("https://places.googleapis.com/v1/places:searchText", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "X-Goog-Api-Key": pk,
+              "X-Goog-FieldMask": "places.displayName,places.websiteUri,places.formattedAddress,places.nationalPhoneNumber"
+          },
+          body: JSON.stringify({ textQuery: query, languageCode: "cs" })
+      });
+      if (placesRes.ok) break;
+      if (placesRes.status !== 403 && placesRes.status !== 429) break;
+    }
 
-    if (!placesRes.ok) return { error: `Google Places API chyba: ${await placesRes.text()}` };
+    if (!placesRes || !placesRes.ok) return { error: `Google Places API chyba: ${await placesRes?.text()}` };
 
     const placesData = await placesRes.json();
     const places = placesData.places || [];
@@ -327,20 +347,24 @@ async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetK
             const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
             let groqRes;
             for (const gModel of groqModels) {
-                groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        model: gModel,
-                        messages: [
-                            { role: "system", content: "You are a precise data extractor. Extract the requested info and return ONLY a valid JSON array. DO NOT wrap it in markdown or provide any other text." },
-                            { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object: [{"company_name": "${companyName}", "brand_name": "(Short conversational brand name without legal entity or descriptive words like 'stavební společnost', e.g. 'Chrpa')", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "(Try hard to find the name of the owner, manager, or main architect. Put their full name here, or leave empty if not found)", "last_project": "(Name of the most prominent or recent project/reference found on the website. Leave empty if none found)", "premium_score": 50, "ai_icebreaker": "..."}]. If no email found, return []. Text: ${html}` }
-                        ],
-                        temperature: 0.1,
-                        max_tokens: 8000
-                    })
-                });
-                if (groqRes.ok) break;
+                for (const gk of groqKeys) {
+                  groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                      method: "POST",
+                      headers: { "Authorization": `Bearer ${gk}`, "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                          model: gModel,
+                          messages: [
+                              { role: "system", content: "You are a precise data extractor. Extract the requested info and return ONLY a valid JSON array. DO NOT wrap it in markdown or provide any other text." },
+                              { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object: [{"company_name": "${companyName}", "brand_name": "(Short conversational brand name without legal entity or descriptive words like 'stavební společnost', e.g. 'Chrpa')", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "(Try hard to find the name of the owner, manager, or main architect. Put their full name here, or leave empty if not found)", "last_project": "(Name of the most prominent or recent project/reference found on the website. Leave empty if none found)", "premium_score": 50, "ai_icebreaker": "..."}]. If no email found, return []. Text: ${html}` }
+                          ],
+                          temperature: 0.1,
+                          max_tokens: 8000
+                      })
+                  });
+                  if (groqRes.ok) break;
+                  if (groqRes.status !== 401 && groqRes.status !== 429) break;
+                }
+                if (groqRes?.ok) break;
             }
 
             if (groqRes && groqRes.ok) {
@@ -361,7 +385,7 @@ async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetK
             } else { 
                 groqErrors++;
                 if (groqErrors === 1) { // Log the first error from Groq directly so it doesn't get masked
-                  const errText = await groqRes.text().catch(() => "Unknown error");
+                  const errText = await groqRes?.text().catch(() => "Unknown error");
                   console.error(`Groq API Error: ${errText}`);
                 }
             }
@@ -484,11 +508,11 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     const keys = await getApiKeys(supabase);
     const engineResults = await Promise.allSettled(
       activeEngines.map((eng) => {
-        if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity, keys.GROQ_API_KEY, keys.GOOGLE_PLACES_API_KEY);
-        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.OPENROUTER_API_KEY);
-        if (eng === "deepseek")    return runDeepSeekEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.DEEPSEEK_API_KEY);
-        if (eng === "siliconflow") return runSiliconFlowEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.SILICONFLOW_API_KEY);
-        return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, keys.GEMINI_API_KEY);
+        if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity, [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean), [keys.GOOGLE_PLACES_API_KEY, keys.GOOGLE_PLACES_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.OPENROUTER_API_KEY, keys.OPENROUTER_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "deepseek")    return runDeepSeekEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.DEEPSEEK_API_KEY, keys.DEEPSEEK_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "siliconflow") return runSiliconFlowEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.SILICONFLOW_API_KEY, keys.SILICONFLOW_FALLBACK_API_KEY].filter(Boolean));
+        return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.GEMINI_API_KEY, keys.GEMINI_FALLBACK_API_KEY].filter(Boolean));
       })
     );
 

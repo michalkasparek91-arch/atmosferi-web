@@ -15,10 +15,21 @@ export async function getApiKeys(supabase: any) {
   const cleanKey = (k: string) => k ? k.trim().replace(/^Bearer\s+/i, "") : "";
   return {
     GEMINI_API_KEY: cleanKey(dbKeys.GEMINI_API_KEY || Deno.env.get("GEMINI_API_KEY")),
+    GEMINI_FALLBACK_API_KEY: cleanKey(dbKeys.GEMINI_FALLBACK_API_KEY || Deno.env.get("GEMINI_FALLBACK_API_KEY")),
+    
     OPENROUTER_API_KEY: cleanKey(dbKeys.OPENROUTER_API_KEY || Deno.env.get("OPENROUTER_API_KEY")),
+    OPENROUTER_FALLBACK_API_KEY: cleanKey(dbKeys.OPENROUTER_FALLBACK_API_KEY || Deno.env.get("OPENROUTER_FALLBACK_API_KEY")),
+    
     GROQ_API_KEY: cleanKey(dbKeys.GROQ_API_KEY || Deno.env.get("GROQ_API_KEY")),
+    GROQ_FALLBACK_API_KEY: cleanKey(dbKeys.GROQ_FALLBACK_API_KEY || Deno.env.get("GROQ_FALLBACK_API_KEY")),
+    
     GOOGLE_PLACES_API_KEY: cleanKey(dbKeys.GOOGLE_PLACES_API_KEY || Deno.env.get("GOOGLE_PLACES_API_KEY") || Deno.env.get("GOOGLE_MAPS_API_KEY")),
+    GOOGLE_PLACES_FALLBACK_API_KEY: cleanKey(dbKeys.GOOGLE_PLACES_FALLBACK_API_KEY || Deno.env.get("GOOGLE_PLACES_FALLBACK_API_KEY")),
+    
     DEEPSEEK_API_KEY: cleanKey(dbKeys.DEEPSEEK_API_KEY || Deno.env.get("DEEPSEEK_API_KEY")),
+    DEEPSEEK_FALLBACK_API_KEY: cleanKey(dbKeys.DEEPSEEK_FALLBACK_API_KEY || Deno.env.get("DEEPSEEK_FALLBACK_API_KEY")),
+    
     SILICONFLOW_API_KEY: cleanKey(dbKeys.SILICONFLOW_API_KEY || Deno.env.get("SILICONFLOW_API_KEY")),
+    SILICONFLOW_FALLBACK_API_KEY: cleanKey(dbKeys.SILICONFLOW_FALLBACK_API_KEY || Deno.env.get("SILICONFLOW_FALLBACK_API_KEY")),
   };
 }

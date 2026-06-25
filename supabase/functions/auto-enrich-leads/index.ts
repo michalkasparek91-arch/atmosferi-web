@@ -56,19 +56,18 @@ Deno.serve(async (req) => {
     }
 
     // Determine active enrich engines (independently toggled)
-    const useGemini = enrichEngine === "gemini" || enrichEngine === "both" || enrichEngine === "all";
-    const useGroq   = enrichEngine === "groq"   || enrichEngine === "both" || enrichEngine === "all";
-    const useOpenRouter = enrichEngine === "openrouter" || enrichEngine === "all";
-    const useDeepSeek = enrichEngine === "deepseek" || enrichEngine === "all";
-    const useSiliconFlow = enrichEngine === "siliconflow" || enrichEngine === "all";
+    const useGemini = configData?.value?.use_gemini_enrich_engine ?? (enrichEngine === "gemini" || enrichEngine === "both" || enrichEngine === "all");
+    const useGroq   = configData?.value?.use_groq_enrich_engine ?? (enrichEngine === "groq" || enrichEngine === "both" || enrichEngine === "all");
+    const useOpenRouter = configData?.value?.use_openrouter_enrich_engine ?? (enrichEngine === "openrouter" || enrichEngine === "all");
+    const useDeepSeek = configData?.value?.use_deepseek_enrich_engine ?? (enrichEngine === "deepseek" || enrichEngine === "all");
+    const useSiliconFlow = configData?.value?.use_siliconflow_enrich_engine ?? (enrichEngine === "siliconflow" || enrichEngine === "all");
 
     // Select oldest updated leads that need enrichment
     const { data: leads } = await supabase
       .from("marketing_leads")
       .select("id, email, full_name, company_name, website, city, category, updated_at")
-      .not("website", "is", null)
-      .neq("website", "")
-      .or("city.is.null,category.is.null")
+      .is("ai_icebreaker", null)
+      .not("email", "is", null)
       .order("updated_at", { ascending: true, nullsFirst: true })
       .limit(batchSize);
 
@@ -135,19 +134,25 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
     if (useGroq) {
       engineTasks.push((async () => {
-        const groqApiKey = keys.GROQ_API_KEY;
-        if (!groqApiKey) { engineErrors.groq = "Missing GROQ_API_KEY"; return; }
+        const authKeys = [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean);
+        if (authKeys.length === 0) { engineErrors.groq = "Missing GROQ_API_KEY"; return; }
         const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
         let groqRes;
         let lastErr = "";
+        
         for (const gModel of groqModels) {
-          groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqApiKey}` },
-            body: JSON.stringify({ model: gModel, messages: [{ role: "user", content: PROMPT }], temperature: 0.1, max_tokens: 8000 })
-          });
-          if (groqRes.ok) break;
-          lastErr = await groqRes.text();
+          for (const ak of authKeys) {
+            groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+              method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+              body: JSON.stringify({ model: gModel, messages: [{ role: "user", content: PROMPT }], temperature: 0.1, max_tokens: 8000 })
+            });
+            if (groqRes.ok) break;
+            lastErr = await groqRes.text();
+            if (groqRes.status !== 401 && groqRes.status !== 429) break; // Not a rate limit / auth issue, so break key loop
+          }
+          if (groqRes?.ok) break;
         }
+        
         if (!groqRes || !groqRes.ok) { engineErrors.groq = lastErr || "All Groq models failed"; return; }
         await logUsage("groq");
         const arr = parseAIJson((await groqRes.json()).choices?.[0]?.message?.content || "");
@@ -158,8 +163,8 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
     if (useOpenRouter) {
       engineTasks.push((async () => {
-        const orKey = keys.OPENROUTER_API_KEY;
-        if (!orKey) { engineErrors.openrouter = "Missing OPENROUTER_API_KEY"; return; }
+        const authKeys = [keys.OPENROUTER_API_KEY, keys.OPENROUTER_FALLBACK_API_KEY].filter(Boolean);
+        if (authKeys.length === 0) { engineErrors.openrouter = "Missing OPENROUTER_API_KEY"; return; }
         const models = [
           "meta-llama/llama-3.3-70b-instruct:free",
           "google/gemma-4-31b-it:free",
@@ -170,15 +175,22 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const orErrors: string[] = [];
 
         for (const model of models) {
-          const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${orKey}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
-            body: JSON.stringify({ model: model, messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
-          });
-          if (res.ok) { orRes = res; break; }
-          const errText = await res.text();
-          orErrors.push(`${model}: ${res.status} - ${errText}`);
-          if (res.status === 429 || res.status === 503 || res.status === 502 || res.status === 400 || res.status === 404) { continue; }
+          for (const ak of authKeys) {
+            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
+              body: JSON.stringify({ model: model, messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
+            });
+            if (res.ok) { orRes = res; break; }
+            const errText = await res.text();
+            orErrors.push(`${model}: ${res.status} - ${errText}`);
+            if (res.status === 401 || res.status === 429) continue; // Try fallback key
+            break; 
+          }
+          if (orRes?.ok) break;
+          // if previous fail was not auth, maybe next model?
+          const lastStatus = orErrors[orErrors.length - 1];
+          if (lastStatus.includes("429") || lastStatus.includes("503") || lastStatus.includes("502") || lastStatus.includes("400") || lastStatus.includes("404")) continue;
           break; // other error
         }
 
@@ -197,20 +209,25 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
     if (useDeepSeek) {
       engineTasks.push((async () => {
-        const dsKey = keys.DEEPSEEK_API_KEY;
-        if (!dsKey) { engineErrors.deepseek = "Missing DEEPSEEK_API_KEY"; return; }
+        const authKeys = [keys.DEEPSEEK_API_KEY, keys.DEEPSEEK_FALLBACK_API_KEY].filter(Boolean);
+        if (authKeys.length === 0) { engineErrors.deepseek = "Missing DEEPSEEK_API_KEY"; return; }
         try {
-          const res = await fetch("https://api.deepseek.com/chat/completions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${dsKey}` },
-            body: JSON.stringify({
-              model: "deepseek-chat",
-              messages: [{ role: "system", content: "You are data enrichment AI. Always reply with valid JSON array." }, { role: "user", content: PROMPT }],
-              temperature: 0.1,
-              response_format: { type: "json_object" }
-            })
-          });
-          if (!res.ok) { engineErrors.deepseek = `${res.status} ${await res.text()}`; return; }
+          let res;
+          for (const ak of authKeys) {
+            res = await fetch("https://api.deepseek.com/chat/completions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+              body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [{ role: "system", content: "You are data enrichment AI. Always reply with valid JSON array." }, { role: "user", content: PROMPT }],
+                temperature: 0.1,
+                response_format: { type: "json_object" }
+              })
+            });
+            if (res.ok) break;
+            if (res.status !== 401 && res.status !== 429) break;
+          }
+          if (!res || !res.ok) { engineErrors.deepseek = `${res?.status} ${await res?.text()}`; return; }
           const resJson = await res.json();
           let text = resJson.choices?.[0]?.message?.content || "";
           if (text) {
@@ -230,19 +247,24 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
     if (useSiliconFlow) {
       engineTasks.push((async () => {
-        const sfKey = keys.SILICONFLOW_API_KEY;
-        if (!sfKey) { engineErrors.siliconflow = "Missing SILICONFLOW_API_KEY"; return; }
+        const authKeys = [keys.SILICONFLOW_API_KEY, keys.SILICONFLOW_FALLBACK_API_KEY].filter(Boolean);
+        if (authKeys.length === 0) { engineErrors.siliconflow = "Missing SILICONFLOW_API_KEY"; return; }
         try {
-          const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sfKey}` },
-            body: JSON.stringify({
-              model: "Qwen/Qwen2.5-7B-Instruct",
-              messages: [{ role: "system", content: "Return only a JSON array." }, { role: "user", content: PROMPT }],
-              temperature: 0.1
-            })
-          });
-          if (!res.ok) { engineErrors.siliconflow = `${res.status} ${await res.text()}`; return; }
+          let res;
+          for (const ak of authKeys) {
+            res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+              body: JSON.stringify({
+                model: "Qwen/Qwen2.5-7B-Instruct",
+                messages: [{ role: "system", content: "Return only a JSON array." }, { role: "user", content: PROMPT }],
+                temperature: 0.1
+              })
+            });
+            if (res.ok) break;
+            if (res.status !== 401 && res.status !== 429) break;
+          }
+          if (!res || !res.ok) { engineErrors.siliconflow = `${res?.status} ${await res?.text()}`; return; }
           const resJson = await res.json();
           let text = resJson.choices?.[0]?.message?.content || "";
           if (text) {
@@ -261,6 +283,9 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
     if (useGemini) {
       engineTasks.push((async () => {
+        const authKeys = [keys.GEMINI_API_KEY, keys.GEMINI_FALLBACK_API_KEY].filter(Boolean);
+        if (authKeys.length === 0) { engineErrors.gemini = "Missing GEMINI_API_KEY"; return; }
+        
         // Cascade through Gemini models
         const models = [
           "gemini-2.5-flash",
@@ -274,16 +299,21 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const geminiErrors: string[] = [];
         
         for (const model of models) {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 16000 } })
-          });
-          if (res.ok) { geminiRes = res; break; }
-          
-          const errText = await res.text();
-          geminiErrors.push(`${model}: ${res.status} - ${errText}`);
-          
-          if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) { continue; }
+          for (const ak of authKeys) {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${ak}`, {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 16000 } })
+            });
+            if (res.ok) { geminiRes = res; break; }
+            
+            const errText = await res.text();
+            geminiErrors.push(`${model} (key: ${ak.slice(-4)}): ${res.status} - ${errText}`);
+            if (res.status === 429 || res.status === 401) continue; // Try fallback key
+            break;
+          }
+          if (geminiRes?.ok) break;
+          const lastStatus = geminiErrors[geminiErrors.length - 1];
+          if (lastStatus.includes("429") || lastStatus.includes("503") || lastStatus.includes("404") || lastStatus.includes("400")) { continue; }
           break; // other error
         }
         
