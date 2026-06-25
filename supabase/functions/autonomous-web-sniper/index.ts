@@ -539,6 +539,21 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       }
     }
 
+    try {
+      const { data: healthData } = await supabase.from("app_settings").select("value").eq("key", "api_health").maybeSingle();
+      const currentHealth = healthData?.value || {};
+      for (const eng of activeEngines) {
+        if (engineErrors[eng]) {
+          currentHealth[eng] = { status: "error", message: engineErrors[eng], updated_at: new Date().toISOString() };
+        } else {
+          currentHealth[eng] = { status: "ok", message: "OK", updated_at: new Date().toISOString() };
+        }
+      }
+      await supabase.from("app_settings").upsert({ key: "api_health", value: currentHealth }, { onConflict: "key" });
+    } catch (e) {
+      console.error("Failed to update api_health", e);
+    }
+
     const discoveredList = deduplicateByEmail(allDiscovered);
 
     if (discoveredList.length === 0) {

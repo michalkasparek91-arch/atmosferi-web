@@ -332,6 +332,28 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
 
     await Promise.allSettled(engineTasks);
 
+    try {
+      const { data: healthData } = await supabase.from("app_settings").select("value").eq("key", "api_health").maybeSingle();
+      const currentHealth = healthData?.value || {};
+      const testedEngines = [];
+      if (useGroq) testedEngines.push("groq");
+      if (useOpenRouter) testedEngines.push("openrouter");
+      if (useDeepSeek) testedEngines.push("deepseek");
+      if (useSiliconFlow) testedEngines.push("siliconflow");
+      if (useGemini) testedEngines.push("gemini");
+      
+      for (const eng of testedEngines) {
+        if (engineErrors[eng]) {
+          currentHealth[eng] = { status: "error", message: engineErrors[eng], updated_at: new Date().toISOString() };
+        } else {
+          currentHealth[eng] = { status: "ok", message: "OK", updated_at: new Date().toISOString() };
+        }
+      }
+      await supabase.from("app_settings").upsert({ key: "api_health", value: currentHealth }, { onConflict: "key" });
+    } catch (e) {
+      console.error("Failed to update api_health", e);
+    }
+
     const extractedArray = Object.values(mergedResults);
 
     let updatedCount = 0;

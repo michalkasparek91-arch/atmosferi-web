@@ -146,8 +146,14 @@ Deno.serve(async (req) => {
 
     const resultObj: Record<string, any> = {};
     for (const r of results) {
-      resultObj[r.engine] = { status: r.status, message: r.message };
+      resultObj[r.engine] = { status: r.status, message: r.message, updated_at: new Date().toISOString() };
     }
+
+    // Save to DB
+    await supabase.from("app_settings").upsert({
+      key: "api_health",
+      value: resultObj
+    }, { onConflict: "key" });
 
     return new Response(JSON.stringify(resultObj), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

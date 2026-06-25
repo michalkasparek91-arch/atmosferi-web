@@ -13,7 +13,20 @@ import { toast } from "sonner";
 export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any) => {
   const queryClient = useQueryClient();
   const [keys, setKeys] = useState<Record<string, string>>({});
-  const [testResults, setTestResults] = useState<Record<string, { status: 'ok' | 'error' | 'testing', msg?: string }>>({});
+
+  const { data: testResults = {} } = useQuery({
+    queryKey: ["admin-api-health"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "api_health")
+        .maybeSingle();
+      if (error || !data?.value) return {};
+      return data.value;
+    },
+    refetchInterval: 30000 // refresh every 30s so the user sees background errors
+  });
 
   const { isLoading: keysLoading } = useQuery({
     queryKey: ["admin-api-keys"],
@@ -56,8 +69,7 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
 
   const testApiKeys = async () => {
     toast.info("Testování API klíčů...");
-    setTestResults({});
-    const { data, error } = await supabase.functions.invoke('test-api-keys', {
+    const { error } = await supabase.functions.invoke('test-api-keys', {
       method: "POST"
     });
     
@@ -65,7 +77,7 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
        toast.error("Nepodařilo se spojit s testovací funkcí");
        return;
     }
-    setTestResults(data || {});
+    queryClient.invalidateQueries({ queryKey: ["admin-api-health"] });
     toast.success("Testování dokončeno");
   };
 
@@ -144,12 +156,13 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                 <div>
                   <h3 className="font-medium text-sm flex items-center gap-2">
                     {p.name}
-                    {primaryStatus && (
-                      <div 
-                        className={`w-2.5 h-2.5 rounded-full flex-shrink-0 cursor-help ${primaryStatus === 'ok' ? 'bg-green-500' : 'bg-red-500'}`} 
-                        title={testResults[p.id]?.message || (primaryStatus === 'ok' ? 'Online' : 'Error')}
-                      />
-                    )}
+                    <div 
+                      className={`w-2.5 h-2.5 rounded-full flex-shrink-0 cursor-help ${
+                        primaryStatus === 'ok' ? 'bg-green-500' : 
+                        primaryStatus === 'error' ? 'bg-red-500' : 'bg-muted-foreground/30'
+                      }`} 
+                      title={testResults[p.id]?.message || (primaryStatus === 'ok' ? 'Online' : primaryStatus === 'error' ? 'Error' : 'Neotestováno - klikněte na Otestovat')}
+                    />
                   </h3>
                   <p className="text-[11px] text-muted-foreground mt-0.5">{p.desc}</p>
                 </div>

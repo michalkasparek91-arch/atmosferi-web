@@ -1076,7 +1076,7 @@ export const AudienceManager = (props: any) => {
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-[10px] text-muted-foreground">{new Date(event.date).toLocaleDateString('cs-CZ')}</span>
+                            <span className="text-[10px] text-muted-foreground">{event.date ? new Date(event.date).toLocaleDateString('cs-CZ') : ''}</span>
                           </div>
                         </div>
                       </div>
@@ -1153,7 +1153,7 @@ export const AudienceManager = (props: any) => {
                   {(selectedContactForSheet.latitude !== null && selectedContactForSheet.longitude !== null && selectedContactForSheet.latitude !== undefined) && (
                     <div className="flex items-center justify-between pt-1">
                       <span className="text-muted-foreground text-[11px]">GPS</span>
-                      <span className="text-[11px] text-muted-foreground">{selectedContactForSheet.latitude.toFixed(5)}, {selectedContactForSheet.longitude.toFixed(5)}</span>
+                      <span className="text-[11px] text-muted-foreground">{Number(selectedContactForSheet.latitude).toFixed(5)}, {Number(selectedContactForSheet.longitude).toFixed(5)}</span>
                     </div>
                   )}
                 </div>
