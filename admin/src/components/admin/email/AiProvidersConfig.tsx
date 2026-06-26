@@ -115,15 +115,20 @@ const LastRunBadge = ({ health, sharedJob }: { health: any; sharedJob?: any }) =
   const StatusIcon = isSuccess ? CheckCircle2 : isError ? XCircle : isRunning ? Loader2 : Clock;
   const statusLabel = isSuccess ? "Úspěch" : isError ? "Chyba" : isRunning ? "Probíhá…" : "Neznámý";
 
-  // Supplementary counts from the shared job
+  // Per-provider stats from api_health (last_run_processed written by auto-enrich-leads per engine)
+  // Fall back to shared job metadata if not yet populated
+  const perProviderProcessed = health?.last_run_processed;
   const meta = sharedJob?.metadata || {};
-  const metaLine = meta.processed !== undefined
-    ? `${meta.processed} zpracováno, ${meta.updated ?? 0} aktualizováno`
+  const metaLine = perProviderProcessed !== undefined
+    ? `${perProviderProcessed} zpracováno`
+    : meta.processed !== undefined
+    ? `${meta.processed} zpracováno (celkem)`
     : meta.count !== undefined
     ? `${meta.count} zpracováno`
     : meta.message || null;
 
   const errorMsg = health?.message && health.status === "error" ? health.message : sharedJob?.last_run_error;
+
 
   return (
     <div className="flex flex-col gap-0.5">

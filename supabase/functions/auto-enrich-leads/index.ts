@@ -138,34 +138,47 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
     // Call each active engine and merge results (later entries overwrite earlier for same id)
     const mergedResults: Record<string, any> = {};
     const engineErrors: Record<string, string> = {};
+    const engineStats: Record<string, { processed: number }> = {};
     const engineTasks: Promise<void>[] = [];
+
+    // Helper: split array into chunks
+    function chunk<T>(arr: T[], size: number): T[][] {
+      const out: T[][] = [];
+      for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+      return out;
+    }
 
     if (useGroq) {
       engineTasks.push((async () => {
         const authKeys = [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean);
         if (authKeys.length === 0) { engineErrors.groq = "Missing GROQ_API_KEY"; return; }
-        const groqModels = [groqModel, "llama-3.3-70b-versatile", "llama-3.1-8b-instant"].filter((v, i, a) => a.indexOf(v) === i);
-        let groqRes;
+        // Groq has low TPM limits on free tier — use smaller chunks (20 leads max)
+        const groqModels = [groqModel, "llama-3.3-70b-versatile", "llama-3.1-70b-versatile"].filter((v, i, a) => a.indexOf(v) === i);
+        const chunks = chunk(inputForAI, 20);
+        let totalProcessed = 0;
         let lastErr = "";
-        
-        for (const gModel of groqModels) {
-          for (const ak of authKeys) {
-            groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-              method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
-              body: JSON.stringify({ model: gModel, messages: [{ role: "user", content: PROMPT }], temperature: 0.1, max_tokens: 8000 })
-            });
-            if (groqRes.ok) break;
-            lastErr = await groqRes.text();
-            if (groqRes.status !== 401 && groqRes.status !== 429) break; // Not a rate limit / auth issue, so break key loop
+        for (const chunkData of chunks) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          let groqRes;
+          for (const gModel of groqModels) {
+            for (const ak of authKeys) {
+              groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+                body: JSON.stringify({ model: gModel, messages: [{ role: "user", content: chunkPrompt }], temperature: 0.1, max_tokens: 4000 })
+              });
+              if (groqRes.ok) break;
+              lastErr = await groqRes.text();
+              if (groqRes.status !== 401 && groqRes.status !== 429) break;
+            }
+            if (groqRes?.ok) break;
           }
-          if (groqRes?.ok) break;
+          if (!groqRes || !groqRes.ok) { engineErrors.groq = lastErr || "All Groq models failed"; continue; }
+          await logUsage("groq");
+          const arr = parseAIJson((await groqRes.json()).choices?.[0]?.message?.content || "");
+          for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
         }
-        
-        if (!groqRes || !groqRes.ok) { engineErrors.groq = lastErr || "All Groq models failed"; return; }
-        await logUsage("groq");
-        const arr = parseAIJson((await groqRes.json()).choices?.[0]?.message?.content || "");
-        if (arr.length === 0) engineErrors.groq = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";
-        for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+        engineStats.groq = { processed: totalProcessed };
+        if (totalProcessed === 0 && !engineErrors.groq) engineErrors.groq = "No items returned from Groq";
       })().catch(e => { engineErrors.groq = e.message; }));
     }
 
@@ -208,8 +221,10 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         await logUsage("openrouter");
         try {
           const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
-          if (arr.length === 0) engineErrors.openrouter = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";
-          for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+          if (arr.length === 0) engineErrors.openrouter = "Nezpracovatelný JSON";
+          let cnt = 0;
+          for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; cnt++; }
+          engineStats.openrouter = { processed: cnt };
         } catch(e: any) { engineErrors.openrouter = e.message; }
       }));
     }
@@ -243,9 +258,11 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
               if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
           }
           const parsed = JSON.parse(text);
-          const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find(v => Array.isArray(v)) || [];
+          const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find((v: any) => Array.isArray(v)) || [];
           if (finalArray.length > 0) {
-            for (const item of finalArray) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+            let cnt = 0;
+            for (const item of finalArray) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; cnt++; }
+            engineStats.deepseek = { processed: cnt };
             await logUsage("deepseek");
           }
         } catch(e: any) { engineErrors.deepseek = e.message; }
@@ -281,7 +298,9 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
           }
           const parsed = JSON.parse(text);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            for (const item of parsed) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+            let cnt = 0;
+            for (const item of parsed) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; cnt++; }
+            engineStats.siliconflow = { processed: cnt };
             await logUsage("siliconflow");
           }
         } catch(e: any) { engineErrors.siliconflow = e.message; }
@@ -329,9 +348,10 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         await logUsage("gemini");
         const resJson = await geminiRes.json();
         const arr = parseAIJson(resJson.candidates?.[0]?.content?.parts?.[0]?.text || "");
-        if (arr.length === 0) engineErrors.gemini = "Nezpracovatelný JSON (pravděpodobně oříznuto kvůli příliš velké dávce)";
-        // Gemini result is authoritative – overrides others
-        for (const item of arr) if (item.id) mergedResults[item.id] = { ...mergedResults[item.id], ...item };
+        if (arr.length === 0) engineErrors.gemini = "Nezpracovatelný JSON (pravděpodobně oříznuto)";
+        let cnt = 0;
+        for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; cnt++; }
+        engineStats.gemini = { processed: cnt };
       })().catch(e => { engineErrors.gemini = e.message; }));
     }
 
@@ -340,7 +360,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
     try {
       const { data: healthData } = await supabase.from("app_settings").select("value").eq("key", "api_health").maybeSingle();
       const currentHealth = healthData?.value || {};
-      const testedEngines = [];
+      const testedEngines: string[] = [];
       if (useGroq) testedEngines.push("groq");
       if (useOpenRouter) testedEngines.push("openrouter");
       if (useDeepSeek) testedEngines.push("deepseek");
@@ -348,10 +368,11 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       if (useGemini) testedEngines.push("gemini");
       
       for (const eng of testedEngines) {
+        const prev = currentHealth[eng] || {};
         if (engineErrors[eng]) {
-          currentHealth[eng] = { status: "error", message: engineErrors[eng], updated_at: new Date().toISOString() };
+          currentHealth[eng] = { ...prev, status: "error", message: engineErrors[eng], updated_at: new Date().toISOString(), last_run_processed: engineStats[eng]?.processed ?? 0 };
         } else {
-          currentHealth[eng] = { status: "ok", message: "OK", updated_at: new Date().toISOString() };
+          currentHealth[eng] = { ...prev, status: "ok", message: "OK", updated_at: new Date().toISOString(), last_run_processed: engineStats[eng]?.processed ?? 0 };
         }
       }
       await supabase.from("app_settings").upsert({ key: "api_health", value: currentHealth }, { onConflict: "key" });
