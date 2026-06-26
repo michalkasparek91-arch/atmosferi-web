@@ -50,10 +50,17 @@ Deno.serve(async (req) => {
     const { data: configData } = await supabase.from("app_settings").select("value").eq("key", "scraper_config").maybeSingle();
     let batchSize = 50;
     let enrichEngine = "gemini";
-    if (configData && configData.value) {
-       if (configData.value.ai_batch_size) batchSize = configData.value.ai_batch_size;
-       if (configData.value.enrich_engine) enrichEngine = configData.value.enrich_engine;
-    }
+    const cfg = configData?.value || {};
+    if (cfg.ai_batch_size) batchSize = cfg.ai_batch_size;
+    if (cfg.enrich_engine) enrichEngine = cfg.enrich_engine;
+
+    // Per-provider model overrides (configured in Admin > AI Hub > Modely & Klíče)
+    const groqModel      = cfg.groq_model      || "llama-3.3-70b-versatile";
+    const geminiModel    = cfg.gemini_model    || "gemini-2.0-flash";
+    const openrouterModel = cfg.openrouter_model || "meta-llama/llama-3.3-70b-instruct:free";
+    const deepseekModel  = cfg.deepseek_model  || "deepseek-chat";
+    const siliconflowModel = cfg.siliconflow_model || "Qwen/Qwen2.5-72B-Instruct";
+
 
     // Determine active enrich engines (independently toggled)
     const useGemini = configData?.value?.use_gemini_enrich_engine ?? (enrichEngine === "gemini" || enrichEngine === "both" || enrichEngine === "all");
@@ -136,7 +143,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       engineTasks.push((async () => {
         const authKeys = [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean);
         if (authKeys.length === 0) { engineErrors.groq = "Missing GROQ_API_KEY"; return; }
-        const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
+        const groqModels = [groqModel, "llama-3.3-70b-versatile", "llama-3.1-8b-instant"].filter((v, i, a) => a.indexOf(v) === i);
         let groqRes;
         let lastErr = "";
         
@@ -166,11 +173,10 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const authKeys = [keys.OPENROUTER_API_KEY, keys.OPENROUTER_FALLBACK_API_KEY].filter(Boolean);
         if (authKeys.length === 0) { engineErrors.openrouter = "Missing OPENROUTER_API_KEY"; return; }
         const models = [
+          openrouterModel,
           "meta-llama/llama-3.3-70b-instruct:free",
           "google/gemma-4-31b-it:free",
-          "nvidia/nemotron-3-super-120b-a12b:free",
-          "openrouter/free"
-        ];
+        ].filter((v, i, a) => a.indexOf(v) === i);
         let orRes: Response | null = null;
         const orErrors: string[] = [];
 
