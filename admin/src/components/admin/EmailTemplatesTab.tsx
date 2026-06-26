@@ -288,7 +288,7 @@ export default function EmailTemplatesTab() {
     mutationFn: async (template: EmailTemplate) => {
       const payload: Record<string, any> = {
         name: `${template.name} (kopie)`,
-        slug: `${template.slug}-copy`,
+        slug: `${template.slug}-copy-${Math.floor(1000 + Math.random() * 9000)}`,
         subject: template.subject,
         category: template.category,
         emoji: template.emoji,
