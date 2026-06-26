@@ -101,47 +101,44 @@ const StatusDot = ({ status, message, updatedAt }: { status: string | undefined;
   );
 };
 
-// ─── Last run display ────────────────────────────────────────────────────────
-// Uses per-provider api_health entry (written by auto-enrich-leads after each engine run)
-// and supplements with the shared automation_jobs metadata (processed/updated counts).
-const LastRunBadge = ({ health, sharedJob }: { health: any; sharedJob?: any }) => {
-  // Derive per-provider run info from api_health
-  // api_health[provider] = { status: 'ok'|'error', message, updated_at }
-  if (!health && !sharedJob) {
-    return <span className="text-[10px] text-muted-foreground/40 italic">Žádný záznam</span>;
-  }
+const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: any }) => {
+  if (!health && !job) return null;
 
-  // Use api_health.updated_at as the per-provider timestamp (most accurate)
   const healthTs = health?.updated_at;
-  const sharedTs = sharedJob?.last_run_at || sharedJob?.updated_at;
-  // Prefer health timestamp if it's newer or only source
-  const lastRunAt = healthTs || sharedTs;
+  const jobTs = job?.last_run_at || job?.updated_at;
+  const lastRunAt = healthTs || jobTs;
 
-  const isSuccess = health?.status === "ok" || (!health && sharedJob?.last_run_status === "success");
-  const isError = health?.status === "error" || (!health && sharedJob?.last_run_status === "failure");
-  const isRunning = sharedJob?.last_run_status === "running" && !healthTs;
+  const isSuccess = health?.status === "ok" || (!health && job?.last_run_status === "success");
+  const isError = health?.status === "error" || (!health && job?.last_run_status === "failure");
+  const isRunning = job?.last_run_status === "running" && !healthTs;
 
   const statusColor = isSuccess ? "text-emerald-600" : isError ? "text-red-500" : isRunning ? "text-blue-500" : "text-muted-foreground";
   const StatusIcon = isSuccess ? CheckCircle2 : isError ? XCircle : isRunning ? Loader2 : Clock;
   const statusLabel = isSuccess ? "Úspěch" : isError ? "Chyba" : isRunning ? "Probíhá…" : "Neznámý";
 
-  // Per-provider stats from api_health (last_run_processed written by auto-enrich-leads per engine)
-  // Fall back to shared job metadata if not yet populated
   const perProviderProcessed = health?.last_run_processed;
-  const meta = sharedJob?.metadata || {};
-  const metaLine = perProviderProcessed !== undefined
-    ? `${perProviderProcessed} zpracováno`
-    : meta.processed !== undefined
-    ? `${meta.processed} zpracováno (celkem)`
-    : meta.count !== undefined
-    ? `${meta.count} zpracováno`
-    : meta.message || null;
+  const meta = job?.metadata || {};
+  let metaLine = null;
+  
+  if (title === "Enrichment") {
+    metaLine = perProviderProcessed !== undefined 
+      ? `${perProviderProcessed} obohaceno` 
+      : meta.processed !== undefined 
+      ? `${meta.processed} obohaceno (celkem)` 
+      : null;
+  } else if (title === "Sběr (Hledání)") {
+    metaLine = meta.discovered_count !== undefined
+      ? `${meta.discovered_count} získáno`
+      : meta.message || null;
+  } else {
+    metaLine = meta.message || null;
+  }
 
-  const errorMsg = health?.message && health.status === "error" ? health.message : sharedJob?.last_run_error;
-
+  const errorMsg = health?.message && health.status === "error" ? health.message : job?.last_run_error;
 
   return (
     <div className="flex flex-col gap-0.5">
+      <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{title}</p>
       <div className={`flex items-center gap-1 text-[10px] font-semibold ${statusColor}`}>
         <StatusIcon className={`h-2.5 w-2.5 ${isRunning ? "animate-spin" : ""}`} />
         {statusLabel}
@@ -157,7 +154,7 @@ const LastRunBadge = ({ health, sharedJob }: { health: any; sharedJob?: any }) =
         </p>
       )}
       {isError && errorMsg && (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-0.5 mt-0.5">
           <p className="text-[9px] text-red-400 leading-tight truncate max-w-[200px]" title={errorMsg}>
             {errorMsg}
           </p>
@@ -572,10 +569,24 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                   </div>
                 )}
 
-                {/* LAST RUN — per-provider from api_health */}
-                <div className="border-t border-border/30 pt-3 mt-auto">
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Poslední run</p>
-                  <LastRunBadge health={primaryStatus} sharedJob={mostRecentJob} />
+                {/* LAST RUN — separated by job type */}
+                <div className="border-t border-border/30 pt-3 mt-auto flex flex-col gap-3">
+                  {p.relatedJobs?.includes("Continuous Web Discovery") && (
+                    <JobBadge 
+                      title="Sběr (Hledání)" 
+                      job={jobMap["Continuous Web Discovery"]} 
+                    />
+                  )}
+                  {p.relatedJobs?.includes("Auto Enrich Leads") && (
+                    <JobBadge 
+                      title="Enrichment" 
+                      health={primaryStatus} 
+                      job={jobMap["Auto Enrich Leads"]} 
+                    />
+                  )}
+                  {!p.relatedJobs?.includes("Continuous Web Discovery") && !p.relatedJobs?.includes("Auto Enrich Leads") && (
+                    <span className="text-[10px] text-muted-foreground/40 italic">Žádné statistiky</span>
+                  )}
                 </div>
               </CardContent>
             </Card>
