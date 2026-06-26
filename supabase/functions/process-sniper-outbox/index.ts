@@ -7,8 +7,8 @@ const corsHeaders = {
 };
 
 const CHUNK_SIZE = {
-  brevo: 10,
-  ses: 2,
+  brevo: 50,
+  ses: 20,
 } as const;
 
 const SEND_DELAY_MS = {
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         throw new Error(`Template not found: ${templateErr?.message || template_id}`);
       }
 
-      const requestedBatchSize = Math.min(batch_limit || 300, 6); // Hard limit to 6 to prevent Supabase 150s timeout due to 20s delay
+      const requestedBatchSize = Math.min(batch_limit || 300, CHUNK_SIZE[provider]);
 
       if (create_drafts !== false) {
         const created = await ensureDraftsForTemplate(supabaseAdmin, template, requestedBatchSize);

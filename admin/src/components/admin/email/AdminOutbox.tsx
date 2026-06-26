@@ -24,6 +24,18 @@ export const AdminOutbox = () => {
   const [filterType, setFilterType] = useState<"all" | "job" | "general" | "campaigns">("general");
   const [emailProvider, setEmailProvider] = useState<"brevo" | "ses">("brevo");
 
+  // Timed campaign state
+  const [activeCampaign, setActiveCampaign] = useState<{
+    templateId: string;
+    templateName: string;
+    totalSent: number;
+    totalFailed: number;
+    wavesSent: number;
+    dailyLimit: number;
+    intervalId: ReturnType<typeof setInterval> | null;
+    stopped: boolean;
+  } | null>(null);
+
   const { data: virtualBatches = [], isLoading: isLoadingBatches } = useQuery({
     queryKey: ["admin-outbox-batches"],
     queryFn: async () => {
@@ -36,64 +48,104 @@ export const AdminOutbox = () => {
     },
   });
 
-  const sendBatchMutation = useMutation({
-    mutationFn: async ({ template_id, batch_size }: { template_id: string, batch_size: number }) => {
-      let totalSent = 0;
-      let totalFailed = 0;
-      let hasMore = true;
-      let quotaError: string | null = null;
+  const DAILY_LIMITS = { brevo: 300, ses: 200 } as const;
+  const WAVE_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes between waves
 
-      while (hasMore) {
-        const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
-          body: {
-            action: "send_template_batch",
-            template_id,
-            batch_limit: batch_size,
-            provider: emailProvider,
-            create_drafts: totalSent === 0 && totalFailed === 0,
-          },
+  const sendOneWave = React.useCallback(async (templateId: string): Promise<{ sent: number; failed: number; hasMore: boolean }> => {
+    const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
+      body: {
+        action: "send_template_batch",
+        template_id: templateId,
+        batch_limit: emailProvider === "brevo" ? 50 : 20,
+        provider: emailProvider,
+        create_drafts: true,
+      },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return {
+      sent: data?.sent_count || 0,
+      failed: data?.failed_count || 0,
+      hasMore: !!data?.has_more,
+    };
+  }, [emailProvider]);
+
+  const stopCampaign = React.useCallback(() => {
+    setActiveCampaign(prev => {
+      if (prev?.intervalId) clearInterval(prev.intervalId);
+      return prev ? { ...prev, intervalId: null, stopped: true } : null;
+    });
+    queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
+  }, [queryClient]);
+
+  const startCampaign = React.useCallback(async (templateId: string, templateName: string) => {
+    const dailyLimit = DAILY_LIMITS[emailProvider];
+    let totalSent = 0;
+    let totalFailed = 0;
+    let wavesSent = 0;
+    let stopped = false;
+
+    const doWave = async () => {
+      if (stopped || totalSent >= dailyLimit) {
+        setActiveCampaign(prev => {
+          if (prev?.intervalId) clearInterval(prev.intervalId);
+          return prev ? { ...prev, intervalId: null, stopped: true } : null;
         });
-
-        if (error) throw error;
-        if (data?.error) {
-          quotaError = data.error;
-          totalSent += data?.sent_count || 0;
-          totalFailed += data?.failed_count || 0;
-          break;
-        }
-
-        totalSent += data?.sent_count || 0;
-        totalFailed += data?.failed_count || 0;
-        hasMore = !!data?.has_more;
-
-        if (hasMore) {
-          toast.info(`Odesílám dávku… (${totalSent} odesláno, zbývá ~${data?.remaining || "?"})`, { duration: 2000 });
-        }
+        toast.success(`Kampaň dokončena! Celkem odesláno: ${totalSent} e-mailů.`, { duration: 8000 });
+        queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
+        return;
       }
 
-      if (quotaError) {
-        if (totalSent > 0) {
-          toast.warning(`Odesláno ${totalSent} e-mailů, poté dosažen limit: ${quotaError}`, { duration: 10000 });
-          return { sent_count: totalSent, failed_count: totalFailed, partial: true };
-        }
-        throw new Error(quotaError);
-      }
+      try {
+        const { sent, failed, hasMore } = await sendOneWave(templateId);
+        totalSent += sent;
+        totalFailed += failed;
+        wavesSent++;
 
-      return { sent_count: totalSent, failed_count: totalFailed };
-    },
-    onSuccess: (data) => {
-      toast.success(`Dávka úspěšně odeslána (Odesláno: ${data?.sent_count || 0}, Chyb: ${data?.failed_count || 0}).`);
-      queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
-    },
-    onError: (err: any) => {
-      const detail = err?.context?.body ? (() => { try { return JSON.parse(err.context.body)?.error; } catch { return null; } })() : null;
-      toast.error("Chyba při odesílání dávky: " + (detail || err.message), { duration: 8000 });
-      console.error("Batch send error detail:", err);
-      queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
+        setActiveCampaign(prev => prev && !prev.stopped ? { ...prev, totalSent, totalFailed, wavesSent } : prev);
+
+        if (sent > 0) {
+          toast.info(`Vlna ${wavesSent}: odesláno ${sent} e-mailů (celkem ${totalSent}/${dailyLimit})`, { duration: 5000 });
+        }
+
+        if (!hasMore || totalSent >= dailyLimit) {
+          setActiveCampaign(prev => {
+            if (prev?.intervalId) clearInterval(prev.intervalId);
+            return prev ? { ...prev, intervalId: null, stopped: true } : null;
+          });
+          toast.success(`Kampaň dokončena! Celkem odesláno: ${totalSent} e-mailů.`, { duration: 8000 });
+          queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
+        }
+      } catch (err: any) {
+        const detail = err?.context?.body ? (() => { try { return JSON.parse(err.context.body)?.error; } catch { return null; } })() : null;
+        toast.error("Chyba vlny: " + (detail || err.message), { duration: 8000 });
+        setActiveCampaign(prev => {
+          if (prev?.intervalId) clearInterval(prev.intervalId);
+          stopped = true;
+          return prev ? { ...prev, intervalId: null, stopped: true } : null;
+        });
+      }
+    };
+
+    // First wave immediately
+    setActiveCampaign({ templateId, templateName, totalSent: 0, totalFailed: 0, wavesSent: 0, dailyLimit, intervalId: null, stopped: false });
+    await doWave();
+
+    // Schedule subsequent waves
+    if (!stopped && totalSent < dailyLimit) {
+      const intervalId = setInterval(async () => {
+        setActiveCampaign(prev => {
+          if (!prev || prev.stopped) { clearInterval(intervalId); return prev; }
+          stopped = prev.stopped;
+          return prev;
+        });
+        await doWave();
+      }, WAVE_INTERVAL_MS);
+
+      setActiveCampaign(prev => prev ? { ...prev, intervalId } : null);
     }
-  });
+  }, [emailProvider, sendOneWave, queryClient]);
   const { data: drafts = [], isLoading } = useQuery({
     queryKey: ["admin-outbox-drafts"],
     queryFn: async () => {
@@ -337,6 +389,40 @@ export const AdminOutbox = () => {
         </Button>
       </div>
       
+      {/* ACTIVE CAMPAIGN BANNER */}
+      {activeCampaign && (
+        <div className={`rounded-2xl border p-4 flex items-center gap-4 ${activeCampaign.stopped ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-blue-500/5 border-blue-500/20'}`}>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              {!activeCampaign.stopped && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
+              <p className="text-sm font-bold truncate">
+                {activeCampaign.stopped ? '✅ Kampaň dokončena' : `🚀 Kampaň běží – ${activeCampaign.templateName}`}
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span>Odesláno: <strong className="text-foreground">{activeCampaign.totalSent}</strong> / {activeCampaign.dailyLimit}</span>
+              <span>Vlny: <strong className="text-foreground">{activeCampaign.wavesSent}</strong></span>
+              {!activeCampaign.stopped && <span className="text-blue-500 font-medium">Další vlna za ~3 min…</span>}
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${activeCampaign.stopped ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+                style={{ width: `${Math.min(100, (activeCampaign.totalSent / activeCampaign.dailyLimit) * 100)}%` }} 
+              />
+            </div>
+          </div>
+          {!activeCampaign.stopped ? (
+            <Button size="sm" variant="outline" className="rounded-full text-xs shrink-0 border-red-400 text-red-500 hover:bg-red-50" onClick={stopCampaign}>
+              Zastavit
+            </Button>
+          ) : (
+            <Button size="sm" variant="ghost" className="rounded-full text-xs shrink-0" onClick={() => setActiveCampaign(null)}>
+              Zavřít
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Filters (Sablony style) */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">        <button 
           onClick={() => setFilterType("general")}
@@ -425,15 +511,15 @@ export const AdminOutbox = () => {
                             {batch.status === 'ready' ? 'Připraveno (300/300)' : `Čeká se na naplnění (${batch.size}/300)`}
                           </p>
                         </div>
-                        {batch.status === 'ready' && (
+                    {batch.status === 'ready' && (
                           <Button 
                             size="sm" 
                             className="h-7 text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-3 gap-1 shadow-sm"
-                            disabled={sendBatchMutation.isPending}
-                            onClick={() => sendBatchMutation.mutate({ template_id: v.template.id, batch_size: batch.size })}
+                            disabled={!!activeCampaign && !activeCampaign.stopped}
+                            onClick={() => startCampaign(v.template.id, v.template.name)}
                           >
-                            {sendBatchMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                            Odeslat
+                            {(!!activeCampaign && !activeCampaign.stopped && activeCampaign.templateId === v.template.id) ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                            {(!!activeCampaign && !activeCampaign.stopped && activeCampaign.templateId === v.template.id) ? `Odesílám (${activeCampaign.totalSent})` : 'Odeslat'}
                           </Button>
                         )}
                       </div>
