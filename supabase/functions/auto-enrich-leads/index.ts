@@ -191,120 +191,139 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
           "meta-llama/llama-3.3-70b-instruct:free",
           "google/gemma-4-31b-it:free",
         ].filter((v, i, a) => a.indexOf(v) === i);
-        let orRes: Response | null = null;
-        const orErrors: string[] = [];
+        const chunks = chunk(inputForAI, 20);
+        let totalProcessed = 0;
+        let lastErr = "";
+        
+        for (const chunkData of chunks) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          let orRes: Response | null = null;
+          const orErrors: string[] = [];
 
-        for (const model of models) {
-          for (const ak of authKeys) {
-            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-              method: "POST",
-              headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
-              body: JSON.stringify({ model: model, messages: [{ role: "user", content: PROMPT }], temperature: 0.1 })
-            });
-            if (res.ok) { orRes = res; break; }
-            const errText = await res.text();
-            orErrors.push(`${model}: ${res.status} - ${errText}`);
-            if (res.status === 401 || res.status === 429) continue; // Try fallback key
-            break; 
+          for (const model of models) {
+            for (const ak of authKeys) {
+              const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
+                body: JSON.stringify({ model: model, messages: [{ role: "user", content: chunkPrompt }], temperature: 0.1 })
+              });
+              if (res.ok) { orRes = res; break; }
+              const errText = await res.text();
+              orErrors.push(`${model}: ${res.status} - ${errText}`);
+              if (res.status === 401 || res.status === 429) continue;
+              break; 
+            }
+            if (orRes?.ok) break;
+            const lastStatus = orErrors[orErrors.length - 1];
+            if (lastStatus.includes("429") || lastStatus.includes("503") || lastStatus.includes("502") || lastStatus.includes("400") || lastStatus.includes("404")) continue;
+            break;
           }
-          if (orRes?.ok) break;
-          // if previous fail was not auth, maybe next model?
-          const lastStatus = orErrors[orErrors.length - 1];
-          if (lastStatus.includes("429") || lastStatus.includes("503") || lastStatus.includes("502") || lastStatus.includes("400") || lastStatus.includes("404")) continue;
-          break; // other error
-        }
 
-        if (!orRes || !orRes.ok) { 
-          engineErrors.openrouter = `All OR models failed: ${orErrors.join(" | ")}`; 
-          return; 
+          if (!orRes || !orRes.ok) { 
+            lastErr = `All OR models failed: ${orErrors.join(" | ")}`; 
+            continue; 
+          }
+          await logUsage("openrouter");
+          try {
+            const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
+            for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
+          } catch(e: any) { lastErr = e.message; }
         }
-        await logUsage("openrouter");
-        try {
-          const arr = parseAIJson((await orRes.json()).choices?.[0]?.message?.content || "");
-          if (arr.length === 0) engineErrors.openrouter = "Nezpracovatelný JSON";
-          let cnt = 0;
-          for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; cnt++; }
-          engineStats.openrouter = { processed: cnt };
-        } catch(e: any) { engineErrors.openrouter = e.message; }
-      }));
+        engineStats.openrouter = { processed: totalProcessed };
+        if (totalProcessed === 0 && !engineErrors.openrouter) engineErrors.openrouter = lastErr || "Nezpracovatelný JSON";
+      })().catch(e => { engineErrors.openrouter = e.message; }));
     }
 
     if (useDeepSeek) {
       engineTasks.push((async () => {
         const authKeys = [keys.DEEPSEEK_API_KEY, keys.DEEPSEEK_FALLBACK_API_KEY].filter(Boolean);
         if (authKeys.length === 0) { engineErrors.deepseek = "Missing DEEPSEEK_API_KEY"; return; }
-        try {
-          let res;
-          for (const ak of authKeys) {
-            res = await fetch("https://api.deepseek.com/chat/completions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
-              body: JSON.stringify({
-                model: deepseekModel,
-                messages: [{ role: "system", content: "You are data enrichment AI. Always reply with valid JSON array." }, { role: "user", content: PROMPT }],
-                temperature: 0.1,
-                response_format: { type: "json_object" }
-              })
-            });
-            if (res.ok) break;
-            if (res.status !== 401 && res.status !== 429) break;
-          }
-          if (!res || !res.ok) { engineErrors.deepseek = `${res?.status} ${await res?.text()}`; return; }
-          const resJson = await res.json();
-          let text = resJson.choices?.[0]?.message?.content || "";
-          if (text) {
-              text = text.replace(/```json/g, "").replace(/```/g, "").trim();
-              const fb = text.indexOf('['); const lb = text.lastIndexOf(']');
-              if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
-          }
-          const parsed = JSON.parse(text);
-          const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find((v: any) => Array.isArray(v)) || [];
-          if (finalArray.length > 0) {
-            let cnt = 0;
-            for (const item of finalArray) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; cnt++; }
-            engineStats.deepseek = { processed: cnt };
-            await logUsage("deepseek");
-          }
-        } catch(e: any) { engineErrors.deepseek = e.message; }
-      }));
+        const chunks = chunk(inputForAI, 20);
+        let totalProcessed = 0;
+        let lastErr = "";
+        
+        for (const chunkData of chunks) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          try {
+            let res;
+            for (const ak of authKeys) {
+              res = await fetch("https://api.deepseek.com/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+                body: JSON.stringify({
+                  model: deepseekModel,
+                  messages: [{ role: "system", content: "You are data enrichment AI. Always reply with valid JSON array." }, { role: "user", content: chunkPrompt }],
+                  temperature: 0.1,
+                  response_format: { type: "json_object" }
+                })
+              });
+              if (res.ok) break;
+              if (res.status !== 401 && res.status !== 429) break;
+            }
+            if (!res || !res.ok) { lastErr = `${res?.status} ${await res?.text()}`; continue; }
+            const resJson = await res.json();
+            let text = resJson.choices?.[0]?.message?.content || "";
+            if (text) {
+                text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+                const fb = text.indexOf('['); const lb = text.lastIndexOf(']');
+                if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
+            }
+            const parsed = JSON.parse(text);
+            const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find((v: any) => Array.isArray(v)) || [];
+            if (finalArray.length > 0) {
+              for (const item of finalArray) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
+              await logUsage("deepseek");
+            }
+          } catch(e: any) { lastErr = e.message; }
+        }
+        engineStats.deepseek = { processed: totalProcessed };
+        if (totalProcessed === 0 && !engineErrors.deepseek) engineErrors.deepseek = lastErr || "Nezpracovatelný JSON";
+      })().catch(e => { engineErrors.deepseek = e.message; }));
     }
 
     if (useSiliconFlow) {
       engineTasks.push((async () => {
         const authKeys = [keys.SILICONFLOW_API_KEY, keys.SILICONFLOW_FALLBACK_API_KEY].filter(Boolean);
         if (authKeys.length === 0) { engineErrors.siliconflow = "Missing SILICONFLOW_API_KEY"; return; }
-        try {
-          let res;
-          for (const ak of authKeys) {
-            res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
-              body: JSON.stringify({
-                model: siliconflowModel,
-                messages: [{ role: "system", content: "Return only a JSON array." }, { role: "user", content: PROMPT }],
-                temperature: 0.1
-              })
-            });
-            if (res.ok) break;
-            if (res.status !== 401 && res.status !== 429) break;
-          }
-          if (!res || !res.ok) { engineErrors.siliconflow = `${res?.status} ${await res?.text()}`; return; }
-          const resJson = await res.json();
-          let text = resJson.choices?.[0]?.message?.content || "";
-          if (text) {
-              text = text.replace(/```json/g, "").replace(/```/g, "").trim();
-              const fb = text.indexOf('['); const lb = text.lastIndexOf(']');
-              if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
-          }
-          const parsed = JSON.parse(text);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            let cnt = 0;
-            for (const item of parsed) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; cnt++; }
-            engineStats.siliconflow = { processed: cnt };
-            await logUsage("siliconflow");
-          }
-        } catch(e: any) { engineErrors.siliconflow = e.message; }
-      }));
+        const chunks = chunk(inputForAI, 20);
+        let totalProcessed = 0;
+        let lastErr = "";
+
+        for (const chunkData of chunks) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          try {
+            let res;
+            for (const ak of authKeys) {
+              res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+                body: JSON.stringify({
+                  model: siliconflowModel,
+                  messages: [{ role: "system", content: "Return only a JSON array." }, { role: "user", content: chunkPrompt }],
+                  temperature: 0.1
+                })
+              });
+              if (res.ok) break;
+              if (res.status !== 401 && res.status !== 429) break;
+            }
+            if (!res || !res.ok) { lastErr = `${res?.status} ${await res?.text()}`; continue; }
+            const resJson = await res.json();
+            let text = resJson.choices?.[0]?.message?.content || "";
+            if (text) {
+                text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+                const fb = text.indexOf('['); const lb = text.lastIndexOf(']');
+                if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
+            }
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              for (const item of parsed) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
+              await logUsage("siliconflow");
+            }
+          } catch(e: any) { lastErr = e.message; }
+        }
+        engineStats.siliconflow = { processed: totalProcessed };
+        if (totalProcessed === 0 && !engineErrors.siliconflow) engineErrors.siliconflow = lastErr || "Nezpracovatelný JSON";
+      })().catch(e => { engineErrors.siliconflow = e.message; }));
     }
 
     if (useGemini) {
@@ -312,46 +331,52 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const authKeys = [keys.GEMINI_API_KEY, keys.GEMINI_FALLBACK_API_KEY].filter(Boolean);
         if (authKeys.length === 0) { engineErrors.gemini = "Missing GEMINI_API_KEY"; return; }
         
-        // Cascade through Gemini models
         const models = [
           geminiModel,
           "gemini-2.0-flash",
           "gemini-1.5-flash-latest",
           "gemini-1.5-flash",
         ].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
-        let geminiRes: Response | null = null;
-        const geminiErrors: string[] = [];
         
-        for (const model of models) {
-          for (const ak of authKeys) {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${ak}`, {
-              method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: PROMPT }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 16000 } })
-            });
-            if (res.ok) { geminiRes = res; break; }
-            
-            const errText = await res.text();
-            geminiErrors.push(`${model} (key: ${ak.slice(-4)}): ${res.status} - ${errText}`);
-            if (res.status === 429 || res.status === 401) continue; // Try fallback key
+        const chunks = chunk(inputForAI, 20);
+        let totalProcessed = 0;
+        let lastErr = "";
+
+        for (const chunkData of chunks) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          let geminiRes: Response | null = null;
+          const geminiErrors: string[] = [];
+          
+          for (const model of models) {
+            for (const ak of authKeys) {
+              const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${ak}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: chunkPrompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 8000 } })
+              });
+              if (res.ok) { geminiRes = res; break; }
+              
+              const errText = await res.text();
+              geminiErrors.push(`${model} (key: ${ak.slice(-4)}): ${res.status} - ${errText}`);
+              if (res.status === 429 || res.status === 401) continue;
+              break;
+            }
+            if (geminiRes?.ok) break;
+            const lastStatus = geminiErrors[geminiErrors.length - 1];
+            if (lastStatus.includes("429") || lastStatus.includes("503") || lastStatus.includes("404") || lastStatus.includes("400")) { continue; }
             break;
           }
-          if (geminiRes?.ok) break;
-          const lastStatus = geminiErrors[geminiErrors.length - 1];
-          if (lastStatus.includes("429") || lastStatus.includes("503") || lastStatus.includes("404") || lastStatus.includes("400")) { continue; }
-          break; // other error
+          
+          if (!geminiRes || !geminiRes.ok) { 
+              lastErr = `All models failed: ${geminiErrors.join(" | ")}`; 
+              continue; 
+          }
+          await logUsage("gemini");
+          const resJson = await geminiRes.json();
+          const arr = parseAIJson(resJson.candidates?.[0]?.content?.parts?.[0]?.text || "");
+          for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
         }
-        
-        if (!geminiRes || !geminiRes.ok) { 
-            engineErrors.gemini = `All models failed: ${geminiErrors.join(" | ")}`; 
-            return; 
-        }
-        await logUsage("gemini");
-        const resJson = await geminiRes.json();
-        const arr = parseAIJson(resJson.candidates?.[0]?.content?.parts?.[0]?.text || "");
-        if (arr.length === 0) engineErrors.gemini = "Nezpracovatelný JSON (pravděpodobně oříznuto)";
-        let cnt = 0;
-        for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; cnt++; }
-        engineStats.gemini = { processed: cnt };
+        engineStats.gemini = { processed: totalProcessed };
+        if (totalProcessed === 0 && !engineErrors.gemini) engineErrors.gemini = lastErr || "Nezpracovatelný JSON (pravděpodobně oříznuto)";
       })().catch(e => { engineErrors.gemini = e.message; }));
     }
 
