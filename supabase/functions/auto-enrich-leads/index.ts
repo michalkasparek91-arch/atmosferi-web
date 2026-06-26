@@ -69,11 +69,11 @@ Deno.serve(async (req) => {
     const useDeepSeek = configData?.value?.use_deepseek_enrich_engine ?? (enrichEngine === "deepseek" || enrichEngine === "all");
     const useSiliconFlow = configData?.value?.use_siliconflow_enrich_engine ?? (enrichEngine === "siliconflow" || enrichEngine === "all");
 
-    // Select oldest updated leads that need enrichment
+    // Select leads that haven't been enriched yet (description = null means not processed)
     const { data: leads } = await supabase
       .from("marketing_leads")
-      .select("id, email, full_name, company_name, website, city, country, language, phone, description, decision_maker_name, category, subcategory, premium_score, last_project, ai_icebreaker, updated_at")
-      .is("ai_icebreaker", null)
+      .select("id, email, full_name, company_name, website, city, country, language, phone, description, decision_maker_name, category, subcategory, premium_score, last_project, updated_at")
+      .is("description", null)
       .not("email", "is", null)
       .order("updated_at", { ascending: true, nullsFirst: true })
       .limit(batchSize);
@@ -115,7 +115,6 @@ Vrať validní JSON POLE objektů. Každý objekt MUSÍ obsahovat:
 - last_project: Název posledního nebo hlavního projektu/reference, pokud je na webu uveden, jinak prázdný řetězec.
 - category: Hlavní kategorie (MUSÍŠ vybrat přesně jednu: architekti, interiery, developeri, realitky, urbanismus, architekt, remeslnici)
 - subcategory: Specifická podkategorie
-- ai_icebreaker: Personalised opening sentence (1-2 věty) pro cold email, která ukazuje že znáš jejich práci. Napiš v češtině. Např. "Zaujala mě Vaše práce na ..."
 - email: Výsledná e-mailová adresa (nová nalezená, nebo původní)
 Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čisté pole).`;
 
@@ -371,21 +370,21 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       
       const updatePayload: any = {
         company_name: lead.company_name || extracted.company_name || null,
+        brand_name: extracted.brand_name || null,
         city: lead.city || extracted.city || null,
         country: lead.country || extracted.country || "Česká republika",
         language: lead.language || extracted.language || null,
         phone: lead.phone || extracted.phone || null,
-        description: lead.description || extracted.description || null,
+        // Always write description (even "" sentinel) so the lead exits the description=null queue
+        description: extracted.description || "",
         decision_maker_name: lead.decision_maker_name || extracted.decision_maker_name || null,
         last_project: lead.last_project || extracted.last_project || null,
         category: lead.category || extracted.category || null,
         subcategory: lead.subcategory || extracted.subcategory || null,
         premium_score: lead.premium_score || extracted.premium_score || 50,
-        // Mark as processed so it leaves the ai_icebreaker=null queue.
-        // Use extracted icebreaker if AI returned one, otherwise use empty string sentinel.
-        ai_icebreaker: extracted.ai_icebreaker || lead.ai_icebreaker || "",
-        updated_at: new Date().toISOString() // Touch updated_at!
+        updated_at: new Date().toISOString(),
       };
+
 
       if (extracted.email && extracted.email.includes("@") && extracted.email.toLowerCase() !== lead.email.toLowerCase()) {
         updatePayload.email = extracted.email.toLowerCase();
@@ -405,10 +404,16 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       }
     }
 
-    // Touch ALL processed leads' updated_at so they go to the back of the queue if AI failed to return them
-    const now = new Date().toISOString();
-    const idsToTouch = leads.map((l: any) => l.id);
-    await supabase.from("marketing_leads").update({ updated_at: now }).in("id", idsToTouch);
+    // For any leads the AI didn't return (e.g. truncated batch), set description="" as sentinel
+    // so they exit the description=null queue and don't get reprocessed indefinitely.
+    const enrichedIds = new Set(Object.keys(mergedResults));
+    const idsNotReturned = leads.map((l: any) => l.id).filter((id: string) => !enrichedIds.has(id));
+    if (idsNotReturned.length > 0) {
+      await supabase.from("marketing_leads")
+        .update({ description: "", updated_at: new Date().toISOString() })
+        .in("id", idsNotReturned);
+    }
+
 
     await logJobSuccess(supabase, jobName, { processed: leads.length, updated: updatedCount, errors: engineErrors });
 
