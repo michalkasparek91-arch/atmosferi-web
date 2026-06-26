@@ -157,9 +157,16 @@ const LastRunBadge = ({ health, sharedJob }: { health: any; sharedJob?: any }) =
         </p>
       )}
       {isError && errorMsg && (
-        <p className="text-[9px] text-red-400 leading-tight truncate max-w-[200px]" title={errorMsg}>
-          {errorMsg}
-        </p>
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[9px] text-red-400 leading-tight truncate max-w-[200px]" title={errorMsg}>
+            {errorMsg}
+          </p>
+          {health?.last_success_at && (
+            <p className="text-[9px] text-muted-foreground/60 leading-tight truncate">
+              Poslední úspěch: {new Date(health.last_success_at).toLocaleString("cs-CZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
