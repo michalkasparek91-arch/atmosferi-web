@@ -92,39 +92,44 @@ const StatusDot = ({ status, message, updatedAt }: { status: string | undefined;
 };
 
 // ─── Last run display ────────────────────────────────────────────────────────
-const LastRunBadge = ({ job }: { job: any }) => {
-  if (!job) return <span className="text-[10px] text-muted-foreground/40 italic">Žádný záznam</span>;
+// Uses per-provider api_health entry (written by auto-enrich-leads after each engine run)
+// and supplements with the shared automation_jobs metadata (processed/updated counts).
+const LastRunBadge = ({ health, sharedJob }: { health: any; sharedJob?: any }) => {
+  // Derive per-provider run info from api_health
+  // api_health[provider] = { status: 'ok'|'error', message, updated_at }
+  if (!health && !sharedJob) {
+    return <span className="text-[10px] text-muted-foreground/40 italic">Žádný záznam</span>;
+  }
 
-  const statusColor =
-    job.last_run_status === "success" ? "text-emerald-600" :
-    job.last_run_status === "failure" ? "text-red-500" :
-    job.last_run_status === "running" ? "text-blue-500" :
-    "text-muted-foreground";
+  // Use api_health.updated_at as the per-provider timestamp (most accurate)
+  const healthTs = health?.updated_at;
+  const sharedTs = sharedJob?.last_run_at || sharedJob?.updated_at;
+  // Prefer health timestamp if it's newer or only source
+  const lastRunAt = healthTs || sharedTs;
 
-  const StatusIcon =
-    job.last_run_status === "success" ? CheckCircle2 :
-    job.last_run_status === "failure" ? XCircle :
-    job.last_run_status === "running" ? Loader2 :
-    Clock;
+  const isSuccess = health?.status === "ok" || (!health && sharedJob?.last_run_status === "success");
+  const isError = health?.status === "error" || (!health && sharedJob?.last_run_status === "failure");
+  const isRunning = sharedJob?.last_run_status === "running" && !healthTs;
 
-  const meta = job.metadata || {};
-  const metaLine = meta.message
-    ? meta.message
+  const statusColor = isSuccess ? "text-emerald-600" : isError ? "text-red-500" : isRunning ? "text-blue-500" : "text-muted-foreground";
+  const StatusIcon = isSuccess ? CheckCircle2 : isError ? XCircle : isRunning ? Loader2 : Clock;
+  const statusLabel = isSuccess ? "Úspěch" : isError ? "Chyba" : isRunning ? "Probíhá…" : "Neznámý";
+
+  // Supplementary counts from the shared job
+  const meta = sharedJob?.metadata || {};
+  const metaLine = meta.processed !== undefined
+    ? `${meta.processed} zpracováno, ${meta.updated ?? 0} aktualizováno`
     : meta.count !== undefined
     ? `${meta.count} zpracováno`
-    : meta.processed !== undefined
-    ? `${meta.processed} zpracováno, ${meta.updated ?? 0} aktualizováno`
-    : null;
+    : meta.message || null;
 
-  const lastRunAt = job.last_run_at || job.updated_at;
+  const errorMsg = health?.message && health.status === "error" ? health.message : sharedJob?.last_run_error;
 
   return (
     <div className="flex flex-col gap-0.5">
       <div className={`flex items-center gap-1 text-[10px] font-semibold ${statusColor}`}>
-        <StatusIcon className={`h-2.5 w-2.5 ${job.last_run_status === "running" ? "animate-spin" : ""}`} />
-        {job.last_run_status === "success" ? "Úspěch" :
-         job.last_run_status === "failure" ? "Chyba" :
-         job.last_run_status === "running" ? "Probíhá…" : job.last_run_status}
+        <StatusIcon className={`h-2.5 w-2.5 ${isRunning ? "animate-spin" : ""}`} />
+        {statusLabel}
         {lastRunAt && (
           <span className="text-muted-foreground font-normal ml-1">
             {new Date(lastRunAt).toLocaleString("cs-CZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
@@ -136,9 +141,9 @@ const LastRunBadge = ({ job }: { job: any }) => {
           {metaLine}
         </p>
       )}
-      {job.last_run_status === "failure" && job.last_run_error && (
-        <p className="text-[9px] text-red-400 leading-tight truncate max-w-[200px]" title={job.last_run_error}>
-          {job.last_run_error}
+      {isError && errorMsg && (
+        <p className="text-[9px] text-red-400 leading-tight truncate max-w-[200px]" title={errorMsg}>
+          {errorMsg}
         </p>
       )}
     </div>
@@ -394,9 +399,10 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
           const primaryStatus = (testResults as any)[p.id];
           const currentModel = config[p.modelConfigKey] || p.modelDefault;
 
-          // Collect last runs for this provider's related jobs
+          // Per-provider last run: use api_health entry (written per-engine by auto-enrich-leads)
+          // Supplement with the shared automation_jobs metadata for processed/updated counts
           const relatedJobEntries = (p.relatedJobs || [])
-            .map(jn => jobMap[jn])
+            .map((jn: string) => jobMap[jn])
             .filter(Boolean);
           const mostRecentJob = relatedJobEntries.sort((a: any, b: any) =>
             new Date(b.last_run_at || b.updated_at || 0).getTime() -
@@ -522,10 +528,10 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                   </div>
                 )}
 
-                {/* LAST RUN */}
+                {/* LAST RUN — per-provider from api_health */}
                 <div className="border-t border-border/30 pt-3 mt-auto">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Poslední run</p>
-                  <LastRunBadge job={mostRecentJob} />
+                  <LastRunBadge health={primaryStatus} sharedJob={mostRecentJob} />
                 </div>
               </CardContent>
             </Card>
