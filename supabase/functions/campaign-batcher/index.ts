@@ -148,7 +148,7 @@ Deno.serve(async (req: any) => {
           template_slug: template.slug,
           lead_id: lead.id,
           status: "draft",
-          icebreaker: lead.ai_icebreaker || "Zaujala mě vaše práce.",
+          icebreaker: lead.ai_icebreaker || "",
         }));
 
         // Use upsert with ignoreDuplicates so existing records don't cause errors

@@ -112,7 +112,7 @@ async function ensureDraftsForTemplate(
     template_slug: template.slug,
     lead_id: lead.id,
     status: "draft",
-    icebreaker: lead.ai_icebreaker || "Zaujala mě vaše práce.",
+    icebreaker: lead.ai_icebreaker || "",
   }));
 
   const { error: upsertErr } = await supabaseAdmin
@@ -337,11 +337,11 @@ Deno.serve(async (req) => {
           ? (filters.body_fallback as string)
           : (template.body || "");
 
-        const bodyWithIcebreaker = draft.icebreaker
-          ? (activeBody.includes("{{icebreaker}}")
-            ? activeBody.replace(/{{icebreaker}}/g, draft.icebreaker)
-            : `${draft.icebreaker}\n\n${activeBody}`)
-          : activeBody;
+        // Only inject icebreaker where the template explicitly has the {{icebreaker}} placeholder.
+        // Never prepend it automatically — that caused duplicate/unexpected text in sent emails.
+        const bodyWithIcebreaker = activeBody.includes("{{icebreaker}}")
+          ? activeBody.replace(/{{icebreaker}}/g, draft.icebreaker || "")
+          : activeBody.replace(/{{icebreaker}}/g, "");
 
         const replaceVars = (txt: string | null | undefined) => {
           if (!txt) return "";
