@@ -111,6 +111,42 @@ Deno.serve(async (req) => {
       return { engine: "gemini", status: "error", message: "All keys failed" };
     };
 
+    const testMistral = async () => {
+      const authKeys = [keys.MISTRAL_API_KEY, keys.MISTRAL_FALLBACK_API_KEY].filter(Boolean);
+      if (authKeys.length === 0) return { engine: "mistral", status: "error", message: "Missing API Key" };
+      for (const ak of authKeys) {
+        try {
+          const res = await fetch("https://api.mistral.ai/v1/models", {
+            headers: { "Authorization": `Bearer ${ak}` }
+          });
+          if (res.ok) return { engine: "mistral", status: "ok" };
+          if (res.status === 401 || res.status === 429) continue;
+          return { engine: "mistral", status: "error", message: `HTTP ${res.status}` };
+        } catch (e: any) {
+          return { engine: "mistral", status: "error", message: e.message };
+        }
+      }
+      return { engine: "mistral", status: "error", message: "All keys failed" };
+    };
+
+    const testCerebras = async () => {
+      const authKeys = [keys.CEREBRAS_API_KEY, keys.CEREBRAS_FALLBACK_API_KEY].filter(Boolean);
+      if (authKeys.length === 0) return { engine: "cerebras", status: "error", message: "Missing API Key" };
+      for (const ak of authKeys) {
+        try {
+          const res = await fetch("https://api.cerebras.ai/v1/models", {
+            headers: { "Authorization": `Bearer ${ak}` }
+          });
+          if (res.ok) return { engine: "cerebras", status: "ok" };
+          if (res.status === 401 || res.status === 429) continue;
+          return { engine: "cerebras", status: "error", message: `HTTP ${res.status}` };
+        } catch (e: any) {
+          return { engine: "cerebras", status: "error", message: e.message };
+        }
+      }
+      return { engine: "cerebras", status: "error", message: "All keys failed" };
+    };
+
     const testPlaces = async () => {
       const authKeys = [keys.GOOGLE_PLACES_API_KEY, keys.GOOGLE_PLACES_FALLBACK_API_KEY].filter(Boolean);
       if (authKeys.length === 0) return { engine: "places", status: "error", message: "Missing API Key" };
@@ -141,12 +177,23 @@ Deno.serve(async (req) => {
       testDeepSeek(),
       testSiliconFlow(),
       testGemini(),
+      testCerebras(),
+      testMistral(),
       testPlaces(),
     ]);
 
-    const resultObj: Record<string, any> = {};
+    // Fetch existing api_health to preserve last_run_processed and last_success_at
+    const { data: existingHealth } = await supabase.from("app_settings").select("value").eq("key", "api_health").maybeSingle();
+    const resultObj: Record<string, any> = existingHealth?.value || {};
+    
     for (const r of results) {
-      resultObj[r.engine] = { status: r.status, message: r.message, updated_at: new Date().toISOString() };
+      const prev = resultObj[r.engine] || {};
+      resultObj[r.engine] = { 
+        ...prev, 
+        status: r.status, 
+        message: r.message, 
+        updated_at: new Date().toISOString() 
+      };
     }
 
     // Save to DB
