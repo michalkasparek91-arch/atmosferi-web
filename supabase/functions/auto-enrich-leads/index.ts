@@ -72,11 +72,12 @@ Deno.serve(async (req) => {
     // Select oldest updated leads that need enrichment
     const { data: leads } = await supabase
       .from("marketing_leads")
-      .select("id, email, full_name, company_name, website, city, category, updated_at")
+      .select("id, email, full_name, company_name, website, city, country, language, phone, description, decision_maker_name, category, subcategory, premium_score, last_project, ai_icebreaker, updated_at")
       .is("ai_icebreaker", null)
       .not("email", "is", null)
       .order("updated_at", { ascending: true, nullsFirst: true })
       .limit(batchSize);
+
 
     if (!leads || leads.length === 0) {
       await logJobSuccess(supabase, jobName, { message: "No more leads to enrich" });
@@ -114,6 +115,7 @@ Vrať validní JSON POLE objektů. Každý objekt MUSÍ obsahovat:
 - last_project: Název posledního nebo hlavního projektu/reference, pokud je na webu uveden, jinak prázdný řetězec.
 - category: Hlavní kategorie (MUSÍŠ vybrat přesně jednu: architekti, interiery, developeri, realitky, urbanismus, architekt, remeslnici)
 - subcategory: Specifická podkategorie
+- ai_icebreaker: Personalised opening sentence (1-2 věty) pro cold email, která ukazuje že znáš jejich práci. Napiš v češtině. Např. "Zaujala mě Vaše práce na ..."
 - email: Výsledná e-mailová adresa (nová nalezená, nebo původní)
 Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čisté pole).`;
 
@@ -224,7 +226,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
               method: "POST",
               headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
               body: JSON.stringify({
-                model: "deepseek-chat",
+                model: deepseekModel,
                 messages: [{ role: "system", content: "You are data enrichment AI. Always reply with valid JSON array." }, { role: "user", content: PROMPT }],
                 temperature: 0.1,
                 response_format: { type: "json_object" }
@@ -262,7 +264,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
               method: "POST",
               headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
               body: JSON.stringify({
-                model: "Qwen/Qwen2.5-7B-Instruct",
+                model: siliconflowModel,
                 messages: [{ role: "system", content: "Return only a JSON array." }, { role: "user", content: PROMPT }],
                 temperature: 0.1
               })
@@ -294,13 +296,11 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         
         // Cascade through Gemini models
         const models = [
-          "gemini-2.5-flash",
-          "gemini-2.0-flash", 
-          "gemini-2.0-flash-exp", 
-          "gemini-1.5-flash-latest", 
-          "gemini-1.5-flash", 
-          "gemini-1.5-pro"
-        ];
+          geminiModel,
+          "gemini-2.0-flash",
+          "gemini-1.5-flash-latest",
+          "gemini-1.5-flash",
+        ].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
         let geminiRes: Response | null = null;
         const geminiErrors: string[] = [];
         
@@ -377,9 +377,13 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         phone: lead.phone || extracted.phone || null,
         description: lead.description || extracted.description || null,
         decision_maker_name: lead.decision_maker_name || extracted.decision_maker_name || null,
+        last_project: lead.last_project || extracted.last_project || null,
         category: lead.category || extracted.category || null,
         subcategory: lead.subcategory || extracted.subcategory || null,
         premium_score: lead.premium_score || extracted.premium_score || 50,
+        // Mark as processed so it leaves the ai_icebreaker=null queue.
+        // Use extracted icebreaker if AI returned one, otherwise use empty string sentinel.
+        ai_icebreaker: extracted.ai_icebreaker || lead.ai_icebreaker || "",
         updated_at: new Date().toISOString() // Touch updated_at!
       };
 
