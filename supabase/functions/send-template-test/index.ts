@@ -316,22 +316,33 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Parse carousel images if enabled
+    // Parse gallery/carousel images
+    // The gallery widget saves images as gallery_image_1/2/3 in segment_filters.
+    // The legacy carousel widget used carousel_images. Support both.
     let carouselImages: string[] = [];
-    if (template.segment_filters?.gallery_enabled && template.segment_filters?.carousel_images) {
-      const imgs = template.segment_filters.carousel_images;
-      if (Array.isArray(imgs)) {
-        carouselImages = imgs.filter((url: any) => typeof url === 'string' && url.startsWith("http"));
-      } else if (typeof imgs === 'string') {
-        carouselImages = imgs
-          .split(",")
-          .map((url: string) => url.trim())
-          .filter((url: string) => url.startsWith("http"));
+    if (template.segment_filters?.gallery_enabled) {
+      // Primary: gallery_image_1/2/3 (used by the gallery widget in the editor)
+      const galleryImgs = [
+        template.segment_filters.gallery_image_1,
+        template.segment_filters.gallery_image_2,
+        template.segment_filters.gallery_image_3,
+      ].filter((url: any) => typeof url === "string" && url.startsWith("http"));
+      if (galleryImgs.length > 0) {
+        carouselImages = galleryImgs;
+      } else if (template.segment_filters.carousel_images) {
+        // Fallback: legacy carousel_images field
+        const imgs = template.segment_filters.carousel_images;
+        if (Array.isArray(imgs)) {
+          carouselImages = imgs.filter((url: any) => typeof url === "string" && url.startsWith("http"));
+        } else if (typeof imgs === "string") {
+          carouselImages = imgs.split(",").map((u: string) => u.trim()).filter((u: string) => u.startsWith("http"));
+        }
       }
     }
 
     // Set Hero Image URL directly
     const heroImageUrl = template.hero_image_url || template.heroImageUrl || undefined;
+
 
     const results: { email: string; success: boolean; error?: string }[] = [];
     const recipients = targetEmail ? [targetEmail] : (user.email ? [user.email] : TEST_EMAILS);

@@ -416,6 +416,20 @@ Deno.serve(async (req) => {
             signatureEmail: (filters.signature_email as string) || template.signature_email,
             heroCaption: (filters.hero_caption as string) || template.hero_caption,
             heroTagline: (filters.hero_tagline as string) || template.hero_tagline,
+            heroImageUrl: template.hero_image_url || undefined,
+            // Gallery images: read gallery_image_1/2/3 first (new), then carousel_images (legacy)
+            carouselImages: (() => {
+              if (!filters.gallery_enabled) return [];
+              const g1 = filters.gallery_image_1 as string | undefined;
+              const g2 = filters.gallery_image_2 as string | undefined;
+              const g3 = filters.gallery_image_3 as string | undefined;
+              const galleryImgs = [g1, g2, g3].filter((u): u is string => typeof u === "string" && u.startsWith("http"));
+              if (galleryImgs.length > 0) return galleryImgs;
+              const ci = filters.carousel_images;
+              if (Array.isArray(ci)) return ci.filter((u: any) => typeof u === "string" && u.startsWith("http"));
+              if (typeof ci === "string") return ci.split(",").map((u: string) => u.trim()).filter((u: string) => u.startsWith("http"));
+              return [];
+            })(),
             segmentFilters: filters,
             provider: currentProvider,
           });
