@@ -1,4 +1,5 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,6 +141,41 @@ export const AudienceManager = (props: any) => {
   const [isAssignPopoverOpen, setIsAssignPopoverOpen] = React.useState(false);
   const [isBulkEnriching, setIsBulkEnriching] = React.useState(false);
   const [realTimeline, setRealTimeline] = React.useState<any[]>([]);
+  const [deliveryFilter, setDeliveryFilter] = React.useState<"all" | "sent" | "delivered" | "bounced" | "unsent">("all");
+
+  // ── Real email stats per contact email ──
+  const { data: emailStatsMap = {} } = useQuery<Record<string, { sent: number; delivered: number; opened: number; bounced: number; spam: number }>>({  
+    queryKey: ["crm-email-stats-per-contact"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_outbox")
+        .select(`
+          status,
+          delivery_status,
+          worker:profiles(email),
+          lead:marketing_leads(email)
+        `)
+        .in("status", ["sent", "delivered", "failed"])
+        .order("created_at", { ascending: false })
+        .limit(5000);
+      if (error) throw error;
+      const map: Record<string, { sent: number; delivered: number; opened: number; bounced: number; spam: number }> = {};
+      for (const row of (data || [])) {
+        const email = (row.worker as any)?.email || (row.lead as any)?.email;
+        if (!email) continue;
+        if (!map[email]) map[email] = { sent: 0, delivered: 0, opened: 0, bounced: 0, spam: 0 };
+        const ds = row.delivery_status || row.status;
+        map[email].sent++;
+        if (ds === "delivered" || ds === "opened" || ds === "clicked") map[email].delivered++;
+        if (ds === "opened" || ds === "clicked") map[email].opened++;
+        if (ds === "bounced") map[email].bounced++;
+        if (ds === "spam") map[email].spam++;
+      }
+      return map;
+    },
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+  });
 
   const KNOWN_COUNTRIES = ["Česká republika", "Slovensko", "Německo", "Rakousko", "Polsko", "Česko"];
   const [dynamicCountries, setDynamicCountries] = React.useState<string[]>([]);
@@ -625,6 +661,21 @@ export const AudienceManager = (props: any) => {
                 <SelectItem value="90">Luxusní &gt; 90</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Delivery status filter */}
+            <Select value={deliveryFilter} onValueChange={(v: any) => setDeliveryFilter(v)}>
+              <SelectTrigger className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border shadow-sm transition-colors [&>svg:last-child]:hidden ${deliveryFilter !== "all" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"}`}>
+                <Send className="h-4 w-4 shrink-0" />
+                <span className="text-xs font-medium">Doručení</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl text-[12px]">
+                <SelectItem value="all">Všechny stavy</SelectItem>
+                <SelectItem value="sent">Alespoň odesláno</SelectItem>
+                <SelectItem value="delivered">Doručeno</SelectItem>
+                <SelectItem value="bounced">Odraženo (Bounce)</SelectItem>
+                <SelectItem value="unsent">Ještě neposláno</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -726,7 +777,17 @@ export const AudienceManager = (props: any) => {
                   </TableCell>
                 </TableRow>
               ) : (
-                leadSheet.map((lead: any) => (
+                leadSheet
+                  .filter((lead: any) => {
+                    if (deliveryFilter === "all") return true;
+                    const stats = emailStatsMap[lead.email];
+                    if (deliveryFilter === "unsent") return !stats || stats.sent === 0;
+                    if (deliveryFilter === "sent") return stats && stats.sent > 0;
+                    if (deliveryFilter === "delivered") return stats && stats.delivered > 0;
+                    if (deliveryFilter === "bounced") return stats && stats.bounced > 0;
+                    return true;
+                  })
+                  .map((lead: any) => (
                   <TableRow key={lead.id} className={`group border-border/30 transition-all duration-150 cursor-pointer ${selectedIds.includes(lead.id) ? "bg-primary/5" : "hover:bg-zinc-800/30 dark:hover:bg-zinc-800/50 hover:shadow-sm"}`} onClick={(e) => { if ((e.target as HTMLElement).closest('[data-checkbox]') || (e.target as HTMLElement).closest('button')) return; setSelectedContactForSheet(lead); }}>
                     <TableCell className="py-2 px-3" data-checkbox>
                       <Checkbox 
@@ -805,13 +866,43 @@ export const AudienceManager = (props: any) => {
                       </div>
                     </TableCell>
                     <TableCell className="py-2 text-center align-top">
-                       <div className="flex flex-col items-center justify-center gap-1.5 mt-0.5">
-                         <div className="text-[11px] text-muted-foreground flex items-center justify-center gap-2">
-                           <span className="flex items-center gap-1" title="Odeslané e-maily"><Mail className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : lead.engagement_score > 0 ? "1" : "0"}</span>
-                           <span className="opacity-30">|</span>
-                           <span className="flex items-center gap-1" title="Otevřené e-maily"><MailOpen className="h-3 w-3" /> {lead.engagement_score >= 100 ? "2" : lead.engagement_score >= 50 ? "1" : "0"}</span>
-                         </div>
-                       </div>
+                       {(() => {
+                         const stats = emailStatsMap[lead.email];
+                         if (!stats || stats.sent === 0) {
+                           return (
+                             <span className="text-[10px] text-muted-foreground/40 font-medium">—</span>
+                           );
+                         }
+                         return (
+                           <div className="flex flex-col items-center gap-1">
+                             <div className="flex items-center gap-2 text-[10px]">
+                               <span className="flex items-center gap-0.5 text-blue-500 font-semibold" title="Odesláno">
+                                 <Send className="h-2.5 w-2.5" />{stats.sent}
+                               </span>
+                               {stats.delivered > 0 && (
+                                 <span className="flex items-center gap-0.5 text-emerald-500 font-semibold" title="Doručeno">
+                                   <CheckCircle2 className="h-2.5 w-2.5" />{stats.delivered}
+                                 </span>
+                               )}
+                               {stats.opened > 0 && (
+                                 <span className="flex items-center gap-0.5 text-amber-500 font-semibold" title="Otevřeno">
+                                   <MailOpen className="h-2.5 w-2.5" />{stats.opened}
+                                 </span>
+                               )}
+                               {stats.bounced > 0 && (
+                                 <span className="flex items-center gap-0.5 text-red-500 font-semibold" title="Odraženo">
+                                   <AlertCircle className="h-2.5 w-2.5" />{stats.bounced}
+                                 </span>
+                               )}
+                               {stats.spam > 0 && (
+                                 <span className="flex items-center gap-0.5 text-rose-500 font-semibold" title="Spam">
+                                   <XCircle className="h-2.5 w-2.5" />{stats.spam}
+                                 </span>
+                               )}
+                             </div>
+                           </div>
+                         );
+                       })()}
                     </TableCell>
                   </TableRow>
                 ))
