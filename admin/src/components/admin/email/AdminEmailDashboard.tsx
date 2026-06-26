@@ -1,14 +1,12 @@
 import React, { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  Mail, Send, Zap, Users, BarChart3, Trophy, 
-  ArrowUpRight, ArrowDownRight, Clock, Plus, Sparkles, AlertCircle, ShieldAlert, UserMinus
+  Mail, Send, Zap, Users, Trophy, 
+  ArrowUpRight, Clock, Sparkles, AlertCircle, ShieldAlert, UserMinus, CheckCircle2
 } from "lucide-react";
 import { FilteredEmailList, MetricFilter } from "./FilteredEmailList";
-import { toast } from "sonner";
 
 interface FilterTabProps {
   title: string;
@@ -17,7 +15,7 @@ interface FilterTabProps {
   color: string;
   metricKey: MetricFilter;
   isActive: boolean;
-  onClick: (key: MetricFilter | null) => void;
+  onClick: (key: MetricFilter) => void;
 }
 
 const FilterTab = ({ title, value, icon: Icon, color, metricKey, isActive, onClick }: FilterTabProps) => {
@@ -38,8 +36,8 @@ const FilterTab = ({ title, value, icon: Icon, color, metricKey, isActive, onCli
 
   return (
     <button
-      onClick={() => onClick(isActive ? null : metricKey)}
-      className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${baseClasses}`}
+      onClick={() => onClick(metricKey)}
+      className={`flex-1 min-w-[80px] p-2.5 rounded-md border transition-all text-left ${baseClasses}`}
     >
       <div className="flex items-center justify-between mb-0.5">
         <p className={`text-[9px] font-bold uppercase tracking-wider ${isActive ? "font-black" : "text-muted-foreground"}`}>
@@ -55,11 +53,8 @@ const FilterTab = ({ title, value, icon: Icon, color, metricKey, isActive, onCli
 };
 
 export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => void }) => {
-  const [activeMetric, setActiveMetric] = useState<MetricFilter | null>(null);
-  const queryClient = useQueryClient();
-  const handleMetricClick = (key: MetricFilter) => {
-    setActiveMetric(key);
-  };
+  const [activeMetric, setActiveMetric] = useState<MetricFilter>("sent");
+
   // Real metrics from email_logs AND email_outbox (last 30 days)
   const { data: stats } = useQuery({
     queryKey: ["admin-email-stats-30d"],
@@ -97,75 +92,8 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
     },
   });
 
-  // Fetch real history from email_outbox
-  const { data: historyItems, isLoading: historyLoading } = useQuery({
-    queryKey: ["admin-email-history"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("email_outbox")
-        .select(`
-          id,
-          status,
-          delivery_status,
-          html_archive_url,
-          error_message,
-          sent_at,
-          created_at,
-          subject,
-          template:email_templates(name),
-          worker:profiles(full_name, email),
-          lead:marketing_leads(full_name, email)
-        `)
-        .in("status", ["sent", "delivered", "failed", "pending", "ready_for_outbox"])
-        .order("created_at", { ascending: false })
-        .limit(10);
-        
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const getStatusColor = (status: string | null) => {
-    switch (status) {
-      case 'sent': return 'bg-blue-500';
-      case 'delivered': return 'bg-emerald-500';
-      case 'opened': return 'bg-emerald-400';
-      case 'clicked': return 'bg-emerald-300';
-      case 'converted': return 'bg-purple-500';
-      case 'bounced': return 'bg-red-500';
-      case 'spam': return 'bg-rose-600';
-      case 'failed': return 'bg-rose-500';
-      case 'pending': return 'bg-slate-500';
-      case 'ready_for_outbox': return 'bg-slate-400';
-      default: return 'bg-slate-300';
-    }
-  };
-
-  const getStatusLabel = (status: string | null) => {
-    switch (status) {
-      case 'sent': return 'Odesláno';
-      case 'delivered': return 'Doručeno';
-      case 'opened': return 'Otevřeno';
-      case 'clicked': return 'Proklik';
-      case 'converted': return 'Konverze';
-      case 'bounced': return 'Odraženo (Bounce)';
-      case 'spam': return 'Spam';
-      case 'failed': return 'Chyba';
-      case 'pending': return 'Ve frontě';
-      case 'ready_for_outbox': return 'Příprava';
-      default: return 'Draft';
-    }
-  };
-
-  const formatTime = (dateStr: string | null) => {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleString('cs-CZ', { 
-      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-    });
-  };
-
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       {/* Filter Tabs Row */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
         <FilterTab 
@@ -175,7 +103,7 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           color="bg-blue-500" 
           metricKey="sent"
           isActive={activeMetric === "sent"}
-          onClick={handleMetricClick}
+          onClick={setActiveMetric}
         />
         <FilterTab 
           title="Ve frontě" 
@@ -184,16 +112,16 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           color="bg-slate-500" 
           metricKey="pending"
           isActive={activeMetric === "pending"}
-          onClick={handleMetricClick}
+          onClick={setActiveMetric}
         />
         <FilterTab 
           title="Doručeno" 
           value={stats?.delivered?.toLocaleString("cs-CZ") ?? 0} 
-          icon={Mail} 
+          icon={CheckCircle2} 
           color="bg-emerald-500" 
           metricKey="delivered"
           isActive={activeMetric === "delivered"}
-          onClick={handleMetricClick}
+          onClick={setActiveMetric}
         />
         <FilterTab 
           title="Click-Through" 
@@ -202,7 +130,7 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           color="bg-amber-500" 
           metricKey="clicked"
           isActive={activeMetric === "clicked"}
-          onClick={handleMetricClick}
+          onClick={setActiveMetric}
         />
         <FilterTab 
           title="Konverze" 
@@ -211,7 +139,7 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           color="bg-purple-500" 
           metricKey="converted"
           isActive={activeMetric === "converted"}
-          onClick={handleMetricClick}
+          onClick={setActiveMetric}
         />
         <FilterTab 
           title="Bounced" 
@@ -220,7 +148,7 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           color="bg-red-500" 
           metricKey="bounced"
           isActive={activeMetric === "bounced"}
-          onClick={handleMetricClick}
+          onClick={setActiveMetric}
         />
         <FilterTab 
           title="Spam" 
@@ -229,7 +157,7 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           color="bg-rose-500" 
           metricKey="spam"
           isActive={activeMetric === "spam"}
-          onClick={handleMetricClick}
+          onClick={setActiveMetric}
         />
         <FilterTab 
           title="Odhlášeno" 
@@ -238,89 +166,15 @@ export const AdminEmailDashboard = ({ onAction }: { onAction: (tab: string) => v
           color="bg-orange-500" 
           metricKey="unsubscribed"
           isActive={activeMetric === "unsubscribed"}
-          onClick={handleMetricClick}
+          onClick={setActiveMetric}
         />
       </div>
 
-      {/* Filtered Email List – appears when a metric is clicked */}
-      {activeMetric && (
-        <FilteredEmailList 
-          filter={activeMetric} 
-          onClose={() => setActiveMetric(null)} 
-        />
-      )}
-
-      {/* History / Recent Activity */}
-      <div className="grid grid-cols-1 gap-4">
-        <Card className="border-border/50 bg-card/30">
-          <CardHeader className="py-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" /> Nedávná historie aktivit
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-[10px] font-bold px-2 gap-1.5"
-              onClick={async () => {
-                try {
-                  const { error, data } = await supabase.from('email_outbox').delete().eq('status', 'failed').select('id');
-                  if (error) throw error;
-                  toast.success(`Vráceno do Volného náboru`, { description: `Smazáno chybných záznamů: ${data?.length || 0}. Můžete je znovu odeslat v záložce Outbox.`});
-                  queryClient.invalidateQueries({ queryKey: ["admin-email-history"] });
-                  queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
-                } catch (e) {
-                  toast.error("Chyba při vracení do Volného náboru", { description: String(e) });
-                }
-              }}
-            >
-              <Zap className="h-3 w-3" />
-              Zkusit znovu CHYBY
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-0 p-0">
-            {historyLoading ? (
-              <div className="p-6 text-center text-xs text-muted-foreground">Načítání historie...</div>
-            ) : historyItems && historyItems.length > 0 ? (
-              historyItems.map((item, i) => {
-                const recipient = item.worker || item.lead;
-                const label = item.subject || (item.template as any)?.name || 'E-mail bez předmětu';
-                const recipientName = recipient?.full_name || recipient?.email || 'Neznámý adresát';
-                
-                return (
-                  <div key={item.id} className="flex items-center justify-between group cursor-default border-b border-border/40 last:border-0 px-6 py-3 hover:bg-muted/30 transition-colors">
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-bold group-hover:text-primary transition-colors truncate max-w-[200px] sm:max-w-[400px]" title={label}>
-                        {label}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground font-medium">
-                        Pro: {recipientName} • {formatTime(item.sent_at || item.created_at)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2" title={item.error_message || undefined}>
-                      <span className={`w-2 h-2 rounded-full ${getStatusColor(item.delivery_status || item.status)}`} />
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        {getStatusLabel(item.delivery_status || item.status)}
-                      </span>
-                      {item.html_archive_url && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="ml-2 h-7 text-xs px-2"
-                          onClick={() => window.open(item.html_archive_url, '_blank')}
-                        >
-                          Zobrazit
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="p-6 text-center text-xs text-muted-foreground">Zatím žádná historie.</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Always-visible email list — defaults to "sent", switches with tabs above */}
+      <FilteredEmailList 
+        filter={activeMetric}
+        onClose={() => setActiveMetric("sent")}
+      />
     </div>
   );
 };
