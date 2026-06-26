@@ -488,13 +488,16 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       if (useDeepSeek) testedEngines.push("deepseek");
       if (useSiliconFlow) testedEngines.push("siliconflow");
       if (useGemini) testedEngines.push("gemini");
+      if (useCerebras) testedEngines.push("cerebras");
+      if (useMistral) testedEngines.push("mistral");
       
       for (const eng of testedEngines) {
         const prev = currentHealth[eng] || {};
+        const nowIso = new Date().toISOString();
         if (engineErrors[eng]) {
-          currentHealth[eng] = { ...prev, status: "error", message: engineErrors[eng], updated_at: new Date().toISOString(), last_run_processed: engineStats[eng]?.processed ?? 0 };
+          currentHealth[eng] = { ...prev, status: "error", message: engineErrors[eng], updated_at: nowIso, last_run_processed: engineStats[eng]?.processed ?? 0 };
         } else {
-          currentHealth[eng] = { ...prev, status: "ok", message: "OK", updated_at: new Date().toISOString(), last_run_processed: engineStats[eng]?.processed ?? 0 };
+          currentHealth[eng] = { ...prev, status: "ok", message: "OK", updated_at: nowIso, last_success_at: nowIso, last_run_processed: engineStats[eng]?.processed ?? 0 };
         }
       }
       await supabase.from("app_settings").upsert({ key: "api_health", value: currentHealth }, { onConflict: "key" });
