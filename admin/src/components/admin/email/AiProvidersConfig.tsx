@@ -32,6 +32,8 @@ const MODEL_CATALOGUES: Record<string, { label: string; value: string }[]> = {
     { label: "gemini-1.5-flash", value: "gemini-1.5-flash" },
     { label: "gemini-1.5-pro", value: "gemini-1.5-pro" },
     { label: "gemini-2.5-flash-preview", value: "gemini-2.5-flash-preview-05-20" },
+    { label: "gemma-2-27b-it", value: "gemma-2-27b-it" },
+    { label: "gemma-2-9b-it", value: "gemma-2-9b-it" },
   ],
   openrouter: [
     { label: "llama-3.3-70b-instruct:free (doporučeno)", value: "meta-llama/llama-3.3-70b-instruct:free" },
@@ -51,6 +53,14 @@ const MODEL_CATALOGUES: Record<string, { label: string; value: string }[]> = {
     { label: "Qwen/Qwen2.5-7B-Instruct", value: "Qwen/Qwen2.5-7B-Instruct" },
     { label: "deepseek-ai/DeepSeek-V3", value: "deepseek-ai/DeepSeek-V3" },
     { label: "THUDM/glm-4-9b-chat", value: "THUDM/glm-4-9b-chat" },
+  ],
+  cerebras: [
+    { label: "llama-3.3-70b (doporučeno, 1M tokenů/den zdarma)", value: "llama3.3-70b" },
+    { label: "llama3.1-8b (rychlý zdarma)", value: "llama3.1-8b" },
+  ],
+  mistral: [
+    { label: "mistral-large-latest (doporučeno)", value: "mistral-large-latest" },
+    { label: "open-mistral-nemo", value: "open-mistral-nemo" },
   ],
 };
 
@@ -373,6 +383,28 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
       desc: "Asijský agregátor (Qwen, DeepSeek).",
       modelConfigKey: "siliconflow_model",
       modelDefault: "Qwen/Qwen2.5-72B-Instruct",
+      relatedJobs: ["Auto Enrich Leads"],
+    },
+    {
+      id: "cerebras",
+      name: "Cerebras",
+      keyName: "CEREBRAS_API_KEY",
+      fallbackKeyName: "CEREBRAS_FALLBACK_API_KEY",
+      searchConfigKey: "cerebras",
+      desc: "Zcela zdarma (až 1M tokenů/den), nejrychlejší zpracování na wafer-scale čipech.",
+      modelConfigKey: "cerebras_model",
+      modelDefault: "llama3.3-70b",
+      relatedJobs: ["Auto Enrich Leads"],
+    },
+    {
+      id: "mistral",
+      name: "Mistral",
+      keyName: "MISTRAL_API_KEY",
+      fallbackKeyName: "MISTRAL_FALLBACK_API_KEY",
+      searchConfigKey: "mistral",
+      desc: "Záložní API (až 1B tokenů/měsíc v experiment tieru).",
+      modelConfigKey: "mistral_model",
+      modelDefault: "mistral-large-latest",
       relatedJobs: ["Auto Enrich Leads"],
     },
   ];

@@ -60,7 +60,8 @@ Deno.serve(async (req) => {
     const openrouterModel = cfg.openrouter_model || "meta-llama/llama-3.3-70b-instruct:free";
     const deepseekModel  = cfg.deepseek_model  || "deepseek-chat";
     const siliconflowModel = cfg.siliconflow_model || "Qwen/Qwen2.5-72B-Instruct";
-
+    const cerebrasModel = cfg.cerebras_model || "llama3.3-70b";
+    const mistralModel = cfg.mistral_model || "mistral-large-latest";
 
     // Determine active enrich engines (independently toggled)
     const useGemini = configData?.value?.use_gemini_enrich_engine ?? (enrichEngine === "gemini" || enrichEngine === "both" || enrichEngine === "all");
@@ -68,6 +69,8 @@ Deno.serve(async (req) => {
     const useOpenRouter = configData?.value?.use_openrouter_enrich_engine ?? (enrichEngine === "openrouter" || enrichEngine === "all");
     const useDeepSeek = configData?.value?.use_deepseek_enrich_engine ?? (enrichEngine === "deepseek" || enrichEngine === "all");
     const useSiliconFlow = configData?.value?.use_siliconflow_enrich_engine ?? (enrichEngine === "siliconflow" || enrichEngine === "all");
+    const useCerebras = configData?.value?.use_cerebras_enrich_engine ?? (enrichEngine === "cerebras" || enrichEngine === "all");
+    const useMistral = configData?.value?.use_mistral_enrich_engine ?? (enrichEngine === "mistral" || enrichEngine === "all");
 
     // Select leads that haven't been enriched yet (description = null means not processed)
     const { data: leads } = await supabase
@@ -324,6 +327,100 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         engineStats.siliconflow = { processed: totalProcessed };
         if (totalProcessed === 0 && !engineErrors.siliconflow) engineErrors.siliconflow = lastErr || "Nezpracovatelný JSON";
       })().catch(e => { engineErrors.siliconflow = e.message; }));
+    }
+
+    if (useCerebras) {
+      engineTasks.push((async () => {
+        const authKeys = [keys.CEREBRAS_API_KEY, keys.CEREBRAS_FALLBACK_API_KEY].filter(Boolean);
+        if (authKeys.length === 0) { engineErrors.cerebras = "Missing CEREBRAS_API_KEY"; return; }
+        const chunks = chunk(inputForAI, 20);
+        let totalProcessed = 0;
+        let lastErr = "";
+
+        for (const chunkData of chunks) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          try {
+            let res;
+            for (const ak of authKeys) {
+              res = await fetch("https://api.cerebras.ai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+                body: JSON.stringify({
+                  model: cerebrasModel,
+                  messages: [{ role: "system", content: "You are data enrichment AI. Always reply with valid JSON array." }, { role: "user", content: chunkPrompt }],
+                  temperature: 0.1,
+                  response_format: { type: "json_object" }
+                })
+              });
+              if (res.ok) break;
+              if (res.status !== 401 && res.status !== 429) break;
+            }
+            if (!res || !res.ok) { lastErr = `${res?.status} ${await res?.text()}`; continue; }
+            const resJson = await res.json();
+            let text = resJson.choices?.[0]?.message?.content || "";
+            if (text) {
+                text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+                const fb = text.indexOf('['); const lb = text.lastIndexOf(']');
+                if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
+            }
+            const parsed = JSON.parse(text);
+            const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find((v: any) => Array.isArray(v)) || [];
+            if (finalArray.length > 0) {
+              for (const item of finalArray) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
+              await logUsage("cerebras");
+            }
+          } catch(e: any) { lastErr = e.message; }
+        }
+        engineStats.cerebras = { processed: totalProcessed };
+        if (totalProcessed === 0 && !engineErrors.cerebras) engineErrors.cerebras = lastErr || "Nezpracovatelný JSON";
+      })().catch(e => { engineErrors.cerebras = e.message; }));
+    }
+
+    if (useMistral) {
+      engineTasks.push((async () => {
+        const authKeys = [keys.MISTRAL_API_KEY, keys.MISTRAL_FALLBACK_API_KEY].filter(Boolean);
+        if (authKeys.length === 0) { engineErrors.mistral = "Missing MISTRAL_API_KEY"; return; }
+        const chunks = chunk(inputForAI, 20);
+        let totalProcessed = 0;
+        let lastErr = "";
+
+        for (const chunkData of chunks) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          try {
+            let res;
+            for (const ak of authKeys) {
+              res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+                body: JSON.stringify({
+                  model: mistralModel,
+                  messages: [{ role: "system", content: "You are data enrichment AI. Always reply with valid JSON array." }, { role: "user", content: chunkPrompt }],
+                  temperature: 0.1,
+                  response_format: { type: "json_object" }
+                })
+              });
+              if (res.ok) break;
+              if (res.status !== 401 && res.status !== 429) break;
+            }
+            if (!res || !res.ok) { lastErr = `${res?.status} ${await res?.text()}`; continue; }
+            const resJson = await res.json();
+            let text = resJson.choices?.[0]?.message?.content || "";
+            if (text) {
+                text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+                const fb = text.indexOf('['); const lb = text.lastIndexOf(']');
+                if (fb !== -1 && lb !== -1) text = text.substring(fb, lb + 1);
+            }
+            const parsed = JSON.parse(text);
+            const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find((v: any) => Array.isArray(v)) || [];
+            if (finalArray.length > 0) {
+              for (const item of finalArray) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
+              await logUsage("mistral");
+            }
+          } catch(e: any) { lastErr = e.message; }
+        }
+        engineStats.mistral = { processed: totalProcessed };
+        if (totalProcessed === 0 && !engineErrors.mistral) engineErrors.mistral = lastErr || "Nezpracovatelný JSON";
+      })().catch(e => { engineErrors.mistral = e.message; }));
     }
 
     if (useGemini) {
