@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     const { data: leads } = await supabase
       .from("marketing_leads")
       .select("id, email, full_name, company_name, website, city, country, language, phone, description, decision_maker_name, category, subcategory, premium_score, last_project, updated_at")
-      .is("description", null)
+      .or("description.is.null,description.eq.")
       .not("email", "is", null)
       .order("updated_at", { ascending: true, nullsFirst: true })
       .limit(batchSize);
