@@ -551,7 +551,7 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
         if (engineErrors[eng]) {
           currentHealth[eng] = { ...existingStats, status: "error", message: engineErrors[eng], updated_at: new Date().toISOString() };
         } else {
-          currentHealth[eng] = { ...existingStats, status: "ok", message: "OK", updated_at: new Date().toISOString(), last_run_processed: engineCounts[eng] || 0, last_success_at: new Date().toISOString() };
+          currentHealth[eng] = { ...existingStats, status: "ok", message: "OK", updated_at: new Date().toISOString(), last_run_discovered: engineCounts[eng] || 0, last_success_at: new Date().toISOString() };
         }
       }
       await supabase.from("app_settings").upsert({ key: "api_health", value: currentHealth }, { onConflict: "key" });

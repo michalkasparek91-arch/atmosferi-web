@@ -115,19 +115,22 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
   const StatusIcon = isSuccess ? CheckCircle2 : isError ? XCircle : isRunning ? Loader2 : Clock;
   const statusLabel = isSuccess ? "Úspěch" : isError ? "Chyba" : isRunning ? "Probíhá…" : "Neznámý";
 
-  const perProviderProcessed = health?.last_run_processed;
+  const perProviderEnriched = health?.last_run_enriched ?? health?.last_run_processed;
+  const perProviderDiscovered = health?.last_run_discovered;
   const meta = job?.metadata || {};
   let metaLine = null;
   
   if (title === "Enrichment") {
-    metaLine = perProviderProcessed !== undefined 
-      ? `${perProviderProcessed} obohaceno` 
+    metaLine = perProviderEnriched !== undefined 
+      ? `${perProviderEnriched} obohaceno` 
       : meta.processed !== undefined 
       ? `${meta.processed} obohaceno (celkem)` 
       : null;
   } else if (title === "Sběr (Hledání)") {
-    metaLine = meta.discovered_count !== undefined
-      ? `${meta.discovered_count} získáno`
+    metaLine = perProviderDiscovered !== undefined
+      ? `${perProviderDiscovered} získáno`
+      : meta.discovered_count !== undefined
+      ? `${meta.discovered_count} získáno (celkem)`
       : meta.message || null;
   } else {
     metaLine = meta.message || null;
