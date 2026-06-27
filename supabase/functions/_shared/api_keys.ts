@@ -31,5 +31,11 @@ export async function getApiKeys(supabase: any) {
     
     SILICONFLOW_API_KEY: cleanKey(dbKeys.SILICONFLOW_API_KEY || Deno.env.get("SILICONFLOW_API_KEY")),
     SILICONFLOW_FALLBACK_API_KEY: cleanKey(dbKeys.SILICONFLOW_FALLBACK_API_KEY || Deno.env.get("SILICONFLOW_FALLBACK_API_KEY")),
+    
+    CEREBRAS_API_KEY: cleanKey(dbKeys.CEREBRAS_API_KEY || Deno.env.get("CEREBRAS_API_KEY")),
+    CEREBRAS_FALLBACK_API_KEY: cleanKey(dbKeys.CEREBRAS_FALLBACK_API_KEY || Deno.env.get("CEREBRAS_FALLBACK_API_KEY")),
+    
+    MISTRAL_API_KEY: cleanKey(dbKeys.MISTRAL_API_KEY || Deno.env.get("MISTRAL_API_KEY")),
+    MISTRAL_FALLBACK_API_KEY: cleanKey(dbKeys.MISTRAL_FALLBACK_API_KEY || Deno.env.get("MISTRAL_FALLBACK_API_KEY")),
   };
 }

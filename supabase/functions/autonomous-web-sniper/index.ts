@@ -263,8 +263,8 @@ async function runSiliconFlowEngine(supabase: any, targetCountry: string, target
     
     if (!res || !res.ok) {
        const err = await res?.text();
-       const partialKey = sfKey ? (sfKey.substring(0, 5) + "...") : "null";
-       return { error: `SiliconFlow API Chyba: ${res.status} - ${err} (Key: ${partialKey})` };
+       const partialKey = authKeys[0] ? (authKeys[0].substring(0, 5) + "...") : "null";
+       return { error: `SiliconFlow API Chyba: ${res?.status} - ${err} (Key: ${partialKey})` };
     }
 
     const resJson = await res.json();
