@@ -656,7 +656,9 @@ export default function AdminEmails() {
   const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
     queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, enrichFilter, crmPage, crmSort],
     queryFn: async () => {
-      let query = supabase.from("unified_contacts" as any).select("*", { count: 'exact' });
+      // Use estimated count when there are no strong filters to avoid full table scan timeouts
+      const useExactCount = searchTerm || countryFilter !== "all" || cityFilter !== "all" || categoryFilter !== "all";
+      let query = supabase.from("unified_contacts" as any).select("*", { count: useExactCount ? 'exact' : 'estimated' });
       
       if (crmSort === "engagement") {
          query = query.order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
@@ -797,7 +799,7 @@ export default function AdminEmails() {
         return suitableWorkers ? suitableWorkers.length : 0;
       }
 
-      let query = supabase.from("unified_contacts" as any).select("*", { count: "exact", head: true });
+      let query = supabase.from("unified_contacts" as any).select("*", { count: 'estimated', head: true });
       
       if (target === "workers") query = query.eq("user_type", "worker");
       else if (target === "customers") query = query.eq("user_type", "customer");
