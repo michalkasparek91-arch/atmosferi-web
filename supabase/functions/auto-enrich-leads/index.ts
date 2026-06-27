@@ -63,14 +63,17 @@ Deno.serve(async (req) => {
     const cerebrasModel = cfg.cerebras_model || "llama3.3-70b";
     const mistralModel = cfg.mistral_model || "mistral-large-latest";
 
-    // Determine active enrich engines (independently toggled)
-    const useGemini = configData?.value?.use_gemini_enrich_engine ?? (enrichEngine === "gemini" || enrichEngine === "both" || enrichEngine === "all");
-    const useGroq   = configData?.value?.use_groq_enrich_engine ?? (enrichEngine === "groq" || enrichEngine === "both" || enrichEngine === "all");
-    const useOpenRouter = configData?.value?.use_openrouter_enrich_engine ?? (enrichEngine === "openrouter" || enrichEngine === "all");
-    const useDeepSeek = configData?.value?.use_deepseek_enrich_engine ?? (enrichEngine === "deepseek" || enrichEngine === "all");
-    const useSiliconFlow = configData?.value?.use_siliconflow_enrich_engine ?? (enrichEngine === "siliconflow" || enrichEngine === "all");
-    const useCerebras = configData?.value?.use_cerebras_enrich_engine ?? (enrichEngine === "cerebras" || enrichEngine === "all");
-    const useMistral = configData?.value?.use_mistral_enrich_engine ?? (enrichEngine === "mistral" || enrichEngine === "all");
+    const body = await req.json().catch(() => ({}));
+    const engineOverride = body.engine;
+
+    // Determine active enrich engines (independently toggled or overridden)
+    const useGemini = engineOverride ? engineOverride === "gemini" : (configData?.value?.use_gemini_enrich_engine ?? (enrichEngine === "gemini" || enrichEngine === "both" || enrichEngine === "all"));
+    const useGroq   = engineOverride ? engineOverride === "groq" : (configData?.value?.use_groq_enrich_engine ?? (enrichEngine === "groq" || enrichEngine === "both" || enrichEngine === "all"));
+    const useOpenRouter = engineOverride ? engineOverride === "openrouter" : (configData?.value?.use_openrouter_enrich_engine ?? (enrichEngine === "openrouter" || enrichEngine === "all"));
+    const useDeepSeek = engineOverride ? engineOverride === "deepseek" : (configData?.value?.use_deepseek_enrich_engine ?? (enrichEngine === "deepseek" || enrichEngine === "all"));
+    const useSiliconFlow = engineOverride ? engineOverride === "siliconflow" : (configData?.value?.use_siliconflow_enrich_engine ?? (enrichEngine === "siliconflow" || enrichEngine === "all"));
+    const useCerebras = engineOverride ? engineOverride === "cerebras" : (configData?.value?.use_cerebras_enrich_engine ?? (enrichEngine === "cerebras" || enrichEngine === "all"));
+    const useMistral = engineOverride ? engineOverride === "mistral" : (configData?.value?.use_mistral_enrich_engine ?? (enrichEngine === "mistral" || enrichEngine === "all"));
 
     // Select leads that haven't been enriched yet (description = null means not processed)
     const { data: leads } = await supabase

@@ -520,6 +520,8 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     const debugParts: string[] = [];
     const engineErrors: Record<string, string> = {};
 
+    const engineCounts: Record<string, number> = {};
+
     for (let i = 0; i < engineResults.length; i++) {
       const eng = activeEngines[i];
       const result = engineResults[i];
@@ -534,6 +536,7 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
         engineErrors[eng] = String(value.error);
       } else {
         const list = value.discoveredList || [];
+        engineCounts[eng] = list.length;
         debugParts.push(`${eng}: nalezeno ${list.length} kontaktu`);
         allDiscovered = allDiscovered.concat(list);
       }
@@ -543,10 +546,12 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       const { data: healthData } = await supabase.from("app_settings").select("value").eq("key", "api_health").maybeSingle();
       const currentHealth = healthData?.value || {};
       for (const eng of activeEngines) {
+        // preserve existing stats if we can, update the relevant ones
+        const existingStats = currentHealth[eng] || {};
         if (engineErrors[eng]) {
-          currentHealth[eng] = { status: "error", message: engineErrors[eng], updated_at: new Date().toISOString() };
+          currentHealth[eng] = { ...existingStats, status: "error", message: engineErrors[eng], updated_at: new Date().toISOString() };
         } else {
-          currentHealth[eng] = { status: "ok", message: "OK", updated_at: new Date().toISOString() };
+          currentHealth[eng] = { ...existingStats, status: "ok", message: "OK", updated_at: new Date().toISOString(), last_run_processed: engineCounts[eng] || 0, last_success_at: new Date().toISOString() };
         }
       }
       await supabase.from("app_settings").upsert({ key: "api_health", value: currentHealth }, { onConflict: "key" });
