@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Loader2, Save, KeyRound, Globe, BrainCircuit, Activity,
-  CheckCircle2, XCircle, Clock, AlertTriangle, ChevronDown, Cpu
+  CheckCircle2, XCircle, Clock, AlertTriangle, ChevronDown, Cpu, Play
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -327,6 +327,14 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
     toast.success("Testování dokončeno");
   };
 
+  const testEngine = async (functionName: string, engine: string) => {
+    toast.info(`Spouštím test pro ${engine}...`);
+    const { error, data } = await supabase.functions.invoke(functionName, { method: "POST", body: { engine, forceSearch: true } });
+    if (error) { toast.error(`Test selhal: ${error.message}`); return; }
+    toast.success(`Test dokončen: ${data?.message || data?.debug_output || "OK"}`);
+    queryClient.invalidateQueries({ queryKey: ["admin-api-health"] });
+  };
+
   const providers = [
     {
       id: "gemini",
@@ -533,20 +541,30 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                       <Globe className="h-3.5 w-3.5 text-blue-500/70" />
                       <Label className="text-xs font-medium cursor-pointer">Autonomní Sběr</Label>
                     </div>
-                    <Switch
-                      checked={isSearchChecked}
-                      onCheckedChange={c => handleToggleSearch(p.searchConfigKey, c)}
-                    />
+                    <div className="flex items-center gap-3">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-blue-500" onClick={() => testEngine("autonomous-web-sniper", p.id === 'groq' ? 'groq_places' : p.id)} title={`Otestovat ${p.name} sběr`}>
+                        <Play className="h-3 w-3" />
+                      </Button>
+                      <Switch
+                        checked={isSearchChecked}
+                        onCheckedChange={c => handleToggleSearch(p.searchConfigKey, c)}
+                      />
+                    </div>
                   </div>
                   <div className="flex items-center justify-between bg-background border border-border/30 rounded-md p-2">
                     <div className="flex items-center gap-2">
                       <BrainCircuit className="h-3.5 w-3.5 text-purple-500/70" />
                       <Label className="text-xs font-medium cursor-pointer">Enrichment</Label>
                     </div>
-                    <Switch
-                      checked={enrichChecked}
-                      onCheckedChange={c => toggleEnrichEngine(p.id, c)}
-                    />
+                    <div className="flex items-center gap-3">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-purple-500" onClick={() => testEngine("auto-enrich-leads", p.id)} title={`Otestovat ${p.name} enrichment`}>
+                        <Play className="h-3 w-3" />
+                      </Button>
+                      <Switch
+                        checked={enrichChecked}
+                        onCheckedChange={c => toggleEnrichEngine(p.id, c)}
+                      />
+                    </div>
                   </div>
                 </div>
 
