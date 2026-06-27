@@ -144,6 +144,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         ctaButtonEnabled: payload.showCtaButton ?? true,
         ctaText: payload.ctaText,
         ctaUrl: payload.ctaUrl,
+        isPlainText: payload.segmentFilters?.is_plain_text,
       };
       html = generateAtmosferiEmailHtml(emailData);
     } else if (payload.layoutType === "plain") {

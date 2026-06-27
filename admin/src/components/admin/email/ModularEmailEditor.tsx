@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { 
   Mail, Save, X, Trash2, Send, Loader2, Bold, Italic, List, Link, 
   Monitor, Smartphone, Sparkles, ChevronLeft, ChevronRight, Eye, Target, MapPin,
-  Building2, Layout, Briefcase, ChevronDown, Hexagon, Contrast, Globe, Plus
+  Building2, Layout, Briefcase, ChevronDown, Hexagon, Contrast, Globe, Plus, AlignLeft
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
@@ -1691,6 +1691,17 @@ export function ModularEmailEditorDialogInner({
               {activeTab === "widgets" && (
                 <div className="space-y-0.5 animate-in fade-in duration-200 p-1">
                   
+
+                  {/* Plain Text Toggle */}
+                  <div className="py-2 mb-2 bg-slate-500/5 p-3 rounded-xl border border-slate-500/20">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-xs font-bold text-foreground flex items-center gap-1"><AlignLeft className="w-3 h-3"/> Čistý text (bez HTML)</Label>
+                        <p className="text-[10px] text-muted-foreground">Odešle prostý text pro nejvyšší doručitelnost (ignoruje HTML widgety).</p>
+                      </div>
+                      <Switch checked={!!form.segment_filters?.is_plain_text} onCheckedChange={(c) => setSegmentFilter("is_plain_text", c)} />
+                    </div>
+                  </div>
 
                   {/* Stealth Tracking */}
                   <div className="py-2 mb-2 bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/20">

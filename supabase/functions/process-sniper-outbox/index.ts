@@ -7,13 +7,14 @@ const corsHeaders = {
 };
 
 const CHUNK_SIZE = {
-  brevo: 50,
-  ses: 20,
+  brevo: 2, // Pacing: Send max 2 emails per batch to avoid spam
+  ses: 2,
 } as const;
 
+// We will calculate a dynamic delay between 15 and 45 seconds instead of a fixed small delay
 const SEND_DELAY_MS = {
-  brevo: 100, // Small delay to prevent API flooding, but small enough to complete batch in time
-  ses: 100,
+  brevo: 15000, 
+  ses: 15000,
 } as const;
 
 function sleep(ms: number) {
@@ -250,9 +251,9 @@ Deno.serve(async (req) => {
 
       for (let i = 0; i < idsThisRun.length; i++) {
         const draftId = idsThisRun[i];
-
-        await sleep(SEND_DELAY_MS[provider]);
-
+        // Dynamic random sleep (15-45 seconds) to mimic human pacing
+        const randomMs = Math.floor(Math.random() * (45000 - 15000 + 1)) + 15000;
+        await sleep(randomMs);
         const { data: draft, error: fetchErr } = await supabaseAdmin
           .from("email_outbox")
           .select(`

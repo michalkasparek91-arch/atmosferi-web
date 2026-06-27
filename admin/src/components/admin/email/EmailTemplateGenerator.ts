@@ -21,10 +21,36 @@ export interface EmailTemplateData {
   psEnabled: boolean;
   psText: string;
   themeColor: string;
+  isPlainText?: boolean;
 }
 
 export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
   const parsedBody = parseBodyText(data.body);
+
+  if (data.isPlainText) {
+    let plainText = data.icebreakerEnabled && data.icebreakerText ? `<p>${data.icebreakerText}</p>` : "";
+    plainText += `<div>${parsedBody}</div>`;
+    
+    if (data.portfolioEnabled && data.portfolioImages.length > 0) {
+      plainText += `<p>Ukázka naší práce: ${data.portfolioImages.join(', ')}</p>`;
+    }
+    if (data.ctaText && data.ctaUrl) {
+      plainText += `<p>${data.ctaText}: ${data.stealthTrackingEnabled && data.trackingId ? \`https://atmosferi.com/api/track?id=\${data.trackingId}&url=\${encodeURIComponent(data.ctaUrl)}\` : data.ctaUrl}</p>`;
+    }
+    if (data.signatureEnabled) {
+      plainText += `<br/><p>S pozdravem,<br/>${data.signatureName}<br/>${data.signatureRole}<br/>${data.signatureEmail}</p>`;
+    }
+    if (data.psEnabled && data.psText) {
+      plainText += `<br/><p>P.S. ${data.psText}</p>`;
+    }
+    
+    return `<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; font-size: 14px; line-height: 1.6; color: #000;">
+${plainText}
+</body>
+</html>`;
+  }
 
   const finalHeroUrl = (data.stealthTrackingEnabled && data.trackingId && data.heroImageUrl) 
     ? `https://atmosferi.com/api/track?id=${data.trackingId}&url=${encodeURIComponent(data.heroImageUrl)}` 
