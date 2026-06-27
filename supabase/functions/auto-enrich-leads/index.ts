@@ -159,7 +159,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const authKeys = [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean);
         if (authKeys.length === 0) { engineErrors.groq = "Missing GROQ_API_KEY"; return; }
         // Groq has low TPM limits on free tier — use smaller chunks (20 leads max)
-        const groqModels = [groqModel, "llama-3.3-70b-versatile", "llama-3.1-70b-versatile"].filter((v, i, a) => a.indexOf(v) === i);
+        const groqModels = [groqModel, "llama-3.3-70b-versatile"].filter((v, i, a) => a.indexOf(v) === i);
         const chunks = chunk(inputForAI, 20);
         let totalProcessed = 0;
         let lastErr = "";

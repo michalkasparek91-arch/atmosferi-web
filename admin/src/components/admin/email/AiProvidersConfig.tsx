@@ -19,8 +19,6 @@ import { toast } from "sonner";
 const MODEL_CATALOGUES: Record<string, { label: string; value: string }[]> = {
   groq: [
     { label: "llama-3.3-70b-versatile (doporučeno)", value: "llama-3.3-70b-versatile" },
-    { label: "llama-3.1-8b-instant (rychlý)", value: "llama-3.1-8b-instant" },
-    { label: "llama-3.1-70b-versatile", value: "llama-3.1-70b-versatile" },
     { label: "mixtral-8x7b-32768", value: "mixtral-8x7b-32768" },
     { label: "gemma-7b-it", value: "gemma-7b-it" },
     { label: "llama-4-scout-17b-16e-instruct", value: "llama-4-scout-17b-16e-instruct" },
@@ -55,8 +53,9 @@ const MODEL_CATALOGUES: Record<string, { label: string; value: string }[]> = {
     { label: "THUDM/glm-4-9b-chat", value: "THUDM/glm-4-9b-chat" },
   ],
   cerebras: [
-    { label: "llama-3.3-70b (doporučeno, 1M tokenů/den zdarma)", value: "llama3.3-70b" },
-    { label: "llama3.1-8b (rychlý zdarma)", value: "llama3.1-8b" },
+    { label: "gpt-oss-120b (Ultra-fast reasoning)", value: "gpt-oss-120b" },
+    { label: "zai-glm-4.7 (357B, multi-agent)", value: "zai-glm-4.7" },
+    { label: "Gemma 4 31B (Coming Soon)", value: "gemma-4-31b" },
   ],
   mistral: [
     { label: "mistral-large-latest (doporučeno)", value: "mistral-large-latest" },
@@ -404,9 +403,10 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
       fallbackKeyName: "CEREBRAS_FALLBACK_API_KEY",
       searchConfigKey: "cerebras",
       desc: "Zcela zdarma (až 1M tokenů/den), nejrychlejší zpracování na wafer-scale čipech.",
+      hasSlider: false,
       modelConfigKey: "cerebras_model",
-      modelDefault: "llama3.3-70b",
-      relatedJobs: ["Auto Enrich Leads"],
+      modelDefault: "gpt-oss-120b",
+      relatedJobs: ["Auto Enrich Leads"]
     },
     {
       id: "mistral",
