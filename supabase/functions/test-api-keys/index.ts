@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       if (authKeys.length === 0) return { engine: "siliconflow", status: "error", message: "Missing API Key" };
       for (const ak of authKeys) {
         try {
-          const res = await fetch("https://api.siliconflow.cn/v1/models", {
+          const res = await fetch("https://api.siliconflow.com/v1/models", {
             headers: { "Authorization": `Bearer ${ak}` }
           });
           if (res.ok) return { engine: "siliconflow", status: "ok" };
