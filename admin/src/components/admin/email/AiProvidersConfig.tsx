@@ -126,18 +126,16 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
   const meta = job?.metadata || {};
   let metaLine = null;
   
+  // Numbers are strictly per-engine (from api_health[engine]); no shared "(celkem)" totals,
+  // so each card reflects only what THAT provider discovered/enriched.
   if (title === "Enrichment") {
-    metaLine = perProviderEnriched !== undefined 
-      ? `${perProviderEnriched} obohaceno` 
-      : meta.processed !== undefined 
-      ? `${meta.processed} obohaceno (celkem)` 
+    metaLine = perProviderEnriched !== undefined
+      ? `${perProviderEnriched} obohaceno`
       : null;
   } else if (title === "Sběr (Hledání)") {
     metaLine = perProviderDiscovered !== undefined
       ? `${perProviderDiscovered} získáno`
-      : meta.discovered_count !== undefined
-      ? `${meta.discovered_count} získáno (celkem)`
-      : meta.message || null;
+      : null;
   } else {
     metaLine = meta.message || null;
   }
@@ -610,9 +608,10 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                 {/* LAST RUN — separated by job type */}
                 <div className="border-t border-border/30 pt-3 mt-auto flex flex-col gap-3">
                   {p.relatedJobs?.includes("Continuous Web Discovery") && (
-                    <JobBadge 
-                      title="Sběr (Hledání)" 
-                      job={jobMap["Continuous Web Discovery"]} 
+                    <JobBadge
+                      title="Sběr (Hledání)"
+                      health={(testResults as any)[p.searchConfigKey]}
+                      job={jobMap["Continuous Web Discovery"]}
                     />
                   )}
                   {p.relatedJobs?.includes("Auto Enrich Leads") && (

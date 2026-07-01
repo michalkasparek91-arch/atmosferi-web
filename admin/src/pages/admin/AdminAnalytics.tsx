@@ -25,6 +25,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Loader2, Globe2, Users2, Zap, LayoutDashboard } from 'lucide-react';
+import EmailDeliverabilityAnalytics from '@/components/admin/EmailDeliverabilityAnalytics';
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
@@ -227,6 +228,8 @@ export default function AdminAnalytics() {
           </CardContent>
         </Card>
       </div>
+
+      <EmailDeliverabilityAnalytics />
     </div>
   );
 }

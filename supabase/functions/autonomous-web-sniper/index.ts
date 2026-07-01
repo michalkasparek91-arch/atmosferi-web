@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.2";
 import { getApiKeys } from "../_shared/api_keys.ts";
+import { checkEmailDeliverable } from "../_shared/email_validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -660,14 +661,20 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     let newSavedCount = 0;
     let missingEmailCount = 0;
     let duplicateCount = 0;
+    let invalidEmailCount = 0;
     let lastInsertError = null;
-    
+
     for (const item of discoveredList) {
       if (!item.email || !item.email.includes("@")) {
           missingEmailCount++;
           continue;
       }
       const cleanEmail = item.email.toLowerCase().trim();
+
+      // Free deliverability check (syntax + MX via DNS-over-HTTPS) — drop undeliverable
+      // scraped addresses before they enter the send queue, to protect sender reputation.
+      const emailCheck = await checkEmailDeliverable(cleanEmail);
+      if (!emailCheck.valid) { invalidEmailCount++; continue; }
 
       const { data: pExist } = await supabase.from("profiles").select("id").eq("email", cleanEmail).maybeSingle();
       if (pExist) { duplicateCount++; continue; }
@@ -719,7 +726,7 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       else if (insertErr) lastInsertError = insertErr.message;
     }
 
-    const skipReport = `(zahozeno: ${missingEmailCount} bez mailu, ${duplicateCount} duplicit)`;
+    const skipReport = `(zahozeno: ${missingEmailCount} bez mailu, ${invalidEmailCount} neplatnych/bez MX, ${duplicateCount} duplicit)`;
     const finalDebug = `${debugParts.join(" | ")} | ${skipReport}`;
 
     await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, engines: activeEngines, errors: engineErrors, debug_output: finalDebug });
