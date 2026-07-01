@@ -60,8 +60,9 @@ Deno.serve(async (req) => {
     const openrouterModel = cfg.openrouter_model || "meta-llama/llama-3.3-70b-instruct:free";
     const deepseekModel  = cfg.deepseek_model  || "deepseek-chat";
     const siliconflowModel = cfg.siliconflow_model || "Qwen/Qwen2.5-72B-Instruct";
-    const cerebrasModel = cfg.cerebras_model || "llama3.3-70b";
+    const cerebrasModel = cfg.cerebras_model || "gpt-oss-120b"; // llama-3.3-70b was deprecated by Cerebras (Feb 2026)
     const mistralModel = cfg.mistral_model || "mistral-large-latest";
+    const nvidiaModel = cfg.nvidia_model || "meta/llama-3.3-70b-instruct";
 
     const body = await req.json().catch(() => ({}));
     const engineOverride = body.engine;
@@ -74,6 +75,7 @@ Deno.serve(async (req) => {
     const useSiliconFlow = engineOverride ? engineOverride === "siliconflow" : (configData?.value?.use_siliconflow_enrich_engine ?? (enrichEngine === "siliconflow" || enrichEngine === "all"));
     const useCerebras = engineOverride ? engineOverride === "cerebras" : (configData?.value?.use_cerebras_enrich_engine ?? (enrichEngine === "cerebras" || enrichEngine === "all"));
     const useMistral = engineOverride ? engineOverride === "mistral" : (configData?.value?.use_mistral_enrich_engine ?? (enrichEngine === "mistral" || enrichEngine === "all"));
+    const useNvidia = engineOverride ? engineOverride === "nvidia" : (configData?.value?.use_nvidia_enrich_engine ?? (enrichEngine === "nvidia" || enrichEngine === "all"));
 
     // Select leads that haven't been enriched yet (description = null means not processed)
     const { data: leads } = await supabase
@@ -154,6 +156,13 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       return out;
     }
 
+    // Per-engine rate-limit pacing: minimum gap between successive requests, derived
+    // from the RPM sliders in Admin > AI Hub. Keeps free tiers (Groq/Gemini) under their limit.
+    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+    const rpmToGapMs = (rpm: number) => (rpm > 0 ? Math.ceil(60000 / rpm) : 0);
+    const groqGapMs   = rpmToGapMs(cfg.groq_rpm_limit   ?? 30);
+    const geminiGapMs = rpmToGapMs(cfg.gemini_rpm_limit ?? 15);
+
     if (useGroq) {
       engineTasks.push((async () => {
         const authKeys = [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean);
@@ -163,7 +172,10 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const chunks = chunk(inputForAI, 20);
         let totalProcessed = 0;
         let lastErr = "";
+        let firstChunk = true;
         for (const chunkData of chunks) {
+          if (!firstChunk && groqGapMs) await sleep(groqGapMs); // pace to stay under Groq RPM
+          firstChunk = false;
           const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
           let groqRes;
           for (const gModel of groqModels) {
@@ -195,7 +207,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const models = [
           openrouterModel,
           "meta-llama/llama-3.3-70b-instruct:free",
-          "google/gemma-4-31b-it:free",
+          "deepseek/deepseek-chat:free",
         ].filter((v, i, a) => a.indexOf(v) === i);
         const chunks = chunk(inputForAI, 20);
         let totalProcessed = 0;
@@ -426,6 +438,46 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       })().catch(e => { engineErrors.mistral = e.message; }));
     }
 
+    if (useNvidia) {
+      engineTasks.push((async () => {
+        const authKeys = [keys.NVIDIA_API_KEY, keys.NVIDIA_FALLBACK_API_KEY].filter(Boolean);
+        if (authKeys.length === 0) { engineErrors.nvidia = "Missing NVIDIA_API_KEY"; return; }
+        const chunks = chunk(inputForAI, 20);
+        let totalProcessed = 0;
+        let lastErr = "";
+
+        for (const chunkData of chunks) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          try {
+            let res;
+            for (const ak of authKeys) {
+              // NVIDIA NIM is OpenAI-compatible; response_format omitted (unsupported on some models).
+              res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
+                body: JSON.stringify({
+                  model: nvidiaModel,
+                  messages: [{ role: "system", content: "You are data enrichment AI. Always reply with a valid JSON array, nothing else." }, { role: "user", content: chunkPrompt }],
+                  temperature: 0.1
+                })
+              });
+              if (res.ok) break;
+              if (res.status !== 401 && res.status !== 429) break;
+            }
+            if (!res || !res.ok) { lastErr = `${res?.status} ${await res?.text()}`; continue; }
+            const resJson = await res.json();
+            const arr = parseAIJson(resJson.choices?.[0]?.message?.content || "");
+            if (arr.length > 0) {
+              for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
+              await logUsage("nvidia");
+            }
+          } catch(e: any) { lastErr = e.message; }
+        }
+        engineStats.nvidia = { processed: totalProcessed };
+        if (totalProcessed === 0 && !engineErrors.nvidia) engineErrors.nvidia = lastErr || "Nezpracovatelný JSON";
+      })().catch(e => { engineErrors.nvidia = e.message; }));
+    }
+
     if (useGemini) {
       engineTasks.push((async () => {
         const authKeys = [keys.GEMINI_API_KEY, keys.GEMINI_FALLBACK_API_KEY].filter(Boolean);
@@ -441,8 +493,11 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         const chunks = chunk(inputForAI, 20);
         let totalProcessed = 0;
         let lastErr = "";
+        let firstGeminiChunk = true;
 
         for (const chunkData of chunks) {
+          if (!firstGeminiChunk && geminiGapMs) await sleep(geminiGapMs); // pace to stay under Gemini RPM
+          firstGeminiChunk = false;
           const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
           let geminiRes: Response | null = null;
           const geminiErrors: string[] = [];
@@ -493,6 +548,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       if (useGemini) testedEngines.push("gemini");
       if (useCerebras) testedEngines.push("cerebras");
       if (useMistral) testedEngines.push("mistral");
+      if (useNvidia) testedEngines.push("nvidia");
       
       for (const eng of testedEngines) {
         const prev = currentHealth[eng] || {};

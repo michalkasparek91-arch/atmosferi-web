@@ -117,19 +117,19 @@ async function runGeminiEngine(supabase: any, targetCountry: string, targetKeywo
     }
 }
 
-async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
+async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, orModel: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
     if (!authKeys || authKeys.length === 0) return { error: "Chybi OPENROUTER_API_KEY v DB nebo Secrets!" };
-    
+
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
       .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
 
     const models = [
+      orModel,
       "meta-llama/llama-3.3-70b-instruct:free",
-      "google/gemma-4-31b-it:free",
-      "openrouter/free"
-    ];
+      "deepseek/deepseek-chat:free",
+    ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     let orRes: Response | null = null;
     const orErrors: string[] = [];
@@ -187,9 +187,9 @@ async function runOpenRouterEngine(supabase: any, targetCountry: string, targetK
     }
 }
 
-async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
+async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, dsModel: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
     if (!authKeys || authKeys.length === 0) return { error: "Chybi DEEPSEEK_API_KEY v DB nebo Secrets!" };
-    
+
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
@@ -200,8 +200,8 @@ async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKey
       res = await fetch("https://api.deepseek.com/chat/completions", {
           method: "POST",
           headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-              model: "deepseek-chat", 
+          body: JSON.stringify({
+              model: dsModel,
               messages: [{ role: "system", content: "You are an expert data scraper. Always reply with valid JSON array." }, { role: "user", content: SEARCH_PROMPT }], 
               temperature: 0.1,
               response_format: { type: "json_object" } // deepseek supports this
@@ -238,9 +238,9 @@ async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKey
     }
 }
 
-async function runSiliconFlowEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
+async function runSiliconFlowEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, sfModel: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
     if (!authKeys || authKeys.length === 0) return { error: "Chybi SILICONFLOW_API_KEY v DB nebo Secrets!" };
-    
+
     const SEARCH_PROMPT = promptTemplate
       .replace(/{{targetCountry}}/g, targetCountry)
       .replace(/{{targetKeyword}}/g, targetKeyword)
@@ -248,11 +248,11 @@ async function runSiliconFlowEngine(supabase: any, targetCountry: string, target
 
     let res;
     for (const ak of authKeys) {
-      res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+      res = await fetch("https://api.siliconflow.com/v1/chat/completions", {
           method: "POST",
           headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-              model: "Qwen/Qwen2.5-7B-Instruct", // Free model on SiliconFlow
+          body: JSON.stringify({
+              model: sfModel,
               messages: [{ role: "system", content: "Return only a JSON array of objects." }, { role: "user", content: SEARCH_PROMPT }], 
               temperature: 0.1 
           })
@@ -285,6 +285,81 @@ async function runSiliconFlowEngine(supabase: any, targetCountry: string, target
     } catch (e: any) {
       return { error: `JSON CHYBA (SiliconFlow): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
     }
+}
+
+// Cerebras & Mistral share the same OpenAI-compatible shape; both expose a free tier.
+async function runOpenAICompatEngine(
+    supabase: any, engineName: string, endpoint: string, model: string,
+    targetCountry: string, targetKeyword: string, targetCity: string,
+    promptTemplate: string, authKeys: string[], jsonMode = true
+): Promise<{ discoveredList?: any[], error?: string }> {
+    if (!authKeys || authKeys.length === 0) return { error: `Chybi API klic pro ${engineName} v DB nebo Secrets!` };
+
+    const SEARCH_PROMPT = promptTemplate
+      .replace(/{{targetCountry}}/g, targetCountry)
+      .replace(/{{targetKeyword}}/g, targetKeyword)
+      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
+
+    let res;
+    let lastErr = "";
+    for (const ak of authKeys) {
+      const payload: any = {
+          model,
+          messages: [
+            { role: "system", content: "You are an expert data scraper. Always reply with a valid JSON array of objects, nothing else." },
+            { role: "user", content: SEARCH_PROMPT }
+          ],
+          temperature: 0.1,
+      };
+      // Some providers (e.g. NVIDIA NIM) reject response_format on certain models.
+      if (jsonMode) payload.response_format = { type: "json_object" };
+      res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+      });
+      if (res.ok) break;
+      lastErr = await res.text().catch(() => "");
+      if (res.status !== 401 && res.status !== 429) break;
+    }
+
+    if (!res || !res.ok) {
+       return { error: `${engineName} API Chyba: ${res?.status} - ${lastErr}` };
+    }
+
+    const resJson = await res.json();
+    let textOut = resJson.choices?.[0]?.message?.content || "";
+    if (textOut) {
+        textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
+        const firstBracket = textOut.indexOf('[');
+        const lastBracket = textOut.lastIndexOf(']');
+        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+            textOut = textOut.substring(firstBracket, lastBracket + 1);
+        }
+    }
+
+    try {
+      const parsed = JSON.parse(textOut);
+      // response_format:json_object may wrap the array inside an object — dig it out.
+      const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find(v => Array.isArray(v)) || [];
+      await logApiUsage(supabase, engineName, "autonomous-web-sniper");
+      return { discoveredList: finalArray as any[] };
+    } catch (e: any) {
+      return { error: `JSON CHYBA (${engineName}): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
+    }
+}
+
+function runCerebrasEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, model: string, authKeys: string[]) {
+    return runOpenAICompatEngine(supabase, "cerebras", "https://api.cerebras.ai/v1/chat/completions", model, targetCountry, targetKeyword, targetCity, promptTemplate, authKeys);
+}
+
+function runMistralEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, model: string, authKeys: string[]) {
+    return runOpenAICompatEngine(supabase, "mistral", "https://api.mistral.ai/v1/chat/completions", model, targetCountry, targetKeyword, targetCity, promptTemplate, authKeys);
+}
+
+function runNvidiaEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, model: string, authKeys: string[]) {
+    // NVIDIA NIM is OpenAI-compatible but response_format is not supported on all models — rely on the prompt.
+    return runOpenAICompatEngine(supabase, "nvidia", "https://integrate.api.nvidia.com/v1/chat/completions", model, targetCountry, targetKeyword, targetCity, promptTemplate, authKeys, false);
 }
 
 async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, groqKeys: string[], placesKeys: string[]): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
@@ -484,6 +559,15 @@ Vrat JSON pole. Povinna pole pro kazdy objekt: company_name, brand_name (Cisty, 
 Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych hodnot nesmi byt neescapovane uvozovky!`;
     const promptTemplate = config.prompt_template || DEFAULT_PROMPT;
 
+    // Per-provider models (same config keys the Admin > AI Hub model selectors write).
+    // Defaults chosen to stay on each provider's FREE tier.
+    const orModel = config.openrouter_model || "meta-llama/llama-3.3-70b-instruct:free";
+    const dsModel = config.deepseek_model   || "deepseek-chat";
+    const sfModel = config.siliconflow_model || "Qwen/Qwen2.5-7B-Instruct";
+    const cbModel = config.cerebras_model   || "gpt-oss-120b";
+    const mtModel = config.mistral_model    || "mistral-large-latest";
+    const nvModel = config.nvidia_model     || "meta/llama-3.3-70b-instruct";
+
     // --- Determine which discovery engines are active ---
     // Each enabled engine runs independently; results are merged & deduplicated.
     const engineOverride = body.engine;
@@ -497,6 +581,9 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       if (config.use_openrouter_engine === true)    activeEngines.push("openrouter");
       if (config.use_deepseek_engine === true)      activeEngines.push("deepseek");
       if (config.use_siliconflow_engine === true)   activeEngines.push("siliconflow");
+      if (config.use_cerebras_engine === true)      activeEngines.push("cerebras");
+      if (config.use_mistral_engine === true)       activeEngines.push("mistral");
+      if (config.use_nvidia_engine === true)        activeEngines.push("nvidia");
     }
 
     if (activeEngines.length === 0) {
@@ -509,10 +596,14 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     const engineResults = await Promise.allSettled(
       activeEngines.map((eng) => {
         if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity, [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean), [keys.GOOGLE_PLACES_API_KEY, keys.GOOGLE_PLACES_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.OPENROUTER_API_KEY, keys.OPENROUTER_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "deepseek")    return runDeepSeekEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.DEEPSEEK_API_KEY, keys.DEEPSEEK_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "siliconflow") return runSiliconFlowEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.SILICONFLOW_API_KEY, keys.SILICONFLOW_FALLBACK_API_KEY].filter(Boolean));
-        return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.GEMINI_API_KEY, keys.GEMINI_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, orModel, [keys.OPENROUTER_API_KEY, keys.OPENROUTER_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "deepseek")    return runDeepSeekEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, dsModel, [keys.DEEPSEEK_API_KEY, keys.DEEPSEEK_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "siliconflow") return runSiliconFlowEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, sfModel, [keys.SILICONFLOW_API_KEY, keys.SILICONFLOW_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "cerebras")    return runCerebrasEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, cbModel, [keys.CEREBRAS_API_KEY, keys.CEREBRAS_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "mistral")     return runMistralEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, mtModel, [keys.MISTRAL_API_KEY, keys.MISTRAL_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "nvidia")      return runNvidiaEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, nvModel, [keys.NVIDIA_API_KEY, keys.NVIDIA_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "gemini")      return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.GEMINI_API_KEY, keys.GEMINI_FALLBACK_API_KEY].filter(Boolean));
+        return Promise.resolve({ error: `Neznamy engine: ${eng}` });
       })
     );
 

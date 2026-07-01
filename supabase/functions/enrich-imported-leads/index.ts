@@ -197,7 +197,7 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
             try {
               let res;
               for (const ak of authKeys) {
-                res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+                res = await fetch("https://api.siliconflow.com/v1/chat/completions", {
                   method: "POST",
                   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ak}` },
                   body: JSON.stringify({

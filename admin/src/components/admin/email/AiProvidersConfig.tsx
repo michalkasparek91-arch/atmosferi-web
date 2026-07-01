@@ -61,6 +61,12 @@ const MODEL_CATALOGUES: Record<string, { label: string; value: string }[]> = {
     { label: "mistral-large-latest (doporučeno)", value: "mistral-large-latest" },
     { label: "open-mistral-nemo", value: "open-mistral-nemo" },
   ],
+  nvidia: [
+    { label: "meta/llama-3.3-70b-instruct (doporučeno)", value: "meta/llama-3.3-70b-instruct" },
+    { label: "nvidia/llama-3.1-nemotron-70b-instruct", value: "nvidia/llama-3.1-nemotron-70b-instruct" },
+    { label: "meta/llama-3.1-8b-instruct", value: "meta/llama-3.1-8b-instruct" },
+    { label: "deepseek-ai/deepseek-r1", value: "deepseek-ai/deepseek-r1" },
+  ],
 };
 
 // ─── Status dot with error popup ────────────────────────────────────────────
@@ -421,6 +427,17 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
       modelConfigKey: "mistral_model",
       modelDefault: "mistral-large-latest",
       relatedJobs: ["Auto Enrich Leads"],
+    },
+    {
+      id: "nvidia",
+      name: "NVIDIA NIM",
+      keyName: "NVIDIA_API_KEY",
+      fallbackKeyName: "NVIDIA_FALLBACK_API_KEY",
+      searchConfigKey: "nvidia",
+      desc: "80+ modelů zdarma (build.nvidia.com, klíč nvapi-).",
+      modelConfigKey: "nvidia_model",
+      modelDefault: "meta/llama-3.3-70b-instruct",
+      relatedJobs: ["Auto Enrich Leads", "Continuous Web Discovery"],
     },
   ];
 

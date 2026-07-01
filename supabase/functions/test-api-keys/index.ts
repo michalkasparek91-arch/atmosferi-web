@@ -147,6 +147,24 @@ Deno.serve(async (req) => {
       return { engine: "cerebras", status: "error", message: "All keys failed" };
     };
 
+    const testNvidia = async () => {
+      const authKeys = [keys.NVIDIA_API_KEY, keys.NVIDIA_FALLBACK_API_KEY].filter(Boolean);
+      if (authKeys.length === 0) return { engine: "nvidia", status: "error", message: "Missing API Key" };
+      for (const ak of authKeys) {
+        try {
+          const res = await fetch("https://integrate.api.nvidia.com/v1/models", {
+            headers: { "Authorization": `Bearer ${ak}` }
+          });
+          if (res.ok) return { engine: "nvidia", status: "ok" };
+          if (res.status === 401 || res.status === 429) continue;
+          return { engine: "nvidia", status: "error", message: `HTTP ${res.status}` };
+        } catch (e: any) {
+          return { engine: "nvidia", status: "error", message: e.message };
+        }
+      }
+      return { engine: "nvidia", status: "error", message: "All keys failed" };
+    };
+
     const testPlaces = async () => {
       const authKeys = [keys.GOOGLE_PLACES_API_KEY, keys.GOOGLE_PLACES_FALLBACK_API_KEY].filter(Boolean);
       if (authKeys.length === 0) return { engine: "places", status: "error", message: "Missing API Key" };
@@ -179,6 +197,7 @@ Deno.serve(async (req) => {
       testGemini(),
       testCerebras(),
       testMistral(),
+      testNvidia(),
       testPlaces(),
     ]);
 

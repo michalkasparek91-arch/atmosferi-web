@@ -37,5 +37,8 @@ export async function getApiKeys(supabase: any) {
     
     MISTRAL_API_KEY: cleanKey(dbKeys.MISTRAL_API_KEY || Deno.env.get("MISTRAL_API_KEY")),
     MISTRAL_FALLBACK_API_KEY: cleanKey(dbKeys.MISTRAL_FALLBACK_API_KEY || Deno.env.get("MISTRAL_FALLBACK_API_KEY")),
+
+    NVIDIA_API_KEY: cleanKey(dbKeys.NVIDIA_API_KEY || Deno.env.get("NVIDIA_API_KEY")),
+    NVIDIA_FALLBACK_API_KEY: cleanKey(dbKeys.NVIDIA_FALLBACK_API_KEY || Deno.env.get("NVIDIA_FALLBACK_API_KEY")),
   };
 }
