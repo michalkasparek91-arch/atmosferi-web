@@ -329,7 +329,7 @@ Deno.serve(async (req) => {
     const batchSize = 100;
     const emailLogsData: { campaign_id: string; resend_id: string; ab_variant: string; recipient_email: string }[] = [];
 
-    const fromEmail = senderEmail || "info@atmosferi.com";
+    const fromEmail = senderEmail || "michal@atmosferi.com";
     const fromName = "Atmosferi";
 
     for (let i = 0; i < emailsToSend.length; i += batchSize) {

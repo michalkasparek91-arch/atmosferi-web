@@ -131,7 +131,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         signatureGreeting: payload.signatureGreeting ?? "S pozdravem",
         signatureName: payload.workerName ?? "Ing. arch. Michal Kašpárek",
         signatureRole: payload.signatureRole ?? "web a vizualizace pro architekturu",
-        signatureEmail: payload.signatureEmail ?? "info@atmosferi.com",
+        signatureEmail: payload.signatureEmail ?? "michal@atmosferi.com",
         signatureAvatarUrl: "",
         psEnabled: payload.psFooterEnabled ?? true,
         psText: payload.psFooterText ?? "Pokud nyní nemáte kapacitu, stačí odepsat \"Ne\" a už vás nebudeme kontaktovat.",
@@ -170,7 +170,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
     }
 
     let senderName = "Atmosferi";
-    let senderEmail = "info@atmosferi.com";
+    let senderEmail = "michal@atmosferi.com";
     if (payload.from) {
       const match = payload.from.match(/(.*)<(.*)>/);
       if (match) {

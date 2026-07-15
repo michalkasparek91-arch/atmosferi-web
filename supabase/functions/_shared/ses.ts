@@ -4,7 +4,7 @@
 import { SESClient, SendEmailCommand } from "npm:@aws-sdk/client-ses";
 
 export interface SesEmailPayload {
-  from: string;       // e.g. "Atmosferi <info@atmosferi.com>" or just "info@atmosferi.com"
+  from: string;       // e.g. "Atmosferi <michal@atmosferi.com>" or just "michal@atmosferi.com"
   to: string;         // recipient email
   subject: string;
   html: string;       // raw HTML body — passed completely untouched
