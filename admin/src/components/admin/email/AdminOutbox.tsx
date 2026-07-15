@@ -404,6 +404,11 @@ export const AdminOutbox = () => {
               <span>Vlny: <strong className="text-foreground">{activeCampaign.wavesSent}</strong></span>
               {!activeCampaign.stopped && <span className="text-blue-500 font-medium">Další vlna za ~3 min…</span>}
             </div>
+            {!activeCampaign.stopped && (
+              <p className="text-[11px] text-amber-600 font-medium mt-1">
+                ⚠️ Neodcházejte z této stránky a nezavírejte prohlížeč, dokud se kampaň nedokončí!
+              </p>
+            )}
             <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${activeCampaign.stopped ? 'bg-emerald-500' : 'bg-blue-500'}`} 
