@@ -40,5 +40,8 @@ export async function getApiKeys(supabase: any) {
 
     NVIDIA_API_KEY: cleanKey(dbKeys.NVIDIA_API_KEY || Deno.env.get("NVIDIA_API_KEY")),
     NVIDIA_FALLBACK_API_KEY: cleanKey(dbKeys.NVIDIA_FALLBACK_API_KEY || Deno.env.get("NVIDIA_FALLBACK_API_KEY")),
+    
+    SERPER_API_KEY: cleanKey(dbKeys.SERPER_API_KEY || Deno.env.get("SERPER_KEY") || Deno.env.get("SERPER_API_KEY")),
+    SERPER_FALLBACK_API_KEY: cleanKey(dbKeys.SERPER_FALLBACK_API_KEY || Deno.env.get("SERPER_FALLBACK_API_KEY")),
   };
 }

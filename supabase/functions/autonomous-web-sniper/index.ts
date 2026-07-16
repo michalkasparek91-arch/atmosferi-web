@@ -41,6 +41,56 @@ async function logApiUsage(supabase: any, engine: string, serviceName: string) {
   } catch(e) { console.error("Vyjimka pri zapisu api_usage_logs:", e); }
 }
 
+async function performWebSearch(query: string, serperApiKey?: string): Promise<string> {
+  if (serperApiKey) {
+    try {
+      console.log(`[Search] Using Serper.dev for: ${query}`);
+      const res = await fetch("https://google.serper.dev/search", {
+        method: "POST",
+        headers: { "X-API-KEY": serperApiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ q: query, gl: "de", hl: "de" }) // default to DE, but AI will search specifics
+      });
+      if (res.ok) {
+        const json = await res.json();
+        let snippets = "";
+        if (json.organic && Array.isArray(json.organic)) {
+          snippets = json.organic.map((r: any) => `Title: ${r.title}\nLink: ${r.link}\nSnippet: ${r.snippet}`).join("\n\n");
+        }
+        if (snippets) return snippets;
+      } else {
+        console.warn(`[Search] Serper failed: ${res.status}`);
+      }
+    } catch (e) {
+      console.warn(`[Search] Serper exception:`, e);
+    }
+  }
+
+  // Fallback to DuckDuckGo HTML
+  console.log(`[Search] Falling back to DuckDuckGo HTML for: ${query}`);
+  try {
+    const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+    });
+    const html = await res.text();
+    // Rough regex extraction for snippets since DOMParser isn't easily available in Edge functions
+    const resultRegex = /<a class="result__snippet[^>]*>([\s\S]*?)<\/a>/g;
+    const urlRegex = /<a class="result__url" href="([^"]+)">/g;
+    
+    let text = "";
+    let m;
+    let count = 0;
+    while ((m = resultRegex.exec(html)) !== null && count < 10) {
+      const snippet = m[1].replace(/<[^>]+>/g, "").trim();
+      text += `Snippet: ${snippet}\n\n`;
+      count++;
+    }
+    return text || "No results found.";
+  } catch (e) {
+    console.error("[Search] DDG fetch failed:", e);
+    return "Search failed.";
+  }
+}
+
 // Gemini model cascade: try cheapest free-tier model first, fall back on quota/overload
 async function callGeminiWithFallback(authKeys: string[], body: any): Promise<Response> {
   const models = [
@@ -594,15 +644,27 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     console.log(`Aktivni enginy: ${activeEngines.join(", ")} | kw: ${targetKeyword} | mesto: ${targetCity}`);
 
     const keys = await getApiKeys(supabase);
+
+    const hasNonGeminiNonGroq = activeEngines.some(e => e !== "gemini" && e !== "groq_places");
+    let searchResults = "";
+    if (hasNonGeminiNonGroq) {
+        const query = `${targetKeyword} ${targetCity} ${targetCountry} email website kontakt`.trim();
+        searchResults = await performWebSearch(query, keys.SERPER_API_KEY);
+    }
+
+    const nonGeminiPromptTemplate = searchResults ? 
+      `Zde jsou realne vysledky vyhledavani na internetu z DuckDuckGo/Google:\n---\n${searchResults}\n---\nTvoji jedinou roli je z techto vysledku vyextrahovat existujici firmy a jejich weby/emaily pro zadany obor. NIKDY si nevymyslej firmy, ktere v textu nejsou. Pokud v textu firmy nejsou, vrat prazdne pole [].\n\n${promptTemplate}` 
+      : promptTemplate;
+
     const engineResults = await Promise.allSettled(
       activeEngines.map((eng) => {
         if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity, [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean), [keys.GOOGLE_PLACES_API_KEY, keys.GOOGLE_PLACES_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, orModel, [keys.OPENROUTER_API_KEY, keys.OPENROUTER_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "deepseek")    return runDeepSeekEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, dsModel, [keys.DEEPSEEK_API_KEY, keys.DEEPSEEK_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "siliconflow") return runSiliconFlowEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, sfModel, [keys.SILICONFLOW_API_KEY, keys.SILICONFLOW_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "cerebras")    return runCerebrasEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, cbModel, [keys.CEREBRAS_API_KEY, keys.CEREBRAS_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "mistral")     return runMistralEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, mtModel, [keys.MISTRAL_API_KEY, keys.MISTRAL_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "nvidia")      return runNvidiaEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, nvModel, [keys.NVIDIA_API_KEY, keys.NVIDIA_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, orModel, [keys.OPENROUTER_API_KEY, keys.OPENROUTER_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "deepseek")    return runDeepSeekEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, dsModel, [keys.DEEPSEEK_API_KEY, keys.DEEPSEEK_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "siliconflow") return runSiliconFlowEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, sfModel, [keys.SILICONFLOW_API_KEY, keys.SILICONFLOW_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "cerebras")    return runCerebrasEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, cbModel, [keys.CEREBRAS_API_KEY, keys.CEREBRAS_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "mistral")     return runMistralEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, mtModel, [keys.MISTRAL_API_KEY, keys.MISTRAL_FALLBACK_API_KEY].filter(Boolean));
+        if (eng === "nvidia")      return runNvidiaEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, nvModel, [keys.NVIDIA_API_KEY, keys.NVIDIA_FALLBACK_API_KEY].filter(Boolean));
         if (eng === "gemini")      return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.GEMINI_API_KEY, keys.GEMINI_FALLBACK_API_KEY].filter(Boolean));
         return Promise.resolve({ error: `Neznamy engine: ${eng}` });
       })
