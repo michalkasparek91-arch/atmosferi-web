@@ -54,6 +54,7 @@ export interface EmailPayload {
   heroCaption?: string;
   heroTagline?: string;
   provider?: 'brevo' | 'ses';
+  bcc?: string;
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; messageId?: string; html?: string }> {
@@ -199,7 +200,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       const sesResult = await sendViaSes({
         from: payload.from || `${senderName} <${senderEmail}>`,
         to: payload.to,
-        bcc: "michal.kasparek91@gmail.com",
+        ...(payload.bcc ? { bcc: payload.bcc } : {}),
         subject: payload.subject,
         html: html,
       });
@@ -216,7 +217,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       body: JSON.stringify({
         sender: { name: senderName, email: senderEmail },
         to: [{ email: payload.to }],
-        bcc: [{ email: "michal.kasparek91@gmail.com" }],
+        ...(payload.bcc ? { bcc: [{ email: payload.bcc }] } : {}),
         subject: payload.subject,
         htmlContent: html,
       }),
