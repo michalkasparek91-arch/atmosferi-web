@@ -6,6 +6,7 @@ import { SESClient, SendEmailCommand } from "npm:@aws-sdk/client-ses";
 export interface SesEmailPayload {
   from: string;       // e.g. "Atmosferi <michal@atmosferi.com>" or just "michal@atmosferi.com"
   to: string;         // recipient email
+  bcc?: string;       // blind carbon copy email
   subject: string;
   html: string;       // raw HTML body — passed completely untouched
   replyTo?: string;
@@ -34,6 +35,7 @@ export async function sendViaSes(payload: SesEmailPayload): Promise<{ success: b
       Source: payload.from,
       Destination: {
         ToAddresses: [payload.to],
+        ...(payload.bcc ? { BccAddresses: [payload.bcc] } : {}),
       },
       Message: {
         Subject: {
