@@ -21,7 +21,7 @@
   /* The canvas is a warm off-white. Never a dark gray. */
   --canvas:        #F2F1EC;   /* primary background (warm paper) */
   --canvas-pure:   #FFFFFF;   /* lifted surfaces, image mattes */
-  --ink:           #000000;   /* pure black — text, lines, marks */
+  --ink:           #17150F;   /* warm near-black — text, lines, marks (softened from pure black) */
 
   /* Monochrome scale (Vercel/Linear lineage). Use sparingly. */
   --neutral-900:   #0A0A0A;
@@ -32,9 +32,9 @@
   --neutral-200:   #E5E4DF;   /* hairline fills on canvas */
 
   /* Lines & marks — the 10% horizon line is the structural unit. */
-  --line:          rgba(0,0,0,0.10);   /* major horizon dividers */
-  --line-strong:   rgba(0,0,0,0.24);   /* secondary emphasis */
-  --line-ink:      #000000;            /* full-strength rule */
+  --line:          rgba(23,21,15,0.12);   /* major horizon dividers (warm) */
+  --line-strong:   rgba(23,21,15,0.22);   /* secondary emphasis */
+  --line-ink:      #17150F;            /* full-strength rule */
   --hairline:      1px;                /* the only line weight */
 
   /* Semantic surface tokens */
@@ -44,15 +44,20 @@
   --bg-1:          var(--canvas);
   --bg-2:          var(--canvas-pure);
 
+  /* ---- ACCENT — a single warm clay, used sparingly for life ---------- */
+  --accent:        #A85D3C;   /* refined clay / terracotta */
+  --accent-ink:    #8A4A2E;   /* legible accent for text on warm canvas */
+  --accent-soft:   rgba(168,93,60,0.10);
+
   /* ---- 02 // TYPOGRAPHY ------------------------------------------------ */
   --font-sans: 'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-mono: 'Geist Mono', 'SF Mono', ui-monospace, 'Roboto Mono', monospace;
 
-  /* Macro scale — concrete blocks. Fluid, capped, aggressively tight. */
-  --text-9xl: clamp(4.5rem, 13vw, 10rem);    /* ~72 → 160px  display */
-  --text-8xl: clamp(3.5rem, 9vw, 7.5rem);    /* ~56 → 120px */
-  --text-7xl: clamp(3rem, 7vw, 6rem);        /* ~48 → 96px */
-  --text-6xl: clamp(2.5rem, 5vw, 4.5rem);    /* ~40 → 72px */
+  /* Macro scale — bold but image-led. Dialled back from monumental. */
+  --text-9xl: clamp(3rem, 7.2vw, 5.75rem);    /* ~48 → 92px  display */
+  --text-8xl: clamp(2.6rem, 5.6vw, 4.5rem);   /* ~42 → 72px */
+  --text-7xl: clamp(2.35rem, 4.7vw, 3.85rem); /* ~38 → 62px */
+  --text-6xl: clamp(1.9rem, 3.4vw, 3rem);     /* ~30 → 48px */
   --text-5xl: 3rem;     /* 48px */
   --text-4xl: 2.25rem;  /* 36px */
   --text-3xl: 1.75rem;  /* 28px */
