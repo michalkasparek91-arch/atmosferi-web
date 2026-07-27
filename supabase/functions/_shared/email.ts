@@ -123,11 +123,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         
       const activePortfolioImages = (payload.carouselImages && payload.carouselImages.length > 0)
         ? payload.carouselImages
-        : [
-            "https://atmosferi.com/demos/atmosferi-viz/img/01-klimacentrum.webp",
-            "https://atmosferi.com/demos/atmosferi-viz/img/04-interior.webp",
-            "https://atmosferi.com/demos/atmosferi-viz/img/03-exterior.webp"
-          ];
+        : [];
 
       const emailData: EmailTemplateData = {
         subject: payload.subject,
@@ -136,7 +132,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         heroImageUrl: activeHeroUrl,
         heroCaption: payload.segmentFilters?.hero_caption,
         heroTagline: payload.heroTagline || payload.segmentFilters?.hero_tagline,
-        portfolioEnabled: true,
+        portfolioEnabled: activePortfolioImages.length > 0,
         portfolioImages: activePortfolioImages,
         icebreakerEnabled: false,
         icebreakerText: "",

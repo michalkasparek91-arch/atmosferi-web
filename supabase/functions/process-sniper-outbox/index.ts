@@ -422,9 +422,9 @@ Deno.serve(async (req) => {
             // Gallery images: read gallery_image_1/2/3 first (new), then carousel_images (legacy)
             carouselImages: (() => {
               if (!filters.gallery_enabled) return [];
-              const g1 = (filters.gallery_image_1 as string) || "https://atmosferi.com/demos/atmosferi-viz/img/01-klimacentrum.webp";
-              const g2 = (filters.gallery_image_2 as string) || "https://atmosferi.com/demos/atmosferi-viz/img/04-interior.webp";
-              const g3 = (filters.gallery_image_3 as string) || "https://atmosferi.com/demos/atmosferi-viz/img/03-exterior.webp";
+              const g1 = filters.gallery_image_1 as string | undefined;
+              const g2 = filters.gallery_image_2 as string | undefined;
+              const g3 = filters.gallery_image_3 as string | undefined;
               const galleryImgs = [g1, g2, g3].filter((u): u is string => typeof u === "string" && u.startsWith("http"));
               if (galleryImgs.length > 0) return galleryImgs;
               const ci = filters.carousel_images;

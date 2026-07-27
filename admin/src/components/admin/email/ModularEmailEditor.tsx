@@ -872,6 +872,7 @@ export function ModularEmailEditorDialogInner({
   const [simulateCompanyOnly, setSimulateCompanyOnly] = useState(false);
   const [mobileView, setMobileView] = useState<"editor" | "preview">("editor");
   const [showServicesConfig, setShowServicesConfig] = useState(false);
+  const [showGalleryConfig, setShowGalleryConfig] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -1800,6 +1801,27 @@ export function ModularEmailEditorDialogInner({
                       <Label className="text-xs font-medium text-foreground/80">Trojice menších obrázků (Galerie)</Label>
                       <Switch checked={!!form.segment_filters?.gallery_enabled} onCheckedChange={(c) => setSegmentFilter("gallery_enabled", c)} />
                     </div>
+                    {!!form.segment_filters?.gallery_enabled && (
+                      <div className="flex justify-end mt-1">
+                        <button onClick={(e) => { e.preventDefault(); setShowGalleryConfig(!showGalleryConfig); }} className="text-[10px] uppercase font-bold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                          {showGalleryConfig ? "Skrýt detaily" : "Upravit obrázky"} <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${showGalleryConfig ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+                    )}
+                    {!!form.segment_filters?.gallery_enabled && showGalleryConfig && (
+                      <div className="space-y-3 mt-3 pl-3 border-l-2 border-amber-500/30">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="space-y-1 mt-2">
+                            <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Obrázek {i} (URL)</Label>
+                            <Input 
+                              value={form.segment_filters?.[`gallery_image_${i}`] || ""} 
+                              onChange={e => setSegmentFilter(`gallery_image_${i}`, e.target.value)} 
+                              placeholder="https://..." className="h-7 text-xs bg-background/50 mb-1" 
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Co děláme (Služby) */}
