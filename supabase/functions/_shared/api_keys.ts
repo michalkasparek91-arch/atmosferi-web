@@ -12,7 +12,8 @@ export async function getApiKeys(supabase: any) {
   const dbKeys = (data?.value as Record<string, string>) || {};
 
   // Merge DB keys with Deno.env fallbacks
-  const cleanKey = (k: string) => k ? k.trim().replace(/^Bearer\s+/i, "") : "";
+  // Deno.env.get() vraci string | undefined → signatura to musi prijmout.
+  const cleanKey = (k?: string) => k ? k.trim().replace(/^Bearer\s+/i, "") : "";
   return {
     GEMINI_API_KEY: cleanKey(dbKeys.GEMINI_API_KEY || Deno.env.get("GEMINI_API_KEY")),
     GEMINI_FALLBACK_API_KEY: cleanKey(dbKeys.GEMINI_FALLBACK_API_KEY || Deno.env.get("GEMINI_FALLBACK_API_KEY")),

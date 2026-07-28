@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.2";
 import { getApiKeys } from "../_shared/api_keys.ts";
+import { callAIWithFallback, parseJsonArray } from "../_shared/ai-router.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -536,6 +537,46 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
     }
 
     await Promise.allSettled(engineTasks);
+
+    // ZÁCHRANA: když všem nakonfigurovaným providerům došly kvóty (Gemini 429,
+    // Groq TPD, DeepSeek 402…), obohacování dřív skončilo na 0. Router zkusí
+    // řetězec znovu a na konci vždy Pollinations — veřejný a BEZ KLÍČE.
+    if (Object.keys(mergedResults).length === 0 && inputForAI.length > 0) {
+      try {
+        const allowed: string[] = [];
+        if (useGemini) allowed.push("gemini");
+        if (useGroq) allowed.push("groq");
+        if (useCerebras) allowed.push("cerebras");
+        if (useNvidia) allowed.push("nvidia");
+        if (useOpenRouter) allowed.push("openrouter");
+        if (useMistral) allowed.push("mistral");
+
+        let rescued = 0;
+        let rescueProvider = "";
+        for (const chunkData of chunk(inputForAI, 20)) {
+          const chunkPrompt = PROMPT.replace(JSON.stringify(inputForAI), JSON.stringify(chunkData));
+          const res = await callAIWithFallback({
+            supabase, keys, allowed,
+            models: { gemini: geminiModel, groq: groqModel, cerebras: cerebrasModel, nvidia: nvidiaModel, openrouter: openrouterModel, mistral: mistralModel },
+            system: "Jsi datovy obohacovac. Odpovidas VZDY pouze validnim JSON polem objektu.",
+            user: chunkPrompt,
+            jsonMode: true,
+          });
+          rescueProvider = res.provider;
+          for (const item of parseJsonArray(res.text)) {
+            if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; rescued++; }
+          }
+        }
+        if (rescued > 0) {
+          engineStats[rescueProvider] = { processed: rescued };
+          delete engineErrors[rescueProvider];
+          await logUsage(rescueProvider);
+          console.log(`[auto-enrich] Zachrana pres ${rescueProvider}: ${rescued} polozek`);
+        }
+      } catch (e: any) {
+        engineErrors.router = `Zachranny retezec selhal: ${e.message}`;
+      }
+    }
 
     try {
       const { data: healthData } = await supabase.from("app_settings").select("value").eq("key", "api_health").maybeSingle();

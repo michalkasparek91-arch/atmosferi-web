@@ -1,6 +1,18 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.2";
 import { getApiKeys } from "../_shared/api_keys.ts";
 import { checkEmailDeliverable } from "../_shared/email_validation.ts";
+import { callAIWithFallback, parseJsonArray } from "../_shared/ai-router.ts";
+import { searchWeb, searchOsm, fetchSiteEmails, formatResultsForPrompt } from "../_shared/web-search.ts";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PRINCIP (převzato ze Zrobee, nahrazuje původní "AI si vzpomeň na firmy"):
+// 1. Reálné vyhledávání zdarma (Firmy.cz / DuckDuckGo / Bing / Serper) + OSM.
+// 2. AI extrahuje kontakty STRIKTNĚ jen z nalezeného textu → nehalucinuje
+//    a funguje s JAKÝMKOLIV providerem (ne jen Gemini s groundingem).
+// 3. Chybějící e-maily se dotáhnou crawlem webu firmy (regex, bez AI).
+// 4. Ověření domény (MX) → do DB jdou jen doručitelné adresy.
+// Díky Pollinations na konci AI řetězce běh nespadne ani při vyčerpaných kvótách.
+// ─────────────────────────────────────────────────────────────────────────────
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,17 +29,17 @@ function normalizePhone(p: string): string {
 }
 
 async function logJobStart(supabase: any, jobName: string) {
-  return await supabase.from("automation_jobs").update({ 
-      last_run_at: new Date().toISOString(), last_run_status: "running", last_run_error: null 
+  return await supabase.from("automation_jobs").update({
+      last_run_at: new Date().toISOString(), last_run_status: "running", last_run_error: null
   }).eq("job_name", jobName);
 }
 async function logJobSuccess(supabase: any, jobName: string, metadata: any) {
-  return await supabase.from("automation_jobs").update({ 
+  return await supabase.from("automation_jobs").update({
       last_run_status: "success", metadata, updated_at: new Date().toISOString()
   }).eq("job_name", jobName);
 }
 async function logJobFailure(supabase: any, jobName: string, error: string) {
-  return await supabase.from("automation_jobs").update({ 
+  return await supabase.from("automation_jobs").update({
       last_run_status: "failure", last_run_error: error, updated_at: new Date().toISOString()
   }).eq("job_name", jobName);
 }
@@ -41,492 +53,6 @@ async function logApiUsage(supabase: any, engine: string, serviceName: string) {
   } catch(e) { console.error("Vyjimka pri zapisu api_usage_logs:", e); }
 }
 
-async function performWebSearch(query: string, serperApiKey?: string): Promise<string> {
-  if (serperApiKey) {
-    try {
-      console.log(`[Search] Using Serper.dev for: ${query}`);
-      const res = await fetch("https://google.serper.dev/search", {
-        method: "POST",
-        headers: { "X-API-KEY": serperApiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ q: query, gl: "de", hl: "de" }) // default to DE, but AI will search specifics
-      });
-      if (res.ok) {
-        const json = await res.json();
-        let snippets = "";
-        if (json.organic && Array.isArray(json.organic)) {
-          snippets = json.organic.map((r: any) => `Title: ${r.title}\nLink: ${r.link}\nSnippet: ${r.snippet}`).join("\n\n");
-        }
-        if (snippets) return snippets;
-      } else {
-        console.warn(`[Search] Serper failed: ${res.status}`);
-      }
-    } catch (e) {
-      console.warn(`[Search] Serper exception:`, e);
-    }
-  }
-
-  // Fallback to DuckDuckGo HTML
-  console.log(`[Search] Falling back to DuckDuckGo HTML for: ${query}`);
-  try {
-    const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
-    });
-    const html = await res.text();
-    // Rough regex extraction for snippets since DOMParser isn't easily available in Edge functions
-    const resultRegex = /<a class="result__snippet[^>]*>([\s\S]*?)<\/a>/g;
-    const urlRegex = /<a class="result__url" href="([^"]+)">/g;
-    
-    let text = "";
-    let m;
-    let count = 0;
-    while ((m = resultRegex.exec(html)) !== null && count < 10) {
-      const snippet = m[1].replace(/<[^>]+>/g, "").trim();
-      text += `Snippet: ${snippet}\n\n`;
-      count++;
-    }
-    return text || "No results found.";
-  } catch (e) {
-    console.error("[Search] DDG fetch failed:", e);
-    return "Search failed.";
-  }
-}
-
-// Gemini model cascade: try cheapest free-tier model first, fall back on quota/overload
-async function callGeminiWithFallback(authKeys: string[], body: any): Promise<Response> {
-  const models = [
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-exp",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro"
-  ];
-  let lastRes: Response | null = null;
-  const errors: string[] = [];
-
-  for (const model of models) {
-    for (const ak of authKeys) {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${ak}`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
-      });
-      if (res.ok) return res;
-      
-      const errText = await res.text();
-      errors.push(`${model} (key: ${ak.slice(-4)}): ${res.status} - ${errText}`);
-      if (res.status === 429 || res.status === 401) continue;
-      lastRes = new Response(JSON.stringify({ error: `Failed on ${model}. Details: ${errors.join(" | ")}` }), { status: res.status });
-      break;
-    }
-    if (lastRes && lastRes.status !== 429 && lastRes.status !== 401) break;
-    
-    // Other error
-    lastRes = new Response(JSON.stringify({ error: `Failed on ${model}. Details: ${errors.join(" | ")}` }), { status: 500 });
-  }
-  return lastRes!;
-}
-
-async function runGeminiEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!authKeys || authKeys.length === 0) return { error: "Chybi GEMINI_API_KEY v DB nebo Secrets!" };
-    
-    const SEARCH_PROMPT = promptTemplate
-      .replace(/{{targetCountry}}/g, targetCountry)
-      .replace(/{{targetKeyword}}/g, targetKeyword)
-      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
-
-    const geminiRes = await callGeminiWithFallback(authKeys, {
-      contents: [{ role: "user", parts: [{ text: SEARCH_PROMPT }] }],
-      tools: [{ googleSearch: {} }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 16000 }
-    });
-
-    if (!geminiRes.ok) {
-       const errBody = await geminiRes.text();
-       return { error: `Chyba od Google API: ${errBody}` };
-    }
-
-    const resJson = await geminiRes.json();
-    let textOut = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-    
-    if (!textOut) {
-       const finishReason = resJson.candidates?.[0]?.finishReason || "UNKNOWN_REASON";
-       return { error: `Odpoved od AI je prazdna (finishReason: ${finishReason}).` };
-    }
-    
-    textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-    const firstBracket = textOut.indexOf('[');
-    const lastBracket = textOut.lastIndexOf(']');
-    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-      textOut = textOut.substring(firstBracket, lastBracket + 1);
-    }
-
-    try { 
-      const parsed = JSON.parse(textOut);
-      await logApiUsage(supabase, "gemini", "autonomous-web-sniper");
-      return { discoveredList: parsed };
-    } catch (e: any) { 
-      return { error: `JSON CHYBA (Gemini): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
-    }
-}
-
-async function runOpenRouterEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, orModel: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!authKeys || authKeys.length === 0) return { error: "Chybi OPENROUTER_API_KEY v DB nebo Secrets!" };
-
-    const SEARCH_PROMPT = promptTemplate
-      .replace(/{{targetCountry}}/g, targetCountry)
-      .replace(/{{targetKeyword}}/g, targetKeyword)
-      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
-
-    const models = [
-      orModel,
-      "meta-llama/llama-3.3-70b-instruct:free",
-      "deepseek/deepseek-chat:free",
-    ].filter((v, i, a) => v && a.indexOf(v) === i);
-
-    let orRes: Response | null = null;
-    const orErrors: string[] = [];
-
-    for (const model of models) {
-      for (const ak of authKeys) {
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), 10000);
-        try {
-            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                signal: controller.signal,
-                headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json", "HTTP-Referer": "https://atmosferi.cz", "X-Title": "Atmosferi CRM" },
-                body: JSON.stringify({ model: model, messages: [{ role: "user", content: SEARCH_PROMPT }], temperature: 0.1 })
-            });
-            clearTimeout(id);
-            if (res.ok) { orRes = res; break; }
-            const errText = await res.text();
-            orErrors.push(`${model} (${ak.slice(-4)}): ${res.status} - ${errText}`);
-            if (res.status === 401 || res.status === 429) continue;
-            break; // other error
-        } catch (e: any) {
-            clearTimeout(id);
-            orErrors.push(`${model} (${ak.slice(-4)}): FETCH ERROR - ${e.message}`);
-            continue; // Could be timeout, try next key
-        }
-      }
-      if (orRes?.ok) break;
-      const lastStatus = orErrors[orErrors.length - 1];
-      if (lastStatus && (lastStatus.includes("429") || lastStatus.includes("503") || lastStatus.includes("502") || lastStatus.includes("400") || lastStatus.includes("404"))) continue;
-      break;
-    }
-
-    if (!orRes || !orRes.ok) {
-       return { error: `Vsechny OR modely selhaly: ${orErrors.join(" | ")}` };
-    }
-
-    const resJson = await orRes.json();
-    let textOut = resJson.choices?.[0]?.message?.content?.trim() || "";
-    if (!textOut) return { error: "Odpoved od OpenRouter je prazdna." };
-
-    textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-    const firstBracket = textOut.indexOf('[');
-    const lastBracket = textOut.lastIndexOf(']');
-    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-      textOut = textOut.substring(firstBracket, lastBracket + 1);
-    }
-
-    try {
-      const parsed = JSON.parse(textOut);
-      await logApiUsage(supabase, "openrouter", "autonomous-web-sniper");
-      return { discoveredList: parsed };
-    } catch (e: any) {
-      return { error: `JSON CHYBA (OpenRouter): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
-    }
-}
-
-async function runDeepSeekEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, dsModel: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!authKeys || authKeys.length === 0) return { error: "Chybi DEEPSEEK_API_KEY v DB nebo Secrets!" };
-
-    const SEARCH_PROMPT = promptTemplate
-      .replace(/{{targetCountry}}/g, targetCountry)
-      .replace(/{{targetKeyword}}/g, targetKeyword)
-      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
-
-    let res;
-    for (const ak of authKeys) {
-      res = await fetch("https://api.deepseek.com/chat/completions", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-              model: dsModel,
-              messages: [{ role: "system", content: "You are an expert data scraper. Always reply with valid JSON array." }, { role: "user", content: SEARCH_PROMPT }], 
-              temperature: 0.1,
-              response_format: { type: "json_object" } // deepseek supports this
-          })
-      });
-      if (res.ok) break;
-      if (res.status !== 401 && res.status !== 429) break;
-    }
-    
-    if (!res || !res.ok) {
-       const err = await res?.text();
-       return { error: `DeepSeek API Chyba: ${res?.status} - ${err}` };
-    }
-
-    const resJson = await res.json();
-    let textOut = resJson.choices?.[0]?.message?.content || "";
-    if (textOut) {
-        textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-        const firstBracket = textOut.indexOf('[');
-        const lastBracket = textOut.lastIndexOf(']');
-        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-            textOut = textOut.substring(firstBracket, lastBracket + 1);
-        }
-    }
-
-    try {
-      const parsed = JSON.parse(textOut);
-      // If it returned an object with a nested array (due to json_object), extract it
-      const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find(v => Array.isArray(v)) || [];
-      await logApiUsage(supabase, "deepseek", "autonomous-web-sniper");
-      return { discoveredList: finalArray as any[] };
-    } catch (e: any) {
-      return { error: `JSON CHYBA (DeepSeek): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
-    }
-}
-
-async function runSiliconFlowEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, sfModel: string, authKeys: string[]): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!authKeys || authKeys.length === 0) return { error: "Chybi SILICONFLOW_API_KEY v DB nebo Secrets!" };
-
-    const SEARCH_PROMPT = promptTemplate
-      .replace(/{{targetCountry}}/g, targetCountry)
-      .replace(/{{targetKeyword}}/g, targetKeyword)
-      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
-
-    let res;
-    for (const ak of authKeys) {
-      res = await fetch("https://api.siliconflow.com/v1/chat/completions", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-              model: sfModel,
-              messages: [{ role: "system", content: "Return only a JSON array of objects." }, { role: "user", content: SEARCH_PROMPT }], 
-              temperature: 0.1 
-          })
-      });
-      if (res.ok) break;
-      if (res.status !== 401 && res.status !== 429) break;
-    }
-    
-    if (!res || !res.ok) {
-       const err = await res?.text();
-       const partialKey = authKeys[0] ? (authKeys[0].substring(0, 5) + "...") : "null";
-       return { error: `SiliconFlow API Chyba: ${res?.status} - ${err} (Key: ${partialKey})` };
-    }
-
-    const resJson = await res.json();
-    let textOut = resJson.choices?.[0]?.message?.content || "";
-    if (textOut) {
-        textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-        const firstBracket = textOut.indexOf('[');
-        const lastBracket = textOut.lastIndexOf(']');
-        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-            textOut = textOut.substring(firstBracket, lastBracket + 1);
-        }
-    }
-
-    try {
-      const parsed = JSON.parse(textOut);
-      await logApiUsage(supabase, "siliconflow", "autonomous-web-sniper");
-      return { discoveredList: parsed };
-    } catch (e: any) {
-      return { error: `JSON CHYBA (SiliconFlow): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
-    }
-}
-
-// Cerebras & Mistral share the same OpenAI-compatible shape; both expose a free tier.
-async function runOpenAICompatEngine(
-    supabase: any, engineName: string, endpoint: string, model: string,
-    targetCountry: string, targetKeyword: string, targetCity: string,
-    promptTemplate: string, authKeys: string[], jsonMode = true
-): Promise<{ discoveredList?: any[], error?: string }> {
-    if (!authKeys || authKeys.length === 0) return { error: `Chybi API klic pro ${engineName} v DB nebo Secrets!` };
-
-    const SEARCH_PROMPT = promptTemplate
-      .replace(/{{targetCountry}}/g, targetCountry)
-      .replace(/{{targetKeyword}}/g, targetKeyword)
-      .replace(/{{targetCity}}/g, targetCity || "nahodne vybrane mesto");
-
-    let res;
-    let lastErr = "";
-    for (const ak of authKeys) {
-      const payload: any = {
-          model,
-          messages: [
-            { role: "system", content: "You are an expert data scraper. Always reply with a valid JSON array of objects, nothing else." },
-            { role: "user", content: SEARCH_PROMPT }
-          ],
-          temperature: 0.1,
-      };
-      // Some providers (e.g. NVIDIA NIM) reject response_format on certain models.
-      if (jsonMode) payload.response_format = { type: "json_object" };
-      res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${ak}`, "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-      });
-      if (res.ok) break;
-      lastErr = await res.text().catch(() => "");
-      if (res.status !== 401 && res.status !== 429) break;
-    }
-
-    if (!res || !res.ok) {
-       return { error: `${engineName} API Chyba: ${res?.status} - ${lastErr}` };
-    }
-
-    const resJson = await res.json();
-    let textOut = resJson.choices?.[0]?.message?.content || "";
-    if (textOut) {
-        textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-        const firstBracket = textOut.indexOf('[');
-        const lastBracket = textOut.lastIndexOf(']');
-        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-            textOut = textOut.substring(firstBracket, lastBracket + 1);
-        }
-    }
-
-    try {
-      const parsed = JSON.parse(textOut);
-      // response_format:json_object may wrap the array inside an object — dig it out.
-      const finalArray = Array.isArray(parsed) ? parsed : Object.values(parsed).find(v => Array.isArray(v)) || [];
-      await logApiUsage(supabase, engineName, "autonomous-web-sniper");
-      return { discoveredList: finalArray as any[] };
-    } catch (e: any) {
-      return { error: `JSON CHYBA (${engineName}): ${e.message}. Urvek: ${textOut.substring(0, 500)}` };
-    }
-}
-
-function runCerebrasEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, model: string, authKeys: string[]) {
-    return runOpenAICompatEngine(supabase, "cerebras", "https://api.cerebras.ai/v1/chat/completions", model, targetCountry, targetKeyword, targetCity, promptTemplate, authKeys);
-}
-
-function runMistralEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, model: string, authKeys: string[]) {
-    return runOpenAICompatEngine(supabase, "mistral", "https://api.mistral.ai/v1/chat/completions", model, targetCountry, targetKeyword, targetCity, promptTemplate, authKeys);
-}
-
-function runNvidiaEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, promptTemplate: string, model: string, authKeys: string[]) {
-    // NVIDIA NIM is OpenAI-compatible but response_format is not supported on all models — rely on the prompt.
-    return runOpenAICompatEngine(supabase, "nvidia", "https://integrate.api.nvidia.com/v1/chat/completions", model, targetCountry, targetKeyword, targetCity, promptTemplate, authKeys, false);
-}
-
-async function runGroqPlacesEngine(supabase: any, targetCountry: string, targetKeyword: string, targetCity: string, groqKeys: string[], placesKeys: string[]): Promise<{ discoveredList?: any[], error?: string, debug?: string }> {
-    if (!placesKeys || placesKeys.length === 0 || !groqKeys || groqKeys.length === 0) {
-        return { error: "Chybi GOOGLE_PLACES_API_KEY ci GROQ_API_KEY v DB nebo Secrets!" };
-    }
-
-    const query = `${targetKeyword} ${targetCity}`;
-    let placesRes;
-    for (const pk of placesKeys) {
-      placesRes = await fetch("https://places.googleapis.com/v1/places:searchText", {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-              "X-Goog-Api-Key": pk,
-              "X-Goog-FieldMask": "places.displayName,places.websiteUri,places.formattedAddress,places.nationalPhoneNumber"
-          },
-          body: JSON.stringify({ textQuery: query, languageCode: "cs" })
-      });
-      if (placesRes.ok) break;
-      if (placesRes.status !== 403 && placesRes.status !== 429) break;
-    }
-
-    if (!placesRes || !placesRes.ok) return { error: `Google Places API chyba: ${await placesRes?.text()}` };
-
-    const placesData = await placesRes.json();
-    const places = placesData.places || [];
-    const validPlaces = places.filter((p: any) => p.websiteUri);
-
-    if (validPlaces.length === 0) {
-        return { discoveredList: [], debug: `Nalezeno ${places.length} mist v Google Places pro '${query}', ale zadne nemelo websiteUri.` };
-    }
-
-    const discoveredList: any[] = [];
-    let groqErrors = 0;
-    let fetchErrors = 0;
-    let noEmailFound = 0;
-    
-    // Limit na 5 kvuli Groq TPD free-tier limitu (100k tokenu/den).
-    const promises = validPlaces.slice(0, 5).map(async (place: any) => { 
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-            const pageRes = await fetch(place.websiteUri, { signal: controller.signal }).catch(() => null);
-            clearTimeout(timeoutId);
-            
-            if (!pageRes || !pageRes.ok) { fetchErrors++; return null; }
-            
-            let html = await pageRes.text();
-            html = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-                       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-                       .replace(/<[^>]+>/g, ' ')
-                       .replace(/\s+/g, ' ')
-                       .substring(0, 10000);
-                       
-            const companyName = place.displayName?.text || "";
-            const address = place.formattedAddress || "";
-            const phone = place.nationalPhoneNumber || "";
-
-            const groqModels = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"];
-            let groqRes;
-            for (const gModel of groqModels) {
-                for (const gk of groqKeys) {
-                  groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                      method: "POST",
-                      headers: { "Authorization": `Bearer ${gk}`, "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                          model: gModel,
-                          messages: [
-                              { role: "system", content: "You are a precise data extractor. Extract the requested info and return ONLY a valid JSON array. DO NOT wrap it in markdown or provide any other text." },
-                              { role: "user", content: `Given this text from website ${place.websiteUri} of company "${companyName}", extract their contact info and output ONLY a valid JSON array of 1 object: [{"company_name": "${companyName}", "brand_name": "(Short conversational brand name without legal entity or descriptive words like 'stavební společnost', e.g. 'Chrpa')", "email": "...", "phone": "${phone}", "website": "${place.websiteUri}", "city": "${targetCity}", "country": "${targetCountry}", "language": "cs", "full_address": "${address}", "description": "...", "decision_maker_name": "(Try hard to find the name of the owner, manager, or main architect. Put their full name here, or leave empty if not found)", "last_project": "(Name of the most prominent or recent project/reference found on the website. Leave empty if none found)", "premium_score": 50, "ai_icebreaker": "..."}]. If no email found, return []. Text: ${html}` }
-                          ],
-                          temperature: 0.1,
-                          max_tokens: 8000
-                      })
-                  });
-                  if (groqRes.ok) break;
-                  if (groqRes.status !== 401 && groqRes.status !== 429) break;
-                }
-                if (groqRes?.ok) break;
-            }
-
-            if (groqRes && groqRes.ok) {
-                await logApiUsage(supabase, "groq", "autonomous-web-sniper");
-                const groqData = await groqRes.json();
-                let textOut = groqData.choices?.[0]?.message?.content || "";
-                const fb = textOut.indexOf('[');
-                const lb = textOut.lastIndexOf(']');
-                if (fb !== -1 && lb !== -1) textOut = textOut.substring(fb, lb + 1);
-                else textOut = textOut.replace(/```json/g, "").replace(/```/g, "").trim();
-                
-                try {
-                    const parsed = JSON.parse(textOut);
-                    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].email && parsed[0].email.includes("@")) {
-                        discoveredList.push(parsed[0]);
-                    } else { noEmailFound++; }
-                } catch { groqErrors++; }
-            } else { 
-                groqErrors++;
-                if (groqErrors === 1) { // Log the first error from Groq directly so it doesn't get masked
-                  const errText = await groqRes?.text().catch(() => "Unknown error");
-                  console.error(`Groq API Error: ${errText}`);
-                }
-            }
-        } catch (e) { fetchErrors++; console.error("Error processing place", place.websiteUri, e); }
-    });
-
-    await Promise.all(promises);
-
-    const debugMsg = `Google Places: ${places.length} vysledku, ${validPlaces.length} melo web. Chyby fetch: ${fetchErrors}, Groq chyby: ${groqErrors}, bez emailu: ${noEmailFound}, platnych kontaktu: ${discoveredList.length}.`;
-    if (groqErrors > 0 && discoveredList.length === 0) {
-       return { error: `Groq API selhalo u vsech pokusu. Pravdepodobne Rate Limit (chyb: ${groqErrors}).` };
-    }
-    return { discoveredList, debug: debugMsg };
-}
-
 function deduplicateByEmail(list: any[]): any[] {
   const seen = new Set<string>();
   return list.filter(item => {
@@ -536,6 +62,195 @@ function deduplicateByEmail(list: any[]): any[] {
     seen.add(key);
     return true;
   });
+}
+
+const EXTRACT_SYSTEM =
+  "Jsi precizni extraktor firemnich kontaktu. Odpovidas VZDY pouze validnim JSON polem objektu, bez markdownu a bez komentaru.";
+
+// Celosvetovy zasobnik mest. Cim vic mest, tim vic UNIKATNICH kombinaci obor×mesto
+// → tim vic novych firem za den. Klice odpovidaji nazvum zemi v CESTINE (jak je
+// uklada scraper_config / jak je vraci obohacovani).
+const WORLD_CITIES: Record<string, string[]> = {
+  "Ceska republika": ["Praha", "Brno", "Ostrava", "Plzen", "Liberec", "Olomouc", "Ceske Budejovice", "Hradec Kralove", "Pardubice", "Zlin", "Usti nad Labem", "Jihlava", "Karlovy Vary", "Kladno", "Opava", "Mlada Boleslav", "Prostejov", "Trebic", "Tabor", "Znojmo"],
+  "Slovensko": ["Bratislava", "Kosice", "Presov", "Zilina", "Nitra", "Banska Bystrica", "Trnava", "Martin", "Trencin", "Poprad", "Prievidza", "Michalovce"],
+  "Nemecko": ["Berlin", "Hamburg", "Munchen", "Koln", "Frankfurt", "Stuttgart", "Dusseldorf", "Leipzig", "Dortmund", "Essen", "Bremen", "Dresden", "Hannover", "Nurnberg", "Duisburg", "Bochum", "Wuppertal", "Bonn", "Munster", "Karlsruhe"],
+  "Rakousko": ["Wien", "Graz", "Linz", "Salzburg", "Innsbruck", "Klagenfurt", "Villach", "Wels", "St. Polten", "Dornbirn"],
+  "Svycarsko": ["Zurich", "Genf", "Basel", "Bern", "Lausanne", "Winterthur", "Luzern", "St. Gallen", "Lugano", "Zug"],
+  "Polsko": ["Warszawa", "Krakow", "Lodz", "Wroclaw", "Poznan", "Gdansk", "Szczecin", "Bydgoszcz", "Lublin", "Katowice"],
+  "Madarsko": ["Budapest", "Debrecen", "Szeged", "Miskolc", "Pecs", "Gyor", "Nyiregyhaza", "Kecskemet"],
+  "Velka Britanie": ["London", "Manchester", "Birmingham", "Leeds", "Glasgow", "Liverpool", "Bristol", "Edinburgh", "Sheffield", "Cardiff", "Newcastle", "Nottingham"],
+  "Irsko": ["Dublin", "Cork", "Galway", "Limerick", "Waterford"],
+  "Francie": ["Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille"],
+  "Spanelsko": ["Madrid", "Barcelona", "Valencia", "Sevilla", "Zaragoza", "Malaga", "Bilbao", "Alicante", "Palma"],
+  "Italie": ["Roma", "Milano", "Napoli", "Torino", "Firenze", "Bologna", "Venezia", "Genova", "Verona", "Padova"],
+  "Portugalsko": ["Lisboa", "Porto", "Braga", "Coimbra", "Faro"],
+  "Nizozemsko": ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", "Groningen", "Tilburg"],
+  "Belgie": ["Brussel", "Antwerpen", "Gent", "Charleroi", "Liege", "Brugge"],
+  "Dansko": ["Kobenhavn", "Aarhus", "Odense", "Aalborg"],
+  "Svedsko": ["Stockholm", "Goteborg", "Malmo", "Uppsala", "Vasteras", "Linkoping"],
+  "Norsko": ["Oslo", "Bergen", "Trondheim", "Stavanger", "Drammen"],
+  "Finsko": ["Helsinki", "Espoo", "Tampere", "Vantaa", "Oulu", "Turku"],
+  "Chorvatsko": ["Zagreb", "Split", "Rijeka", "Osijek", "Zadar", "Dubrovnik"],
+  "Slovinsko": ["Ljubljana", "Maribor", "Celje", "Kranj"],
+  "Rumunsko": ["Bucuresti", "Cluj-Napoca", "Timisoara", "Iasi", "Constanta", "Brasov"],
+  "Recko": ["Athina", "Thessaloniki", "Patra", "Iraklio"],
+  "Turecko": ["Istanbul", "Ankara", "Izmir", "Bursa", "Antalya"],
+  "USA": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "Austin", "San Francisco", "Seattle", "Denver", "Boston", "Miami", "Atlanta", "Portland", "Nashville"],
+  "Kanada": ["Toronto", "Montreal", "Vancouver", "Calgary", "Ottawa", "Edmonton", "Quebec City", "Winnipeg"],
+  "Australie": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Gold Coast", "Canberra", "Hobart"],
+  "Novy Zeland": ["Auckland", "Wellington", "Christchurch", "Hamilton"],
+  "Spojene arabske emiraty": ["Dubai", "Abu Dhabi", "Sharjah"],
+  "Singapur": ["Singapore"],
+  "Japonsko": ["Tokyo", "Osaka", "Yokohama", "Nagoya", "Fukuoka", "Kyoto"],
+  "Brazilie": ["Sao Paulo", "Rio de Janeiro", "Brasilia", "Belo Horizonte", "Curitiba", "Porto Alegre"],
+  "Mexiko": ["Ciudad de Mexico", "Guadalajara", "Monterrey", "Puebla"],
+  "Jizni Afrika": ["Johannesburg", "Cape Town", "Durban", "Pretoria"],
+};
+
+// Jazykove varianty dotazu podle zeme — "kontakt e-mail" v CZ, "Kontakt E-Mail"
+// v DE, "contact email" jinde. Vic ruznych dotazu = vic ruznych firem.
+function queryVariants(keyword: string, city: string, country: string): string[] {
+  const c = (country || "").toLowerCase();
+  // 1. dotaz je ZAMERNE holy — katalogy (Firmy.cz) na nej vraci nejvic firem.
+  // Dalsi dotazy cili na kontaktni stranky ve fulltextu (DDG/Bing).
+  let suffixes: string[];
+  if (c.includes("cesk") || c.includes("slovensk")) suffixes = ["", "kontakt e-mail", "ateliér"];
+  else if (c.includes("nemeck") || c.includes("rakous") || c.includes("vcarsko")) suffixes = ["", "Kontakt E-Mail", "Impressum"];
+  else if (c.includes("polsko")) suffixes = ["", "kontakt e-mail", "biuro"];
+  else suffixes = ["", "contact email", "office"];
+  return suffixes.map((s) => `${keyword} ${city} ${s}`.trim());
+}
+
+/**
+ * Jeden harvest = jedna kombinace obor + mesto.
+ * Vraci nalezene firmy + diagnostiku (aby bylo videt, PROC pripadne 0).
+ */
+async function harvestOne(
+  supabase: any,
+  keys: Record<string, string>,
+  allowed: string[],
+  models: Record<string, string>,
+  keyword: string,
+  city: string,
+  country: string,
+): Promise<{ list: any[]; debug: string; attempts: { provider: string; ok: boolean; error?: string }[] }> {
+  // 1. Realne vysledky (zdarma, paralelne) + OSM.
+  // Vic jazykovych variant dotazu × strankovani = vyrazne vic unikatnich firem.
+  const variants = queryVariants(keyword, city, country);
+  // POZOR: DDG/Bing/Firmy.cz pri prilis rychlem palbe zacnou vracet prazdno (throttling).
+  // Varianty proto jedou SEKVENCNE s malou pauzou — pomaleji, ale s vyrazne vyssim vytezkem.
+  const osmPromise = searchOsm(city, keyword);
+  const searches: { results: { title: string; url: string; snippet: string }[]; engine: string }[] = [];
+  for (let i = 0; i < variants.length; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 1200));
+    searches.push(await searchWeb(variants[i], 10, country, 2).catch(() => ({ results: [], engine: "err" })));
+  }
+  const osm = await osmPromise;
+
+  const seenUrl = new Set<string>();
+  const web = { results: [] as { title: string; url: string; snippet: string }[], engine: "" };
+  const engineNames = new Set<string>();
+  for (const s of searches) {
+    if (s.engine && s.engine !== "none" && s.engine !== "err") engineNames.add(s.engine);
+    for (const r of s.results) {
+      let host = ""; try { host = new URL(r.url).hostname.replace(/^www\./, ""); } catch { continue; }
+      if (!host || seenUrl.has(host)) continue;
+      seenUrl.add(host);
+      web.results.push(r);
+    }
+  }
+  web.engine = [...engineNames].join("+") || "none";
+
+  const osmDirect = (osm.places || [])
+    .filter((p) => p.email)
+    .map((p) => ({
+      company_name: p.name, brand_name: p.name, email: p.email, phone: p.phone,
+      website: p.website, city, country, language: "", full_address: p.address,
+      description: "", decision_maker_name: "", last_project: "", premium_score: 50,
+      _src: "osm",
+    }));
+
+  if (web.results.length === 0 && osmDirect.length === 0) {
+    return { list: [], debug: `${keyword}/${city}: vyhledavani nevratilo nic (web=${web.engine}, osm=${osm.status})`, attempts: [] };
+  }
+
+  let aiList: any[] = [];
+  let attempts: { provider: string; ok: boolean; error?: string }[] = [];
+  let aiNote = "AI preskocena (zadne webove vysledky)";
+
+  if (web.results.length > 0) {
+    const prompt = `Nize jsou REALNE vysledky webasoveho vyhledavani pro dotaz "${keyword} ${city}".
+Extrahuj z nich firmy z oboru "${keyword}" pusobici v meste ${city} (${country}).
+
+PRISNA PRAVIDLA:
+- Pouzivej VYHRADNE informace doslova obsazene v textu nize. NIC si nedomyslej.
+- E-mail uved JEN pokud je v textu doslova napsany. NIKDY ho nekonstruuj z nazvu domeny.
+- Web uved jen z pole URL. Pokud udaj chybi, dej prazdny retezec.
+- Ignoruj katalogove/agregatorove stranky bez konkretni firmy.
+
+Pro kazdou firmu vrat objekt s poli: company_name, brand_name (kratky hovorovy nazev bez s.r.o. a privlastku typu 'stavebni spolecnost'), email, phone, website, city, country, language (cs/de/sk/en), full_address, description (1-2 vety), decision_maker_name, last_project, premium_score (1-100).
+Odpovez POUZE validnim JSON polem. Kdyz nic vhodneho nenajdes, vrat [].
+
+VYSLEDKY VYHLEDAVANI:
+${formatResultsForPrompt(web.results)}`;
+
+    try {
+      const res = await callAIWithFallback({
+        supabase, keys, allowed, models,
+        system: EXTRACT_SYSTEM, user: prompt, jsonMode: true,
+      });
+      attempts = res.attempts;
+      aiList = parseJsonArray(res.text);
+      await logApiUsage(supabase, res.provider, "autonomous-web-sniper");
+      aiNote = `AI extrakce pres ${res.provider} → ${aiList.length}`;
+    } catch (e: any) {
+      aiNote = `AI selhala: ${String(e.message).slice(0, 200)}`;
+    }
+  }
+
+  // 2. Slouceni AI + OSM (OSM ma prednost, ma e-mail primo ze zdroje)
+  const merged: any[] = [...osmDirect];
+  const seenSite = new Set(osmDirect.map((p) => (p.website || p.company_name).toLowerCase()));
+  for (const a of aiList) {
+    const k = String(a.website || a.company_name || "").toLowerCase();
+    if (k && seenSite.has(k)) continue;
+    seenSite.add(k);
+    merged.push({ ...a, _src: "ai" });
+  }
+
+  // 2b. BEZ-AI ZALOHA: kdyz AI selhala (vycerpane kvoty), postavime kandidaty
+  // primo z vysledku vyhledavani — nazev z titulku, e-mail z crawlu webu.
+  // Diky tomu sber NIKDY neskonci na nule jen kvuli AI limitum.
+  if (aiList.length === 0) {
+    for (const r of web.results.slice(0, 12)) {
+      const k = String(r.url || "").toLowerCase();
+      const host = (() => { try { return new URL(r.url).hostname.replace(/^www\./, ""); } catch { return ""; } })();
+      if (!host || seenSite.has(k) || seenSite.has(host)) continue;
+      seenSite.add(host);
+      merged.push({
+        company_name: (r.title || host).replace(/\s*[|–-]\s*.*$/, "").trim().slice(0, 120),
+        brand_name: "", email: "", phone: "", website: r.url, city, country,
+        language: "", full_address: "", description: (r.snippet || "").slice(0, 300),
+        decision_maker_name: "", last_project: "", premium_score: 50, _src: "search",
+      });
+    }
+  }
+
+  // 3. Dotazeni chybejicich e-mailu crawlem webu (regex, bez AI a bez kvot)
+  let crawled = 0;
+  // Crawl je zdarma a bez kvot (jen sitovy cas) → bezi paralelne pro vic kandidatu.
+  const needEmail = merged.filter((m) => (!m.email || !String(m.email).includes("@")) && m.website).slice(0, 12);
+  await Promise.all(needEmail.map(async (m) => {
+    const found = await fetchSiteEmails(m.website);
+    if (found.length > 0) { m.email = found[0]; crawled++; }
+  }));
+
+  // Obor si neseme s sebou — insert z nej urcuje kategorii/subkategorii leadu.
+  for (const m of merged) { m._keyword = keyword; m._country = country; if (!m.city) m.city = city; }
+
+  const withEmail = merged.filter((m) => m.email && String(m.email).includes("@"));
+  const debug = `${keyword}/${city}: web=${web.engine}(${web.results.length}) osm=${osmDirect.length} ${aiNote}, crawl+${crawled} → ${withEmail.length} s e-mailem`;
+  return { list: withEmail, debug, attempts };
 }
 
 Deno.serve(async (req) => {
@@ -575,137 +290,126 @@ Deno.serve(async (req) => {
     const activeKeywords = (config.active_keywords && config.active_keywords.length > 0) ? config.active_keywords : config.keywords;
     const keywords = (activeKeywords && activeKeywords.length > 0) ? activeKeywords : defaultConfig.keywords;
     const targetKeywords = body.targetKeywords && body.targetKeywords.length > 0 ? body.targetKeywords : keywords;
-    const targetKeyword = targetKeywords[Math.floor(Math.random() * targetKeywords.length)];
-    
+
     const activeCountries = (config.active_countries && config.active_countries.length > 0) ? config.active_countries : config.countries;
     const countries = (activeCountries && activeCountries.length > 0) ? activeCountries : defaultConfig.countries;
     const targetCountries = body.targetCountries && body.targetCountries.length > 0 ? body.targetCountries : countries;
     const targetCountry = targetCountries[Math.floor(Math.random() * targetCountries.length)] || "Ceska republika";
-    
+
     const activeCities = (config.active_cities && config.active_cities.length > 0) ? config.active_cities : config.cities;
-    let targetCities = body.targetCities && body.targetCities.length > 0 ? body.targetCities : (activeCities || []);
-    
-    const TOP_CITIES_BY_COUNTRY: Record<string, string[]> = {
-      "Ceska republika": ["Praha", "Brno", "Ostrava", "Plzen", "Liberec", "Olomouc", "Ceske Budejovice", "Hradec Kralove", "Pardubice", "Zlin"],
-      "Nemecko": ["Berlin", "Hamburg", "Mnichov", "Koln", "Frankfurt", "Stuttgart", "Dusseldorf", "Lipsko", "Dortmund", "Essen"],
-      "Slovensko": ["Bratislava", "Kosice", "Presov", "Zilina", "Nitra", "Banska Bystrica", "Trnava", "Martin", "Trencin", "Poprad"],
-      "Rakousko": ["Viden", "Styrsky Hradec", "Linec", "Salcburk", "Innsbruck", "Klagenfurt", "Villach", "Wels"]
-    };
+    const configuredCities: string[] = body.targetCities && body.targetCities.length > 0 ? body.targetCities : (activeCities || []);
 
-    if (TOP_CITIES_BY_COUNTRY[targetCountry]) {
-        targetCities = targetCities.filter((city: string) => TOP_CITIES_BY_COUNTRY[targetCountry].includes(city));
-    } else {
-        targetCities = [];
-    }
+    const countryCities = WORLD_CITIES[targetCountry] || [];
+    // Bez nakonfigurovaneho mesta se drive hledalo "naslepo" a vracelo 0.
+    // Nove vzdy padneme na seznam mest dane zeme → kazdy beh neco hleda.
+    let targetCities = configuredCities.filter((c: string) => countryCities.length === 0 || countryCities.includes(c));
+    if (targetCities.length === 0) targetCities = countryCities;
 
-    const targetCity = targetCities.length > 0 ? targetCities[Math.floor(Math.random() * targetCities.length)] : "";
+    // Kolik kombinaci obor×mesto zpracovat v jednom behu (vic = vic kontaktu/den).
+    const combosPerRun = Math.max(1, Math.min(Number(config.combos_per_run ?? 6), 15));
 
-    const DEFAULT_PROMPT = `Jsi autonomni vyhledavaci agent pro B2B akviziciu. Cilovy stat: {{targetCountry}}. Obor: "{{targetKeyword}}". 
-TVUJ UKOL: 
-1. Zamer se PRESNE na toto mesto: {{targetCity}} (pokud chybi, vymysli si nahodne jine nez hlavni mesto).
-2. Pomoci nastroje Google Search najdi realne firmy v tomto meste pro zadany obor.
-3. Extrahuj z jejich webu nebo z Googlu kontakty. Najdi MAXIMALNE 15 firem, ktere maji uvedenou E-MAILOVOU ADRESU. Firmy bez e-mailu ignoruj!
-
-Vrat JSON pole. Povinna pole pro kazdy objekt: company_name, brand_name (Cisty, hovorovy nazev firmy bez s.r.o. a privlastku typu 'stavebni spolecnost', 'architekti'. Z 'Kvalitni stavby s.r.o.' udelej 'Kvalitni stavby', ze 'Studio Velehradsky' udelej 'Studio Velehradsky', z 'CHRPA stavebni spolecnost Pardubice' udelej 'Chrpa'), email, phone, website, city, country (nazev zeme VZDY V CESTINE, napr. Finsko, Australie), language (cs, en, de...), full_address, description, decision_maker_name (DULEZITE: Pokus se aktivne dohledat jmeno konkretni kontaktni osoby - napr. majitel, jednatel, nebo hlavni architekt. Pokud najdes, uved jeji cele jmeno, jinak prazdny retezec), last_project (Nazev posledniho/hlavniho projektu nebo reference, napr. "Vila v Praze" nebo "Rekonstrukce skoly", prazdny retezec pokud nelze najit), premium_score (1-100).
-Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych hodnot nesmi byt neescapovane uvozovky!`;
-    const promptTemplate = config.prompt_template || DEFAULT_PROMPT;
-
-    // Per-provider models (same config keys the Admin > AI Hub model selectors write).
-    // Defaults chosen to stay on each provider's FREE tier.
-    const orModel = config.openrouter_model || "meta-llama/llama-3.3-70b-instruct:free";
-    const dsModel = config.deepseek_model   || "deepseek-chat";
-    const sfModel = config.siliconflow_model || "Qwen/Qwen2.5-7B-Instruct";
-    const cbModel = config.cerebras_model   || "gpt-oss-120b";
-    const mtModel = config.mistral_model    || "mistral-large-latest";
-    const nvModel = config.nvidia_model     || "meta/llama-3.3-70b-instruct";
-
-    // --- Determine which discovery engines are active ---
-    // Each enabled engine runs independently; results are merged & deduplicated.
+    // Povolene AI providery (v poradi). Pollinations doplni router vzdy na konec.
     const engineOverride = body.engine;
-    const activeEngines: string[] = [];
-
+    const allowed: string[] = [];
     if (engineOverride) {
-      activeEngines.push(engineOverride);
+      allowed.push(engineOverride === "groq_places" ? "groq" : engineOverride);
     } else {
-      if (config.use_gemini_engine !== false)       activeEngines.push("gemini");
-      if (config.use_groq_places_engine === true)   activeEngines.push("groq_places");
-      if (config.use_openrouter_engine === true)    activeEngines.push("openrouter");
-      if (config.use_deepseek_engine === true)      activeEngines.push("deepseek");
-      if (config.use_siliconflow_engine === true)   activeEngines.push("siliconflow");
-      if (config.use_cerebras_engine === true)      activeEngines.push("cerebras");
-      if (config.use_mistral_engine === true)       activeEngines.push("mistral");
-      if (config.use_nvidia_engine === true)        activeEngines.push("nvidia");
+      if (config.use_gemini_engine !== false)      allowed.push("gemini");
+      if (config.use_groq_places_engine === true)  allowed.push("groq");
+      if (config.use_cerebras_engine === true)     allowed.push("cerebras");
+      if (config.use_nvidia_engine === true)       allowed.push("nvidia");
+      if (config.use_openrouter_engine === true)   allowed.push("openrouter");
+      if (config.use_mistral_engine === true)      allowed.push("mistral");
+      if (config.use_deepseek_engine === true)     allowed.push("deepseek");
+      if (config.use_siliconflow_engine === true)  allowed.push("siliconflow");
     }
 
-    if (activeEngines.length === 0) {
-      return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: "Vsechny enginy jsou vypnute." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    console.log(`Aktivni enginy: ${activeEngines.join(", ")} | kw: ${targetKeyword} | mesto: ${targetCity}`);
+    const models: Record<string, string> = {
+      gemini: config.gemini_model || "gemini-2.0-flash",
+      groq: config.groq_model || "llama-3.3-70b-versatile",
+      openrouter: config.openrouter_model || "nvidia/nemotron-3-ultra-550b-a55b:free",
+      deepseek: config.deepseek_model || "deepseek-chat",
+      siliconflow: config.siliconflow_model || "Qwen/Qwen2.5-7B-Instruct",
+      cerebras: config.cerebras_model || "gpt-oss-120b",
+      mistral: config.mistral_model || "mistral-large-latest",
+      nvidia: config.nvidia_model || "meta/llama-3.3-70b-instruct",
+    };
 
     const keys = await getApiKeys(supabase);
 
-    const hasNonGeminiNonGroq = activeEngines.some(e => e !== "gemini" && e !== "groq_places");
-    let searchResults = "";
-    if (hasNonGeminiNonGroq) {
-        const query = `${targetKeyword} ${targetCity} ${targetCountry} email website kontakt`.trim();
-        searchResults = await performWebSearch(query, keys.SERPER_API_KEY);
+    // SYSTEMATICKE POKRYTI: drive se kombinace losovaly nahodne → stejna mesta
+    // se opakovala a nove firmy dochazely. Ted projizdime CELY prostor
+    // zeme×mesto×obor po poradku pomoci ulozeneho kurzoru → maximum unikatu.
+    const comboSpace: { keyword: string; city: string; country: string }[] = [];
+    for (const ctry of targetCountries) {
+      const cities = (configuredCities.length > 0
+        ? configuredCities.filter((c: string) => (WORLD_CITIES[ctry] || []).includes(c))
+        : []);
+      const useCities = cities.length > 0 ? cities : (WORLD_CITIES[ctry] || []);
+      for (const city of useCities) {
+        for (const kw of targetKeywords) comboSpace.push({ keyword: kw, city, country: ctry });
+      }
+    }
+    // Zaloha, kdyby zeme nebyla v mape mest.
+    if (comboSpace.length === 0) {
+      for (const kw of targetKeywords) comboSpace.push({ keyword: kw, city: targetCities[0] || "", country: targetCountry });
     }
 
-    const nonGeminiPromptTemplate = searchResults ? 
-      `Zde jsou realne vysledky vyhledavani na internetu z DuckDuckGo/Google:\n---\n${searchResults}\n---\nTvoji jedinou roli je z techto vysledku vyextrahovat existujici firmy a jejich weby/emaily pro zadany obor. NIKDY si nevymyslej firmy, ktere v textu nejsou. Pokud v textu firmy nejsou, vrat prazdne pole [].\n\n${promptTemplate}` 
-      : promptTemplate;
+    let cursor = 0;
+    try {
+      const { data: curData } = await supabase.from("app_settings").select("value").eq("key", "harvest_cursor").maybeSingle();
+      cursor = Number(curData?.value?.index ?? 0) || 0;
+    } catch { /* zacneme od nuly */ }
 
-    const engineResults = await Promise.allSettled(
-      activeEngines.map((eng) => {
-        if (eng === "groq_places") return runGroqPlacesEngine(supabase, targetCountry, targetKeyword, targetCity, [keys.GROQ_API_KEY, keys.GROQ_FALLBACK_API_KEY].filter(Boolean), [keys.GOOGLE_PLACES_API_KEY, keys.GOOGLE_PLACES_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "openrouter")  return runOpenRouterEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, orModel, [keys.OPENROUTER_API_KEY, keys.OPENROUTER_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "deepseek")    return runDeepSeekEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, dsModel, [keys.DEEPSEEK_API_KEY, keys.DEEPSEEK_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "siliconflow") return runSiliconFlowEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, sfModel, [keys.SILICONFLOW_API_KEY, keys.SILICONFLOW_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "cerebras")    return runCerebrasEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, cbModel, [keys.CEREBRAS_API_KEY, keys.CEREBRAS_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "mistral")     return runMistralEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, mtModel, [keys.MISTRAL_API_KEY, keys.MISTRAL_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "nvidia")      return runNvidiaEngine(supabase, targetCountry, targetKeyword, targetCity, nonGeminiPromptTemplate, nvModel, [keys.NVIDIA_API_KEY, keys.NVIDIA_FALLBACK_API_KEY].filter(Boolean));
-        if (eng === "gemini")      return runGeminiEngine(supabase, targetCountry, targetKeyword, targetCity, promptTemplate, [keys.GEMINI_API_KEY, keys.GEMINI_FALLBACK_API_KEY].filter(Boolean));
-        return Promise.resolve({ error: `Neznamy engine: ${eng}` });
-      })
-    );
+    const combos: { keyword: string; city: string; country: string }[] = [];
+    for (let i = 0; i < combosPerRun; i++) combos.push(comboSpace[(cursor + i) % comboSpace.length]);
+    const nextCursor = (cursor + combosPerRun) % comboSpace.length;
+    try {
+      await supabase.from("app_settings").upsert(
+        { key: "harvest_cursor", value: { index: nextCursor, space: comboSpace.length, updated_at: new Date().toISOString() } },
+        { onConflict: "key" }
+      );
+    } catch (e) { console.error("harvest_cursor upsert selhal", e); }
+
+    console.log(`Harvest: ${combos.length}/${comboSpace.length} kombinaci (kurzor ${cursor}→${nextCursor}), retezec: ${allowed.join(">") || "(bez klicu)"}`);
+
+    // Davky po 2 kombinacich — dost paralelismu na rychlost, ale ne tolik,
+    // aby nas vyhledavace zablokovaly (pak by vracely prazdno).
+    const results: { list: any[]; debug: string; attempts: any[] }[] = [];
+    for (let i = 0; i < combos.length; i += 2) {
+      const batch = combos.slice(i, i + 2);
+      const settled = await Promise.all(
+        batch.map((c) => harvestOne(supabase, keys, allowed, models, c.keyword, c.city, c.country)
+          .catch((e) => ({ list: [] as any[], debug: `${c.keyword}/${c.city}: chyba ${e.message}`, attempts: [] })))
+      );
+      results.push(...settled);
+    }
 
     let allDiscovered: any[] = [];
     const debugParts: string[] = [];
-    const engineErrors: Record<string, string> = {};
-
-    const engineCounts: Record<string, number> = {};
-
-    for (let i = 0; i < engineResults.length; i++) {
-      const eng = activeEngines[i];
-      const result = engineResults[i];
-      if (result.status === "rejected") {
-        debugParts.push(`${eng}: selhalo (${result.reason})`);
-        engineErrors[eng] = String(result.reason);
-        continue;
-      }
-      const value = result.value as any;
-      if (value.error) {
-        debugParts.push(`${eng}: chyba - ${value.error}`);
-        engineErrors[eng] = String(value.error);
-      } else {
-        const list = value.discoveredList || [];
-        engineCounts[eng] = list.length;
-        debugParts.push(`${eng}: nalezeno ${list.length} kontaktu`);
-        allDiscovered = allDiscovered.concat(list);
-      }
+    const allAttempts: { provider: string; ok: boolean; error?: string }[] = [];
+    for (const r of results) {
+      allDiscovered = allDiscovered.concat(r.list);
+      debugParts.push(r.debug);
+      allAttempts.push(...r.attempts);
     }
 
+    // Zdravi providera podle toho, jak dopadl v routeru (drzi UI karty aktualni).
     try {
       const { data: healthData } = await supabase.from("app_settings").select("value").eq("key", "api_health").maybeSingle();
       const currentHealth = healthData?.value || {};
-      for (const eng of activeEngines) {
-        // preserve existing stats if we can, update the relevant ones
-        const existingStats = currentHealth[eng] || {};
-        if (engineErrors[eng]) {
-          currentHealth[eng] = { ...existingStats, status: "error", message: engineErrors[eng], updated_at: new Date().toISOString() };
+      const nowIso = new Date().toISOString();
+      const okProviders = new Set(allAttempts.filter(a => a.ok).map(a => a.provider));
+      const seenProv = new Set<string>();
+      for (const a of allAttempts) {
+        if (seenProv.has(a.provider)) continue;
+        seenProv.add(a.provider);
+        const prev = currentHealth[a.provider] || {};
+        const discovered = allDiscovered.length;
+        if (okProviders.has(a.provider)) {
+          currentHealth[a.provider] = { ...prev, status: "ok", message: "OK", updated_at: nowIso, last_success_at: nowIso, last_run_discovered: discovered };
         } else {
-          currentHealth[eng] = { ...existingStats, status: "ok", message: "OK", updated_at: new Date().toISOString(), last_run_discovered: engineCounts[eng] || 0, last_success_at: new Date().toISOString() };
+          currentHealth[a.provider] = { ...prev, status: "error", message: a.error || "selhalo", updated_at: nowIso };
         }
       }
       await supabase.from("app_settings").upsert({ key: "api_health", value: currentHealth }, { onConflict: "key" });
@@ -716,7 +420,7 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     const discoveredList = deduplicateByEmail(allDiscovered);
 
     if (discoveredList.length === 0) {
-      await logJobSuccess(supabase, jobName, { discovered_count: 0, engines: activeEngines, errors: engineErrors, debug_output: debugParts.join(" | ") });
+      await logJobSuccess(supabase, jobName, { discovered_count: 0, combos: combos.length, debug_output: debugParts.join(" | ") });
       return new Response(JSON.stringify({ ok: true, discovered_count: 0, debug_output: debugParts.join(" | ") }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -733,8 +437,7 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       }
       const cleanEmail = item.email.toLowerCase().trim();
 
-      // Free deliverability check (syntax + MX via DNS-over-HTTPS) — drop undeliverable
-      // scraped addresses before they enter the send queue, to protect sender reputation.
+      // Overeni doruicitelnosti (syntax + MX) — chrani reputaci odesilatele.
       const emailCheck = await checkEmailDeliverable(cleanEmail);
       if (!emailCheck.valid) { invalidEmailCount++; continue; }
 
@@ -743,8 +446,10 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       const { data: lExist } = await supabase.from("marketing_leads").select("id").eq("email", cleanEmail).maybeSingle();
       if (lExist) { duplicateCount++; continue; }
 
+      // Zeme se bere z konkretni kombinace (jeden beh miva vic zemi).
+      const itemCountry = String(item._country || targetCountry);
       let marketId = "cz";
-      const tc = targetCountry.toLowerCase();
+      const tc = itemCountry.toLowerCase();
       if (tc.includes("cesk") || tc.includes("czech")) marketId = "cz";
       else if (tc.includes("nemeck") || tc.includes("deutsch") || tc.includes("german")) marketId = "de";
       else if (tc.includes("rakous") || tc.includes("austria") || tc.includes("sterreich")) marketId = "at";
@@ -756,12 +461,12 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
       else if (tc.includes("norsko") || tc.includes("norway")) marketId = "no";
       else marketId = item.language || "cs";
 
+      const kwForCat = String(item._keyword || "").toLowerCase();
       let categoryId = "architekti";
-      const tk = targetKeyword.toLowerCase();
-      if (tk.includes("interier") || tk.includes("design")) categoryId = "interiery";
-      else if (tk.includes("develop")) categoryId = "developeri";
-      else if (tk.includes("urban") || tk.includes("verejn")) categoryId = "urbanismus";
-      else if (tk === "samostatny architekt") categoryId = "architekt";
+      if (kwForCat.includes("interier") || kwForCat.includes("design")) categoryId = "interiery";
+      else if (kwForCat.includes("develop")) categoryId = "developeri";
+      else if (kwForCat.includes("urban") || kwForCat.includes("verejn")) categoryId = "urbanismus";
+      else if (kwForCat === "samostatny architekt") categoryId = "architekt";
 
       const { data: newLead, error: insertErr } = await supabase.from("marketing_leads").insert({
           email: cleanEmail,
@@ -770,15 +475,15 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
           phone: normalizePhone(item.phone || ""),
           website: item.website || "",
           city: item.city || "Nezname mesto",
-          country: item.country || targetCountry,
+          country: item.country || itemCountry,
           language: marketId,
           ai_icebreaker: null,
           decision_maker_name: item.decision_maker_name || null,
           last_project: item.last_project || null,
           premium_score: item.premium_score ? parseInt(item.premium_score) : null,
-          full_address: item.full_address || `${item.city || ""}, ${targetCountry}`,
+          full_address: item.full_address || `${item.city || ""}, ${itemCountry}`,
           category: categoryId,
-          subcategory: targetKeyword,
+          subcategory: item._keyword || null,
           description: item.description || "Nalezeno autonomne",
           company_description: item.description || "Nalezeno autonomne",
           source: "ai_web_sniper",
@@ -791,17 +496,17 @@ Odpovez POUZE validnim polem objektu v JSON formatu. VAROVANI: uvnitr textovych 
     const skipReport = `(zahozeno: ${missingEmailCount} bez mailu, ${invalidEmailCount} neplatnych/bez MX, ${duplicateCount} duplicit)`;
     const finalDebug = `${debugParts.join(" | ")} | ${skipReport}`;
 
-    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, engines: activeEngines, errors: engineErrors, debug_output: finalDebug });
-    
+    await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, combos: combos.length, debug_output: finalDebug });
+
     if (newSavedCount === 0 && discoveredList.length > 0) {
-       return new Response(JSON.stringify({ 
+       return new Response(JSON.stringify({
          ok: true, discovered_count: 0, total_found_by_ai: discoveredList.length,
          message: `Nalezeno, ale preskoceno ${skipReport}.`,
          debug_output: `${finalDebug} | DB chyba: ${lastInsertError || "zadna"}`
        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ ok: true, discovered_count: newSavedCount, engines: activeEngines, message: "Hotovo.", debug_output: finalDebug }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, discovered_count: newSavedCount, message: "Hotovo.", debug_output: finalDebug }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
     if (supabase) await logJobFailure(supabase, jobName, err.message);
