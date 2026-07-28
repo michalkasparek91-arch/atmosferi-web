@@ -647,6 +647,41 @@
  ]
 }
 </script>
+
+<style>
+/* ── Zklidnění 2026-07: snímky nesou stránku, text jen šeptá ──────────────
+   1) víc vzduchu mezi sekcemi, 2) galerie jako páteř (větší desky, širší mřížka),
+   3) klidnější typografie a užší míra řádku u textových bloků.            */
+:root{ --air: clamp(72px, 9vw, 150px); }
+
+/* 1) Vzduch — hlavní nástroj proti pocitu „zaplavy". */
+section{ padding-top: var(--air); padding-bottom: var(--air); }
+section + section{ padding-top: 0; }
+.shead{ margin-bottom: clamp(28px, 3.4vw, 56px); }
+
+/* 2) Galerie jako vizuální základ: širší plátno a velkorysé mezery. */
+#grid{ gap: clamp(16px, 2vw, 34px); }
+#grid + *{ margin-top: clamp(30px, 4vw, 64px); }
+.frame__img img{ transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+.frame:hover .frame__img img{ transform: scale(1.02); }
+/* popisky desek: tiché, mono, bez tučného křiku */
+.frame__cap{ opacity:.72; }
+.frame__cap .t{ font-weight:500; }
+.frame__cap .m{ opacity:.7; }
+
+/* 3) Klidnější text: kratší míra řádku, vzdušnější prokládání. */
+section p{ max-width: 62ch; line-height: 1.75; }
+.shead h2{ letter-spacing:-.01em; }
+
+@media (min-width: 1100px){
+  /* galerii pustíme do širšího plátna než textové bloky */
+  section.wrap:has(#grid){ max-width: min(1560px, 94vw); }
+}
+@media (max-width: 760px){
+  :root{ --air: clamp(52px, 12vw, 88px); }
+  section p{ max-width:none; }
+}
+</style>
 </head>
 <body>
 
@@ -717,6 +752,109 @@
   <p data-rise>We don't render buildings. We make <em>photographs</em> of a morning that hasn't happened yet — the light, the weather, the one quiet second before anyone arrives.</p>
   <div class="by" data-rise><span class="ln"></span><span>The studio</span></div>
 </section>
+
+<!-- Vybrane snimky: vizualni patere stranky -->
+<section class="wrap" style="padding-top:clamp(50px,7vw,100px)">
+  <div class="shead" data-rise style="border-top:0;padding-top:0">
+    <h2>Selected frames.</h2>
+    <span class="mono">Click any image to enlarge</span>
+  </div>
+  <div class="grid" id="grid" data-rise>
+    <figure class="frame w8 wide bloom" data-cap="The Hearth" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-living.jpg">
+      <span class="frame__img"><img src="img/chalet-living.jpg" alt="Chalet living room with green tiled stove"></span>
+      <figcaption class="frame__cap"><span class="t">The Hearth</span><span class="m">Alpine Chalet · Interior</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Under the Eaves" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-bedroom.jpg">
+      <span class="frame__img"><img src="img/chalet-bedroom.jpg" alt="Chalet bedroom with tartan headboard and fireplace"></span>
+      <figcaption class="frame__cap"><span class="t">Under the Eaves</span><span class="m">Alpine Chalet · Interior</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Soak" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-bath.jpg">
+      <span class="frame__img"><img src="img/chalet-bath.jpg" alt="Chalet bathroom with freestanding tub and stone wall"></span>
+      <figcaption class="frame__cap"><span class="t">Soak</span><span class="m">Alpine Chalet · Interior</span></figcaption>
+    </figure>
+    <figure class="frame w6 wide bloom" data-cap="The Reading Hall" data-meta="University Library, Wrocław · Stills" data-full="img/14-library-front.jpg">
+      <span class="frame__img"><img src="img/14-library-front.jpg" alt="Library facade"></span>
+      <figcaption class="frame__cap"><span class="t">The Reading Hall</span><span class="m">Wrocław · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w6 wide bloom" data-cap="Foyer" data-meta="University Library, Poznań · Stills" data-full="img/15-library-foyer.jpg">
+      <span class="frame__img"><img src="img/15-library-foyer.jpg" alt="Library foyer"></span>
+      <figcaption class="frame__cap"><span class="t">Foyer</span><span class="m">Poznań · Stills</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Daylight" data-meta="Hillside Villa, Santa Barbara · Stills" data-full="img/17-villa-day.jpg">
+      <span class="frame__img"><img src="img/17-villa-day.jpg" alt="Villa in daylight"></span>
+      <figcaption class="frame__cap"><span class="t">Daylight</span><span class="m">Santa Barbara · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w8 wide bloom" data-cap="Evening Glow" data-meta="Hillside Villa, Santa Barbara · Stills" data-full="img/18-villa-night.jpg">
+      <span class="frame__img"><img src="img/18-villa-night.jpg" alt="Villa at night"></span>
+      <figcaption class="frame__cap"><span class="t">Evening Glow</span><span class="m">Santa Barbara · Stills</span></figcaption>
+    </figure>
+    <figure class="frame wide w8 bloom" data-cap="The Loop" data-meta="Rotterdam · Film · 2026" data-full="img/07-loop.webp">
+      <span class="frame__img"><img src="img/07-loop.webp" alt="Architectural visualisation — The Loop, a looping building in Rotterdam (film)"></span>
+      <figcaption class="frame__cap"><span class="t">The Loop</span><span class="m">Rotterdam · Film</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Sky Garden" data-meta="Helix Tower, L22 · Interactive" data-full="img/11-skygarden.webp">
+      <span class="frame__img"><img src="img/11-skygarden.webp" alt="Sky Garden"></span>
+      <figcaption class="frame__cap"><span class="t">Sky Garden</span><span class="m">Interactive</span></figcaption>
+    </figure>
+    <figure class="frame bloom" data-cap="Overture" data-meta="Delta Hall, Oslo · Stills" data-full="img/03-concert.webp">
+      <span class="frame__img"><img src="img/03-concert.webp" alt="Architectural visualisation — Delta Hall concert hall interior, Oslo"></span>
+      <figcaption class="frame__cap"><span class="t">Overture</span><span class="m">Delta Hall · Stills</span></figcaption>
+    </figure>
+    <figure class="frame bloom" data-cap="Crossing" data-meta="Port Spine, Lisbon · Interactive" data-full="img/05-crossing.webp">
+      <span class="frame__img"><img src="img/05-crossing.webp" alt="Architectural visualisation — Port Spine pedestrian crossing, Lisbon"></span>
+      <figcaption class="frame__cap"><span class="t">Crossing</span><span class="m">Port Spine · Interactive</span></figcaption>
+    </figure>
+    <figure class="frame bloom" data-cap="Shade" data-meta="Canopy Campus, Austin · Stills" data-full="img/06-canopy.webp">
+      <span class="frame__img"><img src="img/06-canopy.webp" alt="Architectural visualisation — Canopy Campus under shade, Austin"></span>
+      <figcaption class="frame__cap"><span class="t">Shade</span><span class="m">Canopy · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w6 wide bloom" data-cap="Horizon" data-meta="Floor 41 · Stills" data-full="img/09-horizon.webp">
+      <span class="frame__img"><img src="img/09-horizon.webp" alt="Architectural visualisation — skyline view from floor 41"></span>
+      <figcaption class="frame__cap"><span class="t">Horizon</span><span class="m">Floor 41 · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w6 wide bloom" data-cap="Courtyards" data-meta="Grid Quarter, Berlin · Stills" data-full="img/08-courtyards.webp">
+      <span class="frame__img"><img src="img/08-courtyards.webp" alt="Architectural visualisation — Grid Quarter courtyards, Berlin"></span>
+      <figcaption class="frame__cap"><span class="t">Courtyards</span><span class="m">Grid Quarter · Stills</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Interior, Evening" data-meta="The Penthouse · Stills" data-full="img/10-penthouse.webp">
+      <span class="frame__img"><img src="img/10-penthouse.webp" alt="Interior, Evening"></span>
+      <figcaption class="frame__cap"><span class="t">Interior, Evening</span><span class="m">The Penthouse</span></figcaption>
+    </figure>
+    <figure class="frame w8 wide bloom" data-cap="House on the Fjord" data-meta="Vestland · Stills" data-full="img/12-fjord.webp">
+      <span class="frame__img"><img src="img/12-fjord.webp" alt="House on the Fjord"></span>
+      <figcaption class="frame__cap"><span class="t">House on the Fjord</span><span class="m">Vestland · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w8 wide bloom" data-cap="Garden Pavilion" data-meta="Forest house · Exterior stills" data-full="img/gal-pavilion.webp">
+      <span class="frame__img"><img src="img/gal-pavilion.webp" alt="Architectural visualisation — a timber and glass pavilion in a lush forest garden with a stream"></span>
+      <figcaption class="frame__cap"><span class="t">Garden Pavilion</span><span class="m">Forest house · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w8 wide bloom" data-cap="The Still Water" data-meta="Fjord House · Vestland · Exterior stills" data-full="img/gal-fjord.webp">
+      <span class="frame__img"><img src="img/gal-fjord.webp" alt="Architectural visualisation — a low timber house on a still fjord under heavy cloud, reflected in the water, mountains beyond"></span>
+      <figcaption class="frame__cap"><span class="t">The Still Water</span><span class="m">Fjord House · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w8 wide bloom" data-cap="On the Plateau" data-meta="Mountain Retreat · Exterior stills" data-full="img/gal-plateau.webp">
+      <span class="frame__img"><img src="img/gal-plateau.webp" alt="Architectural visualisation — a small concrete retreat alone on a misty mountain plateau, tiny beneath a vast pale sky"></span>
+      <figcaption class="frame__cap"><span class="t">On the Plateau</span><span class="m">Mountain Retreat · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w6 wide bloom" data-cap="Blue Hour" data-meta="Alpine Villa · Innsbruck · Exterior stills" data-full="img/gal-alpine.webp">
+      <span class="frame__img"><img src="img/gal-alpine.webp" alt="Architectural visualisation — a glass and timber villa glowing warm at blue hour, mountains behind, reflecting pool in front"></span>
+      <figcaption class="frame__cap"><span class="t">Blue Hour</span><span class="m">Alpine Villa · Stills</span></figcaption>
+    </figure>
+    <figure class="frame tall bloom" data-cap="Black House" data-meta="Family House · Exterior stills" data-full="img/gal-blackhouse.webp">
+      <span class="frame__img"><img src="img/gal-blackhouse.webp" alt="Architectural visualisation — a dark larch gabled family house on a misty meadow with a cobblestone drive"></span>
+      <figcaption class="frame__cap"><span class="t">Black House</span><span class="m">Family House · Stills</span></figcaption>
+    </figure>
+    <figure class="frame w8 wide bloom" data-cap="Lysá Hora" data-meta="Beskydy House · Interior stills" data-full="img/gal-ostravice.webp">
+      <span class="frame__img"><img src="img/gal-ostravice.webp" alt="Interior visualisation — a wood-lined living room opening onto a Beskydy mountain view at sunset"></span>
+      <figcaption class="frame__cap"><span class="t">Lysá Hora</span><span class="m">Beskydy House · Interior</span></figcaption>
+    </figure>
+    <figure class="frame bloom" data-cap="Among the Pines" data-meta="Forest Kindergarten · Exterior stills" data-full="img/gal-kindergarten.webp">
+      <span class="frame__img"><img src="img/gal-kindergarten.webp" alt="Architectural visualisation — a low timber building among tall pines in golden evening light"></span>
+      <figcaption class="frame__cap"><span class="t">Among the Pines</span><span class="m">Forest Kindergarten · Stills</span></figcaption>
+    </figure>
+  </div>
+</section>
+
 
 <!-- featured work -->
 <section id="work">
@@ -810,7 +948,7 @@
         <h1 class="ps__title">Solveig</h1>
       </div>
       <div>
-        <p class="ps__lead">A retreat set into a high northern valley — concrete, glass and weathered timber, almost lost in the land around it. Fourteen frames following one building through a single turning day.</p>
+        <p class="ps__lead">Concrete, glass and weathered timber in a high northern valley. Fourteen frames, one turning day.</p>
         <div class="ps__meta" style="margin-top:18px">Innerdalen, Norway · 2027<br>Exterior stills · 14 frames</div>
       </div>
     </div>
@@ -853,7 +991,7 @@
     <div class="ps-offset">
       <div class="side" data-rise>
         <span class="t">And then, up close.</span>
-        <p>One frame in the series steps in — the entrance cut, the concrete grain, the reflection of the valley caught in the glass.</p>
+        <p>The entrance cut, the concrete grain, the valley caught in glass.</p>
         <span class="m">05 / 14 · Approach</span>
       </div>
       <figure class="psf bloom" data-rise data-full="img/sol-05.webp" data-cap="The approach" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
@@ -882,7 +1020,7 @@
         <h2 class="ps__title">Lysning</h2>
       </div>
       <div>
-        <p class="ps__lead">A kindergarten set into the slope where the meadow meets the trees — a green living roof, a facade of red-stained timber, and rooms that open straight onto the forest. Visualised with the life already in it.</p>
+        <p class="ps__lead">A kindergarten where the meadow meets the trees — living roof, red-stained timber, rooms that open onto the forest.</p>
         <div class="ps__meta" style="margin-top:18px">Sörmland, Sweden · 2026<br>Exterior &amp; interior · 5 frames</div>
       </div>
     </div>
@@ -925,7 +1063,7 @@
     <div class="ps-offset">
       <div class="side" data-rise>
         <span class="t">And inside, the day moves.</span>
-        <p>Birch ply, a soft yellow rug, a wall of glass holding the forest — and somewhere in it, two children who will not hold still for the camera.</p>
+        <p>Birch ply, a soft yellow rug, a wall of glass holding the forest.</p>
         <span class="m">05 / 05 · The playroom</span>
       </div>
       <figure class="psf bloom" data-rise data-full="img/kg-05.webp" data-cap="The playroom" data-meta="Lysning · Sörmland, Sweden · Interior · 2026">
@@ -1028,7 +1166,7 @@
       <span class="imm__media"><img src="img/11-skygarden.webp" alt="Interactive 360 degree panorama preview" loading="lazy"><span class="tag">360° · drag to look</span></span>
       <span class="imm__n">Level 01</span>
       <h3 class="imm__t">Interactive 360°</h3>
-      <p class="imm__d">Drag-to-look panoramas that open on anything — a link in an email, a phone on the train, a laptop in a meeting. The fastest way to put a developer’s project in someone’s hands.</p>
+      <p class="imm__d">Drag-to-look panoramas that open anywhere — a link in an email, a phone on the train.</p>
       <span class="imm__m">Any browser · no install · multi-room</span>
       <a class="imm__cta" href="#threesixty">See the 360 tour ↓</a>
     </div>
@@ -1036,7 +1174,7 @@
       <span class="imm__media"><img src="img/10-penthouse.webp" alt="Immersive WebXR walkthrough preview" loading="lazy"><span class="tag">WebXR · 1:1 scale</span></span>
       <span class="imm__n">Level 02 · our standard</span>
       <h3 class="imm__t">Immersive WebXR</h3>
-      <p class="imm__d">The same space, now headset-ready. We send a link and a pair of paper Cardboard glasses; the client steps inside at 1:1 scale — still no app to install. The modern way to present, and it lands every time.</p>
+      <p class="imm__d">The same space, headset-ready. A link and paper Cardboard glasses; the client steps inside at 1:1 scale.</p>
       <span class="imm__m">VR in the browser · phone + Cardboard · Quest</span>
       <a class="imm__cta" href="tour.html">Enter the VR walkthrough ↗</a>
     </div>
@@ -1044,12 +1182,12 @@
       <span class="imm__media"><img src="img/12-fjord.webp" alt="Real-time 3D simulation preview" loading="lazy"><span class="tag">Real-time · Unreal</span></span>
       <span class="imm__n">Level 03 · premium</span>
       <h3 class="imm__t">Real-time 3D simulation</h3>
-      <p class="imm__d">A fully navigable build in Unreal Engine — walk anywhere, change the light and season, open doors, configure finishes in real time. High-end work for investors and the most demanding clients.</p>
+      <p class="imm__d">A navigable Unreal Engine build — walk anywhere, change the light and season, configure finishes in real time.</p>
       <span class="imm__m">Unreal Engine · requires a complete 3D / BIM model</span>
       <a class="imm__cta" href="mailto:info@atmosferi.com?subject=Real-time%20%2F%20VR%20enquiry">Discuss a real-time build ↗</a>
     </div>
   </div>
-</section>
+
     <div class="shead" data-rise>
       <h2>Step inside.</h2>
       <span class="mono">360° tour · drag to look · click a doorway to walk through</span>
@@ -1087,113 +1225,14 @@
   <div class="wrap vrcta" data-rise>
     <div class="vrcta__txt">
       <span class="vrcta__k">New · WebXR</span>
-      <p>Prefer it full-screen — or in a headset? Open the immersive <b>VR walkthrough</b>: move with your phone, your mouse, or step inside at 1:1 scale on a VR headset. No app to install.</p>
+      <p>Prefer it full-screen, or in a headset? No app to install.</p>
     </div>
     <a class="vrcta__btn" href="tour.html">Enter the VR walkthrough <span aria-hidden="true">↗</span></a>
   </div>
 </section>
 
 <!-- frames grid -->
-<section class="wrap" style="padding-top:clamp(50px,7vw,100px)">
-  <div class="shead" data-rise style="border-top:0;padding-top:0">
-    <h2>Selected frames.</h2>
-    <span class="mono">Click any image to enlarge</span>
-  </div>
-  <div class="grid" id="grid" data-rise>
-    <figure class="frame w8 wide bloom" data-cap="The Hearth" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-living.jpg">
-      <span class="frame__img"><img src="img/chalet-living.jpg" alt="Chalet living room with green tiled stove"></span>
-      <figcaption class="frame__cap"><span class="t">The Hearth</span><span class="m">Alpine Chalet · Interior</span></figcaption>
-    </figure>
-    <figure class="frame tall bloom" data-cap="Under the Eaves" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-bedroom.jpg">
-      <span class="frame__img"><img src="img/chalet-bedroom.jpg" alt="Chalet bedroom with tartan headboard and fireplace"></span>
-      <figcaption class="frame__cap"><span class="t">Under the Eaves</span><span class="m">Alpine Chalet · Interior</span></figcaption>
-    </figure>
-    <figure class="frame tall bloom" data-cap="Soak" data-meta="Alpine Chalet, Paseky · Interior" data-full="img/chalet-bath.jpg">
-      <span class="frame__img"><img src="img/chalet-bath.jpg" alt="Chalet bathroom with freestanding tub and stone wall"></span>
-      <figcaption class="frame__cap"><span class="t">Soak</span><span class="m">Alpine Chalet · Interior</span></figcaption>
-    </figure>
-    <figure class="frame w6 wide bloom" data-cap="The Reading Hall" data-meta="University Library, Wrocław · Stills" data-full="img/14-library-front.jpg">
-      <span class="frame__img"><img src="img/14-library-front.jpg" alt="Library facade"></span>
-      <figcaption class="frame__cap"><span class="t">The Reading Hall</span><span class="m">Wrocław · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w6 wide bloom" data-cap="Foyer" data-meta="University Library, Poznań · Stills" data-full="img/15-library-foyer.jpg">
-      <span class="frame__img"><img src="img/15-library-foyer.jpg" alt="Library foyer"></span>
-      <figcaption class="frame__cap"><span class="t">Foyer</span><span class="m">Poznań · Stills</span></figcaption>
-    </figure>
-    <figure class="frame tall bloom" data-cap="Daylight" data-meta="Hillside Villa, Santa Barbara · Stills" data-full="img/17-villa-day.jpg">
-      <span class="frame__img"><img src="img/17-villa-day.jpg" alt="Villa in daylight"></span>
-      <figcaption class="frame__cap"><span class="t">Daylight</span><span class="m">Santa Barbara · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w8 wide bloom" data-cap="Evening Glow" data-meta="Hillside Villa, Santa Barbara · Stills" data-full="img/18-villa-night.jpg">
-      <span class="frame__img"><img src="img/18-villa-night.jpg" alt="Villa at night"></span>
-      <figcaption class="frame__cap"><span class="t">Evening Glow</span><span class="m">Santa Barbara · Stills</span></figcaption>
-    </figure>
-    <figure class="frame wide w8 bloom" data-cap="The Loop" data-meta="Rotterdam · Film · 2026" data-full="img/07-loop.webp">
-      <span class="frame__img"><img src="img/07-loop.webp" alt="Architectural visualisation — The Loop, a looping building in Rotterdam (film)"></span>
-      <figcaption class="frame__cap"><span class="t">The Loop</span><span class="m">Rotterdam · Film</span></figcaption>
-    </figure>
-    <figure class="frame tall bloom" data-cap="Sky Garden" data-meta="Helix Tower, L22 · Interactive" data-full="img/11-skygarden.webp">
-      <span class="frame__img"><img src="img/11-skygarden.webp" alt="Sky Garden"></span>
-      <figcaption class="frame__cap"><span class="t">Sky Garden</span><span class="m">Interactive</span></figcaption>
-    </figure>
-    <figure class="frame bloom" data-cap="Overture" data-meta="Delta Hall, Oslo · Stills" data-full="img/03-concert.webp">
-      <span class="frame__img"><img src="img/03-concert.webp" alt="Architectural visualisation — Delta Hall concert hall interior, Oslo"></span>
-      <figcaption class="frame__cap"><span class="t">Overture</span><span class="m">Delta Hall · Stills</span></figcaption>
-    </figure>
-    <figure class="frame bloom" data-cap="Crossing" data-meta="Port Spine, Lisbon · Interactive" data-full="img/05-crossing.webp">
-      <span class="frame__img"><img src="img/05-crossing.webp" alt="Architectural visualisation — Port Spine pedestrian crossing, Lisbon"></span>
-      <figcaption class="frame__cap"><span class="t">Crossing</span><span class="m">Port Spine · Interactive</span></figcaption>
-    </figure>
-    <figure class="frame bloom" data-cap="Shade" data-meta="Canopy Campus, Austin · Stills" data-full="img/06-canopy.webp">
-      <span class="frame__img"><img src="img/06-canopy.webp" alt="Architectural visualisation — Canopy Campus under shade, Austin"></span>
-      <figcaption class="frame__cap"><span class="t">Shade</span><span class="m">Canopy · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w6 wide bloom" data-cap="Horizon" data-meta="Floor 41 · Stills" data-full="img/09-horizon.webp">
-      <span class="frame__img"><img src="img/09-horizon.webp" alt="Architectural visualisation — skyline view from floor 41"></span>
-      <figcaption class="frame__cap"><span class="t">Horizon</span><span class="m">Floor 41 · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w6 wide bloom" data-cap="Courtyards" data-meta="Grid Quarter, Berlin · Stills" data-full="img/08-courtyards.webp">
-      <span class="frame__img"><img src="img/08-courtyards.webp" alt="Architectural visualisation — Grid Quarter courtyards, Berlin"></span>
-      <figcaption class="frame__cap"><span class="t">Courtyards</span><span class="m">Grid Quarter · Stills</span></figcaption>
-    </figure>
-    <figure class="frame tall bloom" data-cap="Interior, Evening" data-meta="The Penthouse · Stills" data-full="img/10-penthouse.webp">
-      <span class="frame__img"><img src="img/10-penthouse.webp" alt="Interior, Evening"></span>
-      <figcaption class="frame__cap"><span class="t">Interior, Evening</span><span class="m">The Penthouse</span></figcaption>
-    </figure>
-    <figure class="frame w8 wide bloom" data-cap="House on the Fjord" data-meta="Vestland · Stills" data-full="img/12-fjord.webp">
-      <span class="frame__img"><img src="img/12-fjord.webp" alt="House on the Fjord"></span>
-      <figcaption class="frame__cap"><span class="t">House on the Fjord</span><span class="m">Vestland · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w8 wide bloom" data-cap="Garden Pavilion" data-meta="Forest house · Exterior stills" data-full="img/gal-pavilion.webp">
-      <span class="frame__img"><img src="img/gal-pavilion.webp" alt="Architectural visualisation — a timber and glass pavilion in a lush forest garden with a stream"></span>
-      <figcaption class="frame__cap"><span class="t">Garden Pavilion</span><span class="m">Forest house · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w8 wide bloom" data-cap="The Still Water" data-meta="Fjord House · Vestland · Exterior stills" data-full="img/gal-fjord.webp">
-      <span class="frame__img"><img src="img/gal-fjord.webp" alt="Architectural visualisation — a low timber house on a still fjord under heavy cloud, reflected in the water, mountains beyond"></span>
-      <figcaption class="frame__cap"><span class="t">The Still Water</span><span class="m">Fjord House · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w8 wide bloom" data-cap="On the Plateau" data-meta="Mountain Retreat · Exterior stills" data-full="img/gal-plateau.webp">
-      <span class="frame__img"><img src="img/gal-plateau.webp" alt="Architectural visualisation — a small concrete retreat alone on a misty mountain plateau, tiny beneath a vast pale sky"></span>
-      <figcaption class="frame__cap"><span class="t">On the Plateau</span><span class="m">Mountain Retreat · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w6 wide bloom" data-cap="Blue Hour" data-meta="Alpine Villa · Innsbruck · Exterior stills" data-full="img/gal-alpine.webp">
-      <span class="frame__img"><img src="img/gal-alpine.webp" alt="Architectural visualisation — a glass and timber villa glowing warm at blue hour, mountains behind, reflecting pool in front"></span>
-      <figcaption class="frame__cap"><span class="t">Blue Hour</span><span class="m">Alpine Villa · Stills</span></figcaption>
-    </figure>
-    <figure class="frame tall bloom" data-cap="Black House" data-meta="Family House · Exterior stills" data-full="img/gal-blackhouse.webp">
-      <span class="frame__img"><img src="img/gal-blackhouse.webp" alt="Architectural visualisation — a dark larch gabled family house on a misty meadow with a cobblestone drive"></span>
-      <figcaption class="frame__cap"><span class="t">Black House</span><span class="m">Family House · Stills</span></figcaption>
-    </figure>
-    <figure class="frame w8 wide bloom" data-cap="Lysá Hora" data-meta="Beskydy House · Interior stills" data-full="img/gal-ostravice.webp">
-      <span class="frame__img"><img src="img/gal-ostravice.webp" alt="Interior visualisation — a wood-lined living room opening onto a Beskydy mountain view at sunset"></span>
-      <figcaption class="frame__cap"><span class="t">Lysá Hora</span><span class="m">Beskydy House · Interior</span></figcaption>
-    </figure>
-    <figure class="frame bloom" data-cap="Among the Pines" data-meta="Forest Kindergarten · Exterior stills" data-full="img/gal-kindergarten.webp">
-      <span class="frame__img"><img src="img/gal-kindergarten.webp" alt="Architectural visualisation — a low timber building among tall pines in golden evening light"></span>
-      <figcaption class="frame__cap"><span class="t">Among the Pines</span><span class="m">Forest Kindergarten · Stills</span></figcaption>
-    </figure>
-  </div>
-</section>
+
 
 <!-- capability band -->
 <section class="cap" id="studio">
@@ -1202,22 +1241,22 @@
       <img src="img/michal.jpg" alt="Michal Kašpárek, founder of Atmosferi Visualisation">
       <span><b>Michal Kašpárek</b><span>Founder · Atmosferi Visualisation</span></span>
     </div>
-    <p class="cap__lead" data-rise>Eleven years making architectural images — a small studio of architects, photographers and 3D artists who care more about light than polygons.</p>
+    <p class="cap__lead" data-rise>Eleven years of architectural images — architects, photographers and 3D artists who care about light.</p>
     <div class="cap__grid">
       <div class="cap__item" data-rise>
         <span class="n">A</span>
         <h3>We start with the light</h3>
-        <p>Every frame begins with the sun, the season and the weather — the brief is a mood before it is a model.</p>
+        <p>Every frame begins with the sun, the season and the weather.</p>
       </div>
       <div class="cap__item" data-rise>
         <span class="n">B</span>
         <h3>We build once, see it everywhere</h3>
-        <p>One scene becomes stills, a film and a real-time model — consistent across every way a project is sold.</p>
+        <p>One scene becomes stills, a film and a real-time model.</p>
       </div>
       <div class="cap__item" data-rise>
         <span class="n">C</span>
         <h3>We finish like photographers</h3>
-        <p>Graded, retouched and printed to gallery standard. The render is the start; the picture is the work.</p>
+        <p>Graded, retouched, printed to gallery standard.</p>
       </div>
     </div>
   </div>
