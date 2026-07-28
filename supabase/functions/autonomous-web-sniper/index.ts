@@ -459,7 +459,10 @@ Deno.serve(async (req) => {
       else if (tc.includes("usa") || tc.includes("united states")) marketId = "us";
       else if (tc.includes("vcarsko") || tc.includes("switzerland") || tc.includes("schweiz")) marketId = "ch";
       else if (tc.includes("norsko") || tc.includes("norway")) marketId = "no";
-      else marketId = item.language || "cs";
+      // Vsechny ostatni zeme sveta → univerzalni anglicka sada sablon ("en").
+      // Drive se sem dosazoval jazyk od AI (fr/it/ja…), na ktery neexistovala
+      // zadna sablona → lead se nikdy neoslovil.
+      else marketId = "en";
 
       const kwForCat = String(item._keyword || "").toLowerCase();
       let categoryId = "architekti";
