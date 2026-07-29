@@ -53,6 +53,29 @@ async function logApiUsage(supabase: any, engine: string, serviceName: string) {
   } catch(e) { console.error("Vyjimka pri zapisu api_usage_logs:", e); }
 }
 
+// Katalogy, portaly a zebricky — nejsou to firmy, ktere chceme oslovit.
+// (Bez tohoto filtru se do DB dostalo napr. support@immobilienscout24.at
+//  nebo "Top 20 Architekten Wels, 2026".)
+const BLOCKED_DOMAINS = [
+  "immobilienscout24", "immowelt", "immonet", "willhaben", "edireal", "remax", "century21",
+  "engelvoelkers", "sreality", "bezrealitky", "reality.idnes", "firmy.cz", "zlatestranky",
+  "herold.at", "gelbeseiten", "11880", "yelp", "yellowpages", "panoramafirm", "gecheckt",
+  "google.", "facebook.", "instagram.", "linkedin.", "pinterest.", "youtube.", "twitter.", "x.com",
+  "wikipedia.", "booking.", "tripadvisor.", "indeed.", "jobs.", "archdaily", "dezeen", "houzz",
+  "medium.com", "seznam.cz", "mapy.cz", "wko.at", "europages", "kompass.com",
+];
+const DIRECTORY_WORDS = /(^home \[|top\s?\d+|nejlep|best\s|finden|vergleich|ranking|seznam\s|katalog|directory|portál|portal|übersicht|prehled|přehled|liste\b|list of)/i;
+
+function looksLikeDirectory(name: string, website: string, email: string): boolean {
+  const hay = `${website} ${email}`.toLowerCase();
+  if (BLOCKED_DOMAINS.some((d) => hay.includes(d))) return true;
+  const n = (name || "").trim();
+  if (!n || n.length > 80) return true;              // titulek stranky, ne nazev firmy
+  if (DIRECTORY_WORDS.test(n)) return true;
+  if (/^(kauf|verkauf|prodej|pronájem|miete)/i.test(n)) return true;
+  return false;
+}
+
 function deduplicateByEmail(list: any[]): any[] {
   const seen = new Set<string>();
   return list.filter(item => {
@@ -361,8 +384,19 @@ Deno.serve(async (req) => {
       cursor = Number(curData?.value?.index ?? 0) || 0;
     } catch { /* zacneme od nuly */ }
 
+    // ROZPROSTRENI: brat kombinace po sobe znamenalo 6 dotazu na JEDNO mesto —
+    // kdyz to mesto nic nevratilo, cely beh skoncil na nule (presne to se delo
+    // u Vantaa). Krokujeme proto prostorem tak, aby kazda kombinace padla do
+    // jineho mesta, idealne i jine zeme.
+    const stride = Math.max(1, Math.floor(comboSpace.length / combosPerRun));
     const combos: { keyword: string; city: string; country: string }[] = [];
-    for (let i = 0; i < combosPerRun; i++) combos.push(comboSpace[(cursor + i) % comboSpace.length]);
+    const seenCombo = new Set<number>();
+    for (let i = 0; i < combosPerRun; i++) {
+      let idx = (cursor + i * stride) % comboSpace.length;
+      while (seenCombo.has(idx)) idx = (idx + 1) % comboSpace.length;
+      seenCombo.add(idx);
+      combos.push(comboSpace[idx]);
+    }
     const nextCursor = (cursor + combosPerRun) % comboSpace.length;
     try {
       await supabase.from("app_settings").upsert(
@@ -375,8 +409,15 @@ Deno.serve(async (req) => {
 
     // Davky po 2 kombinacich — dost paralelismu na rychlost, ale ne tolik,
     // aby nas vyhledavace zablokovaly (pak by vracely prazdno).
+    // CASOVY ROZPOCET: edge funkce ma omezenou dobu behu. Kdyz dojde, prestaneme
+    // brat dalsi davky a bezpecne dobehneme (drive job zustaval viset ve stavu
+    // "running" a nikdy nezapsal vysledek).
+    const startedAt = Date.now();
+    const TIME_BUDGET_MS = Number(config.harvest_budget_ms ?? 100000);
     const results: { list: any[]; debug: string; attempts: any[] }[] = [];
+    let skipped = 0;
     for (let i = 0; i < combos.length; i += 2) {
+      if (Date.now() - startedAt > TIME_BUDGET_MS) { skipped = combos.length - i; break; }
       const batch = combos.slice(i, i + 2);
       const settled = await Promise.all(
         batch.map((c) => harvestOne(supabase, keys, allowed, models, c.keyword, c.city, c.country)
@@ -384,6 +425,7 @@ Deno.serve(async (req) => {
       );
       results.push(...settled);
     }
+    if (skipped > 0) console.log(`Casovy rozpocet vycerpan, preskoceno ${skipped} kombinaci.`);
 
     let allDiscovered: any[] = [];
     const debugParts: string[] = [];
@@ -428,6 +470,7 @@ Deno.serve(async (req) => {
     let missingEmailCount = 0;
     let duplicateCount = 0;
     let invalidEmailCount = 0;
+    let directoryCount = 0;
     let lastInsertError = null;
 
     for (const item of discoveredList) {
@@ -436,6 +479,12 @@ Deno.serve(async (req) => {
           continue;
       }
       const cleanEmail = item.email.toLowerCase().trim();
+
+      // Odfiltrovat katalogy/portaly/zebricky — nejsou to oslovitelne firmy.
+      if (looksLikeDirectory(item.company_name || "", item.website || "", cleanEmail)) {
+        directoryCount++;
+        continue;
+      }
 
       // Overeni doruicitelnosti (syntax + MX) — chrani reputaci odesilatele.
       const emailCheck = await checkEmailDeliverable(cleanEmail);
@@ -496,7 +545,7 @@ Deno.serve(async (req) => {
       else if (insertErr) lastInsertError = insertErr.message;
     }
 
-    const skipReport = `(zahozeno: ${missingEmailCount} bez mailu, ${invalidEmailCount} neplatnych/bez MX, ${duplicateCount} duplicit)`;
+    const skipReport = `(zahozeno: ${missingEmailCount} bez mailu, ${invalidEmailCount} neplatnych/bez MX, ${directoryCount} katalogu/portalu, ${duplicateCount} duplicit)`;
     const finalDebug = `${debugParts.join(" | ")} | ${skipReport}`;
 
     await logJobSuccess(supabase, jobName, { discovered_count: newSavedCount, combos: combos.length, debug_output: finalDebug });

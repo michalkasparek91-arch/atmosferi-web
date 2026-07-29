@@ -116,13 +116,25 @@ async function searchViaFirmyCz(query: string, limit: number): Promise<WebSearch
 // OpenStreetMap / Overpass — zdarma, bez klíče. Řada firem má v OSM přímo e-mail.
 export interface OsmPlace { name: string; website: string; email: string; phone: string; address: string; }
 
+// Mapovani oboru na OSM tagy. Dotaz podle TAGU (ne podle nazvu) funguje v kazdem
+// jazyce — finska firma se jmenuje "arkkitehti", ne "architekt", takze puvodni
+// hledani podle nazvu v cizich zemich nikdy nic nenaslo.
+function osmTagsFor(keyword: string): string[] {
+  const k = (keyword || "").toLowerCase();
+  if (k.includes("interier") || k.includes("interiér") || k.includes("design")) return ['"shop"="interior_decoration"', '"office"="interior_design"'];
+  if (k.includes("develop")) return ['"office"="property_management"', '"office"="estate_agent"'];
+  if (k.includes("realit") || k.includes("makl")) return ['"office"="estate_agent"'];
+  if (k.includes("stavebn") || k.includes("stavitel")) return ['"office"="construction_company"', '"craft"="builder"'];
+  return ['"office"="architect"'];
+}
+
 export async function searchOsm(city: string, keyword: string): Promise<{ places: OsmPlace[]; status: string }> {
-  const kw = (keyword || "").replace(/["\\]/g, "");
-  const q = `[out:json][timeout:25];
+  const tags = osmTagsFor(keyword);
+  const parts = tags.map((t) => `nwr(area.a)[${t}];`).join("");
+  const q = `[out:json][timeout:15];
 area["name"="${(city || "").replace(/["\\]/g, "")}"]["boundary"="administrative"]->.a;
-( nwr(area.a)["website"]["name"~"${kw}",i];
-  nwr(area.a)["contact:website"]["name"~"${kw}",i]; );
-out tags center 40;`;
+( ${parts} );
+out tags center 60;`;
   // Veřejná Overpass instance bývá přetížená (504) → zkoušíme i zrcadla.
   const MIRRORS = [
     "https://overpass-api.de/api/interpreter",
@@ -130,11 +142,11 @@ out tags center 40;`;
     "https://overpass.private.coffee/api/interpreter",
   ];
   try {
-    let res: Response | null = null;
-    let lastStatus = 0;
-    for (const url of MIRRORS) {
+    // Zrcadla bezi PARALELNE jako zavod. Drive sekvencne 3x20 s = az minuta na
+    // jednu kombinaci, coz pretahovalo casovy limit edge funkce a beh nikdy nedobehl.
+    const attempt = async (url: string): Promise<Response> => {
       const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 20000);
+      const t = setTimeout(() => ctrl.abort(), 8000);
       try {
         const r = await fetch(url, {
           method: "POST",
@@ -142,11 +154,13 @@ out tags center 40;`;
           body: "data=" + encodeURIComponent(q),
           signal: ctrl.signal,
         });
-        if (r.ok) { res = r; break; }
-        lastStatus = r.status;
-      } catch { /* zkus další zrcadlo */ } finally { clearTimeout(t); }
-    }
-    if (!res) return { places: [], status: `OSM ${lastStatus || "nedostupne"}` };
+        if (!r.ok) throw new Error(`OSM ${r.status}`);
+        return r;
+      } finally { clearTimeout(t); }
+    };
+    let res: Response;
+    try { res = await Promise.any(MIRRORS.map(attempt)); }
+    catch { return { places: [], status: "OSM nedostupne" }; }
     const data = await res.json();
     const places: OsmPlace[] = (data.elements || []).map((el: any) => ({
       name: el.tags?.name || "",
