@@ -20,29 +20,6 @@ import PlainTextEmail from "@/components/email/PlainTextEmail";
 import { CITY_COORDINATES, getLocativeForCity, getPreposition } from "@/lib/city-regions";
 import ModularEmailEditorDialog, { ModularLivePreview } from "@/components/admin/email/ModularEmailEditor";
 
-// New Modular Components
-import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
-import { useSearchParams, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Mail, Loader2, Sparkles, Save, X, Edit3, Target, Bold, Italic, Underline, List, Link, Send } from "lucide-react";
-import { render } from "@react-email/render";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-
-// Shared Email Templates
-import SniperRecruitmentEmail from "@/components/email/SniperRecruitmentEmail";
-import NewsletterEmail from "@/components/email/NewsletterEmail";
-import PlainTextEmail from "@/components/email/PlainTextEmail";
-import { CITY_COORDINATES, getLocativeForCity, getPreposition } from "@/lib/city-regions";
-import ModularEmailEditorDialog, { ModularLivePreview } from "@/components/admin/email/ModularEmailEditor";
-
 import { EmailTopNav } from "@/components/admin/email/EmailTopNav";
 import { AdminEmailDashboard } from "@/components/admin/email/AdminEmailDashboard";
 import { CampaignManager } from "@/components/admin/email/CampaignManager";
@@ -1359,110 +1336,8 @@ export default function AdminEmails() {
           <Suspense fallback={<div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/20" /></div>}>
 
             <Routes>
-              <Route path="historie" element={
-                <AdminEmailDashboard onAction={(tab) => {
-                  if (tab === "campaign-sniper") {
-                    navigate("../novakampan");
-                    setCampaignMode("sniper");
-                    setTemplateType("sniper");
-                  } else {
-                    navigate(`../${tab}`);
-                  }
-                }} />
-              } />
-              
-              <Route path="prehled" element={
-                <AdminEmailDashboard onAction={(tab) => {
-                  if (tab === "campaign-sniper") {
-                    navigate("../novakampan");
-                    setCampaignMode("sniper");
-                    setTemplateType("sniper");
-                  } else {
-                    navigate(`../${tab}`);
-                  }
-                }} />
-              } />
-
-              <Route path="novakampan" element={
-                <CampaignManager 
-                  {...{
-                    campaignMode, setCampaignMode,
-                    target, setTarget,
-                    estimatedCount: campaignReachCount || 0,
-                    campaignFilterCategory, setCampaignFilterCategory,
-                    campaignFilterSubcategory, setCampaignFilterSubcategory,
-                    categoryIds, setCategoryIds,
-                    city, setCity,
-                    radius, setRadius,
-                    activity, setActivity,
-                    credits, setCredits,
-                    selectedTags, setSelectedTags,
-                    sniperJobId, setSniperJobId, applyJobToCampaign,
-                    categories: allCategories,
-                    subcategories: allSubcategories,
-                    openJobs, jobsLoading,
-                    editingCategoryForm, setEditingCategoryForm,
-                    hideContacted, setHideContacted,
-                    sniperRadius, setSniperRadius,
-                    suitableWorkers, workersLoading,
-                    workerSearch, setWorkerSearch,
-                    selectedSniperWorkers, setSelectedSniperWorkers,
-                    contactedEmails: [], // Placeholder
-                    subject, setSubject,
-                    title, setTitle,
-                    body, setBody,
-                    ctaText, setCtaText,
-                    ctaUrl, setCtaUrl,
-                    campaignImage, setCampaignImage,
-                    templateType, setTemplateType,
-                    previewDevice, setPreviewDevice,
-                    HtmlContent,
-                    handleSend,
-                    isSending: isSending,
-                    refetchSuitableWorkers: () => {
-                      queryClient.invalidateQueries({ queryKey: ["admin-suitable-workers"] });
-                      queryClient.invalidateQueries({ queryKey: ["admin-open-jobs"] });
-                    },
-                    setSaveTemplateOpen,
-                    openEditor: () => setEditorOpen(true),
-                    emailTemplates,
-                    selectedTemplateId,
-                    handleSelectTemplate
-                  }}
-                />
-              } />
-
-              <Route path="crm" element={
-                <AudienceManager 
-                  {...{
-                    searchTerm, setSearchTerm,
-                    minEngagement: minEngagement, setMinEngagement: setMinEngagement,
-                    minPremiumScore: minPremiumScore, setMinPremiumScore: setMinPremiumScore,
-                    crmSort, setCrmSort,
-                    leadSheet, leadsLoading,
-                    leadTotalCount,
-                    crmPage, setCrmPage,
-                    totalPages,
-                    handleExportCSV,
-                    categoryFilter, setCategoryFilter,
-                    countryFilter, setCountryFilter,
-                    languageFilter, setLanguageFilter,
-                    cityFilter, setCityFilter,
-                    radiusFilter, setRadiusFilter,
-                    sourceFilter, setSourceFilter,
-                    enrichFilter, setEnrichFilter,
-                    allSubcategories,
-                    importFileRef,
-                    handleFileUpload,
-                    isImporting,
-                    importProgress,
-                    importTotalCount,
-                    allCategories,
-                    fetchAllMatchingContacts,
-                    refetchLeads: () => queryClient.invalidateQueries({ queryKey: ["admin-lead-sheet"] })
-                  }}
-                />
-              } />
+              {/* Default Index */}
+              <Route index element={<Navigate to="/emaily/kampane" replace />} />
 
               {/* Tab 1: Kampaně & Odesílání */}
               <Route path="kampane" element={
@@ -1470,7 +1345,7 @@ export default function AdminEmails() {
                   onOpenVisualEditor={() => setEditorOpen(true)}
                   onSendCampaign={(payload) => {
                     toast({ title: "Kampaň naplánována", description: `Připraveno ${payload.recipientCount} e-mailů ke zpracování.` });
-                    navigate("../fronta");
+                    navigate("/emaily/fronta");
                   }}
                   isSending={isSending}
                 />
@@ -1527,15 +1402,15 @@ export default function AdminEmails() {
               } />
 
               {/* Legacy Route Redirects */}
-              <Route path="sber" element={<Navigate to="../sablony-ai" replace />} />
-              <Route path="ai-data" element={<Navigate to="../kontakty" replace />} />
-              <Route path="crm" element={<Navigate to="../kontakty" replace />} />
-              <Route path="outbox" element={<Navigate to="../fronta" replace />} />
-              <Route path="historie" element={<Navigate to="../fronta" replace />} />
-              <Route path="prehled" element={<Navigate to="../fronta" replace />} />
-              <Route path="sablony" element={<Navigate to="../sablony-ai" replace />} />
+              <Route path="sber" element={<Navigate to="/emaily/sablony-ai" replace />} />
+              <Route path="ai-data" element={<Navigate to="/emaily/kontakty" replace />} />
+              <Route path="crm" element={<Navigate to="/emaily/kontakty" replace />} />
+              <Route path="outbox" element={<Navigate to="/emaily/fronta" replace />} />
+              <Route path="historie" element={<Navigate to="/emaily/fronta" replace />} />
+              <Route path="prehled" element={<Navigate to="/emaily/fronta" replace />} />
+              <Route path="sablony" element={<Navigate to="/emaily/sablony-ai" replace />} />
 
-              <Route path="*" element={<Navigate to="kampane" replace />} />
+              <Route path="*" element={<Navigate to="/emaily/kampane" replace />} />
             </Routes>
           </Suspense>
         </div>
