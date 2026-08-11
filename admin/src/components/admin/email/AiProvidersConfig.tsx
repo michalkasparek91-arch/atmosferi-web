@@ -504,7 +504,7 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {providers.map(p => {
-          const isSearchChecked = config[`use_${p.searchConfigKey}_engine`] ?? false;
+          const isSearchChecked = config[`use_${p.searchConfigKey}_engine`] ?? true;
           const isLegacyEnrich =
             config.enrich_engine === p.id ||
             config.enrich_engine === "all" ||
@@ -512,7 +512,7 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
           const enrichChecked =
             config[`use_${p.id}_enrich_engine`] !== undefined
               ? config[`use_${p.id}_enrich_engine`]
-              : isLegacyEnrich;
+              : (isLegacyEnrich || true);
 
           const primaryStatus = (testResults as any)[p.id];
           const currentModel = config[p.modelConfigKey] || p.modelDefault;
@@ -543,8 +543,8 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                 </div>
               </div>
 
-              <CardContent className="p-4 space-y-4 flex-1 flex flex-col">
-                {/* STATISTIKY (BĚHY & VÝSLEDKY) */}
+              <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
+                {/* STATISTIKY (BĚHY & VÝSLEDKY - ZÁKLADNÍ POHLED) */}
                 <div className="flex flex-col gap-2">
                   {p.relatedJobs?.includes("Continuous Web Discovery") && (
                     <JobBadge
@@ -562,45 +562,51 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                   )}
                 </div>
 
-                {/* AUTONOMNÍ SPÍNAČE */}
-                <div className="space-y-2 border-t border-border/30 pt-3">
-                  <div className="flex items-center justify-between bg-background border border-border/30 rounded-md p-2">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-3.5 w-3.5 text-blue-500/70" />
-                      <Label className="text-xs font-medium cursor-pointer">Autonomní Sběr</Label>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-blue-500" onClick={() => testEngine("autonomous-web-sniper", p.id === 'groq' ? 'groq_places' : p.id)} title={`Otestovat ${p.name} sběr`}>
-                        <Play className="h-3 w-3" />
-                      </Button>
-                      <Switch
-                        checked={isSearchChecked}
-                        onCheckedChange={c => handleToggleSearch(p.searchConfigKey, c)}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between bg-background border border-border/30 rounded-md p-2">
-                    <div className="flex items-center gap-2">
-                      <BrainCircuit className="h-3.5 w-3.5 text-purple-500/70" />
-                      <Label className="text-xs font-medium cursor-pointer">Enrichment</Label>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-purple-500" onClick={() => testEngine("auto-enrich-leads", p.id)} title={`Otestovat ${p.name} enrichment`}>
-                        <Play className="h-3 w-3" />
-                      </Button>
-                      <Switch
-                        checked={enrichChecked}
-                        onCheckedChange={c => toggleEnrichEngine(p.id, c)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* EXPANDABLE SECTION: API KEYS & MODEL SELECTOR */}
+                {/* EXPANDABLE SECTION: SPÍNAČE, API KEYS & MODEL SELECTOR */}
                 {isExpanded && (
                   <div className="space-y-4 border-t border-border/30 pt-3 animate-in fade-in duration-200">
-                    {/* API KEYS */}
+                    {/* AUTONOMNÍ SPÍNAČE */}
                     <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Aktivní funkce AI
+                      </Label>
+                      <div className="flex items-center justify-between bg-background border border-border/30 rounded-md p-2">
+                        <div className="flex items-center gap-2">
+                          <Globe className="h-3.5 w-3.5 text-blue-500/70" />
+                          <Label className="text-xs font-medium cursor-pointer">Autonomní Sběr</Label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-blue-500" onClick={() => testEngine("autonomous-web-sniper", p.id === 'groq' ? 'groq_places' : p.id)} title={`Otestovat ${p.name} sběr`}>
+                            <Play className="h-3 w-3" />
+                          </Button>
+                          <Switch
+                            checked={isSearchChecked}
+                            onCheckedChange={c => handleToggleSearch(p.searchConfigKey, c)}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between bg-background border border-border/30 rounded-md p-2">
+                        <div className="flex items-center gap-2">
+                          <BrainCircuit className="h-3.5 w-3.5 text-purple-500/70" />
+                          <Label className="text-xs font-medium cursor-pointer">Enrichment</Label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-purple-500" onClick={() => testEngine("auto-enrich-leads", p.id)} title={`Otestovat ${p.name} enrichment`}>
+                            <Play className="h-3 w-3" />
+                          </Button>
+                          <Switch
+                            checked={enrichChecked}
+                            onCheckedChange={c => toggleEnrichEngine(p.id, c)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* API KEYS */}
+                    <div className="space-y-2 border-t border-border/30 pt-3">
+                      <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        API Klíče
+                      </Label>
                       <div className="flex items-center gap-2">
                         <KeyRound className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
                         <Input
@@ -674,6 +680,7 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
                     )}
                   </div>
                 )}
+
 
                 {/* TOGGLE EXPAND BUTTON */}
 
