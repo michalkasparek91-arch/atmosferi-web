@@ -445,31 +445,19 @@ export const AdminAiHub = () => {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><LayoutDashboard className="w-4 h-4 mr-2"/> Přehled</TabsTrigger>
-          <TabsTrigger value="models" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><Settings2 className="w-4 h-4 mr-2"/> Modely & Klíče</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl">
+          <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><Cpu className="w-4 h-4 mr-2"/> Přehled & AI Modely</TabsTrigger>
           <TabsTrigger value="targeting" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><Target className="w-4 h-4 mr-2"/> Cílení Sběru</TabsTrigger>
-          <TabsTrigger value="results" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><ListChecks className="w-4 h-4 mr-2"/> Poslední Úlovky</TabsTrigger>
+          <TabsTrigger value="results" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><ListChecks className="w-4 h-4 mr-2"/> Poslední Úlovky & Monitor</TabsTrigger>
         </TabsList>
 
-        {/* 1. PŘEHLED */}
-        <TabsContent value="overview" className="space-y-6 pt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="w-full">
-              <AiJobsMonitor />
-            </div>
-            <div className="w-full">
-              <ApiUsageStats />
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* 2. MODELY & KLÍČE */}
-        <TabsContent value="models" className="pt-4">
+        {/* 1. PŘEHLED & AI MODELY */}
+        <TabsContent value="overview" className="pt-4 space-y-6">
           <div className="w-full">
             <AiProvidersConfig config={config} setConfig={setConfig} saveConfigMutation={saveConfigMutation} />
           </div>
         </TabsContent>
+
 
         {/* 3. CÍLENÍ SBĚRU */}
         <TabsContent value="targeting" className="space-y-6 pt-4">
@@ -653,12 +641,22 @@ export const AdminAiHub = () => {
           </div>
         </TabsContent>
 
-        {/* 4. VÝSLEDKY */}
-        <TabsContent value="results" className="pt-4">
+        {/* 3. POSLEDNÍ ÚLOVKY & MONITOR */}
+        <TabsContent value="results" className="pt-4 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="w-full">
+              <AiJobsMonitor />
+            </div>
+            <div className="w-full">
+              <ApiUsageStats />
+            </div>
+          </div>
+
           <Card className="border-border/40 shadow-sm">
             <CardHeader>
               <CardTitle>Poslední úlovky a obohacení ({recentLeads.length})</CardTitle>
             </CardHeader>
+
             <CardContent>
               {leadsLoading ? (
                 <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
