@@ -203,7 +203,7 @@ export default function AdminEmails() {
   const [radiusFilter, setRadiusFilter] = useState("50");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [enrichFilter, setEnrichFilter] = useState("all");
-  const [crmSort, setCrmSort] = useState<"engagement" | "newest" | "oldest">("engagement");
+  const [crmSort, setCrmSort] = useState<"engagement" | "newest" | "oldest">("newest");
   const [crmPage, setCrmPage] = useState(0);
   const pageSize = 200;
   
@@ -692,6 +692,17 @@ export default function AdminEmails() {
       const { data, count, error } = await query.range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
       if (error) {
         console.error("[AdminEmails] unified_contacts query error:", error);
+        // Fallback: if engagement sort fails, retry with created_at sort
+        if (crmSort === "engagement") {
+          console.warn("[AdminEmails] engagement_score sort failed, falling back to newest sort");
+          const { data: fallbackData, count: fallbackCount, error: fallbackError } = await supabase
+            .from("unified_contacts" as any)
+            .select("*", { count: useExactCount ? 'exact' : 'estimated' })
+            .order("created_at", { ascending: false })
+            .range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
+          if (fallbackError) throw fallbackError;
+          return { data: fallbackData || [], totalCount: fallbackCount || 0 };
+        }
         throw error;
       }
       return { data: data || [], totalCount: count || 0 };
