@@ -1356,8 +1356,7 @@ export default function AdminEmails() {
                 <AudienceManager
                   {...{
                     searchTerm, setSearchTerm,
-                    selectedStatus, setSelectedStatus,
-                    selectedSubcategory, setSelectedSubcategory,
+                    minEngagement, setMinEngagement,
                     minPremiumScore, setMinPremiumScore,
                     crmSort, setCrmSort,
                     leadSheet, leadsLoading,
