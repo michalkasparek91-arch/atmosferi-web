@@ -690,20 +690,25 @@ export const AdminAiHub = () => {
                               )}
                             </td>
                             <td className="py-3">
-                              {isSniper ? (
+                              {lead.ai_engine ? (
+                                <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 text-[11px] font-mono capitalize">
+                                  {lead.ai_engine}
+                                </Badge>
+                              ) : isSniper ? (
                                 <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 text-[11px] font-mono">
-                                  Gemini 2.5 Flash (Grounding)
+                                  Autonomní Web Sběrač (DDG / Fallback AI)
                                 </Badge>
                               ) : hasIcebreaker ? (
                                 <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[11px] font-mono">
                                   AI Lead Enrichment
                                 </Badge>
                               ) : (
-                                <Badge variant="secondary" className="text-[11px] font-mono">
-                                  {lead.source || "AI Asistent"}
+                                <Badge variant="secondary" className="text-[11px] font-mono capitalize">
+                                  {lead.source ? lead.source.replace("_", " ") : "AI Asistent"}
                                 </Badge>
                               )}
                             </td>
+
                             <td className="py-3 font-medium">{lead.company_name}</td>
                             <td className="py-3 text-muted-foreground">{lead.email}</td>
                             <td className="py-3">{lead.city}</td>

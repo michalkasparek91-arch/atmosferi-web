@@ -163,10 +163,13 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
 
   const formatFriendlyError = (msg: string) => {
     if (!msg) return "Neznámá chyba";
+    if (msg.includes("prepayment credits") || msg.includes("depleted") || (msg.includes("429") && msg.includes("billing"))) {
+      return "💳 Vyčerpán API kredit / kvóta na Google AI Studio. Doplňte kredit na ai.studio nebo použijte jiný model (Groq, DeepSeek).";
+    }
     if (msg.includes("404") && (msg.includes("no longer available") || msg.includes("not found"))) {
       return "⚠️ Zvolený model již není k dispozici. Přepněte v nastavení na novější model.";
     }
-    if (msg.includes("Rate limit") || msg.includes("rate_limit_exceeded") || msg.includes("tokens per day")) {
+    if (msg.includes("Rate limit") || msg.includes("rate_limit_exceeded") || msg.includes("tokens per day") || msg.includes("429")) {
       return "⏳ Překročen denní API limit tokenů (Rate limit). Vyčkejte cca 20 minut nebo použijte jiného providera.";
     }
     if (msg.includes("API key") || msg.includes("Unauthorized") || msg.includes("401")) {
@@ -174,6 +177,7 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
     }
     return msg;
   };
+
 
   return (
     <div className="flex flex-col gap-1 p-2 rounded-lg bg-card/50 border border-border/40">
