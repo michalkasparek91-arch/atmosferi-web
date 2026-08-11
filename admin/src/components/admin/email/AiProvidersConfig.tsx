@@ -113,29 +113,35 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
   const jobTs = job?.last_run_at || job?.updated_at;
   const lastRunAt = healthTs || jobTs;
 
+  const isToday = (dateStr?: string) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    const now = new Date();
+    return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  };
+
   const isSuccess = health?.status === "ok" || (!health && job?.last_run_status === "success");
   const isError = health?.status === "error" || (!health && job?.last_run_status === "failure");
   const isRunning = job?.last_run_status === "running" && !healthTs;
 
-  const statusColor = isSuccess ? "text-emerald-600" : isError ? "text-red-500" : isRunning ? "text-blue-500" : "text-muted-foreground";
+  const statusColor = isSuccess ? "text-emerald-600 dark:text-emerald-400" : isError ? "text-red-500 dark:text-red-400" : isRunning ? "text-blue-500" : "text-muted-foreground";
   const StatusIcon = isSuccess ? CheckCircle2 : isError ? XCircle : isRunning ? Loader2 : Clock;
   const statusLabel = isSuccess ? "Úspěch" : isError ? "Chyba" : isRunning ? "Probíhá…" : "Neznámý";
 
-  const perProviderEnriched = health?.last_run_enriched ?? health?.last_run_processed;
-  const perProviderDiscovered = health?.last_run_discovered;
+  const perProviderEnriched = health?.last_run_enriched ?? health?.last_run_processed ?? 0;
+  const perProviderDiscovered = health?.last_run_discovered ?? 0;
   const meta = job?.metadata || {};
   let metaLine = null;
+  let todayBadge = null;
+
+  const ranToday = isToday(lastRunAt);
   
-  // Numbers are strictly per-engine (from api_health[engine]); no shared "(celkem)" totals,
-  // so each card reflects only what THAT provider discovered/enriched.
   if (title === "Enrichment") {
-    metaLine = perProviderEnriched !== undefined
-      ? `${perProviderEnriched} obohaceno`
-      : null;
+    metaLine = `${perProviderEnriched} obohaceno v posl. běhu`;
+    todayBadge = ranToday ? `${perProviderEnriched} obohaceno dnes` : `0 obohaceno dnes`;
   } else if (title === "Sběr (Hledání)") {
-    metaLine = perProviderDiscovered !== undefined
-      ? `${perProviderDiscovered} získáno`
-      : null;
+    metaLine = `${perProviderDiscovered} získáno v posl. běhu`;
+    todayBadge = ranToday ? `${perProviderDiscovered} získáno dnes` : `0 získáno dnes`;
   } else {
     metaLine = meta.message || null;
   }
@@ -143,29 +149,39 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
   const errorMsg = health?.message && health.status === "error" ? health.message : job?.last_run_error;
 
   return (
-    <div className="flex flex-col gap-0.5">
-      <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{title}</p>
-      <div className={`flex items-center gap-1 text-[10px] font-semibold ${statusColor}`}>
-        <StatusIcon className={`h-2.5 w-2.5 ${isRunning ? "animate-spin" : ""}`} />
-        {statusLabel}
+    <div className="flex flex-col gap-1 p-2 rounded-lg bg-card/50 border border-border/40">
+      <div className="flex items-center justify-between">
+        <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
+        {todayBadge && (
+          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${ranToday ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-muted text-muted-foreground'}`}>
+            {todayBadge}
+          </span>
+        )}
+      </div>
+
+      <div className={`flex items-center gap-1.5 text-[10px] font-semibold ${statusColor}`}>
+        <StatusIcon className={`h-3 w-3 ${isRunning ? "animate-spin" : ""}`} />
+        <span>{statusLabel}</span>
         {lastRunAt && (
-          <span className="text-muted-foreground font-normal ml-1">
+          <span className="text-muted-foreground font-normal ml-auto text-[9px]">
             {new Date(lastRunAt).toLocaleString("cs-CZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
           </span>
         )}
       </div>
+
       {metaLine && (
-        <p className="text-[9px] text-muted-foreground leading-tight truncate max-w-[200px]" title={metaLine}>
+        <p className="text-[9px] text-muted-foreground leading-tight truncate" title={metaLine}>
           {metaLine}
         </p>
       )}
+
       {isError && errorMsg && (
-        <div className="flex flex-col gap-0.5 mt-0.5">
-          <p className="text-[9px] text-red-400 leading-tight truncate max-w-[200px]" title={errorMsg}>
+        <div className="flex flex-col gap-0.5 mt-1 p-1.5 rounded bg-red-500/10 border border-red-500/20">
+          <p className="text-[9px] text-red-500 dark:text-red-400 font-mono leading-tight break-all max-h-16 overflow-y-auto" title={errorMsg}>
             {errorMsg}
           </p>
           {health?.last_success_at && (
-            <p className="text-[9px] text-muted-foreground/60 leading-tight truncate">
+            <p className="text-[8px] text-muted-foreground mt-0.5">
               Poslední úspěch: {new Date(health.last_success_at).toLocaleString("cs-CZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
             </p>
           )}
@@ -174,6 +190,7 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
     </div>
   );
 };
+
 
 // ─── Model selector ──────────────────────────────────────────────────────────
 const ModelSelector = ({

@@ -7,6 +7,7 @@ import {
   Users, 
   History, 
   Sparkles, 
+  FileText,
   Settings2 
 } from "lucide-react";
 
@@ -45,12 +46,14 @@ export const EmailTopNav = () => {
   const pathParts = location.pathname.split("/");
   const currentTab = pathParts[2] || "fronta";
 
-  // Normalize legacy routes to 3 core tabs
+  // Normalize route tabs
   let activeTab = "fronta";
-  if (currentTab === "kontakty" || currentTab === "ai-data" || currentTab === "crm") {
+  if (currentTab === "kontakty" || currentTab === "crm") {
     activeTab = "kontakty";
-  } else if (currentTab === "sablony-ai" || currentTab === "sablony" || currentTab === "sber") {
-    activeTab = "sablony-ai";
+  } else if (currentTab === "sablony") {
+    activeTab = "sablony";
+  } else if (currentTab === "ai-asistent" || currentTab === "sber" || currentTab === "ai-data" || currentTab === "sablony-ai") {
+    activeTab = "ai-asistent";
   } else {
     activeTab = "fronta";
   }
@@ -91,10 +94,17 @@ export const EmailTopNav = () => {
           onClick={onTabChange} 
         />
         <NavItem 
-          id="sablony-ai" 
-          label="Šablony & AI Asistent" 
+          id="sablony" 
+          label="Šablony" 
+          icon={FileText} 
+          active={activeTab === "sablony"} 
+          onClick={onTabChange} 
+        />
+        <NavItem 
+          id="ai-asistent" 
+          label="AI Asistent & Sběr" 
           icon={Sparkles} 
-          active={activeTab === "sablony-ai"} 
+          active={activeTab === "ai-asistent"} 
           onClick={onTabChange} 
         />
       </div>
@@ -111,3 +121,4 @@ export const EmailTopNav = () => {
     </div>
   );
 };
+

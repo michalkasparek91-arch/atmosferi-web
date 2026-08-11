@@ -116,6 +116,26 @@ export const AdminAiHub = () => {
     }
   }, [serverConfig]);
 
+  const { data: todayStats = { discoveredToday: 0, enrichedToday: 0 } } = useQuery({
+    queryKey: ["admin-ai-hub-today-stats"],
+    queryFn: async () => {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const iso = startOfDay.toISOString();
+
+      const [{ count: discoveredToday }, { count: enrichedToday }] = await Promise.all([
+        supabase.from("marketing_leads").select("id", { count: "exact", head: true }).gte("created_at", iso),
+        supabase.from("marketing_leads").select("id", { count: "exact", head: true }).gte("updated_at", iso).not("description", "is", null)
+      ]);
+
+      return {
+        discoveredToday: discoveredToday || 0,
+        enrichedToday: enrichedToday || 0
+      };
+    },
+    refetchInterval: 15000
+  });
+
   const { data: leadsCount = 0 } = useQuery({
     queryKey: ["admin-leads-count-total"],
     queryFn: async () => {
@@ -156,6 +176,7 @@ export const AdminAiHub = () => {
       return data?.schedule || "0 * * * *";
     }
   });
+
 
   const saveJobScheduleMutation = useMutation({
     mutationFn: async (newSchedule: string) => {
@@ -400,12 +421,27 @@ export const AdminAiHub = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-muted/30 px-5 py-3 rounded-2xl border border-border/50 shadow-sm">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Nasbíráno celkem</span>
-            <span className="text-xl font-bold text-foreground">{leadsCount} kontaktů</span>
+        <div className="flex flex-wrap items-center gap-3 bg-card p-2.5 rounded-2xl border border-border/50 shadow-sm">
+          <div className="flex flex-col px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider flex items-center gap-1">
+              <Plus className="h-3 w-3" /> Sběr Dnes
+            </span>
+            <span className="text-base font-extrabold text-foreground">+{todayStats.discoveredToday} kontaktů</span>
+          </div>
+
+          <div className="flex flex-col px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+            <span className="text-[9px] font-black uppercase text-purple-600 dark:text-purple-400 tracking-wider flex items-center gap-1">
+              <Sparkles className="h-3 w-3" /> Obohaceno Dnes
+            </span>
+            <span className="text-base font-extrabold text-foreground">+{todayStats.enrichedToday} profilů</span>
+          </div>
+
+          <div className="flex flex-col px-3 py-1 bg-muted/40 rounded-xl border border-border/40">
+            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Celkem v CRM</span>
+            <span className="text-base font-extrabold text-foreground">{leadsCount} kontaktů</span>
           </div>
         </div>
+
       </div>
 
       <Tabs defaultValue="overview" className="w-full">

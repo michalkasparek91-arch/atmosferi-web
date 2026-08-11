@@ -1433,24 +1433,30 @@ export default function AdminEmails() {
                 />
               } />
 
-              {/* Tab 3: Šablony & AI Asistent */}
-              <Route path="sablony-ai" element={
+              {/* Tab 3: Šablony */}
+              <Route path="sablony" element={
                 <div className="space-y-6">
                   <EmailTemplatesTab />
+                </div>
+              } />
+
+              {/* Tab 4: AI Asistent & Sběr */}
+              <Route path="ai-asistent" element={
+                <div className="space-y-6">
                   <AdminAiHub />
                 </div>
               } />
 
               {/* Legacy Route Redirects */}
+              <Route path="sablony-ai" element={<Navigate to="ai-asistent" replace />} />
               <Route path="kampane" element={<Navigate to="fronta" replace />} />
               <Route path="novakampan" element={<Navigate to="fronta" replace />} />
-              <Route path="sber" element={<Navigate to="sablony-ai" replace />} />
-              <Route path="ai-data" element={<Navigate to="kontakty" replace />} />
+              <Route path="sber" element={<Navigate to="ai-asistent" replace />} />
+              <Route path="ai-data" element={<Navigate to="ai-asistent" replace />} />
               <Route path="crm" element={<Navigate to="kontakty" replace />} />
               <Route path="outbox" element={<Navigate to="fronta" replace />} />
               <Route path="historie" element={<Navigate to="fronta" replace />} />
               <Route path="prehled" element={<Navigate to="fronta" replace />} />
-              <Route path="sablony" element={<Navigate to="sablony-ai" replace />} />
 
               <Route path="*" element={<Navigate to="fronta" replace />} />
             </Routes>
