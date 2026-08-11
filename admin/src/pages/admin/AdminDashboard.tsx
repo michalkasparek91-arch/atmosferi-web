@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, ArrowRight, LayoutDashboard, Globe } from "lucide-react";
+import { Mail, ArrowRight, LayoutDashboard, Globe, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminAnalyticsWidget } from "@/components/admin/AdminAnalyticsWidget";
@@ -13,10 +13,33 @@ export default function AdminDashboard() {
       <AdminPageHeader
         icon={LayoutDashboard}
         title="Vítejte v administraci Atmosferi"
-        subtitle="Váš centrální bod pro správu e-mailových kampaní a kontaktů"
+        subtitle="Váš centrální bod pro správu fakturace, e-mailových kampaní a kontaktů"
       />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Invoices Card */}
+        <Card className="rounded-xl border border-border shadow-sm hover:shadow-md transition-all group">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="p-2.5 rounded-lg bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-colors">
+                <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+            </div>
+            <CardTitle className="text-lg mt-4">Faktury & Kontakty</CardTitle>
+            <CardDescription>
+              Náhrada Fakturoidu pro pixl a atmosferi. Vystavování faktur v CZK/EUR, tisk PDF, QR Platba.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="w-full justify-between mt-2" 
+              onClick={() => navigate('/faktury')}
+            >
+              Správa Faktur
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
         <AdminAnalyticsWidget />
         {/* Email Campaigns Card */}
         <Card className="rounded-xl border border-border shadow-sm hover:shadow-md transition-all group">

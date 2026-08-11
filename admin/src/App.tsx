@@ -14,6 +14,8 @@ const Auth = React.lazy(() => import("./pages/Auth"));
 const AdminLayout = React.lazy(() => import("./layouts/AdminLayout").then(m => ({ default: m.AdminLayout })));
 const ProtectedAdminRoute = React.lazy(() => import("./components/ProtectedAdminRoute").then(m => ({ default: m.ProtectedAdminRoute })));
 const AdminDashboard = React.lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminInvoices = React.lazy(() => import("./pages/admin/AdminInvoices"));
+const AdminContacts = React.lazy(() => import("./pages/admin/AdminContacts"));
 const AdminEmails = React.lazy(() => import("./pages/admin/AdminEmails"));
 const AdminAnalytics = React.lazy(() => import("./pages/admin/AdminAnalytics"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -80,6 +82,8 @@ const App = () => {
                       <Route element={<ProtectedAdminRoute />}>
                         <Route element={<AdminLayout />}>
                           <Route path="/" element={<AdminDashboard />} />
+                          <Route path="/faktury" element={<AdminInvoices />} />
+                          <Route path="/kontakty" element={<AdminContacts />} />
                           <Route path="/emaily/*" element={<AdminEmails />} />
                           <Route path="/statistiky" element={<AdminAnalytics />} />
                         </Route>
