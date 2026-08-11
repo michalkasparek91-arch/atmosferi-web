@@ -54,8 +54,9 @@ Deno.serve(async (req) => {
 
     // Return response immediately, process in background
     const processEnrichment = async () => {
-      const leadsToProcess = leads.filter(l => l.email && !l.ai_icebreaker);
+      const leadsToProcess = leads.filter(l => l.email && !l.description);
       if (leadsToProcess.length === 0) return;
+
 
       const inputForAI = leadsToProcess.map(lead => {
         let targetUrl = lead.website;
@@ -271,8 +272,8 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
                 premium_score: lead.premium_score || extracted.premium_score || 50,
                 decision_maker_name: lead.decision_maker_name || extracted.decision_maker_name || null,
                 last_project: lead.last_project || extracted.last_project || null,
-                ai_icebreaker: lead.ai_icebreaker || extracted.ai_icebreaker || null,
               };
+
 
               if (extracted.email && extracted.email.includes("@") && extracted.email.toLowerCase() !== lead.email.toLowerCase()) {
                 updatePayload.email = extracted.email.toLowerCase();

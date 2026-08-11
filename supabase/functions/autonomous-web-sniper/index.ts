@@ -529,8 +529,8 @@ Deno.serve(async (req) => {
           city: item.city || "Nezname mesto",
           country: item.country || itemCountry,
           language: marketId,
-          ai_icebreaker: null,
           decision_maker_name: item.decision_maker_name || null,
+
           last_project: item.last_project || null,
           premium_score: item.premium_score ? parseInt(item.premium_score) : null,
           full_address: item.full_address || `${item.city || ""}, ${itemCountry}`,

@@ -48,7 +48,8 @@ TVŮJ ÚKOL:
 2. Pomocí nástroje Google Search najdi reálné firmy v tomto městě pro zadaný obor.
 3. Extrahuj z jejich webů nebo z Googlu kontakty. Najdi MAXIMÁLNĚ 30-40 firem, které mají uvedenou E-MAILOVOU ADRESU (toto je naprosto kritické, firmy bez e-mailu musíš ignorovat!). Vzhledem k vyššímu limitu tokenů se neboj vypsat až 40 firem najednou!
 
-Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, ai_icebreaker (osobní otevírací odstavec do e-mailu v jazyce dané země chválící jejich práci), decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
+Vrať JSON pole. Povinná pole pro každý objekt: company_name, email, phone, website, city, country, language (např. cs, en, de), full_address, description, decision_maker_name (pokud nelze dohledat tak ""), premium_score (číslo 1-100 podle kvality prezentace).
+
 Odpověz POUZE validním polem objektů v JSON formátu. VAROVÁNÍ: Uvnitř textových hodnot nesmíš používat neescapované uvozovky!`;
 
 const DEFAULT_CONFIG: ScraperConfig = {
@@ -126,7 +127,8 @@ export const AdminAiHub = () => {
 
       const [{ count: discoveredToday }, { count: enrichedToday }] = await Promise.all([
         supabase.from("marketing_leads").select("id", { count: "exact", head: true }).gte("created_at", iso),
-        supabase.from("marketing_leads").select("id", { count: "exact", head: true }).gte("updated_at", iso).not("description", "is", null).not("ai_icebreaker", "is", null)
+        supabase.from("marketing_leads").select("id", { count: "exact", head: true }).gte("updated_at", iso).not("description", "is", null)
+
       ]);
 
       return {
@@ -676,7 +678,8 @@ export const AdminAiHub = () => {
                     <tbody>
                       {recentLeads.map((lead: any) => {
                         const isSniper = lead.source === "ai_web_sniper";
-                        const hasIcebreaker = Boolean(lead.ai_icebreaker && lead.ai_icebreaker.trim());
+                        const isEnriched = Boolean(lead.description || lead.category || lead.decision_maker_name);
+
 
                         return (
                           <tr key={lead.id} className="border-b last:border-0 hover:bg-muted/30">
@@ -714,7 +717,8 @@ export const AdminAiHub = () => {
                                     </Badge>
                                   );
                                 }
-                                if (hasIcebreaker) {
+                                if (isEnriched) {
+
                                   return (
                                     <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[11px] font-mono">
                                       AI Lead Enrichment
