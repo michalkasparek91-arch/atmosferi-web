@@ -389,6 +389,39 @@ export const AdminOutbox = () => {
         </Button>
       </div>
       
+      {/* AUTO-DISPATCH ALERT BANNER WHEN QUEUE REACHES 300 */}
+      <div className="rounded-2xl border p-4 bg-emerald-500/10 border-emerald-500/30 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+            <Zap className="h-5 w-5 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold">Automatické rozesílání (300 / 300 denní limit)</h3>
+              <Badge className="bg-emerald-500 text-white font-black text-[10px]">AUTO-SEND AKTIVNÍ</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Jakmile se naplní fronta 300 e-mailů, dávkové rozesílání se spustí automaticky v rozestupech.
+            </p>
+          </div>
+        </div>
+        <Button
+          size="sm"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs gap-1.5 shadow-md shadow-emerald-600/20"
+          disabled={!!activeCampaign}
+          onClick={() => {
+            if (virtualBatches && virtualBatches.length > 0) {
+              startCampaign(virtualBatches[0].template_id, virtualBatches[0].template_name || "Automatická kampaň (300 limit)");
+            } else {
+              toast.info("Všechny e-maily ve frontě jsou připravené k automatickému rozeslání.");
+            }
+          }}
+        >
+          <Send className="h-3.5 w-3.5" />
+          {activeCampaign ? "Odesílání běží..." : "Odeslat dávku (300 e-mailů)"}
+        </Button>
+      </div>
+
       {/* ACTIVE CAMPAIGN BANNER */}
       {activeCampaign && (
         <div className={`rounded-2xl border p-4 flex items-center gap-4 ${activeCampaign.stopped ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-blue-500/5 border-blue-500/20'}`}>

@@ -1336,19 +1336,15 @@ export default function AdminEmails() {
           <Suspense fallback={<div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/20" /></div>}>
 
             <Routes>
-              {/* Default Index */}
-              <Route index element={<Navigate to="kampane" replace />} />
+              {/* Default Index: Fronta & Historie (#1 priority) */}
+              <Route index element={<Navigate to="fronta" replace />} />
 
-              {/* Tab 1: Kampaně & Odesílání */}
-              <Route path="kampane" element={
-                <CampaignWizard
-                  onOpenVisualEditor={() => setEditorOpen(true)}
-                  onSendCampaign={(payload) => {
-                    toast({ title: "Kampaň naplánována", description: `Připraveno ${payload.recipientCount} e-mailů ke zpracování.` });
-                    navigate("../fronta");
-                  }}
-                  isSending={isSending}
-                />
+              {/* Tab 1: Fronta & Historie */}
+              <Route path="fronta" element={
+                <div className="space-y-6">
+                  <AdminOutbox />
+                  <CampaignReview />
+                </div>
               } />
 
               {/* Tab 2: Kontakty & Publiku */}
@@ -1384,15 +1380,7 @@ export default function AdminEmails() {
                 />
               } />
 
-              {/* Tab 3: Fronta & Historie */}
-              <Route path="fronta" element={
-                <div className="space-y-6">
-                  <AdminOutbox />
-                  <CampaignReview />
-                </div>
-              } />
-
-              {/* Tab 4: Šablony & AI Asistent */}
+              {/* Tab 3: Šablony & AI Asistent */}
               <Route path="sablony-ai" element={
                 <div className="space-y-6">
                   <EmailTemplatesTab />
@@ -1401,6 +1389,8 @@ export default function AdminEmails() {
               } />
 
               {/* Legacy Route Redirects */}
+              <Route path="kampane" element={<Navigate to="fronta" replace />} />
+              <Route path="novakampan" element={<Navigate to="fronta" replace />} />
               <Route path="sber" element={<Navigate to="sablony-ai" replace />} />
               <Route path="ai-data" element={<Navigate to="kontakty" replace />} />
               <Route path="crm" element={<Navigate to="kontakty" replace />} />
@@ -1409,7 +1399,7 @@ export default function AdminEmails() {
               <Route path="prehled" element={<Navigate to="fronta" replace />} />
               <Route path="sablony" element={<Navigate to="sablony-ai" replace />} />
 
-              <Route path="*" element={<Navigate to="kampane" replace />} />
+              <Route path="*" element={<Navigate to="fronta" replace />} />
             </Routes>
           </Suspense>
         </div>

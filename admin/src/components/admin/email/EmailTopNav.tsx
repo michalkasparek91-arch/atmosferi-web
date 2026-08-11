@@ -43,18 +43,16 @@ export const EmailTopNav = () => {
   const navigate = useNavigate();
   
   const pathParts = location.pathname.split("/");
-  const currentTab = pathParts[2] || "kampane";
+  const currentTab = pathParts[2] || "fronta";
 
-  // Normalize legacy routes to 4 core tabs
-  let activeTab = "kampane";
+  // Normalize legacy routes to 3 core tabs
+  let activeTab = "fronta";
   if (currentTab === "kontakty" || currentTab === "ai-data" || currentTab === "crm") {
     activeTab = "kontakty";
-  } else if (currentTab === "fronta" || currentTab === "outbox" || currentTab === "historie" || currentTab === "prehled") {
-    activeTab = "fronta";
   } else if (currentTab === "sablony-ai" || currentTab === "sablony" || currentTab === "sber") {
     activeTab = "sablony-ai";
   } else {
-    activeTab = "kampane";
+    activeTab = "fronta";
   }
 
   const onTabChange = (tab: string) => {
@@ -78,11 +76,12 @@ export const EmailTopNav = () => {
     <div className="flex items-center justify-between bg-zinc-100/80 dark:bg-zinc-900/80 p-1.5 rounded-2xl border border-border/60 mb-6">
       <div className="flex items-center gap-1 overflow-x-auto no-scrollbar w-full sm:w-auto">
         <NavItem 
-          id="kampane" 
-          label="Kampaně & Odesílání" 
-          icon={Send} 
-          active={activeTab === "kampane"} 
+          id="fronta" 
+          label="Fronta & Historie" 
+          icon={History} 
+          active={activeTab === "fronta"} 
           onClick={onTabChange} 
+          badge={outboxReadyCount > 0 ? `${outboxReadyCount}/300` : undefined}
         />
         <NavItem 
           id="kontakty" 
@@ -90,14 +89,6 @@ export const EmailTopNav = () => {
           icon={Users} 
           active={activeTab === "kontakty"} 
           onClick={onTabChange} 
-        />
-        <NavItem 
-          id="fronta" 
-          label="Fronta & Historie" 
-          icon={History} 
-          active={activeTab === "fronta"} 
-          onClick={onTabChange} 
-          badge={outboxReadyCount > 0 ? outboxReadyCount.toString() : undefined}
         />
         <NavItem 
           id="sablony-ai" 
