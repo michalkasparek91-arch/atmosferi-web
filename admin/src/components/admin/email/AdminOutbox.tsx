@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Mail, Send, Trash2, Edit3, User, Sparkles, Layout, RefreshCw, Zap } from "lucide-react";
+import { Loader2, Mail, Send, Trash2, Edit3, User, Sparkles, Layout, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { ModularEmailEditorDialogInner } from "./ModularEmailEditor";
 import CampaignReview from "@/components/admin/CampaignReview";
@@ -18,7 +18,6 @@ export const AdminOutbox = () => {
   const [sendingBatch, setSendingBatch] = useState(false);
   const [editingDraft, setEditingDraft] = useState<any | null>(null);
   const [editedIcebreaker, setEditedIcebreaker] = useState("");
-  const [isRegenerating, setIsRegenerating] = useState(false);
   const [previewDraft, setPreviewDraft] = useState<any | null>(null);
   const [isOpeningEditor, setIsOpeningEditor] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<"all" | "job" | "general" | "campaigns">("general");
@@ -309,26 +308,6 @@ export const AdminOutbox = () => {
       setEditingDraft(null);
     } catch (err: any) {
       toast.error("Chyba: " + err.message);
-    }
-  };
-
-  const handleRegenerateIcebreaker = async () => {
-    if (!editingDraft) return;
-    setIsRegenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("regenerate-icebreaker", {
-        body: { outboxId: editingDraft.id }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (data?.icebreaker) {
-        setEditedIcebreaker(data.icebreaker);
-        toast.success("Nové oslovení vygenerováno (zatím neuloženo)");
-      }
-    } catch (err: any) {
-      toast.error("Chyba při generování: " + err.message);
-    } finally {
-      setIsRegenerating(false);
     }
   };
 
@@ -795,18 +774,8 @@ export const AdminOutbox = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                    AI Icebreaker (1-2 věty)
+                    Icebreaker (1-2 věty)
                   </label>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleRegenerateIcebreaker}
-                    disabled={isRegenerating}
-                    className="h-7 text-[10px] px-2.5 font-bold gap-1.5 rounded-full"
-                  >
-                    {isRegenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                    Přegenerovat
-                  </Button>
                 </div>
                 <Textarea 
                   value={editedIcebreaker}

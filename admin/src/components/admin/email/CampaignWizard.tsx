@@ -20,7 +20,6 @@ import {
   Mail, 
   FileText, 
   Loader2, 
-  Bot, 
   Layout, 
   Eye, 
   HelpCircle
@@ -53,28 +52,10 @@ export const CampaignWizard: React.FC<CampaignWizardProps> = ({
   const [ctaText, setCtaText] = useState("Prohlédnout portfolio Atmosferi");
   const [ctaUrl, setCtaUrl] = useState("https://www.atmosferi.com");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
-  const [aiPromptLoading, setAiPromptLoading] = useState(false);
 
   // Step 3 State: Review & Send
   const [testEmail, setTestEmail] = useState("michal@atmosferi.com");
   const [sendingTest, setSendingTest] = useState(false);
-
-  // AI Content Generator helper
-  const handleGenerateWithAi = async () => {
-    setAiPromptLoading(true);
-    try {
-      // Simulated AI copy generation for architects
-      setTimeout(() => {
-        setSubject("Prezentace vašich architektonických projektů v fotorealistické kvalitě");
-        setBody("Dobrý den,\n\nsledovali jsme vaše nedávné projekty a velmi oceňujeme čistý styl vaší architektury.\n\nV Atmosferi vytváříme 3D vizualizace a animace, které pomáhají architektům vyhrávat soutěže a prezentovat nápady klientům v nejvyšší kvalitě.\n\nRád bych s vámi krátce probral možnosti spolupráce na nadcházejících zakázkách.");
-        setAiPromptLoading(false);
-        toast.success("Obsah e-mailu byl vygenerován pomocí AI!");
-      }, 1200);
-    } catch (err) {
-      setAiPromptLoading(false);
-      toast.error("Chyba při generování AI textu");
-    }
-  };
 
   const handleTestSend = async () => {
     if (!testEmail) {
@@ -287,17 +268,6 @@ export const CampaignWizard: React.FC<CampaignWizardProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <Label className="text-xs font-bold">Předmět E-mailu</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleGenerateWithAi}
-                    disabled={aiPromptLoading}
-                    className="h-6 text-[11px] text-amber-600 dark:text-amber-400 gap-1"
-                  >
-                    {aiPromptLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bot className="h-3.5 w-3.5" />}
-                    Vygenerovat AI text
-                  </Button>
                 </div>
                 <Input
                   value={subject}

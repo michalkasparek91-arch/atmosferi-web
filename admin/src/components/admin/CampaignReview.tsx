@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Send, Save, Loader2, Eye, Mail, 
-  Users, UserCheck, Layout, AlertCircle, Zap,
+  Users, UserCheck, Layout, AlertCircle,
   X, Image as ImageIcon, Sparkles, Monitor, Smartphone,
   Trash2
 } from "lucide-react";
@@ -39,33 +39,6 @@ export default function CampaignReview() {
     },
   });
 
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke("generate-newsletter-draft");
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["marketing-campaigns-drafts"] });
-      toast({ 
-        title: "Generování spuštěno", 
-        description: "AI začala připravovat nový draft v prémiovém Magazine formátu.",
-      });
-    },
-    onError: async (err: any) => {
-      let errorMessage = err.message;
-      try {
-        if (err.context?.response) {
-          const body = await err.context.response.json();
-          if (body.error) errorMessage = body.error;
-        }
-      } catch (e) {
-        console.error("Failed to parse error response", e);
-      }
-      toast({ title: "Chyba generování", description: errorMessage, variant: "destructive" });
-    }
-  });
-
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -88,26 +61,15 @@ export default function CampaignReview() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end mb-2">
-        <Button 
-          onClick={() => generateMutation.mutate()} 
-          disabled={generateMutation.isPending}
-          className="gap-2 bg-slate-900 text-white hover:bg-slate-800 rounded-full px-6 shadow-md"
-        >
-          {generateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-emerald-500 text-emerald-500" />}
-          Generovat AI Draft
-        </Button>
-      </div>
-
       <div className="grid gap-4">
         {campaigns?.length === 0 ? (
           <Card className="border-dashed border-2 bg-slate-50/50">
-            <CardContent className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
               <div className="h-16 w-16 rounded-3xl bg-white shadow-sm flex items-center justify-center mb-4">
                 <Mail className="h-8 w-8 opacity-20" />
               </div>
-              <p className="font-bold">Žádné nové drafty k recenzi</p>
-              <p className="text-xs max-w-xs text-center mt-1">Klikněte na tlačítko výše a nechte AI připravit nový newsletter založený na aktuálním dění.</p>
+              <p className="font-bold">Žádné nové drafty v rozpracování</p>
+              <p className="text-xs max-w-xs text-center mt-1">Všechny rozpracované e-maily a kampaně naleznete v tomto přehledu.</p>
             </CardContent>
           </Card>
         ) : (
