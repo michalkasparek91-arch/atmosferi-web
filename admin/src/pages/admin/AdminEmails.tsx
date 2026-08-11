@@ -1337,7 +1337,7 @@ export default function AdminEmails() {
 
             <Routes>
               {/* Default Index */}
-              <Route index element={<Navigate to="/emaily/kampane" replace />} />
+              <Route index element={<Navigate to="kampane" replace />} />
 
               {/* Tab 1: Kampaně & Odesílání */}
               <Route path="kampane" element={
@@ -1345,7 +1345,7 @@ export default function AdminEmails() {
                   onOpenVisualEditor={() => setEditorOpen(true)}
                   onSendCampaign={(payload) => {
                     toast({ title: "Kampaň naplánována", description: `Připraveno ${payload.recipientCount} e-mailů ke zpracování.` });
-                    navigate("/emaily/fronta");
+                    navigate("../fronta");
                   }}
                   isSending={isSending}
                 />
@@ -1402,15 +1402,15 @@ export default function AdminEmails() {
               } />
 
               {/* Legacy Route Redirects */}
-              <Route path="sber" element={<Navigate to="/emaily/sablony-ai" replace />} />
-              <Route path="ai-data" element={<Navigate to="/emaily/kontakty" replace />} />
-              <Route path="crm" element={<Navigate to="/emaily/kontakty" replace />} />
-              <Route path="outbox" element={<Navigate to="/emaily/fronta" replace />} />
-              <Route path="historie" element={<Navigate to="/emaily/fronta" replace />} />
-              <Route path="prehled" element={<Navigate to="/emaily/fronta" replace />} />
-              <Route path="sablony" element={<Navigate to="/emaily/sablony-ai" replace />} />
+              <Route path="sber" element={<Navigate to="sablony-ai" replace />} />
+              <Route path="ai-data" element={<Navigate to="kontakty" replace />} />
+              <Route path="crm" element={<Navigate to="kontakty" replace />} />
+              <Route path="outbox" element={<Navigate to="fronta" replace />} />
+              <Route path="historie" element={<Navigate to="fronta" replace />} />
+              <Route path="prehled" element={<Navigate to="fronta" replace />} />
+              <Route path="sablony" element={<Navigate to="sablony-ai" replace />} />
 
-              <Route path="*" element={<Navigate to="/emaily/kampane" replace />} />
+              <Route path="*" element={<Navigate to="kampane" replace />} />
             </Routes>
           </Suspense>
         </div>
