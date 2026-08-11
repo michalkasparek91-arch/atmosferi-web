@@ -57,8 +57,9 @@ Deno.serve(async (req) => {
 
     // Per-provider model overrides (configured in Admin > AI Hub > Modely & Klíče)
     const groqModel      = cfg.groq_model      || "llama-3.3-70b-versatile";
-    const geminiModel    = cfg.gemini_model    || "gemini-2.0-flash";
-    const openrouterModel = cfg.openrouter_model || "meta-llama/llama-3.3-70b-instruct:free";
+    const geminiModel    = cfg.gemini_model    || "gemini-1.5-flash";
+    const openrouterModel = cfg.openrouter_model || "openai/gpt-4o-mini";
+
     const deepseekModel  = cfg.deepseek_model  || "deepseek-chat";
     const siliconflowModel = cfg.siliconflow_model || "Qwen/Qwen2.5-72B-Instruct";
     const cerebrasModel = cfg.cerebras_model || "gpt-oss-120b"; // llama-3.3-70b was deprecated by Cerebras (Feb 2026)

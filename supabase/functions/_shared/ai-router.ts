@@ -10,16 +10,17 @@ export interface RouterResult { text: string; provider: string; attempts: Router
 
 // Modely, které v daném providerovi držíme jako výchozí (free tier friendly).
 const DEFAULTS: Record<string, string> = {
-  gemini: "gemini-2.0-flash",
+  gemini: "gemini-1.5-flash",
   groq: "llama-3.3-70b-versatile",
-  openrouter: "nvidia/nemotron-3-ultra-550b-a55b:free",
+  openrouter: "openai/gpt-4o-mini",
   deepseek: "deepseek-chat",
-  siliconflow: "Qwen/Qwen2.5-7B-Instruct",
+  siliconflow: "Qwen/Qwen2.5-72B-Instruct",
   cerebras: "gpt-oss-120b",
   mistral: "mistral-large-latest",
   nvidia: "meta/llama-3.3-70b-instruct",
   pollinations: "openai",
 };
+
 
 const ENDPOINTS: Record<string, string> = {
   groq: "https://api.groq.com/openai/v1/chat/completions",
