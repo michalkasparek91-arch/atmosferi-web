@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Mail, Send, Trash2, Edit3, User, Sparkles, Layout, RefreshCw } from "lucide-react";
+import { Loader2, Mail, Send, Trash2, Edit3, User, Sparkles, Layout, RefreshCw, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { ModularEmailEditorDialogInner } from "./ModularEmailEditor";
 import CampaignReview from "@/components/admin/CampaignReview";
