@@ -117,7 +117,7 @@ export const AdminAiHub = () => {
   }, [serverConfig]);
 
   const { data: todayStats = { discoveredToday: 0, enrichedToday: 0 } } = useQuery({
-    queryKey: ["admin-ai-hub-today-stats"],
+    queryKey: ["admin-ai-hub-today-stats-accurate"],
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
@@ -125,7 +125,7 @@ export const AdminAiHub = () => {
 
       const [{ count: discoveredToday }, { count: enrichedToday }] = await Promise.all([
         supabase.from("marketing_leads").select("id", { count: "exact", head: true }).gte("created_at", iso),
-        supabase.from("marketing_leads").select("id", { count: "exact", head: true }).gte("updated_at", iso).not("description", "is", null)
+        supabase.from("marketing_leads").select("id", { count: "exact", head: true }).gte("updated_at", iso).not("description", "is", null).not("ai_icebreaker", "is", null)
       ]);
 
       return {
@@ -137,17 +137,17 @@ export const AdminAiHub = () => {
   });
 
   const { data: leadsCount = 0 } = useQuery({
-    queryKey: ["admin-leads-count-total"],
+    queryKey: ["admin-leads-count-total-all"],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("marketing_leads")
-        .select("*", { count: "exact", head: true })
-        .eq("source", "ai_web_sniper");
-      if (error) return 0;
-      return count || 0;
+      const [{ count: mlCount }, { count: profCount }] = await Promise.all([
+        supabase.from("marketing_leads").select("id", { count: "exact", head: true }),
+        supabase.from("profiles").select("id", { count: "exact", head: true })
+      ]);
+      return (mlCount || 0) + (profCount || 0);
     },
-    refetchInterval: 15000
+    refetchInterval: 30000
   });
+
 
   const { data: recentLeads = [], isLoading: leadsLoading } = useQuery({
     queryKey: ["admin-recent-sniper-leads"],

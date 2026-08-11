@@ -21,51 +21,34 @@ const MODEL_CATALOGUES: Record<string, { label: string; value: string }[]> = {
     { label: "llama-3.3-70b-versatile (doporučeno)", value: "llama-3.3-70b-versatile" },
     { label: "mixtral-8x7b-32768", value: "mixtral-8x7b-32768" },
     { label: "gemma-7b-it", value: "gemma-7b-it" },
-    { label: "llama-4-scout-17b-16e-instruct", value: "llama-4-scout-17b-16e-instruct" },
-    { label: "llama-4-maverick-17b-128e-instruct", value: "llama-4-maverick-17b-128e-instruct" },
   ],
   gemini: [
-    { label: "gemini-2.0-flash (doporučeno)", value: "gemini-2.0-flash" },
-    { label: "gemini-2.0-flash-lite", value: "gemini-2.0-flash-lite" },
-    { label: "gemini-1.5-flash", value: "gemini-1.5-flash" },
+    { label: "gemini-1.5-flash (doporučeno - stabilní)", value: "gemini-1.5-flash" },
+    { label: "gemini-2.0-flash-exp (experimentální)", value: "gemini-2.0-flash-exp" },
     { label: "gemini-1.5-pro", value: "gemini-1.5-pro" },
-    { label: "gemini-2.5-flash-preview", value: "gemini-2.5-flash-preview-05-20" },
-    { label: "gemma-2-27b-it", value: "gemma-2-27b-it" },
-    { label: "gemma-2-9b-it", value: "gemma-2-9b-it" },
+    { label: "gemini-2.0-flash-lite", value: "gemini-2.0-flash-lite" },
   ],
   openrouter: [
     { label: "llama-3.3-70b-instruct:free (doporučeno)", value: "meta-llama/llama-3.3-70b-instruct:free" },
-    { label: "google/gemma-4-31b-it:free", value: "google/gemma-4-31b-it:free" },
-    { label: "nvidia/nemotron-super-120b:free", value: "nvidia/nemotron-3-super-120b-a12b:free" },
-    { label: "deepseek/deepseek-chat:free", value: "deepseek/deepseek-chat:free" },
-    { label: "anthropic/claude-3.5-haiku", value: "anthropic/claude-3.5-haiku" },
     { label: "openai/gpt-4o-mini", value: "openai/gpt-4o-mini" },
+    { label: "deepseek/deepseek-chat:free", value: "deepseek/deepseek-chat:free" },
   ],
   deepseek: [
     { label: "deepseek-chat (doporučeno)", value: "deepseek-chat" },
     { label: "deepseek-reasoner", value: "deepseek-reasoner" },
-    { label: "deepseek-coder", value: "deepseek-coder" },
   ],
   siliconflow: [
     { label: "Qwen/Qwen2.5-72B-Instruct (doporučeno)", value: "Qwen/Qwen2.5-72B-Instruct" },
-    { label: "Qwen/Qwen2.5-7B-Instruct", value: "Qwen/Qwen2.5-7B-Instruct" },
     { label: "deepseek-ai/DeepSeek-V3", value: "deepseek-ai/DeepSeek-V3" },
-    { label: "THUDM/glm-4-9b-chat", value: "THUDM/glm-4-9b-chat" },
   ],
   cerebras: [
     { label: "gpt-oss-120b (Ultra-fast reasoning)", value: "gpt-oss-120b" },
-    { label: "zai-glm-4.7 (357B, multi-agent)", value: "zai-glm-4.7" },
-    { label: "Gemma 4 31B (Coming Soon)", value: "gemma-4-31b" },
   ],
   mistral: [
     { label: "mistral-large-latest (doporučeno)", value: "mistral-large-latest" },
-    { label: "open-mistral-nemo", value: "open-mistral-nemo" },
   ],
   nvidia: [
     { label: "meta/llama-3.3-70b-instruct (doporučeno)", value: "meta/llama-3.3-70b-instruct" },
-    { label: "nvidia/llama-3.1-nemotron-70b-instruct", value: "nvidia/llama-3.1-nemotron-70b-instruct" },
-    { label: "meta/llama-3.1-8b-instruct", value: "meta/llama-3.1-8b-instruct" },
-    { label: "deepseek-ai/deepseek-r1", value: "deepseek-ai/deepseek-r1" },
   ],
 };
 
@@ -135,25 +118,40 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
   let todayBadge = null;
 
   const ranToday = isToday(lastRunAt);
+  const successfullyRanToday = ranToday && isSuccess;
   
   if (title === "Enrichment") {
-    metaLine = `${perProviderEnriched} obohaceno v posl. běhu`;
-    todayBadge = ranToday ? `${perProviderEnriched} obohaceno dnes` : `0 obohaceno dnes`;
+    metaLine = isSuccess ? `${perProviderEnriched} obohaceno v posl. běhu` : `Běh selhal`;
+    todayBadge = successfullyRanToday ? `${perProviderEnriched} obohaceno dnes` : `0 obohaceno dnes`;
   } else if (title === "Sběr (Hledání)") {
-    metaLine = `${perProviderDiscovered} získáno v posl. běhu`;
-    todayBadge = ranToday ? `${perProviderDiscovered} získáno dnes` : `0 získáno dnes`;
+    metaLine = isSuccess ? `${perProviderDiscovered} získáno v posl. běhu` : `Běh selhal`;
+    todayBadge = successfullyRanToday ? `${perProviderDiscovered} získáno dnes` : `0 získáno dnes`;
   } else {
     metaLine = meta.message || null;
   }
 
   const errorMsg = health?.message && health.status === "error" ? health.message : job?.last_run_error;
 
+  const formatFriendlyError = (msg: string) => {
+    if (!msg) return "Neznámá chyba";
+    if (msg.includes("404") && (msg.includes("no longer available") || msg.includes("not found"))) {
+      return "⚠️ Zvolený model již není v Google API k dispozici. Přepněte výše na 'gemini-1.5-flash'.";
+    }
+    if (msg.includes("Rate limit") || msg.includes("rate_limit_exceeded") || msg.includes("tokens per day")) {
+      return "⏳ Překročen denní API limit tokenů (Rate limit). Vyčkejte cca 20 minut nebo použijte jiného providera.";
+    }
+    if (msg.includes("API key") || msg.includes("Unauthorized") || msg.includes("401")) {
+      return "🔑 Neplatný nebo chybějící API klíč. Zkontrolujte pole pro API klíč výše.";
+    }
+    return msg;
+  };
+
   return (
     <div className="flex flex-col gap-1 p-2 rounded-lg bg-card/50 border border-border/40">
       <div className="flex items-center justify-between">
         <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
         {todayBadge && (
-          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${ranToday ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-muted text-muted-foreground'}`}>
+          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${successfullyRanToday ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-muted text-muted-foreground'}`}>
             {todayBadge}
           </span>
         )}
@@ -176,9 +174,9 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
       )}
 
       {isError && errorMsg && (
-        <div className="flex flex-col gap-0.5 mt-1 p-1.5 rounded bg-red-500/10 border border-red-500/20">
-          <p className="text-[9px] text-red-500 dark:text-red-400 font-mono leading-tight break-all max-h-16 overflow-y-auto" title={errorMsg}>
-            {errorMsg}
+        <div className="flex flex-col gap-1 mt-1 p-2 rounded bg-red-500/10 border border-red-500/20">
+          <p className="text-[10px] font-medium text-red-600 dark:text-red-400 leading-snug">
+            {formatFriendlyError(errorMsg)}
           </p>
           {health?.last_success_at && (
             <p className="text-[8px] text-muted-foreground mt-0.5">
@@ -190,6 +188,7 @@ const JobBadge = ({ title, health, job }: { title: string; health?: any; job?: a
     </div>
   );
 };
+
 
 
 // ─── Model selector ──────────────────────────────────────────────────────────
