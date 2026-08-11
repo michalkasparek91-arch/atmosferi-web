@@ -32,8 +32,8 @@ import { CampaignWizard } from "@/components/admin/email/CampaignWizard";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
-const EmailTemplatesTab = lazy(() => import("@/components/admin/EmailTemplatesTab"));
-const CampaignReview = lazy(() => import("@/components/admin/CampaignReview"));
+import EmailTemplatesTab from "@/components/admin/EmailTemplatesTab";
+import CampaignReview from "@/components/admin/CampaignReview";
 
 const TEMPLATE_VARIABLES = [
   { key: "{{osloveni}}", label: "Oslovení (Vokativ)", desc: "Oslovení v 5. pádu (např. Petře)" },

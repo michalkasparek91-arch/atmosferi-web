@@ -30,29 +30,27 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      const isDebug = window.location.search.includes('debug=zrobee');
-      const error = (this as any).state.error; // We'll need to update getDerivedStateFromError to capture the error object
-
       return (
         <div className="h-[100dvh] flex flex-col items-center justify-center bg-background text-foreground px-6 text-center gap-4">
           <h1 className="text-2xl font-bold">Něco se pokazilo</h1>
           <p className="text-muted-foreground text-sm max-w-sm">
-            Omlouváme se, došlo k neočekávané chybě. Zkuste stránku načíst znovu.
+            Omlouváme se, došlo k neočekávané chybě při vykreslení komponenty.
           </p>
           
-          {isDebug && (
-            <div className="mt-4 p-4 bg-black/10 rounded-lg text-left overflow-auto max-w-full max-h-[50vh]">
-              <p className="font-mono text-xs font-bold text-red-500 mb-2">DIAGNOSTIC MODE:</p>
-              <pre className="font-mono text-[10px] whitespace-pre-wrap break-all">
-                {this.state.errorMessage}
-              </pre>
-              {this.state.errorStack && (
-                <pre className="mt-2 font-mono text-[8px] text-muted-foreground whitespace-pre-wrap break-all opacity-70">
+          <div className="mt-2 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-left overflow-auto max-w-2xl max-h-[40vh] text-xs">
+            <p className="font-mono font-bold text-red-600 dark:text-red-400 mb-1">CHYBOVÉ HLÁŠENÍ:</p>
+            <pre className="font-mono text-[11px] whitespace-pre-wrap break-all text-foreground font-semibold">
+              {this.state.errorMessage}
+            </pre>
+            {this.state.errorStack && (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-[10px] text-muted-foreground hover:underline font-mono">Stack trace (detail)</summary>
+                <pre className="mt-1 font-mono text-[9px] text-muted-foreground whitespace-pre-wrap break-all opacity-70">
                   {this.state.errorStack}
                 </pre>
-              )}
-            </div>
-          )}
+              </details>
+            )}
+          </div>
 
           <button
             onClick={() => window.location.reload()}
