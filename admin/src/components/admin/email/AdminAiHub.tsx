@@ -153,18 +153,21 @@ export const AdminAiHub = () => {
 
 
   const { data: recentLeads = [], isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-recent-leads-all-updated"],
+    queryKey: ["admin-recent-ai-leads-clean-v3"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("marketing_leads")
         .select("*")
-        .order("updated_at", { ascending: false })
+        .not("company_name", "is", null)
+        .or("source.eq.ai_web_sniper,description.not.is.null")
+        .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
       return data || [];
     },
     refetchInterval: 15000
   });
+
 
 
 
@@ -734,9 +737,10 @@ export const AdminAiHub = () => {
                             </td>
 
 
-                            <td className="py-3 font-medium">{lead.company_name}</td>
+                            <td className="py-3 font-medium">{lead.company_name || lead.full_name || "Neznámá firma"}</td>
                             <td className="py-3 text-muted-foreground">{lead.email}</td>
-                            <td className="py-3">{lead.city}</td>
+                            <td className="py-3">{lead.city || lead.country || "-"}</td>
+
                             <td className="py-3">
                               <Badge variant={lead.premium_score > 70 ? "default" : "secondary"}>{lead.premium_score ? `${lead.premium_score}/100` : "-"}</Badge>
                             </td>
