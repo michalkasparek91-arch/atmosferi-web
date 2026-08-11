@@ -471,9 +471,10 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
             const resJson = await res.json();
             const arr = parseAIJson(resJson.choices?.[0]?.message?.content || "");
             if (arr.length > 0) {
-              for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item }; totalProcessed++; }
+              for (const item of arr) if (item.id) { mergedResults[item.id] = { ...mergedResults[item.id], ...item, _engine: "nvidia" }; totalProcessed++; }
               await logUsage("nvidia");
             }
+
           } catch(e: any) { lastErr = e.message; }
         }
         engineStats.nvidia = { processed: totalProcessed };
@@ -616,6 +617,10 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
       const lead = leads.find((l: any) => l.id === extracted.id);
       if (!lead) continue;
       
+      const engineTag = extracted._engine ? `ai:${extracted._engine}` : null;
+      const existingTags = Array.isArray(lead.tags) ? lead.tags : [];
+      const updatedTags = engineTag ? Array.from(new Set([...existingTags, engineTag])) : existingTags;
+
       const updatePayload: any = {
         company_name: lead.company_name || extracted.company_name || null,
         brand_name: extracted.brand_name || null,
@@ -630,8 +635,10 @@ Vrať POUZE validní pole objektů v JSON formátu (bez markdown značek, čist�
         category: lead.category || extracted.category || null,
         subcategory: lead.subcategory || extracted.subcategory || null,
         premium_score: lead.premium_score || extracted.premium_score || 50,
+        tags: updatedTags,
         updated_at: new Date().toISOString(),
       };
+
 
 
       if (extracted.email && extracted.email.includes("@") && extracted.email.toLowerCase() !== lead.email.toLowerCase()) {
