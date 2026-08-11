@@ -634,92 +634,87 @@ export default function AdminEmails() {
   const { data: leadSheetData, isLoading: leadsLoading, error: leadsError } = useQuery({
     queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, enrichFilter, crmPage, crmSort],
     queryFn: async () => {
-      // Use estimated count when there are no strong filters to avoid full table scan timeouts
-      const useExactCount = searchTerm || countryFilter !== "all" || cityFilter !== "all" || categoryFilter !== "all";
-      let query = supabase.from("unified_contacts" as any).select("*", { count: useExactCount ? 'exact' : 'estimated' });
-      
-      if (crmSort === "engagement") {
-         query = query.order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
-      } else if (crmSort === "newest") {
-         query = query.order("created_at", { ascending: false });
-      } else if (crmSort === "oldest") {
-         query = query.order("created_at", { ascending: true });
-      }
-      
-      if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
-      if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
-      if (minPremiumScore && parseInt(minPremiumScore) > 0) query = query.gte("premium_score", parseInt(minPremiumScore));
-
-      if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
-      else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
-      else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
-
-      if (enrichFilter === "unenriched") query = query.is("description", null);
-      else if (enrichFilter === "enriched") query = query.not("description", "is", null);
-
-      if (categoryFilter !== "all") {
-        query = query.eq("category", categoryFilter);
-      }
-
-      if (countryFilter !== "all") {
-        query = query.eq("country", countryFilter);
-      }
-
-      if (languageFilter !== "all") {
-        query = query.eq("language", languageFilter);
-      }
-
-      // City & Distance Filter
-      if (cityFilter !== "all") {
-        const coords = CITY_COORDINATES[cityFilter];
-        if (coords) {
-          const r = parseFloat(radiusFilter);
-          // Simple bounding box for rough filtering (approx 1 deg lat = 111km)
-          const latDelta = r / 111;
-          const lngDelta = r / (111 * Math.cos(coords.lat * Math.PI / 180));
-          
-          query = query
-            .gte("latitude", coords.lat - latDelta)
-            .lte("latitude", coords.lat + latDelta)
-            .gte("longitude", coords.lng - lngDelta)
-            .lte("longitude", coords.lng + lngDelta);
-        } else {
-          // Fallback to text matching if no coordinates
-          query = query.ilike("city", `%${cityFilter}%`);
+      const buildQuery = (withOrder: boolean, withCount: boolean) => {
+        let query = supabase.from("unified_contacts" as any).select("*", withCount ? { count: 'exact' } : undefined);
+        
+        if (withOrder) {
+          if (crmSort === "engagement") {
+             query = query.order("engagement_score", { ascending: false });
+          } else if (crmSort === "newest") {
+             query = query.order("created_at", { ascending: false });
+          } else if (crmSort === "oldest") {
+             query = query.order("created_at", { ascending: true });
+          }
         }
-      }
+        
+        if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
+        if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
+        if (minPremiumScore && parseInt(minPremiumScore) > 0) query = query.gte("premium_score", parseInt(minPremiumScore));
 
-      const { data, count, error } = await query.range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
-      if (error) {
-        console.error("[AdminEmails] unified_contacts query error:", error);
-        // Fallback: if engagement sort fails, retry with created_at sort
-        if (crmSort === "engagement") {
-          console.warn("[AdminEmails] engagement_score sort failed, falling back to newest sort");
-          const { data: fallbackData, count: fallbackCount, error: fallbackError } = await supabase
-            .from("unified_contacts" as any)
-            .select("*", { count: useExactCount ? 'exact' : 'estimated' })
-            .order("created_at", { ascending: false })
-            .range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
+        if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
+        else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
+        else if (sourceFilter === "ai_web_sniper") query = query.eq("contact_source", "ai_web_sniper");
+
+        if (enrichFilter === "unenriched") query = query.is("description", null);
+        else if (enrichFilter === "enriched") query = query.not("description", "is", null);
+
+        if (categoryFilter !== "all") query = query.eq("category", categoryFilter);
+        if (countryFilter !== "all") query = query.eq("country", countryFilter);
+        if (languageFilter !== "all") query = query.eq("language", languageFilter);
+
+        if (cityFilter !== "all") {
+          const coords = CITY_COORDINATES[cityFilter];
+          if (coords) {
+            const r = parseFloat(radiusFilter);
+            const latDelta = r / 111;
+            const lngDelta = r / (111 * Math.cos(coords.lat * Math.PI / 180));
+            query = query
+              .gte("latitude", coords.lat - latDelta)
+              .lte("latitude", coords.lat + latDelta)
+              .gte("longitude", coords.lng - lngDelta)
+              .lte("longitude", coords.lng + lngDelta);
+          } else {
+            query = query.ilike("city", `%${cityFilter}%`);
+          }
+        }
+        return query;
+      };
+
+      const useExactCount = Boolean(searchTerm || (countryFilter && countryFilter !== "all") || (cityFilter && cityFilter !== "all") || (categoryFilter && categoryFilter !== "all"));
+
+      try {
+        const query = buildQuery(true, useExactCount);
+        const { data, count, error } = await query.range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
+        if (error) throw error;
+        return { data: data || [], totalCount: count || (data?.length || 0) };
+      } catch (primaryError) {
+        console.warn("[AdminEmails] Primary query failed (statement timeout), executing fast fallback without ordering/count:", primaryError);
+        try {
+          const fallbackQuery = buildQuery(false, false);
+          const { data: fallbackData, error: fallbackError } = await fallbackQuery.range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
           if (fallbackError) throw fallbackError;
-          return { data: fallbackData || [], totalCount: fallbackCount || 0 };
+          return { data: fallbackData || [], totalCount: fallbackData?.length || 0 };
+        } catch (secondaryError) {
+          console.error("[AdminEmails] Fallback query failed:", secondaryError);
+          throw secondaryError;
         }
-        throw error;
       }
-      return { data: data || [], totalCount: count || 0 };
     },
     retry: 1,
   });
 
 
   const fetchAllMatchingContacts = async () => {
-    const buildQuery = () => {
+    const buildQuery = (withOrder: boolean) => {
       let query = supabase.from("unified_contacts" as any).select("id, contact_source");
-      if (crmSort === "engagement") {
-         query = query.order("engagement_score", { ascending: false }).order("created_at", { ascending: false });
-      } else if (crmSort === "newest") {
-         query = query.order("created_at", { ascending: false });
-      } else if (crmSort === "oldest") {
-         query = query.order("created_at", { ascending: true });
+      if (withOrder) {
+        if (crmSort === "engagement") {
+           query = query.order("engagement_score", { ascending: false });
+        } else if (crmSort === "newest") {
+           query = query.order("created_at", { ascending: false });
+        } else if (crmSort === "oldest") {
+           query = query.order("created_at", { ascending: true });
+        }
       }
       
       if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
@@ -731,17 +726,9 @@ export default function AdminEmails() {
       if (enrichFilter === "unenriched") query = query.is("description", null);
       else if (enrichFilter === "enriched") query = query.not("description", "is", null);
 
-      if (categoryFilter !== "all") {
-        query = query.eq("category", categoryFilter);
-      }
-
-      if (countryFilter !== "all") {
-        query = query.eq("country", countryFilter);
-      }
-
-      if (languageFilter !== "all") {
-        query = query.eq("language", languageFilter);
-      }
+      if (categoryFilter !== "all") query = query.eq("category", categoryFilter);
+      if (countryFilter !== "all") query = query.eq("country", countryFilter);
+      if (languageFilter !== "all") query = query.eq("language", languageFilter);
 
       if (cityFilter !== "all") {
         const coords = CITY_COORDINATES[cityFilter];
@@ -767,19 +754,39 @@ export default function AdminEmails() {
     const fetchLimit = 1000;
     let hasMore = true;
 
-    while (hasMore) {
-      const query = buildQuery();
-      const { data, error } = await query.range(page * fetchLimit, (page + 1) * fetchLimit - 1);
-      if (error) throw error;
-      if (!data || data.length === 0) {
-        hasMore = false;
-      } else {
-        allData = [...allData, ...data];
-        if (data.length < fetchLimit) hasMore = false;
-        page++;
+    try {
+      while (hasMore) {
+        const query = buildQuery(true);
+        const { data, error } = await query.range(page * fetchLimit, (page + 1) * fetchLimit - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          hasMore = false;
+        } else {
+          allData = [...allData, ...data];
+          if (data.length < fetchLimit) hasMore = false;
+          page++;
+        }
       }
+      return allData;
+    } catch (e) {
+      console.warn("[AdminEmails] fetchAllMatchingContacts failed with ordering, retrying without order:", e);
+      allData = [];
+      page = 0;
+      hasMore = true;
+      while (hasMore) {
+        const query = buildQuery(false);
+        const { data, error } = await query.range(page * fetchLimit, (page + 1) * fetchLimit - 1);
+        if (error) break;
+        if (!data || data.length === 0) {
+          hasMore = false;
+        } else {
+          allData = [...allData, ...data];
+          if (data.length < fetchLimit) hasMore = false;
+          page++;
+        }
+      }
+      return allData;
     }
-    return allData;
   };
 
   const leadSheet = leadSheetData?.data || [];
@@ -792,48 +799,52 @@ export default function AdminEmails() {
       if (campaignMode === "sniper") {
         return suitableWorkers ? suitableWorkers.length : 0;
       }
+      try {
+        let query = supabase.from("unified_contacts" as any).select("id", { count: 'exact', head: true });
+        
+        if (target === "workers") query = query.eq("user_type", "worker");
+        else if (target === "customers") query = query.eq("user_type", "customer");
+        else if (target === "pro") query = query.eq("is_pro", true);
+        
+        if (campaignFilterSubcategory !== "all") {
+          const subcatName = allSubcategories?.find(s => s.id === campaignFilterSubcategory)?.name;
+          if (subcatName) {
+            query = query.or(`subcategory.ilike.%${campaignFilterSubcategory}%,subcategory.ilike.%${subcatName}%`);
+          } else {
+            query = query.ilike("subcategory", `%${campaignFilterSubcategory}%`);
+          }
+        } else if (campaignFilterCategory !== "all") {
+          const subcats = allSubcategories?.filter(s => s.category_id === campaignFilterCategory);
+          if (subcats && subcats.length > 0) {
+            const conditions = subcats.map(s => `subcategory.ilike.%${s.name}%`).join(",");
+            query = query.or(conditions);
+          }
+        }
 
-      let query = supabase.from("unified_contacts" as any).select("*", { count: 'estimated', head: true });
-      
-      if (target === "workers") query = query.eq("user_type", "worker");
-      else if (target === "customers") query = query.eq("user_type", "customer");
-      else if (target === "pro") query = query.eq("is_pro", true);
-      
-      if (campaignFilterSubcategory !== "all") {
-        const subcatName = allSubcategories?.find(s => s.id === campaignFilterSubcategory)?.name;
-        if (subcatName) {
-          query = query.or(`subcategory.ilike.%${campaignFilterSubcategory}%,subcategory.ilike.%${subcatName}%`);
-        } else {
-          query = query.ilike("subcategory", `%${campaignFilterSubcategory}%`);
+        if (city && city !== "all") {
+          const coords = CITY_COORDINATES[city];
+          if (coords) {
+            const r = parseFloat(radius || "50");
+            const latDelta = r / 111;
+            const lngDelta = r / (111 * Math.cos(coords.lat * Math.PI / 180));
+            
+            query = query
+              .gte("latitude", coords.lat - latDelta)
+              .lte("latitude", coords.lat + latDelta)
+              .gte("longitude", coords.lng - lngDelta)
+              .lte("longitude", coords.lng + lngDelta);
+          } else {
+            query = query.ilike("city", `%${city}%`);
+          }
         }
-      } else if (campaignFilterCategory !== "all") {
-        const subcats = allSubcategories?.filter(s => s.category_id === campaignFilterCategory);
-        if (subcats && subcats.length > 0) {
-          const conditions = subcats.map(s => `subcategory.ilike.%${s.name}%`).join(",");
-          query = query.or(conditions);
-        }
+        
+        const { count, error } = await query;
+        if (error) throw error;
+        return count || 0;
+      } catch (err) {
+        console.warn("[AdminEmails] campaignReachCount query failed:", err);
+        return 0;
       }
-
-      if (city && city !== "all") {
-        const coords = CITY_COORDINATES[city];
-        if (coords) {
-          const r = parseFloat(radius || "50");
-          const latDelta = r / 111;
-          const lngDelta = r / (111 * Math.cos(coords.lat * Math.PI / 180));
-          
-          query = query
-            .gte("latitude", coords.lat - latDelta)
-            .lte("latitude", coords.lat + latDelta)
-            .gte("longitude", coords.lng - lngDelta)
-            .lte("longitude", coords.lng + lngDelta);
-        } else {
-          query = query.ilike("city", `%${city}%`);
-        }
-      }
-      
-      const { count, error } = await query;
-      if (error) throw error;
-      return count || 0;
     },
   });
 
