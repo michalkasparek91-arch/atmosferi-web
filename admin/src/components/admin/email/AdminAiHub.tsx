@@ -449,7 +449,8 @@ export const AdminAiHub = () => {
         <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl">
           <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><Cpu className="w-4 h-4 mr-2"/> Přehled & AI Modely</TabsTrigger>
           <TabsTrigger value="targeting" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><Target className="w-4 h-4 mr-2"/> Cílení Sběru</TabsTrigger>
-          <TabsTrigger value="results" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><ListChecks className="w-4 h-4 mr-2"/> Poslední Úlovky & Monitor</TabsTrigger>
+          <TabsTrigger value="results" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"><ListChecks className="w-4 h-4 mr-2"/> Poslední Úlovky</TabsTrigger>
+
         </TabsList>
 
         {/* 1. PŘEHLED & AI MODELY */}
@@ -642,20 +643,14 @@ export const AdminAiHub = () => {
           </div>
         </TabsContent>
 
-        {/* 3. POSLEDNÍ ÚLOVKY & MONITOR */}
+        {/* 3. POSLEDNÍ ÚLOVKY */}
         <TabsContent value="results" className="pt-4 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="w-full">
-              <AiJobsMonitor />
-            </div>
-            <div className="w-full">
-              <ApiUsageStats />
-            </div>
-          </div>
-
           <Card className="border-border/40 shadow-sm">
-            <CardHeader>
-              <CardTitle>Poslední úlovky a obohacení ({recentLeads.length})</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Poslední úlovky a obohacení ({recentLeads.length})</span>
+                <Badge variant="outline" className="text-xs font-normal">Aktualizováno živě</Badge>
+              </CardTitle>
             </CardHeader>
 
             <CardContent>
@@ -670,6 +665,7 @@ export const AdminAiHub = () => {
                       <tr className="border-b text-left">
                         <th className="pb-2">Datum</th>
                         <th className="pb-2">Akce</th>
+                        <th className="pb-2">AI Model / Zdroj</th>
                         <th className="pb-2">Firma</th>
                         <th className="pb-2">E-mail</th>
                         <th className="pb-2">Město</th>
@@ -679,6 +675,8 @@ export const AdminAiHub = () => {
                     <tbody>
                       {recentLeads.map((lead: any) => {
                         const isSniper = lead.source === "ai_web_sniper";
+                        const hasIcebreaker = Boolean(lead.ai_icebreaker && lead.ai_icebreaker.trim());
+
                         return (
                           <tr key={lead.id} className="border-b last:border-0 hover:bg-muted/30">
                             <td className="py-3 text-muted-foreground text-xs whitespace-nowrap">
@@ -689,6 +687,21 @@ export const AdminAiHub = () => {
                                 <Badge variant="default" className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">Vyhledáno</Badge>
                               ) : (
                                 <Badge variant="default" className="bg-purple-500/10 text-purple-500 hover:bg-purple-500/20">Obohaceno</Badge>
+                              )}
+                            </td>
+                            <td className="py-3">
+                              {isSniper ? (
+                                <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 text-[11px] font-mono">
+                                  Gemini 2.5 Flash (Grounding)
+                                </Badge>
+                              ) : hasIcebreaker ? (
+                                <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[11px] font-mono">
+                                  AI Lead Enrichment
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-[11px] font-mono">
+                                  {lead.source || "AI Asistent"}
+                                </Badge>
                               )}
                             </td>
                             <td className="py-3 font-medium">{lead.company_name}</td>
@@ -707,6 +720,7 @@ export const AdminAiHub = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
 
       </Tabs>
     </div>
