@@ -1,0 +1,5 @@
+exclude:
+  - node_modules
+  - admin/node_modules
+  - artifacts
+  - scratch
