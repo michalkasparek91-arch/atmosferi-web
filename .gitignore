@@ -1,0 +1,14 @@
+# Dependencies
+node_modules
+admin/node_modules
+
+# Build outputs
+dist
+admin/dist
+.vite
+
+# Local environment & temporary files
+.env
+.env.local
+.DS_Store
+*.log
