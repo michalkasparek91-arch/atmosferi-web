@@ -151,19 +151,20 @@ export const AdminAiHub = () => {
 
 
   const { data: recentLeads = [], isLoading: leadsLoading } = useQuery({
-    queryKey: ["admin-recent-sniper-leads"],
+    queryKey: ["admin-recent-sniper-leads-updated"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("marketing_leads")
         .select("*")
         .or("source.eq.ai_web_sniper,ai_icebreaker.not.is.null")
-        .order("created_at", { ascending: false })
-        .limit(15);
+        .order("updated_at", { ascending: false })
+        .limit(25);
       if (error) throw error;
       return data || [];
     },
     refetchInterval: 15000
   });
+
 
   const { data: jobSchedule, isLoading: jobLoading } = useQuery({
     queryKey: ["admin-sniper-job"],
