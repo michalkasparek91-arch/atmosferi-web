@@ -647,7 +647,11 @@ export default function AdminEmails() {
           }
         }
         
-        if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
+        if (searchTerm) {
+          const term = searchTerm.trim();
+          query = query.or(`email.ilike.%${term}%,full_name.ilike.%${term}%,company_name.ilike.%${term}%,phone.ilike.%${term}%,city.ilike.%${term}%`);
+        }
+
         if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
         if (minPremiumScore && parseInt(minPremiumScore) > 0) query = query.gte("premium_score", parseInt(minPremiumScore));
 
@@ -680,20 +684,38 @@ export default function AdminEmails() {
         return query;
       };
 
-      const useExactCount = Boolean(searchTerm || (countryFilter && countryFilter !== "all") || (cityFilter && cityFilter !== "all") || (categoryFilter && categoryFilter !== "all"));
-
       try {
-        const query = buildQuery(true, useExactCount);
+        // Try with exact count requested from view
+        const query = buildQuery(true, true);
         const { data, count, error } = await query.range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
         if (error) throw error;
-        return { data: data || [], totalCount: count || (data?.length || 0) };
+
+        // If count is null or 0, fallback to direct total calculation
+        let calculatedCount = count;
+        if (!calculatedCount || calculatedCount === 0) {
+          const [{ count: mlCount }, { count: profCount }] = await Promise.all([
+            supabase.from("marketing_leads").select("id", { count: 'exact', head: true }),
+            supabase.from("profiles").select("id", { count: 'exact', head: true })
+          ]);
+          calculatedCount = (mlCount || 0) + (profCount || 0);
+        }
+
+        return { data: data || [], totalCount: calculatedCount || (data?.length || 0) };
       } catch (primaryError) {
         console.warn("[AdminEmails] Primary query failed (statement timeout), executing fast fallback without ordering/count:", primaryError);
         try {
           const fallbackQuery = buildQuery(false, false);
           const { data: fallbackData, error: fallbackError } = await fallbackQuery.range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
           if (fallbackError) throw fallbackError;
-          return { data: fallbackData || [], totalCount: fallbackData?.length || 0 };
+
+          // Fetch true table counts for total contacts calculation
+          const [{ count: mlCount }, { count: profCount }] = await Promise.all([
+            supabase.from("marketing_leads").select("id", { count: 'exact', head: true }),
+            supabase.from("profiles").select("id", { count: 'exact', head: true })
+          ]);
+          const trueTotal = (mlCount || 0) + (profCount || 0);
+
+          return { data: fallbackData || [], totalCount: trueTotal || (fallbackData?.length || 0) };
         } catch (secondaryError) {
           console.error("[AdminEmails] Fallback query failed:", secondaryError);
           throw secondaryError;
@@ -702,6 +724,7 @@ export default function AdminEmails() {
     },
     retry: 1,
   });
+
 
 
   const fetchAllMatchingContacts = async () => {
@@ -717,7 +740,10 @@ export default function AdminEmails() {
         }
       }
       
-      if (searchTerm) query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
+      if (searchTerm) {
+        const term = searchTerm.trim();
+        query = query.or(`email.ilike.%${term}%,full_name.ilike.%${term}%,company_name.ilike.%${term}%,phone.ilike.%${term}%,city.ilike.%${term}%`);
+      }
       if (minEngagement && parseInt(minEngagement) > 0) query = query.gte("engagement_score", parseInt(minEngagement));
       if (sourceFilter === "organic") query = query.eq("contact_source", "registered");
       else if (sourceFilter === "scraped") query = query.eq("contact_source", "lead");
