@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Zap, Target, MapPin, Search, Plus, X, CheckSquare, Square, Globe, MessageSquare, LayoutDashboard, Settings2, Sparkles, ListChecks } from "lucide-react";
+import { Loader2, Zap, Target, MapPin, Search, Plus, X, CheckSquare, Square, Globe, MessageSquare, LayoutDashboard, Settings2, Sparkles, ListChecks, Cpu } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TOP_CITIES_BY_COUNTRY } from "@/lib/city-regions";
