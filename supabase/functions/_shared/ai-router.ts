@@ -10,8 +10,9 @@ export interface RouterResult { text: string; provider: string; attempts: Router
 
 // Modely, které v daném providerovi držíme jako výchozí (free tier friendly).
 const DEFAULTS: Record<string, string> = {
-  gemini: "gemini-1.5-flash",
+  gemini: "gemini-2.5-flash",
   groq: "llama-3.3-70b-versatile",
+
   openrouter: "openai/gpt-4o-mini",
   deepseek: "deepseek-chat",
   siliconflow: "Qwen/Qwen2.5-72B-Instruct",

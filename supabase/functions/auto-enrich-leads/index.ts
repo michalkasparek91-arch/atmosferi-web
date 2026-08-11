@@ -57,8 +57,9 @@ Deno.serve(async (req) => {
 
     // Per-provider model overrides (configured in Admin > AI Hub > Modely & Klíče)
     const groqModel      = cfg.groq_model      || "llama-3.3-70b-versatile";
-    const geminiModel    = cfg.gemini_model    || "gemini-1.5-flash";
+    const geminiModel    = cfg.gemini_model    || "gemini-2.5-flash";
     const openrouterModel = cfg.openrouter_model || "openai/gpt-4o-mini";
+
 
     const deepseekModel  = cfg.deepseek_model  || "deepseek-chat";
     const siliconflowModel = cfg.siliconflow_model || "Qwen/Qwen2.5-72B-Instruct";

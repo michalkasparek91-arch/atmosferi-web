@@ -15,42 +15,50 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// ─── Model catalogues per provider ─────────────────────────────────────────
+// ─── Model catalogues per provider (Updated 2026) ──────────────────────────
 const MODEL_CATALOGUES: Record<string, { label: string; value: string }[]> = {
-  groq: [
-    { label: "llama-3.3-70b-versatile (doporučeno)", value: "llama-3.3-70b-versatile" },
-    { label: "mixtral-8x7b-32768", value: "mixtral-8x7b-32768" },
-    { label: "gemma-7b-it", value: "gemma-7b-it" },
-  ],
   gemini: [
-    { label: "gemini-1.5-flash (doporučeno - stabilní)", value: "gemini-1.5-flash" },
-    { label: "gemini-2.0-flash-exp (experimentální)", value: "gemini-2.0-flash-exp" },
-    { label: "gemini-1.5-pro", value: "gemini-1.5-pro" },
-    { label: "gemini-2.0-flash-lite", value: "gemini-2.0-flash-lite" },
+    { label: "gemini-2.5-flash (Nejnovější 2026 - Doporučeno)", value: "gemini-2.5-flash" },
+    { label: "gemini-2.0-flash (Rychlý 2026)", value: "gemini-2.0-flash" },
+    { label: "gemini-2.5-pro (Vysoká přesnost)", value: "gemini-2.5-pro" },
+    { label: "gemini-2.0-flash-lite (Úsporný)", value: "gemini-2.0-flash-lite" },
+  ],
+  groq: [
+    { label: "llama-3.3-70b-versatile (Doporučeno)", value: "llama-3.3-70b-versatile" },
+    { label: "deepseek-r1-distill-llama-70b (Reasoning)", value: "deepseek-r1-distill-llama-70b" },
+    { label: "llama-3.1-8b-instant (Bleskový)", value: "llama-3.1-8b-instant" },
+    { label: "mixtral-8x7b-32768", value: "mixtral-8x7b-32768" },
   ],
   openrouter: [
-    { label: "llama-3.3-70b-instruct:free (doporučeno)", value: "meta-llama/llama-3.3-70b-instruct:free" },
-    { label: "openai/gpt-4o-mini", value: "openai/gpt-4o-mini" },
-    { label: "deepseek/deepseek-chat:free", value: "deepseek/deepseek-chat:free" },
+    { label: "openai/gpt-4o-mini (Doporučeno)", value: "openai/gpt-4o-mini" },
+    { label: "google/gemini-2.0-flash-001", value: "google/gemini-2.0-flash-001" },
+    { label: "deepseek/deepseek-chat", value: "deepseek/deepseek-chat" },
+    { label: "meta-llama/llama-3.3-70b-instruct", value: "meta-llama/llama-3.3-70b-instruct" },
+    { label: "anthropic/claude-3.5-haiku", value: "anthropic/claude-3.5-haiku" },
   ],
   deepseek: [
-    { label: "deepseek-chat (doporučeno)", value: "deepseek-chat" },
-    { label: "deepseek-reasoner", value: "deepseek-reasoner" },
+    { label: "deepseek-chat (DeepSeek V3 - Doporučeno)", value: "deepseek-chat" },
+    { label: "deepseek-reasoner (DeepSeek R1 Reasoning)", value: "deepseek-reasoner" },
   ],
   siliconflow: [
-    { label: "Qwen/Qwen2.5-72B-Instruct (doporučeno)", value: "Qwen/Qwen2.5-72B-Instruct" },
+    { label: "Qwen/Qwen2.5-72B-Instruct (Doporučeno)", value: "Qwen/Qwen2.5-72B-Instruct" },
     { label: "deepseek-ai/DeepSeek-V3", value: "deepseek-ai/DeepSeek-V3" },
+    { label: "deepseek-ai/DeepSeek-R1", value: "deepseek-ai/DeepSeek-R1" },
   ],
   cerebras: [
-    { label: "gpt-oss-120b (Ultra-fast reasoning)", value: "gpt-oss-120b" },
+    { label: "llama3.3-70b (Doporučeno)", value: "llama3.3-70b" },
+    { label: "gpt-oss-120b (Reasoning)", value: "gpt-oss-120b" },
   ],
   mistral: [
-    { label: "mistral-large-latest (doporučeno)", value: "mistral-large-latest" },
+    { label: "mistral-large-latest (Doporučeno)", value: "mistral-large-latest" },
+    { label: "pixtral-large-latest", value: "pixtral-large-latest" },
   ],
   nvidia: [
-    { label: "meta/llama-3.3-70b-instruct (doporučeno)", value: "meta/llama-3.3-70b-instruct" },
+    { label: "meta/llama-3.3-70b-instruct (Doporučeno)", value: "meta/llama-3.3-70b-instruct" },
+    { label: "deepseek-ai/deepseek-r1", value: "deepseek-ai/deepseek-r1" },
   ],
 };
+
 
 // ─── Status dot with error popup ────────────────────────────────────────────
 const StatusDot = ({ status, message, updatedAt }: { status: string | undefined; message?: string; updatedAt?: string }) => {
@@ -369,8 +377,9 @@ export const AiProvidersConfig = ({ config, setConfig, saveConfigMutation }: any
       sliderKey: "gemini_rpm_limit",
       sliderDefault: 15,
       modelConfigKey: "gemini_model",
-      modelDefault: "gemini-2.0-flash",
+      modelDefault: "gemini-2.5-flash",
       relatedJobs: ["Auto Enrich Leads", "Continuous Web Discovery"],
+
     },
     {
       id: "groq",
