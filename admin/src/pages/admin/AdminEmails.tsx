@@ -51,6 +51,7 @@ import { AdminAiHub } from "@/components/admin/email/AdminAiHub";
 import { AdminOutbox } from "@/components/admin/email/AdminOutbox";
 import { ProposalsManager } from "@/components/admin/email/ProposalsManager";
 import { AiInsightsTab } from "@/components/admin/email/AiInsightsTab";
+import { CampaignWizard } from "@/components/admin/email/CampaignWizard";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
@@ -1463,56 +1464,78 @@ export default function AdminEmails() {
                 />
               } />
 
-              <Route path="sablony" element={<EmailTemplatesTab />} />
-              <Route path="ai-data" element={<AiInsightsTab />} />
-              <Route path="sber" element={<AdminAiHub />} />
-              <Route path="outbox" element={<AdminOutbox />} />
+              {/* Tab 1: Kampaně & Odesílání */}
+              <Route path="kampane" element={
+                <CampaignWizard
+                  onOpenVisualEditor={() => setEditorOpen(true)}
+                  onSendCampaign={(payload) => {
+                    toast({ title: "Kampaň naplánována", description: `Připraveno ${payload.recipientCount} e-mailů ke zpracování.` });
+                    navigate("../fronta");
+                  }}
+                  isSending={isSending}
+                />
+              } />
 
-              <Route path="nastaveni" element={
-                <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="space-y-1">
-                    <h2 className="text-xl font-bold">Nastavení studia</h2>
-                    <p className="text-xs text-muted-foreground">Konfigurace odesílání a automatizace marketingu</p>
-                  </div>
-                  
-                  <div className="grid gap-4">
-                    <div className="p-6 rounded-3xl border border-border/50 bg-card/50 backdrop-blur-sm space-y-4">
-                      <h3 className="text-sm font-bold">Identita odesílatele</h3>
-                      <div className="grid gap-2">
-                        <div className="flex justify-between items-center p-3 rounded-2xl bg-muted/30 border border-border/40">
-                          <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Email odesílatele</p>
-                            <p className="text-xs font-medium">ahoj@zrobee.cz</p>
-                          </div>
-                          <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-md border border-emerald-500/20">OVĚŘENO</span>
-                        </div>
-                      </div>
-                    </div>
+              {/* Tab 2: Kontakty & Publiku */}
+              <Route path="kontakty" element={
+                <AudienceManager
+                  {...{
+                    searchTerm, setSearchTerm,
+                    selectedStatus, setSelectedStatus,
+                    selectedSubcategory, setSelectedSubcategory,
+                    minPremiumScore, setMinPremiumScore,
+                    crmSort, setCrmSort,
+                    leadSheet, leadsLoading,
+                    leadTotalCount,
+                    crmPage, setCrmPage,
+                    totalPages,
+                    handleExportCSV,
+                    categoryFilter, setCategoryFilter,
+                    countryFilter, setCountryFilter,
+                    languageFilter, setLanguageFilter,
+                    cityFilter, setCityFilter,
+                    radiusFilter, setRadiusFilter,
+                    sourceFilter, setSourceFilter,
+                    enrichFilter, setEnrichFilter,
+                    allSubcategories,
+                    importFileRef,
+                    handleFileUpload,
+                    isImporting,
+                    importProgress,
+                    importTotalCount,
+                    allCategories,
+                    fetchAllMatchingContacts,
+                    refetchLeads: () => queryClient.invalidateQueries({ queryKey: ["admin-lead-sheet"] })
+                  }}
+                />
+              } />
 
-                    <div className="p-6 rounded-3xl border border-border/50 bg-card/50 backdrop-blur-sm space-y-4">
-                      <h3 className="text-sm font-bold">Automatizace (Drips)</h3>
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <p className="text-xs font-bold">Aktivovat automatické kampaně</p>
-                          <p className="text-[10px] text-muted-foreground">Povolit odesílání e-mailů na základě chování uživatele (onboarding, reaktivace)</p>
-                        </div>
-                        {isDripPausedLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-                        ) : (
-                          <Switch
-                            checked={!isDripPausedData}
-                            disabled={dripPausedMutation.isPending}
-                            onCheckedChange={(checked) => dripPausedMutation.mutate(!checked)}
-                            className="data-[state=checked]:bg-emerald-500"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
+              {/* Tab 3: Fronta & Historie */}
+              <Route path="fronta" element={
+                <div className="space-y-6">
+                  <AdminOutbox />
+                  <CampaignReview />
                 </div>
               } />
-              
-              <Route path="*" element={<Navigate to="sber" replace />} />
+
+              {/* Tab 4: Šablony & AI Asistent */}
+              <Route path="sablony-ai" element={
+                <div className="space-y-6">
+                  <EmailTemplatesTab />
+                  <AdminAiHub />
+                </div>
+              } />
+
+              {/* Legacy Route Redirects */}
+              <Route path="sber" element={<Navigate to="../sablony-ai" replace />} />
+              <Route path="ai-data" element={<Navigate to="../kontakty" replace />} />
+              <Route path="crm" element={<Navigate to="../kontakty" replace />} />
+              <Route path="outbox" element={<Navigate to="../fronta" replace />} />
+              <Route path="historie" element={<Navigate to="../fronta" replace />} />
+              <Route path="prehled" element={<Navigate to="../fronta" replace />} />
+              <Route path="sablony" element={<Navigate to="../sablony-ai" replace />} />
+
+              <Route path="*" element={<Navigate to="kampane" replace />} />
             </Routes>
           </Suspense>
         </div>

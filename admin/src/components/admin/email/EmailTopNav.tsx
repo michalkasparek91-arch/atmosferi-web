@@ -3,8 +3,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  BarChart3, Send, Users, Layout, 
-  Settings2, Sparkles, Inbox as InboxIcon, History, Send as SendIcon
+  Send, 
+  Users, 
+  History, 
+  Sparkles, 
+  Settings2 
 } from "lucide-react";
 
 interface NavItemProps {
@@ -21,12 +24,13 @@ const NavItem = ({ id, label, icon: Icon, active, onClick, badge }: NavItemProps
     onClick={() => onClick(id)}
     title={label}
     data-state={active ? "active" : "inactive"}
-    className="inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-[10px] font-semibold transition-all h-7 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground"
+    className="inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition-all h-9 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-900 data-[state=active]:shadow-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white data-[state=active]:text-foreground border border-transparent data-[state=active]:border-border/60"
   >
+    <Icon className="h-4 w-4 mr-2 flex-shrink-0 text-muted-foreground group-hover:text-foreground" />
     <span className="truncate flex items-center justify-center min-w-0">
       {label}
       {badge && (
-        <span className="ml-1.5 text-[8px] font-black min-w-[14px] h-[14px] px-1 flex items-center justify-center rounded-full bg-primary text-white">
+        <span className="ml-2 text-[10px] font-black min-w-[18px] h-[18px] px-1.5 flex items-center justify-center rounded-full bg-primary text-white">
           {badge}
         </span>
       )}
@@ -39,11 +43,24 @@ export const EmailTopNav = () => {
   const navigate = useNavigate();
   
   const pathParts = location.pathname.split("/");
-  const activeTab = pathParts[2] || "sber";
+  const currentTab = pathParts[2] || "kampane";
+
+  // Normalize legacy routes to 4 core tabs
+  let activeTab = "kampane";
+  if (currentTab === "kontakty" || currentTab === "ai-data" || currentTab === "crm") {
+    activeTab = "kontakty";
+  } else if (currentTab === "fronta" || currentTab === "outbox" || currentTab === "historie" || currentTab === "prehled") {
+    activeTab = "fronta";
+  } else if (currentTab === "sablony-ai" || currentTab === "sablony" || currentTab === "sber") {
+    activeTab = "sablony-ai";
+  } else {
+    activeTab = "kampane";
+  }
 
   const onTabChange = (tab: string) => {
     navigate(`/emaily/${tab}`);
   };
+
   const { data: outboxReadyCount = 0 } = useQuery({
     queryKey: ["outbox-ready-count-nav"],
     queryFn: async () => {
@@ -57,81 +74,48 @@ export const EmailTopNav = () => {
     refetchInterval: 30000,
   });
 
-  const { data: campaignCount = 0 } = useQuery({
-    queryKey: ["marketing-campaigns-count-nav"],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("marketing_campaigns")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "draft");
-      if (error) return 0;
-      return count || 0;
-    },
-    refetchInterval: 30000,
-  });
-
-  const totalPending = campaignCount;
-
   return (
-    <div className="flex items-center overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 w-[calc(100%+2rem)] md:w-full pb-1">
-      <div className="flex items-center justify-between w-full min-w-max gap-4">
-        {/* Left Side: Daily Routine */}
-        <div className="bg-muted/40 p-1 rounded-full h-9 flex items-center shrink-0">
-          <NavItem 
-            id="sber" 
-            label="AI Hub" 
-            icon={Sparkles} 
-            active={activeTab === "sber"} 
-            onClick={onTabChange} 
-          />
-          <NavItem 
-            id="ai-data" 
-            label="AI Data" 
-            icon={Sparkles} 
-            active={activeTab === "ai-data"} 
-            onClick={onTabChange} 
-          />
-          <NavItem 
-            id="outbox" 
-            label="Outbox" 
-            icon={SendIcon} 
-            active={activeTab === "outbox"} 
-            onClick={onTabChange} 
-            badge={outboxReadyCount > 0 ? outboxReadyCount.toString() : undefined}
-          />
-          <NavItem 
-            id="sablony" 
-            label="Šablony" 
-            icon={Layout} 
-            active={activeTab === "sablony"} 
-            onClick={onTabChange} 
-          />
-        </div>
-
-        {/* Right Side: Settings & Data */}
-        <div className="bg-muted/40 p-1 rounded-full h-9 flex items-center shrink-0">
+    <div className="flex items-center justify-between bg-zinc-100/80 dark:bg-zinc-900/80 p-1.5 rounded-2xl border border-border/60 mb-6">
+      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar w-full sm:w-auto">
         <NavItem 
-          id="crm" 
-          label="CRM" 
+          id="kampane" 
+          label="Kampaně & Odesílání" 
+          icon={Send} 
+          active={activeTab === "kampane"} 
+          onClick={onTabChange} 
+        />
+        <NavItem 
+          id="kontakty" 
+          label="Kontakty & Publiku" 
           icon={Users} 
-          active={activeTab === "crm"} 
+          active={activeTab === "kontakty"} 
           onClick={onTabChange} 
         />
         <NavItem 
-          id="historie" 
-          label="Historie" 
+          id="fronta" 
+          label="Fronta & Historie" 
           icon={History} 
-          active={activeTab === "historie" || activeTab === "prehled"} 
+          active={activeTab === "fronta"} 
+          onClick={onTabChange} 
+          badge={outboxReadyCount > 0 ? outboxReadyCount.toString() : undefined}
+        />
+        <NavItem 
+          id="sablony-ai" 
+          label="Šablony & AI Asistent" 
+          icon={Sparkles} 
+          active={activeTab === "sablony-ai"} 
           onClick={onTabChange} 
         />
+      </div>
+
+      <div className="hidden sm:flex items-center pr-2">
         <button
           onClick={() => navigate("/seo-obsah?tab=automation")}
           title="Nastavení automatizací"
-          className="ml-2 inline-flex items-center justify-center rounded-full w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-white dark:hover:bg-slate-900 transition-all"
+          className="inline-flex items-center justify-center rounded-xl w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-white dark:hover:bg-zinc-800 transition-all border border-transparent hover:border-border"
         >
-          <Settings2 className="h-3.5 w-3.5" />
+          <Settings2 className="h-4 w-4" />
         </button>
-      </div>
       </div>
     </div>
   );
