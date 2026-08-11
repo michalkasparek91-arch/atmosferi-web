@@ -770,6 +770,17 @@ export const AudienceManager = (props: any) => {
                     <p className="text-xs text-muted-foreground mt-4 font-medium italic">Načítám publikum...</p>
                   </TableCell>
                 </TableRow>
+              ) : props.leadsError ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-64 text-center">
+                    <AlertCircle className="h-8 w-8 mx-auto text-destructive/50 mb-3" />
+                    <p className="text-sm font-semibold text-destructive">Chyba při načítání kontaktů</p>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto font-mono bg-muted/50 rounded p-2 mt-2">
+                      {(props.leadsError as any)?.message || String(props.leadsError)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">Zkontrolujte prosím Supabase — view <code className="bg-muted px-1 rounded">unified_contacts</code> musí existovat a mít správná RLS práva.</p>
+                  </TableCell>
+                </TableRow>
               ) : leadSheet.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-64 text-center">

@@ -631,7 +631,7 @@ export default function AdminEmails() {
     }
   }, [suitableWorkers]);
 
-  const { data: leadSheetData, isLoading: leadsLoading } = useQuery({
+  const { data: leadSheetData, isLoading: leadsLoading, error: leadsError } = useQuery({
     queryKey: ["admin-lead-sheet", searchTerm, minEngagement, minPremiumScore, categoryFilter, countryFilter, languageFilter, cityFilter, radiusFilter, sourceFilter, enrichFilter, crmPage, crmSort],
     queryFn: async () => {
       // Use estimated count when there are no strong filters to avoid full table scan timeouts
@@ -690,10 +690,15 @@ export default function AdminEmails() {
       }
 
       const { data, count, error } = await query.range(crmPage * pageSize, (crmPage + 1) * pageSize - 1);
-      if (error) throw error;
+      if (error) {
+        console.error("[AdminEmails] unified_contacts query error:", error);
+        throw error;
+      }
       return { data: data || [], totalCount: count || 0 };
     },
+    retry: 1,
   });
+
 
   const fetchAllMatchingContacts = async () => {
     const buildQuery = () => {
@@ -1355,7 +1360,7 @@ export default function AdminEmails() {
                     minEngagement, setMinEngagement,
                     minPremiumScore, setMinPremiumScore,
                     crmSort, setCrmSort,
-                    leadSheet, leadsLoading,
+                    leadSheet, leadsLoading, leadsError,
                     leadTotalCount,
                     crmPage, setCrmPage,
                     totalPages,
