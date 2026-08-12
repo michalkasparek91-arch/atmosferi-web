@@ -699,16 +699,23 @@ export const AdminAiHub = () => {
                             <td className="py-3">
                               {(() => {
                                 const aiTag = Array.isArray(lead.tags) ? lead.tags.find((t: string) => t.startsWith("ai:")) : null;
-                                const engineName = lead.ai_engine || (aiTag ? aiTag.replace("ai:", "") : null);
+                                // discovered_by zapisuje sběrač u každého nového kontaktu
+                                // (název AI providera, "osm", nebo "vyhledavani+crawl").
+                                const engineName = lead.discovered_by || lead.ai_engine || (aiTag ? aiTag.replace("ai:", "") : null);
 
                                 if (engineName) {
                                   return (
                                     <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[11px] font-mono capitalize">
-                                      {engineName === "nvidia" ? "NVIDIA NIM (Llama 3.3)" :
+                                      {engineName === "nvidia" ? "NVIDIA NIM" :
                                        engineName === "groq" ? "Groq (Llama 3.3)" :
-                                       engineName === "deepseek" ? "DeepSeek V3" :
-                                       engineName === "gemini" ? "Gemini 2.5 Flash" :
-                                       engineName === "openrouter" ? "OpenRouter (GPT-4o)" :
+                                       engineName === "deepseek" ? "DeepSeek" :
+                                       engineName === "gemini" ? "Gemini" :
+                                       engineName === "cerebras" ? "Cerebras (gpt-oss-120b)" :
+                                       engineName === "mistral" ? "Mistral" :
+                                       engineName === "openrouter" ? "OpenRouter" :
+                                       engineName === "pollinations" ? "Pollinations" :
+                                       engineName === "osm" ? "OpenStreetMap (bez AI)" :
+                                       engineName === "vyhledavani+crawl" ? "Vyhledávání + crawl (bez AI)" :
                                        engineName}
                                     </Badge>
                                   );

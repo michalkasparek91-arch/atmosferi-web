@@ -132,6 +132,96 @@ const WORLD_CITIES: Record<string, string[]> = {
 
 // Jazykove varianty dotazu podle zeme — "kontakt e-mail" v CZ, "Kontakt E-Mail"
 // v DE, "contact email" jinde. Vic ruznych dotazu = vic ruznych firem.
+// PROC: hledalo se ceskym slovem i v cizine ("interiérový designér Bergen"),
+// takze vyhledavace vratily CESKE firmy a ty se ulozily jako norske.
+// Klicove slovo proto prekladame do jazyka trhu.
+const KW_CONCEPTS: Record<string, string> = {
+  "architekt": "architect", "architektonicke studio": "arch_studio", "architektonické studio": "arch_studio",
+  "samostatny architekt": "architect", "samostatný architekt": "architect",
+  "interierovy design": "interior", "interiérový design": "interior",
+  "interierovy designer": "interior", "interiérový designér": "interior", "interiery": "interior",
+  "developer": "developer", "realitni developer": "developer", "realitní developer": "developer",
+  "realitni kancelar": "estate", "realitní kancelář": "estate", "makler": "estate", "makléř": "estate",
+  "stavebni inzenyr": "engineer", "stavební inženýr": "engineer",
+  "stavebni firma": "builder", "stavební firma": "builder",
+  "urbanismus": "urban",
+};
+const KW_BY_LANG: Record<string, Record<string, string>> = {
+  cs: { architect: "architekt", arch_studio: "architektonické studio", interior: "interiérový designér", developer: "realitní developer", estate: "realitní kancelář", engineer: "stavební inženýr", builder: "stavební firma", urban: "urbanismus" },
+  sk: { architect: "architekt", arch_studio: "architektonický ateliér", interior: "interiérový dizajnér", developer: "realitný developer", estate: "realitná kancelária", engineer: "stavebný inžinier", builder: "stavebná firma", urban: "urbanizmus" },
+  de: { architect: "Architekt", arch_studio: "Architekturbüro", interior: "Innenarchitekt", developer: "Immobilienentwickler", estate: "Immobilienmakler", engineer: "Bauingenieur", builder: "Baufirma", urban: "Stadtplanung" },
+  no: { architect: "arkitekt", arch_studio: "arkitektkontor", interior: "interiørarkitekt", developer: "eiendomsutvikler", estate: "eiendomsmegler", engineer: "byggingeniør", builder: "byggefirma", urban: "byplanlegging" },
+  fi: { architect: "arkkitehti", arch_studio: "arkkitehtitoimisto", interior: "sisustusarkkitehti", developer: "kiinteistökehittäjä", estate: "kiinteistönvälittäjä", engineer: "rakennusinsinööri", builder: "rakennusliike", urban: "kaupunkisuunnittelu" },
+  sv: { architect: "arkitekt", arch_studio: "arkitektkontor", interior: "inredningsarkitekt", developer: "fastighetsutvecklare", estate: "fastighetsmäklare", engineer: "byggingenjör", builder: "byggfirma", urban: "stadsplanering" },
+  da: { architect: "arkitekt", arch_studio: "arkitektfirma", interior: "indretningsarkitekt", developer: "ejendomsudvikler", estate: "ejendomsmægler", engineer: "bygningsingeniør", builder: "byggefirma", urban: "byplanlægning" },
+  nl: { architect: "architect", arch_studio: "architectenbureau", interior: "interieurarchitect", developer: "projectontwikkelaar", estate: "makelaar", engineer: "bouwkundig ingenieur", builder: "bouwbedrijf", urban: "stedenbouw" },
+  fr: { architect: "architecte", arch_studio: "agence d'architecture", interior: "architecte d'intérieur", developer: "promoteur immobilier", estate: "agence immobilière", engineer: "ingénieur en bâtiment", builder: "entreprise de construction", urban: "urbanisme" },
+  es: { architect: "arquitecto", arch_studio: "estudio de arquitectura", interior: "interiorista", developer: "promotora inmobiliaria", estate: "inmobiliaria", engineer: "ingeniero de edificación", builder: "constructora", urban: "urbanismo" },
+  it: { architect: "architetto", arch_studio: "studio di architettura", interior: "interior designer", developer: "sviluppatore immobiliare", estate: "agenzia immobiliare", engineer: "ingegnere edile", builder: "impresa di costruzioni", urban: "urbanistica" },
+  pl: { architect: "architekt", arch_studio: "biuro architektoniczne", interior: "architekt wnętrz", developer: "deweloper", estate: "biuro nieruchomości", engineer: "inżynier budownictwa", builder: "firma budowlana", urban: "urbanistyka" },
+  pt: { architect: "arquiteto", arch_studio: "atelier de arquitetura", interior: "designer de interiores", developer: "promotor imobiliário", estate: "imobiliária", engineer: "engenheiro civil", builder: "construtora", urban: "urbanismo" },
+  hu: { architect: "építész", arch_studio: "építészirodák", interior: "belsőépítész", developer: "ingatlanfejlesztő", estate: "ingatlaniroda", engineer: "építőmérnök", builder: "építőipari cég", urban: "várostervezés" },
+  en: { architect: "architect", arch_studio: "architecture studio", interior: "interior designer", developer: "property developer", estate: "real estate agency", engineer: "structural engineer", builder: "construction company", urban: "urban planning" },
+};
+
+function langForCountry(country: string): string {
+  const c = (country || "").toLowerCase();
+  if (c.includes("cesk")) return "cs";
+  if (c.includes("slovensk")) return "sk";
+  if (c.includes("nemeck") || c.includes("rakous") || c.includes("vcarsko")) return "de";
+  if (c.includes("norsk")) return "no";
+  if (c.includes("finsk")) return "fi";
+  if (c.includes("svedsk")) return "sv";
+  if (c.includes("dansk")) return "da";
+  if (c.includes("nizozem") || c.includes("belgie")) return "nl";
+  if (c.includes("francie")) return "fr";
+  if (c.includes("spanelsk")) return "es";
+  if (c.includes("italie")) return "it";
+  if (c.includes("polsko")) return "pl";
+  if (c.includes("portugalsk")) return "pt";
+  if (c.includes("madarsk")) return "hu";
+  return "en";
+}
+
+/** Prelozi obor do jazyka ciloveho trhu (jinak hledame cesky v Norsku). */
+function localizeKeyword(keyword: string, country: string): string {
+  const concept = KW_CONCEPTS[(keyword || "").toLowerCase().trim()];
+  if (!concept) return keyword;
+  const lang = langForCountry(country);
+  return KW_BY_LANG[lang]?.[concept] || KW_BY_LANG.en[concept] || keyword;
+}
+
+// Ocekavane narodni domeny — kontrola, ze nalezena firma opravdu patri do ciloveho trhu.
+const COUNTRY_TLD: Record<string, string> = {
+  "Ceska republika": "cz", "Slovensko": "sk", "Nemecko": "de", "Rakousko": "at", "Svycarsko": "ch",
+  "Polsko": "pl", "Madarsko": "hu", "Velka Britanie": "uk", "Irsko": "ie", "Francie": "fr",
+  "Spanelsko": "es", "Italie": "it", "Portugalsko": "pt", "Nizozemsko": "nl", "Belgie": "be",
+  "Dansko": "dk", "Svedsko": "se", "Norsko": "no", "Finsko": "fi", "Chorvatsko": "hr",
+  "Slovinsko": "si", "Rumunsko": "ro", "Recko": "gr", "Turecko": "tr", "Kanada": "ca",
+  "Australie": "au", "Novy Zeland": "nz", "Japonsko": "jp", "Brazilie": "br", "Mexiko": "mx",
+  "Jizni Afrika": "za", "Irsko ": "ie",
+};
+const ALL_CC = new Set(Object.values(COUNTRY_TLD));
+
+/**
+ * Overi, ze kontakt geograficky patri k cilove zemi.
+ * Cizi narodni domena (napr. .cz ve vysledku pro Bergen) = zamitnout.
+ * Genericka domena (.com/.eu/...) projde jen kdyz se v textu objevi mesto nebo zeme.
+ */
+function matchesLocality(item: any, city: string, country: string): boolean {
+  const expected = COUNTRY_TLD[country];
+  const hay = `${item.website || ""} ${item.email || ""}`.toLowerCase();
+  const m = hay.match(/\.([a-z]{2,})(?:[\/:?#]|\s|$)/g) || [];
+  const tlds = m.map((x) => x.replace(/[^a-z]/g, ""));
+  if (expected && tlds.includes(expected)) return true;
+  // narodni domena jine zeme → jednoznacne mimo trh
+  const foreign = tlds.find((t) => ALL_CC.has(t) && t !== expected);
+  if (foreign) return false;
+  if (!expected) return true; // zemi neznáme (napr. USA/.com) → nefiltrujeme
+  const text = `${item.company_name || ""} ${item.description || ""} ${item.full_address || ""} ${item.website || ""}`.toLowerCase();
+  return text.includes((city || "").toLowerCase()) || text.includes((country || "").toLowerCase());
+}
+
 function queryVariants(keyword: string, city: string, country: string): string[] {
   const c = (country || "").toLowerCase();
   // 1. dotaz je ZAMERNE holy — katalogy (Firmy.cz) na nej vraci nejvic firem.
@@ -159,7 +249,10 @@ async function harvestOne(
 ): Promise<{ list: any[]; debug: string; attempts: { provider: string; ok: boolean; error?: string }[] }> {
   // 1. Realne vysledky (zdarma, paralelne) + OSM.
   // Vic jazykovych variant dotazu × strankovani = vyrazne vic unikatnich firem.
-  const variants = queryVariants(keyword, city, country);
+  // Obor prelozeny do jazyka trhu — bez toho vracely vyhledavace ceske firmy
+  // i pro norska/finska mesta a ukladaly se s cizim mestem.
+  const localKeyword = localizeKeyword(keyword, country);
+  const variants = queryVariants(localKeyword, city, country);
   // POZOR: DDG/Bing/Firmy.cz pri prilis rychlem palbe zacnou vracet prazdno (throttling).
   // Varianty proto jedou SEKVENCNE s malou pauzou — pomaleji, ale s vyrazne vyssim vytezkem.
   const osmPromise = searchOsm(city, keyword);
@@ -190,7 +283,7 @@ async function harvestOne(
       company_name: p.name, brand_name: p.name, email: p.email, phone: p.phone,
       website: p.website, city, country, language: "", full_address: p.address,
       description: "", decision_maker_name: "", last_project: "", premium_score: 50,
-      _src: "osm",
+      _src: "osm", _by: "osm",
     }));
 
   if (web.results.length === 0 && osmDirect.length === 0) {
@@ -200,6 +293,7 @@ async function harvestOne(
   let aiList: any[] = [];
   let attempts: { provider: string; ok: boolean; error?: string }[] = [];
   let aiNote = "AI preskocena (zadne webove vysledky)";
+  let aiProvider = "";
 
   if (web.results.length > 0) {
     const prompt = `Nize jsou REALNE vysledky webasoveho vyhledavani pro dotaz "${keyword} ${city}".
@@ -225,6 +319,7 @@ ${formatResultsForPrompt(web.results)}`;
       attempts = res.attempts;
       aiList = parseJsonArray(res.text);
       await logApiUsage(supabase, res.provider, "autonomous-web-sniper");
+      aiProvider = res.provider;
       aiNote = `AI extrakce pres ${res.provider} → ${aiList.length}`;
     } catch (e: any) {
       aiNote = `AI selhala: ${String(e.message).slice(0, 200)}`;
@@ -238,7 +333,7 @@ ${formatResultsForPrompt(web.results)}`;
     const k = String(a.website || a.company_name || "").toLowerCase();
     if (k && seenSite.has(k)) continue;
     seenSite.add(k);
-    merged.push({ ...a, _src: "ai" });
+    merged.push({ ...a, _src: "ai", _by: aiProvider || "ai" });
   }
 
   // 2b. BEZ-AI ZALOHA: kdyz AI selhala (vycerpane kvoty), postavime kandidaty
@@ -254,7 +349,7 @@ ${formatResultsForPrompt(web.results)}`;
         company_name: (r.title || host).replace(/\s*[|–-]\s*.*$/, "").trim().slice(0, 120),
         brand_name: "", email: "", phone: "", website: r.url, city, country,
         language: "", full_address: "", description: (r.snippet || "").slice(0, 300),
-        decision_maker_name: "", last_project: "", premium_score: 50, _src: "search",
+        decision_maker_name: "", last_project: "", premium_score: 50, _src: "search", _by: "vyhledavani+crawl",
       });
     }
   }
@@ -271,8 +366,14 @@ ${formatResultsForPrompt(web.results)}`;
   // Obor si neseme s sebou — insert z nej urcuje kategorii/subkategorii leadu.
   for (const m of merged) { m._keyword = keyword; m._country = country; if (!m.city) m.city = city; }
 
-  const withEmail = merged.filter((m) => m.email && String(m.email).includes("@"));
-  const debug = `${keyword}/${city}: web=${web.engine}(${web.results.length}) osm=${osmDirect.length} ${aiNote}, crawl+${crawled} → ${withEmail.length} s e-mailem`;
+  // Geograficka kontrola: vyhodit firmy, ktere do ciloveho trhu nepatri
+  // (napr. ceske "Interiéry Janovský" nalezene pri hledani v Bergenu).
+  const before = merged.length;
+  const local = merged.filter((m) => matchesLocality(m, city, country));
+  const offMarket = before - local.length;
+
+  const withEmail = local.filter((m) => m.email && String(m.email).includes("@"));
+  const debug = `${localKeyword}/${city}: web=${web.engine}(${web.results.length}) osm=${osmDirect.length} ${aiNote}, crawl+${crawled}, mimo trh -${offMarket} → ${withEmail.length} s e-mailem`;
   return { list: withEmail, debug, attempts };
 }
 
@@ -441,7 +542,28 @@ Deno.serve(async (req) => {
       const { data: healthData } = await supabase.from("app_settings").select("value").eq("key", "api_health").maybeSingle();
       const currentHealth = healthData?.value || {};
       const nowIso = new Date().toISOString();
+      // Souhrn vrstvy vyhledavani — od prechodu na hybridni sber je to skutecne
+      // uzke hrdlo, takze musi byt videt v AI Hubu vedle AI provideru.
+      const foundTotal = allDiscovered.length;
+      const searchDead = debugParts.every((d) => d.includes("web=none"));
+      currentHealth["_vyhledavani"] = {
+        status: searchDead ? "error" : "ok",
+        message: searchDead
+          ? "Vyhledavace nevratily zadne vysledky (DDG/Bing blokuji IP datacentra). Doplnte SERPER_API_KEY."
+          : `OK — ${foundTotal} kandidatu z ${combos.length} kombinaci`,
+        updated_at: nowIso,
+        last_run_discovered: foundTotal,
+      };
+
       const okProviders = new Set(allAttempts.filter(a => a.ok).map(a => a.provider));
+      // Providery, ktere v tomto behu vubec neprisly na radu, nesmi dal svitit
+      // starou chybou — jinak admin ukazuje realitu stara nekolik dni.
+      const attempted = new Set(allAttempts.map(a => a.provider));
+      for (const eng of allowed) {
+        if (attempted.has(eng)) continue;
+        const prev = currentHealth[eng] || {};
+        currentHealth[eng] = { ...prev, status: "idle", message: "V tomto behu nevolano (vyhledavani nevratilo data k extrakci).", updated_at: nowIso };
+      }
       const seenProv = new Set<string>();
       for (const a of allAttempts) {
         if (seenProv.has(a.provider)) continue;
@@ -539,6 +661,7 @@ Deno.serve(async (req) => {
           description: item.description || "Nalezeno autonomne",
           company_description: item.description || "Nalezeno autonomne",
           source: "ai_web_sniper",
+          discovered_by: item._by || "vyhledavani",
       }).select().single();
 
       if (!insertErr && newLead) newSavedCount++;
