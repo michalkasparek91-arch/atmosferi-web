@@ -128,10 +128,59 @@ function osmTagsFor(keyword: string): string[] {
   return ['"office"="architect"'];
 }
 
-export async function searchOsm(city: string, keyword: string): Promise<{ places: OsmPlace[]; status: string }> {
+// Anglicke nazvy zemi pro Nominatim (mesta mame v ceskych klicich).
+const COUNTRY_EN: Record<string, string> = {
+  "Ceska republika": "Czechia", "Slovensko": "Slovakia", "Nemecko": "Germany", "Rakousko": "Austria",
+  "Svycarsko": "Switzerland", "Polsko": "Poland", "Madarsko": "Hungary", "Velka Britanie": "United Kingdom",
+  "Irsko": "Ireland", "Francie": "France", "Spanelsko": "Spain", "Italie": "Italy", "Portugalsko": "Portugal",
+  "Nizozemsko": "Netherlands", "Belgie": "Belgium", "Dansko": "Denmark", "Svedsko": "Sweden",
+  "Norsko": "Norway", "Finsko": "Finland", "Chorvatsko": "Croatia", "Slovinsko": "Slovenia",
+  "Rumunsko": "Romania", "Recko": "Greece", "Turecko": "Turkey", "USA": "United States",
+  "Kanada": "Canada", "Australie": "Australia", "Novy Zeland": "New Zealand", "Japonsko": "Japan",
+  "Brazilie": "Brazil", "Mexiko": "Mexico", "Jizni Afrika": "South Africa", "Singapur": "Singapore",
+  "Spojene arabske emiraty": "United Arab Emirates",
+};
+
+/**
+ * Souradnice mesta pres Nominatim. Dotaz na Overpass pres BBOX je radove
+ * rychlejsi nez vyhledavani administrativni oblasti podle nazvu (to casto
+ * bezelo pres 30 s a padalo na timeout). Vysledek se cachuje v app_settings.
+ */
+export async function resolveBbox(supabase: any, city: string, country: string): Promise<string | null> {
+  const key = `${city}|${country}`;
+  try {
+    const { data } = await supabase.from("app_settings").select("value").eq("key", "geo_cache").maybeSingle();
+    const cache = (data?.value as Record<string, string>) || {};
+    if (cache[key] !== undefined) return cache[key] || null;
+
+    const url = "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+      city, country: COUNTRY_EN[country] || country, format: "json", limit: "1",
+    });
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    let bbox = "";
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": "AtmosferiHarvester/1.0 (atmosferi.com)" }, signal: ctrl.signal });
+      if (res.ok) {
+        const arr = await res.json();
+        const b = arr?.[0]?.boundingbox; // [south, north, west, east]
+        if (b && b.length === 4) bbox = `${b[0]},${b[2]},${b[1]},${b[3]}`; // Overpass: S,W,N,E
+      }
+    } finally { clearTimeout(t); }
+
+    cache[key] = bbox;
+    await supabase.from("app_settings").upsert({ key: "geo_cache", value: cache }, { onConflict: "key" });
+    return bbox || null;
+  } catch { return null; }
+}
+
+export async function searchOsm(city: string, keyword: string, bbox?: string | null): Promise<{ places: OsmPlace[]; status: string }> {
   const tags = osmTagsFor(keyword);
-  const parts = tags.map((t) => `nwr(area.a)[${t}];`).join("");
-  const q = `[out:json][timeout:15];
+  const scope = bbox ? `(${bbox})` : "(area.a)";
+  const parts = tags.map((t) => `nwr${scope}[${t}];`).join("");
+  const q = bbox
+    ? `[out:json][timeout:15];( ${parts} );out tags center 200;`
+    : `[out:json][timeout:15];
 area["name"="${(city || "").replace(/["\\]/g, "")}"]["boundary"="administrative"]->.a;
 ( ${parts} );
 out tags center 60;`;

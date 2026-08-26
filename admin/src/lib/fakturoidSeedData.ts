@@ -45,6 +45,17 @@ export const defaultSettings: InvoicingSettings = {
       registrationNo: "03504174",
       vatNo: "CZ9107055947",
       vatPayerStatus: "Neplátce DPH"
+    },
+    // Faktura pouze pod vlastním jménem — bez značky pixl i Atmosferi.
+    personal: {
+      name: "Michal Kašpárek",
+      street: "Heřmanická 2041",
+      city: "Rychvald",
+      zip: "735 32",
+      country: "CZ",
+      registrationNo: "03504174",
+      vatNo: "CZ9107055947",
+      vatPayerStatus: "Neplátce DPH"
     }
   }
 };

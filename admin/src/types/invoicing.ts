@@ -1,6 +1,7 @@
 export type InvoiceStatus = 'open' | 'paid' | 'overdue' | 'cancelled' | 'proforma';
 
-export type BrandType = 'pixl' | 'atmosferi';
+// 'personal' = faktura pouze pod vlastním jménem, bez firemní značky v hlavičce.
+export type BrandType = 'pixl' | 'atmosferi' | 'personal';
 
 export type LanguageType = 'cs' | 'en';
 

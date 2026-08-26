@@ -105,9 +105,14 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     toast.info(`Byl nastaven primární bankovní účet pro ${lang === 'cs' ? 'Češtinu' : 'Angličtinu'}: ${primaryBank.name}`);
   };
 
-  // When brand changes -> update supplier info
+  // When brand changes -> update supplier info.
+  // Dříve uložená nastavení nemusí obsahovat 'personal'; bez tohoto fallbacku
+  // by byl supplier undefined a formulář by spadl.
   const handleBrandChange = (brand: BrandType) => {
-    const supplier = settings.suppliers[brand];
+    const supplier = settings.suppliers[brand] || settings.suppliers.pixl || {
+      name: "", street: "", city: "", zip: "", country: "CZ",
+      registrationNo: "", vatNo: "", vatPayerStatus: "Neplátce DPH",
+    };
     setFormData(prev => ({
       ...prev,
       brand,
@@ -263,6 +268,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 <SelectContent>
                   <SelectItem value="pixl">pixl (výchozí)</SelectItem>
                   <SelectItem value="atmosferi">atmosferi</SelectItem>
+                  <SelectItem value="personal">Vlastní jméno (bez firmy)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

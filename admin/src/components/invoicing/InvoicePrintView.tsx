@@ -9,6 +9,7 @@ interface InvoicePrintViewProps {
 export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) => {
   const isEn = invoice.language === "en";
   const isPixl = invoice.brand === "pixl";
+  const isPersonal = invoice.brand === "personal";
 
   // Format currency helper
   const formatMoney = (amount: number, currency: string) => {
@@ -41,9 +42,19 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
     <div className="w-full max-w-[800px] mx-auto bg-white text-zinc-900 p-8 sm:p-12 shadow-md print:shadow-none print:p-0 print:m-0 font-sans text-xs leading-relaxed transition-all">
       {/* Header Bar */}
       <div className="flex justify-between items-start mb-8">
-        {/* Brand Logo Box */}
+        {/* Brand Logo Box — u varianty "personal" se značka nevykresluje vůbec,
+            v hlavičce je jen jméno fyzické osoby. */}
         <div>
-          {isPixl ? (
+          {isPersonal ? (
+            <div className="text-black">
+              <div className="font-semibold text-xl tracking-tight">{invoice.supplier.name}</div>
+              <div className="text-[11px] text-zinc-500 mt-0.5">
+                {invoice.supplier.registrationNo
+                  ? `${isEn ? "Reg. No." : "IČO"} ${invoice.supplier.registrationNo}`
+                  : null}
+              </div>
+            </div>
+          ) : isPixl ? (
             <div className="border-2 border-black px-3 py-1.5 inline-block font-black text-xl tracking-tight text-black">
               pixl
             </div>

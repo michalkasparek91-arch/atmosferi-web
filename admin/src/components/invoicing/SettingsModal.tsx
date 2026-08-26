@@ -293,16 +293,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* TAB 2: SUPPLIER DETAILS */}
           <TabsContent value="suppliers" className="space-y-6">
-            {(["pixl", "atmosferi"] as BrandType[]).map((brand) => {
-              const sup = formData.suppliers[brand];
+            {(["pixl", "atmosferi", "personal"] as BrandType[]).map((brand) => {
+              // Starší uložená nastavení nemusí mít 'personal' — doplníme prázdný záznam.
+              const sup = formData.suppliers[brand] || {
+                name: "", street: "", city: "", zip: "", country: "CZ",
+                registrationNo: "", vatNo: "", vatPayerStatus: "Neplátce DPH",
+              };
               return (
                 <div key={brand} className="p-4 rounded-xl border border-border bg-card space-y-4">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-primary" />
                     <h3 className="font-bold text-sm uppercase tracking-wider">
-                      Značka: <span className="text-primary">{brand}</span>
+                      {brand === "personal" ? (
+                        <>Fakturace <span className="text-primary">pod vlastním jménem</span></>
+                      ) : (
+                        <>Značka: <span className="text-primary">{brand}</span></>
+                      )}
                     </h3>
                   </div>
+                  {brand === "personal" && (
+                    <p className="text-[11px] text-muted-foreground -mt-2">
+                      Na faktuře se nezobrazí žádné logo ani název firmy — pouze toto jméno.
+                    </p>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     <div>

@@ -355,6 +355,7 @@ export default function AdminInvoices() {
                 <SelectItem value="all">Všechny značky</SelectItem>
                 <SelectItem value="pixl">pixl</SelectItem>
                 <SelectItem value="atmosferi">atmosferi</SelectItem>
+                <SelectItem value="personal">Vlastní jméno</SelectItem>
               </SelectContent>
             </Select>
 
@@ -439,7 +440,7 @@ export default function AdminInvoices() {
                     {/* Brand */}
                     <td className="py-3.5 px-4 text-center">
                       <Badge variant="outline" className="text-[10px] uppercase font-bold">
-                        {inv.brand}
+                        {inv.brand === "personal" ? "vlastní jméno" : inv.brand}
                       </Badge>
                     </td>
 

@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.2";
 import { getApiKeys } from "../_shared/api_keys.ts";
 import { checkEmailDeliverable } from "../_shared/email_validation.ts";
 import { callAIWithFallback, parseJsonArray } from "../_shared/ai-router.ts";
-import { searchWeb, searchOsm, fetchSiteEmails, formatResultsForPrompt } from "../_shared/web-search.ts";
+import { searchWeb, searchOsm, resolveBbox, fetchSiteEmails, formatResultsForPrompt } from "../_shared/web-search.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PRINCIP (převzato ze Zrobee, nahrazuje původní "AI si vzpomeň na firmy"):
@@ -255,7 +255,8 @@ async function harvestOne(
   const variants = queryVariants(localKeyword, city, country);
   // POZOR: DDG/Bing/Firmy.cz pri prilis rychlem palbe zacnou vracet prazdno (throttling).
   // Varianty proto jedou SEKVENCNE s malou pauzou — pomaleji, ale s vyrazne vyssim vytezkem.
-  const osmPromise = searchOsm(city, keyword);
+  // BBOX z Nominatimu (cachovany) — dotaz na Overpass je pak radove rychlejsi.
+  const osmPromise = resolveBbox(supabase, city, country).then((bb) => searchOsm(city, keyword, bb));
   const searches: { results: { title: string; url: string; snippet: string }[]; engine: string }[] = [];
   for (let i = 0; i < variants.length; i++) {
     if (i > 0) await new Promise((r) => setTimeout(r, 1200));
