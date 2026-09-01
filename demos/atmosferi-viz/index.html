@@ -7,10 +7,10 @@
 <meta name="description" content="Architectural visualisation studio — photoreal 3D renders, cinematic films, interactive 360° tours and real-time scenes of buildings before they're built.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --canvas:#F4F2EC; --canvas-2:#ECE9E0; --ink:#16140F; --ink-2:#33302A;
+    --canvas:#F7F7F6; --canvas-2:#EFEFEE; --ink:#16140F; --ink-2:#33302A;
     --muted:#807C72; --muted-2:#A8A398; --line:rgba(22,20,15,.13); --line-2:rgba(22,20,15,.22);
     --sans:'Geist', system-ui, sans-serif; --mono:'Geist Mono', ui-monospace, monospace;
     --serif:'Schibsted Grotesk', system-ui, sans-serif;
@@ -59,7 +59,7 @@
   header.nav.scrolled .swx{border-color:color-mix(in srgb,var(--ink) 26%,transparent);}
   header.nav.scrolled .swx__seg{color:var(--ink);}
   .nav__in{display:flex;align-items:center;justify-content:space-between;height:78px;}
-  .brand{font-weight:600;font-size:21px;letter-spacing:-.02em;color:var(--ink);display:flex;flex-direction:column;align-items:flex-start;gap:3px;line-height:1;}
+  .brand{text-transform:lowercase;font-weight:600;font-size:21px;letter-spacing:-.02em;color:var(--ink);display:flex;flex-direction:column;align-items:flex-start;gap:3px;line-height:1;}
   .brand__name{display:inline-flex;align-items:baseline;}
   .brand sup{color:var(--accent-ink);font-size:.5em;top:-.7em;}
   .brand .tag{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;opacity:.62;}
@@ -119,7 +119,7 @@
   .hero__frame::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,9,7,.34),rgba(10,9,7,0) 28%,rgba(10,9,7,0) 52%,rgba(10,9,7,.58));pointer-events:none;}
   .hero__c{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(26px,3.4vw,54px);color:#fff;}
   .hero h1{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(30px,4vw,58px);line-height:1.04;letter-spacing:-.01em;max-width:20ch;text-shadow:0 2px 40px rgba(0,0,0,.3);}
-  .hero__sub{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-top:clamp(24px,4vh,44px);border-top:1px solid rgba(255,255,255,.32);padding-top:20px;}
+  .hero__sub{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-top:clamp(24px,4vh,44px);padding-top:20px;}
   .hero__sub p{max-width:40ch;font-size:clamp(14px,1.2vw,17px);opacity:.92;}
   .hero__scroll{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:3;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.8;display:flex;flex-direction:column;align-items:center;gap:8px;}
   .hero__scroll .ln{width:1px;height:38px;background:rgba(255,255,255,.5);position:relative;overflow:hidden;}
@@ -135,10 +135,10 @@
   .statement .by span{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
 
   /* featured — full-bleed alternating frames */
-  .feature{margin-bottom:clamp(60px,9vw,150px);}
-  .feature__media{position:relative;width:100%;height:clamp(420px,76vh,920px);overflow:hidden;cursor:pointer;}
+  .feature{margin-bottom:clamp(34px,4.2vw,68px);}
+  .feature__media{position:relative;width:100%;height:clamp(300px,50vh,560px);overflow:hidden;cursor:pointer;}
   .feature__media img{width:100%;height:100%;object-fit:cover;}
-  .feature__bar{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--ink);margin-top:18px;}
+  .feature__bar{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;padding-top:0;margin-top:14px;}
   .feature__bar .id{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
   .feature__bar h2{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(22px,2.6vw,38px);line-height:1;}
   .feature__bar .meta{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:right;}
@@ -147,13 +147,13 @@
   .feature__media:hover .feature__expand{opacity:1;transform:none;}
 
   /* section head */
-  .shead{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;padding-top:clamp(50px,7vw,100px);padding-bottom:clamp(28px,4vw,52px);border-top:1px solid var(--ink);}
+  .shead{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;padding-top:clamp(50px,7vw,100px);padding-bottom:clamp(28px,4vw,52px);}
   .shead h2{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(24px,2.9vw,42px);line-height:1.02;}
   .shead .mono{color:var(--muted);}
 
   /* services */
-  .services{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);}
-  .svc{padding:clamp(28px,3vw,44px) clamp(22px,2.4vw,40px) clamp(40px,5vw,72px);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:16px;transition:transform .5s var(--ease);}
+  .services{display:grid;grid-template-columns:repeat(4,1fr);}
+  .svc{padding:clamp(28px,3vw,44px) clamp(22px,2.4vw,40px) clamp(40px,5vw,72px);display:flex;flex-direction:column;gap:16px;transition:transform .5s var(--ease);}
   .svc:first-child{padding-left:0;}
   .svc:last-child{border-right:0;padding-right:0;}
   .svc:hover{transform:translateY(-6px);}
@@ -164,7 +164,7 @@
   .svc__price{display:flex;align-items:baseline;gap:8px;margin-top:2px;}
   .svc__price .f{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);}
   .svc__price b{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.01em;color:var(--ink);}
-  .svc__foot{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;padding-top:22px;margin-top:30px;border-top:1px solid var(--line);}
+  .svc__foot{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;padding-top:22px;margin-top:30px;}
   .svc__foot p{font-family:var(--sans);font-size:13.5px;line-height:1.6;color:var(--ink-2);max-width:62ch;}
   .svc__foot a{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:3px;white-space:nowrap;transition:opacity .3s var(--ease);}
   .svc__foot a:hover{opacity:.55;}
@@ -173,8 +173,8 @@
 
   /* immersion levels */
   #immersion{padding-top:0;}
-  .imm{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);}
-  .imm__lv{padding:clamp(28px,2.6vw,40px) clamp(22px,2vw,34px) clamp(28px,2.6vw,40px) 0;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:flex-start;gap:13px;}
+  .imm{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,3vw,44px);}
+  .imm__lv{padding:clamp(28px,2.6vw,40px) clamp(22px,2vw,34px) clamp(28px,2.6vw,40px) 0;display:flex;flex-direction:column;align-items:flex-start;gap:13px;}
   .imm__lv:last-child{border-right:0;padding-right:0;}
   .imm__media{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;}
   .imm__media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .9s var(--ease);}
@@ -198,10 +198,10 @@
   @media(max-width:540px){.services{grid-template-columns:1fr;}.svc{border-right:0;}}
 
   /* ===== project series (mir.no editorial) ===== */
-  .ps{padding-top:clamp(54px,8vw,120px);padding-bottom:clamp(30px,5vw,70px);}
-  .ps__head{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:end;border-top:1px solid var(--ink);padding-top:24px;}
+  .ps{padding-top:clamp(40px,5.5vw,84px);padding-bottom:clamp(24px,3.4vw,52px);}
+  .ps__head{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;align-items:end;padding-top:0;padding-bottom:clamp(18px,2.4vw,30px);}
   .ps__eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);}
-  .ps__title{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(44px,6.4vw,108px);line-height:.92;letter-spacing:-.01em;margin-top:12px;}
+  .ps__title{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(30px,4vw,62px);line-height:1.0;letter-spacing:-.01em;margin-top:10px;}
   .ps__meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);line-height:2.1;}
   .ps__lead{font-size:clamp(15px,1.2vw,18px);line-height:1.62;color:var(--ink-2);max-width:44ch;justify-self:end;}
   @media(max-width:760px){.ps__head{grid-template-columns:1fr;gap:16px;}.ps__lead{justify-self:start;}}
@@ -211,9 +211,9 @@
   .psf .open{position:absolute;right:18px;bottom:15px;z-index:2;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:0;transform:translateY(6px);transition:opacity .4s var(--ease),transform .4s var(--ease);mix-blend-mode:difference;}
   .psf:hover .open{opacity:1;transform:none;}
   .ps-bleed{width:100%;margin-left:0;}
-  .ps-full{height:clamp(440px,92vh,1040px);}
-  .ps-wide{height:clamp(380px,64vh,760px);}
-  .ps-cap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px var(--gut) 0;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .ps-full{height:clamp(320px,56vh,620px);}
+  .ps-wide{height:clamp(290px,46vh,520px);}
+  .ps-cap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:11px var(--gut) 0;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
   .ps-cap .t{color:var(--ink);}
   .ps-row{display:grid;grid-template-columns:1.55fr 1fr;gap:clamp(10px,1.4vw,20px);margin-top:clamp(10px,1.4vw,20px);}
   .ps-row .psf{height:clamp(360px,58vh,720px);}
@@ -226,19 +226,19 @@
   @media(max-width:760px){.ps-offset{grid-template-columns:1fr;gap:16px;}}
 
   /* frames grid — uniform row mosaic: bottoms align at every width */
-  .grid{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:clamp(150px,15.5vw,215px);grid-auto-flow:dense;gap:clamp(10px,1.4vw,20px);}
-  .frame{position:relative;overflow:hidden;cursor:pointer;grid-column:span 4;grid-row:span 2;}
-  .frame.w6{grid-column:span 6;}
-  .frame.w8{grid-column:span 8;}
-  .frame.tall{grid-row:span 3;}
-  .frame__img{width:100%;height:100%;overflow:hidden;}
-  .frame__img img{width:100%;height:100%;object-fit:cover;display:block;}
+  .grid{column-count:3;column-gap:clamp(10px,1.4vw,20px);}
+  .frame{position:relative;overflow:hidden;cursor:pointer;display:block;width:100%;break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 clamp(10px,1.4vw,20px);}
+  .frame.w6{}
+  .frame.w8{}
+  .frame.tall{}
+  .frame__img{display:block;width:100%;height:auto;overflow:hidden;}
+  .frame__img img{width:100%;height:auto;display:block;}
   .frame__cap{position:absolute;left:0;right:0;bottom:0;padding:16px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;opacity:0;transform:translateY(8px);transition:opacity .4s var(--ease),transform .4s var(--ease);background:linear-gradient(180deg,transparent,rgba(0,0,0,.5));color:#fff;}
   .frame:hover .frame__cap{opacity:1;transform:none;}
   .frame__cap .t{font-family:var(--serif);font-style:italic;font-size:19px;}
   .frame__cap .m{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;opacity:.9;}
-  @media(max-width:900px){.frame,.frame.w6,.frame.w8{grid-column:span 6;}}
-  @media(max-width:540px){.frame,.frame.w6,.frame.w8{grid-column:span 12;}}
+  @media(max-width:900px){.grid{column-count:2;}}
+  @media(max-width:540px){.grid{column-count:1;}}
 
   /* process / capability band */
   .cap{padding-block:clamp(64px,9vw,130px);margin-top:clamp(60px,9vw,140px);}
@@ -255,8 +255,8 @@
 
   /* clients */
   .clients{padding-block:clamp(56px,7vw,100px);}
-  .clients__row{display:flex;flex-wrap:wrap;gap:14px 0;border-top:1px solid var(--line);}
-  .clients__row span{flex:1 1 25%;min-width:160px;padding:22px 0;border-bottom:1px solid var(--line);font-family:var(--serif);font-style:italic;font-size:clamp(20px,2vw,30px);color:var(--ink-2);}
+  .clients__row{display:flex;flex-wrap:wrap;gap:14px 0;}
+  .clients__row span{flex:1 1 25%;min-width:160px;padding:22px 0;font-family:var(--serif);font-style:italic;font-size:clamp(20px,2vw,30px);color:var(--ink-2);}
 
   /* brief CTA band */
   .briefband{background:var(--canvas-2);color:var(--ink);}
@@ -264,7 +264,7 @@
   .briefband .mono{color:var(--muted);}
   .briefband__head h2{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(40px,6.6vw,94px);line-height:.94;letter-spacing:-.01em;margin:16px 0 0;}
   .briefband__head p{font-size:clamp(15px,1.3vw,19px);line-height:1.55;color:var(--ink-2);max-width:52ch;margin:22px 0 0;}
-  .briefband__steps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(18px,3vw,44px);margin:clamp(40px,5vw,72px) 0 clamp(34px,4vw,52px);border-top:1px solid var(--line);padding-top:30px;}
+  .briefband__steps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(18px,3vw,44px);margin:clamp(40px,5vw,72px) 0 clamp(34px,4vw,52px);padding-top:30px;}
   .bstep{display:flex;flex-direction:column;gap:9px;}
   .bstep__n{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--muted);}
   .bstep__t{font-size:clamp(17px,1.5vw,21px);font-weight:600;letter-spacing:-.01em;}
@@ -307,7 +307,7 @@
   .vstatus{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--muted);min-height:1em;}
   @media(max-width:820px){.contact__grid{grid-template-columns:1fr;gap:46px;}.vrow{grid-template-columns:1fr;}}
 
-  footer{border-top:1px solid var(--line);}
+  footer{border-top:0;}
   .foot{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;padding:40px 0;}
   .foot .b{font-weight:600;font-size:18px;letter-spacing:-.02em;}
   .foot .mono{color:var(--muted);}
@@ -495,6 +495,100 @@
     .vcur{display:none;}
     .vload{animation:none;display:none;}
   }
+
+  /* founder */
+  .fdr{display:grid;grid-template-columns:.82fr 1.18fr;gap:clamp(28px,5vw,76px);align-items:center;padding-block:clamp(56px,8vw,120px);}
+  .fdr__media{position:relative;border-radius:18px;overflow:hidden;background:var(--canvas-2);}
+  .fdr__media img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center 20%;}
+  .fdr__tag{position:absolute;left:15px;bottom:15px;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.93);border-radius:999px;padding:9px 16px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);}
+  .fdr__tag .dot{width:6px;height:6px;border-radius:50%;background:#3F9E63;flex:none;}
+  .fdr__title{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(26px,3.3vw,46px);line-height:1.1;letter-spacing:-.01em;margin:14px 0 0;}
+  .fdr__text{font-size:15.5px;line-height:1.66;color:var(--ink-2);max-width:56ch;margin:20px 0 0;}
+  .fdr__facts{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 0;}
+  .fdr__fact{display:flex;flex-direction:column;gap:4px;background:#fff;border-radius:16px;padding:14px 20px;min-width:132px;}
+  .fdr__fact b{font-size:19px;font-weight:600;letter-spacing:-.02em;}
+  .fdr__fact span{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .fdr__cta{display:flex;flex-wrap:wrap;gap:10px;margin:28px 0 0;}
+  .fdr__cta a{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:14px 24px;border-radius:999px;border:1px solid var(--line);background:#fff;transition:background .3s,color .3s,border-color .3s;}
+  .fdr__cta a.pri{background:var(--ink);color:var(--canvas);border-color:var(--ink);}
+  .fdr__cta a:hover{background:var(--canvas-2);}
+  .fdr__cta a.pri:hover{background:var(--ink-2);color:var(--canvas);}
+  .fdr__sign{display:block;margin:24px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);}
+  @media(max-width:860px){.fdr{grid-template-columns:1fr;gap:24px;}.fdr__media img{aspect-ratio:3/2;object-position:center 18%;}}
+
+  /* unified display face across both sites */
+  .hero h1,.shead h2,.statement p,.feature__bar h2,.ps__title,.briefband__head h2,.contact h2,.fdr__title,.clients__row span,.cap__lead{
+    font-family:'Outfit',var(--sans),system-ui,sans-serif!important;font-style:normal!important;font-weight:400!important;letter-spacing:-.025em!important;
+  }
+  .fdr__title{font-size:clamp(1.7rem,3.2vw,2.85rem);line-height:1.08;}
+  .clients__row span{font-size:clamp(18px,1.8vw,26px);}
+  /* viz rhythm, matched to the main site */
+  .shead{padding-top:clamp(50px,7vw,100px);padding-bottom:clamp(26px,3.4vw,46px);}
+
+  /* feature rail — lateral browsing */
+  .frail{position:relative;}
+  .frail__track{display:flex;gap:clamp(12px,1.6vw,24px);overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:0 var(--gut) 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .frail__track::-webkit-scrollbar{display:none;}
+  .frail__track > .feature{flex:0 0 min(80vw,880px);margin:0!important;scroll-snap-align:center;}
+  .frail__track .feature__media{height:clamp(300px,52vh,560px);border-radius:16px;}
+  .frail__nav{display:flex;align-items:center;gap:10px;margin:16px var(--gut) 0;}
+  .frail__btn{width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--ink);transition:background .25s,opacity .25s;}
+  .frail__btn:hover{background:var(--canvas-2);}
+  .frail__btn[disabled]{opacity:.32;cursor:default;}
+  .frail__count{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-left:6px;}
+
+  /* rail cards (project series) */
+  .railcard{flex:0 0 min(80vw,880px);scroll-snap-align:center;}
+  .railcard .psf{height:clamp(300px,52vh,560px);width:100%;border-radius:16px;overflow:hidden;}
+  .railcard .psf img{width:100%;height:100%;object-fit:cover;}
+  .railcard__cap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:11px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .railcard__cap .t{color:var(--ink);}
+  /* switcher: same opaque pill as the menu chrome */
+  .swx{background:#fff!important;border:1px solid var(--line)!important;border-radius:999px!important;padding:5px!important;box-shadow:0 6px 22px rgba(11,10,8,.06);}
+  .swx__seg{border-radius:999px;}
+  .swx__seg.is-on,header.nav.scrolled .swx__seg.is-on{color:var(--canvas)!important;}
+  .swx__knob{border-radius:999px;background:var(--ink);}
+  header.nav.scrolled .swx{border-color:var(--line)!important;}
+
+  /* rail: never scroll vertically */
+  .frail__track{overflow-y:hidden;align-items:flex-start;}
+  /* menu: same pill capsule as the websites side */
+  .nav__links{background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px;box-shadow:0 6px 22px rgba(11,10,8,.06);gap:2px;}
+  .nav__links a{font-family:var(--sans);font-size:13.5px;letter-spacing:-.005em;text-transform:none;opacity:1;color:var(--ink-2);padding:9px 17px;border-radius:999px;transition:background .25s,color .25s;}
+  .nav__links a:hover{background:var(--canvas-2);color:var(--ink);}
+  .nav__links a.cta{background:var(--ink);color:var(--canvas);}
+  /* soft card treatment (ref a) */
+  .svc,.imm__lv,.cap__item{background:var(--canvas-2);border-radius:18px;padding:clamp(22px,2.4vw,34px)!important;}
+  .svc__foot{padding-top:18px;margin-top:22px;}
+
+  /* header: parity with the websites side — transparent, no backdrop, centred */
+  header.nav{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-bottom:0!important;}
+  header.nav.scrolled,header.nav.solid{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+  .nav__in{align-items:center;}
+  .nav__links{align-items:center;}
+  /* Contact: legible dark pill (was invisible white-on-white) */
+  .nav__links a.cta{background:var(--ink)!important;color:var(--canvas)!important;padding:9px 17px;border-radius:999px;opacity:1;}
+  .nav__links a.cta:hover{background:var(--ink-2)!important;color:var(--canvas)!important;}
+
+  /* contact form — current card/pill system */
+  .vform{background:var(--canvas-2);border-radius:20px;padding:clamp(22px,2.6vw,36px);display:grid;gap:22px;}
+  .vfield input,.vfield textarea{background:#fff!important;border:1px solid transparent!important;border-radius:14px!important;padding:14px 16px!important;}
+  .vfield input:focus,.vfield textarea:focus{border-color:var(--ink)!important;}
+  .vfield label{font-size:9.5px;letter-spacing:.16em;}
+  .vchip{border-radius:999px!important;background:#fff!important;border:1px solid transparent!important;font-family:var(--sans)!important;font-size:13px!important;letter-spacing:-.005em!important;text-transform:none!important;padding:10px 18px!important;}
+  .vchip:hover{background:#EAEAE9!important;}
+  .vchip[aria-pressed="true"]{background:var(--ink)!important;color:var(--canvas)!important;}
+  .vsubmit{border-radius:999px;font-family:var(--sans);font-size:15px;letter-spacing:-.005em;text-transform:none;padding:17px 30px;}
+  .vsubmit:hover{background:var(--ink-2);color:var(--canvas);}
+  .vsecond{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:14px;letter-spacing:-.005em;color:var(--ink-2);background:#fff;border:1px solid var(--line);border-radius:999px;padding:15px 24px;transition:background .25s,color .25s;}
+  .vsecond:hover{background:#EAEAE9;color:var(--ink);}
+  .vform__foot{gap:12px;}
+
+  /* 360 tour: aligned to the page grid like other media cards */
+  .tour{max-width:1560px;margin-inline:auto;width:calc(100% - var(--gut) * 2);border-radius:20px;}
+  .tour.fs{max-width:none;width:100%;border-radius:0;}
+  .tour__scrollhint{position:absolute;left:50%;bottom:0;transform:translate(-50%,140%);z-index:6;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.94);border-radius:999px;padding:9px 18px;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);opacity:0;transition:opacity .35s var(--ease),transform .35s var(--ease);pointer-events:none;}
+  .tour.zoomable .tour__scrollhint{opacity:1;transform:translate(-50%,-18px);}
 </style>
 
 <!-- SEO / social -->
@@ -647,41 +741,6 @@
  ]
 }
 </script>
-
-<style>
-/* ── Zklidnění 2026-07: snímky nesou stránku, text jen šeptá ──────────────
-   1) víc vzduchu mezi sekcemi, 2) galerie jako páteř (větší desky, širší mřížka),
-   3) klidnější typografie a užší míra řádku u textových bloků.            */
-:root{ --air: clamp(72px, 9vw, 150px); }
-
-/* 1) Vzduch — hlavní nástroj proti pocitu „zaplavy". */
-section{ padding-top: var(--air); padding-bottom: var(--air); }
-section + section{ padding-top: 0; }
-.shead{ margin-bottom: clamp(28px, 3.4vw, 56px); }
-
-/* 2) Galerie jako vizuální základ: širší plátno a velkorysé mezery. */
-#grid{ gap: clamp(16px, 2vw, 34px); }
-#grid + *{ margin-top: clamp(30px, 4vw, 64px); }
-.frame__img img{ transition: transform .6s cubic-bezier(.2,.7,.2,1); }
-.frame:hover .frame__img img{ transform: scale(1.02); }
-/* popisky desek: tiché, mono, bez tučného křiku */
-.frame__cap{ opacity:.72; }
-.frame__cap .t{ font-weight:500; }
-.frame__cap .m{ opacity:.7; }
-
-/* 3) Klidnější text: kratší míra řádku, vzdušnější prokládání. */
-section p{ max-width: 62ch; line-height: 1.75; }
-.shead h2{ letter-spacing:-.01em; }
-
-@media (min-width: 1100px){
-  /* galerii pustíme do širšího plátna než textové bloky */
-  section.wrap:has(#grid){ max-width: min(1560px, 94vw); }
-}
-@media (max-width: 760px){
-  :root{ --air: clamp(52px, 12vw, 88px); }
-  section p{ max-width:none; }
-}
-</style>
 </head>
 <body>
 
@@ -696,7 +755,7 @@ section p{ max-width: 62ch; line-height: 1.75; }
 
 <header class="nav">
   <div class="wrap nav__in">
-    <a href="#top" class="brand"><span class="brand__name">Atmosferi<sup>°</sup></span><span class="tag">Visualisation</span></a>
+    <a href="#top" class="brand"><span class="brand__name">atmosferi<sup>°</sup></span><span class="tag">Visualisation</span></a>
     <nav class="nav__links">
       <a href="#work">Work</a>
       <a href="#motion">Motion</a>
@@ -753,7 +812,404 @@ section p{ max-width: 62ch; line-height: 1.75; }
   <div class="by" data-rise><span class="ln"></span><span>The studio</span></div>
 </section>
 
-<!-- Vybrane snimky: vizualni patere stranky -->
+<!-- featured work -->
+<section id="work">
+  <div class="shead wrap" data-rise>
+    <h2>Selected projects.</h2>
+    <span class="mono">Swipe or use the arrows →</span>
+  </div>
+  <div class="frail">
+    <div class="frail__track" id="frailTrack">
+
+  <article class="feature" data-rise>
+    <div class="feature__media bloom" data-cap="Still Hour" data-meta="Hillside Villa · Santa Barbara, CA · Stills · 2026" data-full="img/16-villa-dusk.jpg">
+      <span class="feature__num">01 / 14</span>
+      <img src="img/16-villa-dusk.jpg" alt="Architectural visualisation — hillside villa at dusk, Santa Barbara (still render)">
+      <span class="feature__expand">Open frame ↗</span>
+    </div>
+    <div class="feature__bar">
+      <span class="id">An infinity edge at the blue hour</span>
+      <h2>Still Hour</h2>
+      <span class="meta">Hillside Villa · Santa Barbara<br>Stills · 2026</span>
+    </div>
+  </article>
+
+  <article class="feature" data-rise>
+    <div class="feature__media bloom keep-tall" data-cap="Ascension" data-meta="Helix Tower, Singapore · Film · 2027" data-full="img/02-ascension.webp">
+      <span class="feature__num">02 / 14</span>
+      <img src="img/02-ascension.webp" alt="Architectural visualisation — Helix Tower, Singapore (animated fly-through)">
+      <span class="feature__expand">Open frame ↗</span>
+    </div>
+    <div class="feature__bar">
+      <span class="id">A spiralling tower at golden hour</span>
+      <h2>Ascension</h2>
+      <span class="meta">Helix Tower · Singapore<br>Film · 2027</span>
+    </div>
+  </article>
+
+  <article class="feature" data-rise>
+    <div class="feature__media bloom" data-cap="First Light" data-meta="Tidewater Park, Copenhagen · Stills · 2026" data-full="img/04-tidewater.webp">
+      <span class="feature__num">03 / 14</span>
+      <img src="img/04-tidewater.webp" alt="Architectural visualisation — Tidewater Park at dawn, Copenhagen">
+      <span class="feature__expand">Open frame ↗</span>
+    </div>
+    <div class="feature__bar">
+      <span class="id">A tidal park at the turn of the dawn</span>
+      <h2>First Light</h2>
+      <span class="meta">Tidewater · Copenhagen<br>Stills · 2026</span>
+    </div>
+  </article>
+
+  <article class="feature" data-rise>
+    <div class="feature__media bloom" data-cap="Nightfall" data-meta="Harbour Tower · Stills · 2025" data-full="img/01-nightfall.webp">
+      <span class="feature__num">04 / 14</span>
+      <img src="img/01-nightfall.webp" alt="Architectural visualisation — harbour tower at blue hour">
+      <span class="feature__expand">Open frame ↗</span>
+    </div>
+    <div class="feature__bar">
+      <span class="id">Blue hour over still water</span>
+      <h2>Nightfall</h2>
+      <span class="meta">Harbour Tower<br>Stills · 2025</span>
+    </div>
+  </article>
+
+  <article class="feature" data-rise>
+    <div class="feature__media bloom" data-cap="In the Trees" data-meta="University Library · Wrocław · Stills · 2026" data-full="img/13-library.jpg">
+      <span class="feature__num">05 / 14</span>
+      <img src="img/13-library.jpg" alt="Architectural visualisation — University Library among the trees, Wrocław">
+      <span class="feature__expand">Open frame ↗</span>
+    </div>
+    <div class="feature__bar">
+      <span class="id">A red library among the oaks</span>
+      <h2>In the Trees</h2>
+      <span class="meta">University Library · Wrocław<br>Stills · 2026</span>
+    </div>
+  </article>
+
+  <article class="feature" data-rise>
+    <div class="feature__media bloom" data-cap="Breakfast" data-meta="Alpine Chalet · Paseky · Interior stills · 2026" data-full="img/chalet-dining.jpg">
+      <span class="feature__num">06 / 14</span>
+      <img src="img/chalet-dining.jpg" alt="Interior visualisation — Alpine chalet dining room at breakfast, Paseky">
+      <span class="feature__expand">Open frame ↗</span>
+    </div>
+    <div class="feature__bar">
+      <span class="id">A morning in a mountain house</span>
+      <h2>Breakfast</h2>
+      <span class="meta">Alpine Chalet · Paseky<br>Interior · 2026</span>
+    </div>
+  </article>
+
+    </div>
+    <div class="frail__nav">
+      <button class="frail__btn" type="button" id="frailPrev" aria-label="Previous project">←</button>
+      <button class="frail__btn" type="button" id="frailNext" aria-label="Next project">→</button>
+      <span class="frail__count" id="frailCount">01 / 06</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROJECT SERIES — exterior in landscape (mir.no rhythm) ============ -->
+<section class="ps" id="project">
+  <div class="wrap">
+    <div class="ps__head" data-rise>
+      <div>
+        <span class="ps__eyebrow">Project — Exterior series</span>
+        <h1 class="ps__title">Solveig</h1>
+      </div>
+      <div>
+        <p class="ps__lead">A retreat set into a high northern valley — concrete, glass and weathered timber, almost lost in the land around it. Fourteen frames following one building through a single turning day.</p>
+        <div class="ps__meta" style="margin-top:18px">Innerdalen, Norway · 2027<br>Exterior stills · 14 frames</div>
+      </div>
+    </div>
+  </div>
+  <div class="frail" data-rail>
+    <div class="frail__track">
+      <div class="railcard">
+  <figure class="psf bloom" data-rise data-full="img/sol-01.webp" data-cap="The valley holds it" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
+      <span class="num">01 / 14</span>
+      <img src="img/sol-01.webp" alt="Architectural visualisation — a small retreat almost lost in a vast northern valley at first light">
+      <span class="open">Open frame ↗</span>
+    </figure>
+        <div class="railcard__cap"><span class="t">The valley holds it</span><span class="m">Solveig · Innerdalen, Norway · Exterior · 2027</span></div>
+      </div>
+      <div class="railcard">
+  <figure class="psf bloom" data-rise data-full="img/sol-02.webp" data-cap="Weather coming in" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
+          <span class="num">02 / 14</span>
+          <img src="img/sol-02.webp" alt="Architectural visualisation — the retreat under a wide moody sky, mist rolling across the ridge">
+          <span class="open">Open frame ↗</span>
+        </figure>
+        <div class="railcard__cap"><span class="t">Weather coming in</span><span class="m">Solveig · Innerdalen, Norway · Exterior · 2027</span></div>
+      </div>
+      <div class="railcard">
+  <figure class="psf bloom" data-rise data-full="img/sol-03.webp" data-cap="The timber edge" data-meta="Solveig · Innerdalen, Norway · Detail · 2027">
+          <span class="num">03 / 14</span>
+          <img src="img/sol-03.webp" alt="Architectural visualisation — close detail of weathered timber and glass against the landscape">
+          <span class="open">Open frame ↗</span>
+        </figure>
+        <div class="railcard__cap"><span class="t">The timber edge</span><span class="m">Solveig · Innerdalen, Norway · Detail · 2027</span></div>
+      </div>
+      <div class="railcard">
+  <figure class="psf bloom" data-rise data-full="img/sol-04.webp" data-cap="The far mountain" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
+      <span class="num">04 / 14</span>
+      <img src="img/sol-04.webp" alt="Architectural visualisation — the retreat small beneath a great mountain as the last light fades over the ridge">
+      <span class="open">Open frame ↗</span>
+    </figure>
+        <div class="railcard__cap"><span class="t">The far mountain</span><span class="m">Solveig · Innerdalen, Norway · Exterior · 2027</span></div>
+      </div>
+      <div class="railcard">
+  <figure class="psf bloom" data-rise data-full="img/sol-05.webp" data-cap="The approach" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
+          <span class="num">05 / 14</span>
+          <img src="img/sol-05.webp" alt="Architectural visualisation — the building filling the frame, entrance and concrete detail at close range">
+          <span class="open">Open frame ↗</span>
+        </figure>
+        <div class="railcard__cap"><span class="t">The approach</span><span class="m">Solveig · Innerdalen, Norway · Exterior · 2027</span></div>
+      </div>
+      <div class="railcard">
+  <figure class="psf bloom" data-rise data-full="img/sol-06.webp" data-cap="A light left on" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
+      <span class="num">06 / 14</span>
+      <img src="img/sol-06.webp" alt="Architectural visualisation — the retreat glowing warmly at twilight, a single point of light in the darkening valley">
+      <span class="open">Open frame ↗</span>
+    </figure>
+        <div class="railcard__cap"><span class="t">A light left on</span><span class="m">Solveig · Innerdalen, Norway · Exterior · 2027</span></div>
+      </div>
+    </div>
+    <div class="frail__nav">
+      <button class="frail__btn" type="button" data-rail-prev aria-label="Previous frame">←</button>
+      <button class="frail__btn" type="button" data-rail-next aria-label="Next frame">→</button>
+      <span class="frail__count" data-rail-count>01 / 06</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ PROJECT SERIES — Lysning, a forest kindergarten ============ -->
+<section class="ps" id="project-kg">
+  <div class="wrap">
+    <div class="ps__head" data-rise>
+      <div>
+        <span class="ps__eyebrow">Project — Kindergarten</span>
+        <h2 class="ps__title">Lysning</h2>
+      </div>
+      <div>
+        <p class="ps__lead">A kindergarten set into the slope where the meadow meets the trees — a green living roof, a facade of red-stained timber, and rooms that open straight onto the forest. Visualised with the life already in it.</p>
+        <div class="ps__meta" style="margin-top:18px">Sörmland, Sweden · 2026<br>Exterior &amp; interior · 5 frames</div>
+      </div>
+    </div>
+  </div>
+  <div class="frail" data-rail>
+    <div class="frail__track">
+      <div class="railcard">
+        <figure class="psf bloom" data-rise data-full="img/kg-01.webp" data-cap="Where the forest begins" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026">
+    <span class="num">01 / 05</span>
+    <img src="img/kg-01.webp" alt="Architectural visualisation — a forest kindergarten with a green living roof set into a meadow slope, children blurred along the path">
+    <span class="open">Open frame ↗</span>
+  </figure>
+        <div class="railcard__cap"><span class="t">Where the forest begins</span><span class="m">Lysning · Sörmland, Sweden · Kindergarten · 2026</span></div>
+      </div>
+      <div class="railcard">
+        <figure class="psf bloom" data-rise data-full="img/kg-02.webp" data-cap="The morning run" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026">
+        <span class="num">02 / 05</span>
+        <img src="img/kg-02.webp" alt="Architectural visualisation — children in colourful coats running past the sunlit red timber facade, long-exposure blur">
+        <span class="open">Open frame ↗</span>
+      </figure>
+        <div class="railcard__cap"><span class="t">The morning run</span><span class="m">Lysning · Sörmland, Sweden · Kindergarten · 2026</span></div>
+      </div>
+      <div class="railcard">
+        <figure class="psf bloom" data-rise data-full="img/kg-03.webp" data-cap="Roof, glass, forest" data-meta="Lysning · Sörmland, Sweden · Detail · 2026">
+        <span class="num">03 / 05</span>
+        <img src="img/kg-03.webp" alt="Architectural visualisation — close detail of the red timber facade meeting the green sedum roof, a window onto the playroom">
+        <span class="open">Open frame ↗</span>
+      </figure>
+        <div class="railcard__cap"><span class="t">Roof, glass, forest</span><span class="m">Lysning · Sörmland, Sweden · Detail · 2026</span></div>
+      </div>
+      <div class="railcard">
+        <figure class="psf bloom" data-rise data-full="img/kg-04.webp" data-cap="Dusk, and still playing" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026">
+    <span class="num">04 / 05</span>
+    <img src="img/kg-04.webp" alt="Architectural visualisation — the kindergarten small in a misty meadow at dusk, windows glowing warm against the dark forest">
+    <span class="open">Open frame ↗</span>
+  </figure>
+        <div class="railcard__cap"><span class="t">Dusk, and still playing</span><span class="m">Lysning · Sörmland, Sweden · Kindergarten · 2026</span></div>
+      </div>
+      <div class="railcard">
+        <figure class="psf bloom" data-rise data-full="img/kg-05.webp" data-cap="The playroom" data-meta="Lysning · Sörmland, Sweden · Interior · 2026">
+        <span class="num">05 / 05</span>
+        <img src="img/kg-05.webp" alt="Architectural visualisation — a birch-ply playroom flooded with warm light, a wall of glass onto the forest, children blurred mid-play">
+        <span class="open">Open frame ↗</span>
+      </figure>
+        <div class="railcard__cap"><span class="t">The playroom</span><span class="m">Lysning · Sörmland, Sweden · Interior · 2026</span></div>
+      </div>
+    </div>
+    <div class="frail__nav">
+      <button class="frail__btn" type="button" data-rail-prev aria-label="Previous frame">←</button>
+      <button class="frail__btn" type="button" data-rail-next aria-label="Next frame">→</button>
+      <span class="frail__count" data-rail-count>01 / 05</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ IN MOTION — animated film / showreel ============ -->
+<section class="film" id="motion">
+  <div class="wrap">
+    <div class="shead" data-rise style="border-top:0;padding-top:0">
+      <h2>In motion.</h2>
+      <span class="mono">Animated film · showreel 2026</span>
+    </div>
+    <div class="film__stage" id="film" data-rise>
+      <video class="film__video" id="filmVideo" src="media/interior-01.mp4" poster="img/chalet-living.jpg" muted loop playsinline preload="metadata"></video>
+
+      <div class="film__bar t"></div>
+      <div class="film__bar b"></div>
+      <div class="film__top">
+        <span>Atmosferi° · Showreel</span>
+        <span>Interior film · 4K</span>
+      </div>
+
+      <button class="film__sound" id="filmSound" type="button" aria-pressed="false" aria-label="Toggle sound">
+        <svg class="ico-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="3,9 7,9 12,4 12,20 7,15 3,15" fill="currentColor" stroke="none"/><line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>
+        <svg class="ico-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="3,9 7,9 12,4 12,20 7,15 3,15" fill="currentColor" stroke="none"/><path d="M16 8.5a4 4 0 0 1 0 7"/><path d="M18.5 6a7 7 0 0 1 0 12"/></svg>
+        <span class="film__sound-lab">Sound off</span>
+      </button>
+
+      <div class="film__hud">
+        <span class="film__title" id="filmTitle">Showreel — 2026</span>
+        <span class="film__tc"><span class="film__rec"></span><span id="filmTC">00:00</span> / <span id="filmDur">00:00</span></span>
+      </div>
+      <div class="film__prog" id="filmProg"></div>
+      <div class="film__play" id="filmPlay">
+        <span class="film__btn">
+          <svg class="ico-play" viewBox="0 0 100 100" fill="#fff"><polygon points="24,14 84,50 24,86"/></svg>
+          <svg class="ico-pause" viewBox="0 0 100 100" fill="#fff"><rect x="26" y="18" width="16" height="64"/><rect x="58" y="18" width="16" height="64"/></svg>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- services -->
+<section class="wrap" id="services">
+  <div class="shead" data-rise>
+    <h2>What we make.</h2>
+    <span class="mono">Four ways to see the unbuilt</span>
+  </div>
+  <div class="services" data-rise>
+    <div class="svc">
+      <span class="svc__n">01</span>
+      <span class="svc__t">Stills</span>
+      <span class="svc__price"><span class="f">From</span><b>€400</b></span>
+      <span class="svc__d">Large-format architectural images — composed, lit and graded like photography, not output like a render.</span>
+      <span class="svc__list"><span>Exterior · Interior</span><span>Aerial · Eye-level</span><span>Up to 8K · print-ready</span></span>
+    </div>
+    <div class="svc">
+      <span class="svc__n">02</span>
+      <span class="svc__t">Films</span>
+      <span class="svc__price"><span class="f">From</span><b>€1,200</b></span>
+      <span class="svc__d">Cinematic fly-throughs and narrative sequences — camera, sound and edit, built to move a room.</span>
+      <span class="svc__list"><span>30—90 seconds</span><span>Score &amp; sound design</span><span>4K · 60fps</span></span>
+    </div>
+    <div class="svc">
+      <span class="svc__n">03</span>
+      <span class="svc__t">360° Tours</span>
+      <span class="svc__price"><span class="f">From</span><b>€650</b></span>
+      <span class="svc__d">Step-inside panoramas stitched at full resolution — drag to look around, jump room to room, on any screen or headset.</span>
+      <span class="svc__list"><span>Equirectangular 8K+</span><span>Multi-node tours</span><span>Web · mobile · VR</span></span>
+    </div>
+    <div class="svc">
+      <span class="svc__n">04</span>
+      <span class="svc__t">Interactive</span>
+      <span class="svc__price"><span class="f">From</span><b>€1,600</b></span>
+      <span class="svc__d">Real-time scenes you explore in the browser — orbit, change the light, walk the floors, configure a unit.</span>
+      <span class="svc__list"><span>WebGL · real-time</span><span>Configurators</span><span>Floor &amp; unit explorers</span></span>
+    </div>
+  </div>
+  <div class="svc__foot" data-rise>
+    <p>Indicative starting prices — every project is scoped and fixed against a brief, by image count and complexity. Visualisation also bundles into our website engagements at <a href="../../pricing.html" style="border:0;text-transform:none;letter-spacing:0;font-family:var(--sans);font-size:inherit;color:var(--ink);text-decoration:underline">atmosferi.com/pricing</a>.</p>
+    <a href="mailto:info@atmosferi.com?subject=Visualisation%20enquiry">Request a quote ↗</a>
+  </div>
+</section>
+
+<!-- ============ immersion levels ============ -->
+<section class="wrap" id="immersion">
+  <div class="shead" data-rise>
+    <h2>Real-time &amp; VR.</h2>
+    <span class="mono">Three levels of immersion · pick by audience &amp; budget</span>
+  </div>
+  <div class="imm" data-rise>
+    <div class="imm__lv">
+      <span class="imm__media"><img src="img/11-skygarden.webp" alt="Interactive 360 degree panorama preview" loading="lazy"><span class="tag">360° · drag to look</span></span>
+      <span class="imm__n">Level 01</span>
+      <h3 class="imm__t">Interactive 360°</h3>
+      <p class="imm__d">Drag-to-look panoramas that open on anything — a link in an email, a phone on the train, a laptop in a meeting. The fastest way to put a developer’s project in someone’s hands.</p>
+      <span class="imm__m">Any browser · no install · multi-room</span>
+      <a class="imm__cta" href="#threesixty">See the 360 tour ↓</a>
+    </div>
+    <div class="imm__lv imm__lv--feat">
+      <span class="imm__media"><img src="img/10-penthouse.webp" alt="Immersive WebXR walkthrough preview" loading="lazy"><span class="tag">WebXR · 1:1 scale</span></span>
+      <span class="imm__n">Level 02 · our standard</span>
+      <h3 class="imm__t">Immersive WebXR</h3>
+      <p class="imm__d">The same space, now headset-ready. We send a link and a pair of paper Cardboard glasses; the client steps inside at 1:1 scale — still no app to install. The modern way to present, and it lands every time.</p>
+      <span class="imm__m">VR in the browser · phone + Cardboard · Quest</span>
+      <a class="imm__cta" href="tour.html">Enter the VR walkthrough ↗</a>
+    </div>
+    <div class="imm__lv">
+      <span class="imm__media"><img src="img/12-fjord.webp" alt="Real-time 3D simulation preview" loading="lazy"><span class="tag">Real-time · Unreal</span></span>
+      <span class="imm__n">Level 03 · premium</span>
+      <h3 class="imm__t">Real-time 3D simulation</h3>
+      <p class="imm__d">A fully navigable build in Unreal Engine — walk anywhere, change the light and season, open doors, configure finishes in real time. High-end work for investors and the most demanding clients.</p>
+      <span class="imm__m">Unreal Engine · requires a complete 3D / BIM model</span>
+      <a class="imm__cta" href="mailto:info@atmosferi.com?subject=Real-time%20%2F%20VR%20enquiry">Discuss a real-time build ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- 360° — step inside -->
+<section id="threesixty">
+  <div class="wrap">
+    <div class="shead" data-rise>
+      <h2>Step inside.</h2>
+      <span class="mono">360° tour · drag to look · click a doorway to walk through</span>
+    </div>
+  </div>
+  <div class="tour" id="tour" data-rise>
+    <canvas class="tour__canvas" id="tourCanvas"></canvas>
+    <div class="tour__vig"></div>
+    <div class="tour__markers" id="tourMarkers"></div>
+    <div class="tour__fade" id="tourFade"></div>
+    <div class="tour__info" id="tourInfo"><h4 id="tourInfoT"></h4><p id="tourInfoP"></p></div>
+
+    <div class="tour__top">
+      <span class="tour__badge"><span class="ring">360°</span><span id="tourName">Living room</span></span>
+      <div class="tour__tools">
+        <button class="tour__tool on" id="tourAuto" aria-label="Auto-rotate" title="Auto-rotate">
+          <svg class="ico-play" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-8 8"/><path d="M4 4v5h5"/></svg>
+          <svg class="ico-pause" viewBox="0 0 24 24"><line x1="9" y1="5" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/></svg>
+        </button>
+        <button class="tour__tool tour__fs" id="tourFs" aria-label="Fullscreen" title="Fullscreen">
+          <svg class="ico-enter" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+          <svg class="ico-exit" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="tour__bottom">
+      <div class="tour__compass"><div class="strip" id="tourStrip"></div></div>
+      <div class="tour__rail" id="tourRail"></div>
+      <div class="tour__hint" id="tourHint"><span class="ar">←</span><span>Drag to look around</span><span class="ar">→</span></div>
+    </div>
+
+    <div class="tour__scrollhint"><span>Hold ⌘ / Ctrl to zoom</span></div>
+    <div class="tour__load" id="tourLoad"><span class="sp"></span></div>
+  </div>
+  <div class="wrap vrcta" data-rise>
+    <div class="vrcta__txt">
+      <span class="vrcta__k">New · WebXR</span>
+      <p>Prefer it full-screen — or in a headset? Open the immersive <b>VR walkthrough</b>: move with your phone, your mouse, or step inside at 1:1 scale on a VR headset. No app to install.</p>
+    </div>
+    <a class="vrcta__btn" href="tour.html">Enter the VR walkthrough <span aria-hidden="true">↗</span></a>
+  </div>
+</section>
+
+<!-- frames grid -->
 <section class="wrap" style="padding-top:clamp(50px,7vw,100px)">
   <div class="shead" data-rise style="border-top:0;padding-top:0">
     <h2>Selected frames.</h2>
@@ -856,438 +1312,26 @@ section p{ max-width: 62ch; line-height: 1.75; }
 </section>
 
 
-<!-- featured work -->
-<section id="work">
-
-  <article class="feature wrap" data-rise>
-    <div class="feature__media bloom" data-cap="Still Hour" data-meta="Hillside Villa · Santa Barbara, CA · Stills · 2026" data-full="img/16-villa-dusk.jpg">
-      <span class="feature__num">01 / 14</span>
-      <img src="img/16-villa-dusk.jpg" alt="Architectural visualisation — hillside villa at dusk, Santa Barbara (still render)">
-      <span class="feature__expand">Open frame ↗</span>
-    </div>
-    <div class="feature__bar">
-      <span class="id">An infinity edge at the blue hour</span>
-      <h2>Still Hour</h2>
-      <span class="meta">Hillside Villa · Santa Barbara<br>Stills · 2026</span>
-    </div>
-  </article>
-
-  <article class="feature wrap" data-rise>
-    <div class="feature__media bloom keep-tall" data-cap="Ascension" data-meta="Helix Tower, Singapore · Film · 2027" data-full="img/02-ascension.webp">
-      <span class="feature__num">02 / 14</span>
-      <img src="img/02-ascension.webp" alt="Architectural visualisation — Helix Tower, Singapore (animated fly-through)">
-      <span class="feature__expand">Open frame ↗</span>
-    </div>
-    <div class="feature__bar">
-      <span class="id">A spiralling tower at golden hour</span>
-      <h2>Ascension</h2>
-      <span class="meta">Helix Tower · Singapore<br>Film · 2027</span>
-    </div>
-  </article>
-
-  <article class="feature wrap" data-rise>
-    <div class="feature__media bloom" data-cap="First Light" data-meta="Tidewater Park, Copenhagen · Stills · 2026" data-full="img/04-tidewater.webp">
-      <span class="feature__num">03 / 14</span>
-      <img src="img/04-tidewater.webp" alt="Architectural visualisation — Tidewater Park at dawn, Copenhagen">
-      <span class="feature__expand">Open frame ↗</span>
-    </div>
-    <div class="feature__bar">
-      <span class="id">A tidal park at the turn of the dawn</span>
-      <h2>First Light</h2>
-      <span class="meta">Tidewater · Copenhagen<br>Stills · 2026</span>
-    </div>
-  </article>
-
-  <article class="feature wrap" data-rise>
-    <div class="feature__media bloom" data-cap="Nightfall" data-meta="Harbour Tower · Stills · 2025" data-full="img/01-nightfall.webp">
-      <span class="feature__num">04 / 14</span>
-      <img src="img/01-nightfall.webp" alt="Architectural visualisation — harbour tower at blue hour">
-      <span class="feature__expand">Open frame ↗</span>
-    </div>
-    <div class="feature__bar">
-      <span class="id">Blue hour over still water</span>
-      <h2>Nightfall</h2>
-      <span class="meta">Harbour Tower<br>Stills · 2025</span>
-    </div>
-  </article>
-
-  <article class="feature wrap" data-rise>
-    <div class="feature__media bloom" data-cap="In the Trees" data-meta="University Library · Wrocław · Stills · 2026" data-full="img/13-library.jpg">
-      <span class="feature__num">05 / 14</span>
-      <img src="img/13-library.jpg" alt="Architectural visualisation — University Library among the trees, Wrocław">
-      <span class="feature__expand">Open frame ↗</span>
-    </div>
-    <div class="feature__bar">
-      <span class="id">A red library among the oaks</span>
-      <h2>In the Trees</h2>
-      <span class="meta">University Library · Wrocław<br>Stills · 2026</span>
-    </div>
-  </article>
-
-  <article class="feature wrap" data-rise>
-    <div class="feature__media bloom" data-cap="Breakfast" data-meta="Alpine Chalet · Paseky · Interior stills · 2026" data-full="img/chalet-dining.jpg">
-      <span class="feature__num">06 / 14</span>
-      <img src="img/chalet-dining.jpg" alt="Interior visualisation — Alpine chalet dining room at breakfast, Paseky">
-      <span class="feature__expand">Open frame ↗</span>
-    </div>
-    <div class="feature__bar">
-      <span class="id">A morning in a mountain house</span>
-      <h2>Breakfast</h2>
-      <span class="meta">Alpine Chalet · Paseky<br>Interior · 2026</span>
-    </div>
-  </article>
-
-</section>
-
-<!-- ============ PROJECT SERIES — exterior in landscape (mir.no rhythm) ============ -->
-<section class="ps" id="project">
-  <div class="wrap">
-    <div class="ps__head" data-rise>
-      <div>
-        <span class="ps__eyebrow">Project — Exterior series</span>
-        <h1 class="ps__title">Solveig</h1>
-      </div>
-      <div>
-        <p class="ps__lead">Concrete, glass and weathered timber in a high northern valley. Fourteen frames, one turning day.</p>
-        <div class="ps__meta" style="margin-top:18px">Innerdalen, Norway · 2027<br>Exterior stills · 14 frames</div>
-      </div>
-    </div>
+<!-- founder -->
+<section class="fdr wrap" id="founder">
+  <div class="fdr__media" data-rise>
+    <img src="img/michal.jpg" alt="Ing. arch. Michal Kašpárek, founder of Atmosferi Visualisation" loading="lazy">
+    <span class="fdr__tag"><span class="dot"></span><span data-i18n>Available for new projects</span></span>
   </div>
-
-  <!-- 01 — establishing: building tiny in the valley -->
-  <figure class="psf bloom ps-bleed ps-full" data-rise data-full="img/sol-01.webp" data-cap="The valley holds it" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
-    <span class="num">01 / 14</span>
-    <img src="img/sol-01.webp" alt="Architectural visualisation — a small retreat almost lost in a vast northern valley at first light">
-    <span class="open">Open frame ↗</span>
-  </figure>
-  <div class="ps-cap"><span class="t">The valley holds it</span><span>First light · 06:12</span></div>
-
-  <div class="wrap">
-    <!-- 02 + 03 — wide atmospheric beside a vertical detail -->
-    <div class="ps-row">
-      <figure class="psf bloom" data-rise data-full="img/sol-02.webp" data-cap="Weather coming in" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
-        <span class="num">02 / 14</span>
-        <img src="img/sol-02.webp" alt="Architectural visualisation — the retreat under a wide moody sky, mist rolling across the ridge">
-        <span class="open">Open frame ↗</span>
-      </figure>
-      <figure class="psf bloom" data-rise data-full="img/sol-03.webp" data-cap="The timber edge" data-meta="Solveig · Innerdalen, Norway · Detail · 2027">
-        <span class="num">03 / 14</span>
-        <img src="img/sol-03.webp" alt="Architectural visualisation — close detail of weathered timber and glass against the landscape">
-        <span class="open">Open frame ↗</span>
-      </figure>
+  <div data-rise>
+    <span class="mono" data-i18n>Behind the images</span>
+    <h2 class="fdr__title">I'm Michal — an architect who has been lighting unbuilt rooms for eleven years.</h2>
+    <p class="fdr__text">I trained as an architect, so I read your drawings before I model them. Every frame starts with the sun, the season and the hour — then the geometry follows. That's the difference between a render and a photograph of something that doesn't exist yet. You work with one person from the first camera angle to the final grade.</p>
+    <div class="fdr__facts">
+      <span class="fdr__fact"><b>Ing. arch.</b><span data-i18n>Trained architect</span></span>
+      <span class="fdr__fact"><b>11 years</b><span data-i18n>Making architectural images</span></span>
+      <span class="fdr__fact"><b>Prague</b><span data-i18n>Working across Europe</span></span>
     </div>
-  </div>
-
-  <!-- 04 — full-bleed wide, building small, big sky -->
-  <figure class="psf bloom ps-bleed ps-wide keep-tall" data-rise data-full="img/sol-04.webp" data-cap="The far mountain" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027" style="margin-top:clamp(40px,6vw,90px)">
-    <span class="num">04 / 14</span>
-    <img src="img/sol-04.webp" alt="Architectural visualisation — the retreat small beneath a great mountain as the last light fades over the ridge">
-    <span class="open">Open frame ↗</span>
-  </figure>
-  <div class="ps-cap"><span class="t">The far mountain</span><span>Last light · 21:40</span></div>
-
-  <div class="wrap">
-    <!-- 05 — offset: the one frame where architecture fills, with side note -->
-    <div class="ps-offset">
-      <div class="side" data-rise>
-        <span class="t">And then, up close.</span>
-        <p>The entrance cut, the concrete grain, the valley caught in glass.</p>
-        <span class="m">05 / 14 · Approach</span>
-      </div>
-      <figure class="psf bloom" data-rise data-full="img/sol-05.webp" data-cap="The approach" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027">
-        <span class="num">05 / 14</span>
-        <img src="img/sol-05.webp" alt="Architectural visualisation — the building filling the frame, entrance and concrete detail at close range">
-        <span class="open">Open frame ↗</span>
-      </figure>
+    <div class="fdr__cta">
+      <a class="pri" href="../../start.html?from=viz" data-i18n>Start a brief</a>
+      <a href="mailto:info@atmosferi.com">info@atmosferi.com</a>
     </div>
-  </div>
-
-  <!-- 06 — closing: twilight, building a warm point in the dark land -->
-  <figure class="psf bloom ps-bleed ps-full" data-rise data-full="img/sol-06.webp" data-cap="A light left on" data-meta="Solveig · Innerdalen, Norway · Exterior · 2027" style="margin-top:clamp(44px,6vw,96px)">
-    <span class="num">06 / 14</span>
-    <img src="img/sol-06.webp" alt="Architectural visualisation — the retreat glowing warmly at twilight, a single point of light in the darkening valley">
-    <span class="open">Open frame ↗</span>
-  </figure>
-  <div class="ps-cap"><span class="t">A light left on</span><span>Blue hour · 21:55</span></div>
-</section>
-
-<!-- ============ PROJECT SERIES — Lysning, a forest kindergarten ============ -->
-<section class="ps" id="project-kg">
-  <div class="wrap">
-    <div class="ps__head" data-rise>
-      <div>
-        <span class="ps__eyebrow">Project — Kindergarten</span>
-        <h2 class="ps__title">Lysning</h2>
-      </div>
-      <div>
-        <p class="ps__lead">A kindergarten where the meadow meets the trees — living roof, red-stained timber, rooms that open onto the forest.</p>
-        <div class="ps__meta" style="margin-top:18px">Sörmland, Sweden · 2026<br>Exterior &amp; interior · 5 frames</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 01 — establishing: building in the slope at the forest edge -->
-  <figure class="psf bloom ps-bleed ps-full" data-rise data-full="img/kg-01.webp" data-cap="Where the forest begins" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026">
-    <span class="num">01 / 05</span>
-    <img src="img/kg-01.webp" alt="Architectural visualisation — a forest kindergarten with a green living roof set into a meadow slope, children blurred along the path">
-    <span class="open">Open frame ↗</span>
-  </figure>
-  <div class="ps-cap"><span class="t">Where the forest begins</span><span>Morning · the long path</span></div>
-
-  <div class="wrap">
-    <!-- 02 + 03 — sunny life beside a vertical detail -->
-    <div class="ps-row">
-      <figure class="psf bloom" data-rise data-full="img/kg-02.webp" data-cap="The morning run" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026">
-        <span class="num">02 / 05</span>
-        <img src="img/kg-02.webp" alt="Architectural visualisation — children in colourful coats running past the sunlit red timber facade, long-exposure blur">
-        <span class="open">Open frame ↗</span>
-      </figure>
-      <figure class="psf bloom" data-rise data-full="img/kg-03.webp" data-cap="Roof, glass, forest" data-meta="Lysning · Sörmland, Sweden · Detail · 2026">
-        <span class="num">03 / 05</span>
-        <img src="img/kg-03.webp" alt="Architectural visualisation — close detail of the red timber facade meeting the green sedum roof, a window onto the playroom">
-        <span class="open">Open frame ↗</span>
-      </figure>
-    </div>
-  </div>
-
-  <!-- 04 — full-bleed wide, dusk, building small in the meadow -->
-  <figure class="psf bloom ps-bleed ps-wide" data-rise data-full="img/kg-04.webp" data-cap="Dusk, and still playing" data-meta="Lysning · Sörmland, Sweden · Kindergarten · 2026" style="margin-top:clamp(40px,6vw,90px)">
-    <span class="num">04 / 05</span>
-    <img src="img/kg-04.webp" alt="Architectural visualisation — the kindergarten small in a misty meadow at dusk, windows glowing warm against the dark forest">
-    <span class="open">Open frame ↗</span>
-  </figure>
-  <div class="ps-cap"><span class="t">Dusk, and still playing</span><span>Blue hour · 20:10</span></div>
-
-  <div class="wrap">
-    <!-- 05 — offset: inside, the playroom -->
-    <div class="ps-offset">
-      <div class="side" data-rise>
-        <span class="t">And inside, the day moves.</span>
-        <p>Birch ply, a soft yellow rug, a wall of glass holding the forest.</p>
-        <span class="m">05 / 05 · The playroom</span>
-      </div>
-      <figure class="psf bloom" data-rise data-full="img/kg-05.webp" data-cap="The playroom" data-meta="Lysning · Sörmland, Sweden · Interior · 2026">
-        <span class="num">05 / 05</span>
-        <img src="img/kg-05.webp" alt="Architectural visualisation — a birch-ply playroom flooded with warm light, a wall of glass onto the forest, children blurred mid-play">
-        <span class="open">Open frame ↗</span>
-      </figure>
-    </div>
-  </div>
-</section>
-
-<!-- ============ IN MOTION — animated film / showreel ============ -->
-<section class="film" id="motion">
-  <div class="wrap">
-    <div class="shead" data-rise style="border-top:0;padding-top:0">
-      <h2>In motion.</h2>
-      <span class="mono">Animated film · showreel 2026</span>
-    </div>
-    <div class="film__stage" id="film" data-rise>
-      <video class="film__video" id="filmVideo" src="media/interior-01.mp4" poster="img/chalet-living.jpg" muted loop playsinline preload="metadata"></video>
-
-      <div class="film__bar t"></div>
-      <div class="film__bar b"></div>
-      <div class="film__top">
-        <span>Atmosferi° · Showreel</span>
-        <span>Interior film · 4K</span>
-      </div>
-
-      <button class="film__sound" id="filmSound" type="button" aria-pressed="false" aria-label="Toggle sound">
-        <svg class="ico-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="3,9 7,9 12,4 12,20 7,15 3,15" fill="currentColor" stroke="none"/><line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>
-        <svg class="ico-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="3,9 7,9 12,4 12,20 7,15 3,15" fill="currentColor" stroke="none"/><path d="M16 8.5a4 4 0 0 1 0 7"/><path d="M18.5 6a7 7 0 0 1 0 12"/></svg>
-        <span class="film__sound-lab">Sound off</span>
-      </button>
-
-      <div class="film__hud">
-        <span class="film__title" id="filmTitle">Showreel — 2026</span>
-        <span class="film__tc"><span class="film__rec"></span><span id="filmTC">00:00</span> / <span id="filmDur">00:00</span></span>
-      </div>
-      <div class="film__prog" id="filmProg"></div>
-      <div class="film__play" id="filmPlay">
-        <span class="film__btn">
-          <svg class="ico-play" viewBox="0 0 100 100" fill="#fff"><polygon points="24,14 84,50 24,86"/></svg>
-          <svg class="ico-pause" viewBox="0 0 100 100" fill="#fff"><rect x="26" y="18" width="16" height="64"/><rect x="58" y="18" width="16" height="64"/></svg>
-        </span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- services -->
-<section class="wrap" id="services">
-  <div class="shead" data-rise>
-    <h2>What we make.</h2>
-    <span class="mono">Four ways to see the unbuilt</span>
-  </div>
-  <div class="services" data-rise>
-    <div class="svc">
-      <span class="svc__n">01</span>
-      <span class="svc__t">Stills</span>
-      <span class="svc__price"><span class="f">From</span><b>€400</b></span>
-      <span class="svc__d">Large-format architectural images — composed, lit and graded like photography, not output like a render.</span>
-      <span class="svc__list"><span>Exterior · Interior</span><span>Aerial · Eye-level</span><span>Up to 8K · print-ready</span></span>
-    </div>
-    <div class="svc">
-      <span class="svc__n">02</span>
-      <span class="svc__t">Films</span>
-      <span class="svc__price"><span class="f">From</span><b>€1,200</b></span>
-      <span class="svc__d">Cinematic fly-throughs and narrative sequences — camera, sound and edit, built to move a room.</span>
-      <span class="svc__list"><span>30—90 seconds</span><span>Score &amp; sound design</span><span>4K · 60fps</span></span>
-    </div>
-    <div class="svc">
-      <span class="svc__n">03</span>
-      <span class="svc__t">360° Tours</span>
-      <span class="svc__price"><span class="f">From</span><b>€650</b></span>
-      <span class="svc__d">Step-inside panoramas stitched at full resolution — drag to look around, jump room to room, on any screen or headset.</span>
-      <span class="svc__list"><span>Equirectangular 8K+</span><span>Multi-node tours</span><span>Web · mobile · VR</span></span>
-    </div>
-    <div class="svc">
-      <span class="svc__n">04</span>
-      <span class="svc__t">Interactive</span>
-      <span class="svc__price"><span class="f">From</span><b>€1,600</b></span>
-      <span class="svc__d">Real-time scenes you explore in the browser — orbit, change the light, walk the floors, configure a unit.</span>
-      <span class="svc__list"><span>WebGL · real-time</span><span>Configurators</span><span>Floor &amp; unit explorers</span></span>
-    </div>
-  </div>
-  <div class="svc__foot" data-rise>
-    <p>Indicative starting prices — every project is scoped and fixed against a brief, by image count and complexity. Visualisation also bundles into our website engagements at <a href="../../pricing.html" style="border:0;text-transform:none;letter-spacing:0;font-family:var(--sans);font-size:inherit;color:var(--ink);text-decoration:underline">atmosferi.com/pricing</a>.</p>
-    <a href="mailto:info@atmosferi.com?subject=Visualisation%20enquiry">Request a quote ↗</a>
-  </div>
-</section>
-
-<!-- ============ immersion levels ============ -->
-<section class="wrap" id="immersion">
-  <div class="shead" data-rise>
-    <h2>Real-time &amp; VR.</h2>
-    <span class="mono">Three levels of immersion · pick by audience &amp; budget</span>
-  </div>
-  <div class="imm" data-rise>
-    <div class="imm__lv">
-      <span class="imm__media"><img src="img/11-skygarden.webp" alt="Interactive 360 degree panorama preview" loading="lazy"><span class="tag">360° · drag to look</span></span>
-      <span class="imm__n">Level 01</span>
-      <h3 class="imm__t">Interactive 360°</h3>
-      <p class="imm__d">Drag-to-look panoramas that open anywhere — a link in an email, a phone on the train.</p>
-      <span class="imm__m">Any browser · no install · multi-room</span>
-      <a class="imm__cta" href="#threesixty">See the 360 tour ↓</a>
-    </div>
-    <div class="imm__lv imm__lv--feat">
-      <span class="imm__media"><img src="img/10-penthouse.webp" alt="Immersive WebXR walkthrough preview" loading="lazy"><span class="tag">WebXR · 1:1 scale</span></span>
-      <span class="imm__n">Level 02 · our standard</span>
-      <h3 class="imm__t">Immersive WebXR</h3>
-      <p class="imm__d">The same space, headset-ready. A link and paper Cardboard glasses; the client steps inside at 1:1 scale.</p>
-      <span class="imm__m">VR in the browser · phone + Cardboard · Quest</span>
-      <a class="imm__cta" href="tour.html">Enter the VR walkthrough ↗</a>
-    </div>
-    <div class="imm__lv">
-      <span class="imm__media"><img src="img/12-fjord.webp" alt="Real-time 3D simulation preview" loading="lazy"><span class="tag">Real-time · Unreal</span></span>
-      <span class="imm__n">Level 03 · premium</span>
-      <h3 class="imm__t">Real-time 3D simulation</h3>
-      <p class="imm__d">A navigable Unreal Engine build — walk anywhere, change the light and season, configure finishes in real time.</p>
-      <span class="imm__m">Unreal Engine · requires a complete 3D / BIM model</span>
-      <a class="imm__cta" href="mailto:info@atmosferi.com?subject=Real-time%20%2F%20VR%20enquiry">Discuss a real-time build ↗</a>
-    </div>
-  </div>
-
-    <div class="shead" data-rise>
-      <h2>Step inside.</h2>
-      <span class="mono">360° tour · drag to look · click a doorway to walk through</span>
-    </div>
-  </div>
-  <div class="tour" id="tour" data-rise>
-    <canvas class="tour__canvas" id="tourCanvas"></canvas>
-    <div class="tour__vig"></div>
-    <div class="tour__markers" id="tourMarkers"></div>
-    <div class="tour__fade" id="tourFade"></div>
-    <div class="tour__info" id="tourInfo"><h4 id="tourInfoT"></h4><p id="tourInfoP"></p></div>
-
-    <div class="tour__top">
-      <span class="tour__badge"><span class="ring">360°</span><span id="tourName">Living room</span></span>
-      <div class="tour__tools">
-        <button class="tour__tool on" id="tourAuto" aria-label="Auto-rotate" title="Auto-rotate">
-          <svg class="ico-play" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-8 8"/><path d="M4 4v5h5"/></svg>
-          <svg class="ico-pause" viewBox="0 0 24 24"><line x1="9" y1="5" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/></svg>
-        </button>
-        <button class="tour__tool tour__fs" id="tourFs" aria-label="Fullscreen" title="Fullscreen">
-          <svg class="ico-enter" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-          <svg class="ico-exit" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="tour__bottom">
-      <div class="tour__compass"><div class="strip" id="tourStrip"></div></div>
-      <div class="tour__rail" id="tourRail"></div>
-      <div class="tour__hint" id="tourHint"><span class="ar">←</span><span>Drag to look around</span><span class="ar">→</span></div>
-    </div>
-
-    <div class="tour__load" id="tourLoad"><span class="sp"></span></div>
-  </div>
-  <div class="wrap vrcta" data-rise>
-    <div class="vrcta__txt">
-      <span class="vrcta__k">New · WebXR</span>
-      <p>Prefer it full-screen, or in a headset? No app to install.</p>
-    </div>
-    <a class="vrcta__btn" href="tour.html">Enter the VR walkthrough <span aria-hidden="true">↗</span></a>
-  </div>
-</section>
-
-<!-- frames grid -->
-
-
-<!-- capability band -->
-<section class="cap" id="studio">
-  <div class="wrap">
-    <div class="cap__by" data-rise>
-      <img src="img/michal.jpg" alt="Michal Kašpárek, founder of Atmosferi Visualisation">
-      <span><b>Michal Kašpárek</b><span>Founder · Atmosferi Visualisation</span></span>
-    </div>
-    <p class="cap__lead" data-rise>Eleven years of architectural images — architects, photographers and 3D artists who care about light.</p>
-    <div class="cap__grid">
-      <div class="cap__item" data-rise>
-        <span class="n">A</span>
-        <h3>We start with the light</h3>
-        <p>Every frame begins with the sun, the season and the weather.</p>
-      </div>
-      <div class="cap__item" data-rise>
-        <span class="n">B</span>
-        <h3>We build once, see it everywhere</h3>
-        <p>One scene becomes stills, a film and a real-time model.</p>
-      </div>
-      <div class="cap__item" data-rise>
-        <span class="n">C</span>
-        <h3>We finish like photographers</h3>
-        <p>Graded, retouched, printed to gallery standard.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- clients -->
-<section class="clients wrap">
-  <div class="shead" data-rise style="border-top:0;padding-top:0">
-    <h2>Trusted to picture.</h2>
-    <span class="mono">Selected studios &amp; developers</span>
-  </div>
-  <div class="clients__row" data-rise>
-    <span>VOLUM</span><span>Atelier Voss</span><span>Meridian</span><span>Quay 9</span>
-    <span>Northpoint</span><span>Harbourside</span><span>Atlas Property</span><span>—</span>
-  </div>
-</section>
-
-<!-- brief CTA band -->
-<section class="briefband">
-  <div class="wrap briefband__in">
-    <div class="briefband__head" data-rise>
-      <span class="mono">Start your project · 2 min, interactive</span>
-      <h2>Don’t email a<br><span class="it">blank page.</span></h2>
-      <p>Build your brief by clicking, not typing — tell us what you’re picturing, drop plans and references, set a rough budget. We reply with directions and a quote within two working days.</p>
-    </div>
-    <div class="briefband__steps" data-rise>
-      <div class="bstep"><span class="bstep__n">01</span><span class="bstep__t">What we’re picturing</span><span class="bstep__d">Residential, cultural, interior…</span></div>
-      <div class="bstep"><span class="bstep__n">02</span><span class="bstep__t">Your references</span><span class="bstep__d">Drag in plans, moodboards, PDFs</span></div>
-      <div class="bstep"><span class="bstep__n">03</span><span class="bstep__t">A rough budget</span><span class="bstep__d">Slide it — Essential to Signature</span></div>
-    </div>
-    <a class="briefband__cta" href="../../start.html?from=viz" data-rise>Build my brief <span aria-hidden="true">→</span></a>
+    <span class="fdr__sign">Ing. arch. Michal Kašpárek · <span data-i18n>Founder, Atmosferi Visualisation</span></span>
   </div>
 </section>
 
@@ -1295,12 +1339,10 @@ section p{ max-width: 62ch; line-height: 1.75; }
 <section class="contact wrap" id="contact">
   <div class="contact__grid">
     <div class="contact__intro" data-rise>
-      <img src="img/michal.jpg" alt="Ing. arch. Michal Kašpárek" class="contact__portrait">
       <span class="mono">Commissions open · 2026—2027</span>
       <h2>Let's picture it.</h2>
-      <p class="contact__lead">Tell me about the project — the building, the deadline, what you need to show. I read every message myself and reply within two working days.</p>
+      <p class="contact__lead">The building, the deadline, what you need to show. I reply within two working days.</p>
       <a class="mail" href="mailto:info@atmosferi.com">info@atmosferi.com</a>
-      <span class="contact__by">Ing. arch. Michal Kašpárek · Founder, Atmosferi°</span>
     </div>
 
     <form class="vform" id="viz-form" data-rise novalidate>
@@ -1333,6 +1375,7 @@ section p{ max-width: 62ch; line-height: 1.75; }
 
       <div class="vform__foot">
         <button type="submit" class="vsubmit">Send enquiry →</button>
+        <a class="vsecond" href="../../start.html?from=viz">Or build a brief in 2 min <span aria-hidden="true">→</span></a>
         <span class="vstatus" role="status" aria-live="polite"></span>
       </div>
     </form>
@@ -1410,5 +1453,38 @@ section p{ max-width: 62ch; line-height: 1.75; }
 <script src="pano.js"></script>
 <script src="../../assets/i18n-dict.js"></script>
 <script src="../../assets/i18n.js"></script>
+<script>
+(function(){
+  function wire(rail){
+    var track=rail.querySelector('.frail__track'); if(!track) return;
+    var items=[].slice.call(track.children);
+    var prev=rail.querySelector('[data-rail-prev]')||document.getElementById('frailPrev');
+    var next=rail.querySelector('[data-rail-next]')||document.getElementById('frailNext');
+    var count=rail.querySelector('[data-rail-count]')||document.getElementById('frailCount');
+    if(!items.length||!prev||!next) return;
+    function pad(n){return (n<10?'0':'')+n;}
+    function current(){
+      var c=track.scrollLeft+track.clientWidth/2, best=0, bd=Infinity;
+      items.forEach(function(el,i){var m=el.offsetLeft+el.offsetWidth/2,d=Math.abs(m-c); if(d<bd){bd=d;best=i;}});
+      return best;
+    }
+    function sync(){
+      var i=current();
+      if(count) count.textContent=pad(i+1)+' / '+pad(items.length);
+      prev.disabled = track.scrollLeft<=2;
+      next.disabled = track.scrollLeft >= track.scrollWidth-track.clientWidth-2;
+    }
+    function go(d){
+      var i=Math.min(items.length-1,Math.max(0,current()+d)), el=items[i];
+      track.scrollTo({left: el.offsetLeft-(track.clientWidth-el.offsetWidth)/2, behavior:'smooth'});
+    }
+    prev.addEventListener('click',function(){go(-1);});
+    next.addEventListener('click',function(){go(1);});
+    track.addEventListener('scroll',function(){clearTimeout(track._t);track._t=setTimeout(sync,90);},{passive:true});
+    sync();
+  }
+  [].slice.call(document.querySelectorAll('.frail')).forEach(wire);
+})();
+</script>
 </body>
 </html>

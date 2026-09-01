@@ -496,9 +496,8 @@ window.I18N_DICT = {
     "Websites for": "Weby pro",
     "people who": "lidi, kteří",
     "build space": "tvoří prostor",
-    "Atmosferi designs and builds the digital surface of architecture — for studios, developers and the projects that shape a skyline.":
-      "Atmosferi navrhuje a staví digitální tvář architektury — pro studia, developery a projekty, které utvářejí panorama měst.",
-    "A portfolio site, designed and built by us": "Portfolio web z naší dílny",
+    "Atmosferi designs and builds the digital surface of architecture — studios, developments, and the projects that shape a skyline. Interface, drawn with the same precision as a plan.":
+      "Atmosferi navrhuje a staví digitální tvář architektury — pro studia, developerské projekty a stavby, které utvářejí panorama měst. Rozhraní kreslené se stejnou přesností jako stavební plán.",
     "View the work": "Prohlédnout práce",
     "Open the VOLUM site": "Otevřít web VOLUM",
     "Open the Quay 9 site": "Otevřít web Quay 9",

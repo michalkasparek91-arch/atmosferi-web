@@ -250,7 +250,16 @@
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerup", onUp);
   window.addEventListener("pointercancel", onUp);
+  var hintT = null;
   canvas.addEventListener("wheel", function (e) {
+    // Opt-in zoom: modifier key or fullscreen. Otherwise the page keeps scrolling.
+    var zoomIntent = e.ctrlKey || e.metaKey || !!document.fullscreenElement;
+    if (!zoomIntent) {
+      tour.classList.add("zoomable");
+      clearTimeout(hintT);
+      hintT = setTimeout(function () { tour.classList.remove("zoomable"); }, 1100);
+      return;
+    }
     e.preventDefault();
     fov = Math.max(45, Math.min(85, fov + e.deltaY * 0.04));
     camera.fov = fov; camera.updateProjectionMatrix();
