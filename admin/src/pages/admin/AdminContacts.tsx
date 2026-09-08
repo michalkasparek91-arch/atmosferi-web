@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Users, Plus, Search, Sparkles, Loader2, Building2, Mail, Globe, MapPin, Edit, Trash2, FileText } from "lucide-react";
-import { fetchCompanyByIco } from "@/lib/ares";
+import { fetchCompanyByIco, smartCompanyLookup, COUNTRY_OPTIONS } from "@/lib/ares";
+
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -53,33 +54,35 @@ export default function AdminContacts() {
   };
 
   const handleAresLookup = async () => {
-    const ico = formData.registrationNo;
-    if (!ico) {
-      toast.error("Zadejte IČO pro vyhledání v ARES");
+    const query = formData.vatNo || formData.registrationNo || formData.name;
+    if (!query) {
+      toast.error("Zadejte IČO (CZ), DIČ (EU např. DE123456789) nebo název pro automatické načtení");
       return;
     }
     setAresLoading(true);
     try {
-      const res = await fetchCompanyByIco(ico);
+      const res = await smartCompanyLookup(query, formData.country);
       if (res) {
         setFormData(prev => ({
           ...prev,
-          name: res.name,
-          street: res.street,
-          city: res.city,
-          zip: res.zip,
-          country: res.country,
-          registrationNo: res.registrationNo,
-          vatNo: res.vatNo
+          name: res.name || prev.name || "",
+          street: res.street || prev.street || "",
+          city: res.city || prev.city || "",
+          zip: res.zip || prev.zip || "",
+          country: res.country || prev.country || "CZ",
+          registrationNo: res.registrationNo || prev.registrationNo || "",
+          vatNo: res.vatNo || prev.vatNo || ""
         }));
-        toast.success(`Firma ${res.name} načtena z ARES`);
+        const srcText = res.source === 'ARES' ? 'ARES (ČR)' : res.source === 'VIES' ? 'EU VIES (Evropský registr)' : 'Registru';
+        toast.success(`Firma ${res.name} načtena z ${srcText}`);
       }
     } catch (err: any) {
-      toast.error(err.message || "Chyba při vyhledávání v ARES");
+      toast.error(err.message || "Chyba při automatickém vyhledávání v registrů");
     } finally {
       setAresLoading(false);
     }
   };
+
 
   const handleSubmit = () => {
     if (!formData.name) {

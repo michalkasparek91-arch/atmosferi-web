@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Invoice, Contact, BankAccount, BrandType, LanguageType, InvoiceItem, InvoicingSettings } from "@/types/invoicing";
-import { fetchCompanyByIco } from "@/lib/ares";
-import { Plus, Trash2, Search, Loader2, Sparkles, Building2 } from "lucide-react";
+import { fetchCompanyByIco, fetchCompanyByVies, smartCompanyLookup, COUNTRY_OPTIONS, COUNTRY_NAMES } from "@/lib/ares";
+import { Plus, Trash2, Search, Loader2, Sparkles, Building2, Globe } from "lucide-react";
 import { toast } from "sonner";
+
 
 interface InvoiceFormModalProps {
   open: boolean;
@@ -143,39 +144,41 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     }
   };
 
-  // ARES Lookup helper
+  // Smart Company Lookup helper (ARES + EU VIES + Foreign)
   const handleAresLookup = async () => {
-    const ico = formData.client?.registrationNo;
-    if (!ico) {
-      toast.error("Zadejte IČO klienta pro vyhledání v ARES");
+    const query = formData.client?.vatNo || formData.client?.registrationNo || formData.client?.name;
+    if (!query) {
+      toast.error("Zadejte IČO (CZ), DIČ (EU např. DE123456789) nebo název klienta pro automatické načtení");
       return;
     }
     setAresLoading(true);
     try {
-      const result = await fetchCompanyByIco(ico);
+      const result = await smartCompanyLookup(query, formData.client?.country);
       if (result) {
         setFormData(prev => ({
           ...prev,
           client: {
             ...prev.client,
             id: prev.client?.id || "c_" + Date.now(),
-            name: result.name,
-            street: result.street,
-            city: result.city,
-            zip: result.zip,
-            country: result.country,
-            registrationNo: result.registrationNo,
-            vatNo: result.vatNo
+            name: result.name || prev.client?.name || "",
+            street: result.street || prev.client?.street || "",
+            city: result.city || prev.client?.city || "",
+            zip: result.zip || prev.client?.zip || "",
+            country: result.country || prev.client?.country || "CZ",
+            registrationNo: result.registrationNo || prev.client?.registrationNo || "",
+            vatNo: result.vatNo || prev.client?.vatNo || ""
           }
         }));
-        toast.success(`Načteno z ARES: ${result.name}`);
+        const srcText = result.source === 'ARES' ? 'ARES (ČR)' : result.source === 'VIES' ? 'EU VIES (Evropský registr)' : 'Registru';
+        toast.success(`Načteno z ${srcText}: ${result.name}`);
       }
     } catch (err: any) {
-      toast.error(err.message || "Nepodařilo se načíst data z ARES");
+      toast.error(err.message || "Nepodařilo se automaticky načíst údaje klienta");
     } finally {
       setAresLoading(false);
     }
   };
+
 
   // Item management
   const handleItemChange = (index: number, field: keyof InvoiceItem, val: any) => {
@@ -377,38 +380,60 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                   type="button"
                   onClick={handleAresLookup}
                   disabled={aresLoading}
-                  className="text-xs gap-1.5"
+                  className="text-xs gap-1.5 font-semibold bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
+                  title="Automaticky načíst podle českého IČO (ARES) nebo evropského DIČ (VIES)"
                 >
                   {aresLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-amber-500" />}
-                  ARES
+                  ARES / VIES Načíst
                 </Button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
               <div className="sm:col-span-2">
                 <Label className="text-[11px]">Název firmy / Jméno klienta</Label>
                 <Input
                   className="mt-1 font-bold"
                   value={formData.client?.name || ""}
                   onChange={(e) => setFormData(prev => ({ ...prev, client: { ...prev.client!, name: e.target.value } }))}
+                  placeholder="např. Atelier Modus Sàrl"
                 />
               </div>
               <div>
-                <Label className="text-[11px]">IČO</Label>
+                <Label className="text-[11px]">IČO / Reg. No.</Label>
                 <Input
                   className="mt-1 font-mono"
                   value={formData.client?.registrationNo || ""}
                   onChange={(e) => setFormData(prev => ({ ...prev, client: { ...prev.client!, registrationNo: e.target.value } }))}
+                  placeholder="např. 08603936"
+                />
+              </div>
+              <div>
+                <Label className="text-[11px]">DIČ / VAT No.</Label>
+                <Input
+                  className="mt-1 font-mono"
+                  value={formData.client?.vatNo || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, client: { ...prev.client!, vatNo: e.target.value } }))}
+                  placeholder="např. DE123456789 nebo CZ08603936"
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <Label className="text-[11px]">Ulice a ČP</Label>
                 <Input
                   className="mt-1"
                   value={formData.client?.street || ""}
                   onChange={(e) => setFormData(prev => ({ ...prev, client: { ...prev.client!, street: e.target.value } }))}
+                  placeholder="např. Avenue du Général-Guisan 1"
+                />
+              </div>
+              <div>
+                <Label className="text-[11px]">PSČ / ZIP</Label>
+                <Input
+                  className="mt-1 font-mono"
+                  value={formData.client?.zip || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, client: { ...prev.client!, zip: e.target.value } }))}
+                  placeholder="např. 1700"
                 />
               </div>
               <div>
@@ -417,17 +442,43 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                   className="mt-1"
                   value={formData.client?.city || ""}
                   onChange={(e) => setFormData(prev => ({ ...prev, client: { ...prev.client!, city: e.target.value } }))}
+                  placeholder="např. Fribourg"
                 />
               </div>
-              <div>
-                <Label className="text-[11px]">DIČ</Label>
-                <Input
-                  className="mt-1 font-mono"
-                  value={formData.client?.vatNo || ""}
-                  onChange={(e) => setFormData(prev => ({ ...prev, client: { ...prev.client!, vatNo: e.target.value } }))}
-                />
+
+              <div className="sm:col-span-4 border-t border-border/50 pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex-1">
+                  <Label className="text-[11px] flex items-center gap-1.5">
+                    <Globe className="h-3.5 w-3.5 text-blue-500" />
+                    Země Klienta (Country)
+                  </Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Select
+                      value={formData.client?.country || "CZ"}
+                      onValueChange={(val) => setFormData(prev => ({ ...prev, client: { ...prev.client!, country: val } }))}
+                    >
+                      <SelectTrigger className="w-[240px] text-xs bg-background">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[220px]">
+                        {COUNTRY_OPTIONS.map(c => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.flag} {c.name} ({c.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      className="flex-1 text-xs"
+                      placeholder="Vlastní název země (např. Švýcarsko / USA / Německo)..."
+                      value={COUNTRY_NAMES[formData.client?.country || ""] || formData.client?.country || ""}
+                      onChange={(e) => setFormData(prev => ({ ...prev, client: { ...prev.client!, country: e.target.value } }))}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
+
           </div>
 
           {/* Items Section */}

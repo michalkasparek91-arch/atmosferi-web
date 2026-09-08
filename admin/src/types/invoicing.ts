@@ -5,7 +5,8 @@ export type BrandType = 'pixl' | 'atmosferi' | 'personal';
 
 export type LanguageType = 'cs' | 'en';
 
-export type CurrencyType = 'CZK' | 'EUR';
+export type CurrencyType = 'CZK' | 'EUR' | 'USD' | 'GBP';
+
 
 export interface InvoiceItem {
   id: string;
