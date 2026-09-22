@@ -507,6 +507,7 @@ export default function AdminInvoices() {
         contacts={contacts}
         settings={settings}
         onSave={upsertInvoice}
+        onSaveContact={upsertContact}
         getNextInvoiceNumber={getNextInvoiceNumber}
         getPrimaryBankAccountForLanguage={getPrimaryBankAccountForLanguage}
       />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Invoice } from "@/types/invoicing";
 import { QRCodeSVG } from "qrcode.react";
 import { COUNTRY_NAMES } from "@/lib/ares";
@@ -11,6 +11,18 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
   const isEn = invoice.language === "en";
   const isPixl = invoice.brand === "pixl";
   const isPersonal = invoice.brand === "personal";
+
+  // Automatically set document.title for browser PDF save naming (e.g. invoice 2026-0028-pixl)
+  useEffect(() => {
+    if (invoice?.number) {
+      const originalTitle = document.title;
+      const autoTitle = `invoice ${invoice.number}-${invoice.brand || 'pixl'}`;
+      document.title = autoTitle;
+      return () => {
+        document.title = originalTitle;
+      };
+    }
+  }, [invoice]);
 
   // Format money for CZK, EUR, USD, GBP
   const formatMoney = (amount: number, currency: string) => {
@@ -49,7 +61,51 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
   const supplierCountry = getCountryLabel(invoice.supplier.country);
 
   return (
-    <div className="w-full max-w-[820px] mx-auto bg-white text-zinc-900 p-8 sm:p-12 print:p-0 print:m-0 print:max-w-none font-sans text-xs leading-relaxed transition-all">
+    <div className="invoice-printable-wrapper w-full max-w-[820px] mx-auto bg-white text-zinc-900 p-8 sm:p-12 print:p-0 print:m-0 print:max-w-none print:w-full print:shadow-none print:border-none font-sans text-xs leading-relaxed transition-all">
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 10mm 12mm;
+          }
+          html, body {
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          /* Hide non-printable dialog backgrounds, overlays, headers, buttons */
+          body > *:not(.radix-dialog-content):not([role="dialog"]) {
+            visibility: hidden !important;
+          }
+          [data-radix-portal] > * {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .radix-dialog-content, [role="dialog"], [data-state="open"] {
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: none !important;
+            width: 100% !important;
+            background: white !important;
+          }
+          .invoice-printable-wrapper {
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+        }
+      `}</style>
       {/* Printable Page Wrapper */}
       <div className="flex flex-col min-h-[960px] justify-between">
         <div>

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Invoice, Contact, BankAccount, BrandType, LanguageType, InvoiceItem, InvoicingSettings } from "@/types/invoicing";
 import { fetchCompanyByIco, fetchCompanyByVies, smartCompanyLookup, COUNTRY_OPTIONS, COUNTRY_NAMES } from "@/lib/ares";
-import { Plus, Trash2, Search, Loader2, Sparkles, Building2, Globe } from "lucide-react";
+import { Plus, Trash2, Search, Loader2, Sparkles, Building2, Globe, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -17,6 +17,7 @@ interface InvoiceFormModalProps {
   contacts: Contact[];
   settings: InvoicingSettings;
   onSave: (invoice: Invoice) => void;
+  onSaveContact?: (contact: Contact) => void;
   getNextInvoiceNumber: (year?: number) => { number: string; variableSymbol: string };
   getPrimaryBankAccountForLanguage: (lang: LanguageType) => BankAccount;
 }
@@ -28,6 +29,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   contacts,
   settings,
   onSave,
+  onSaveContact,
   getNextInvoiceNumber,
   getPrimaryBankAccountForLanguage
 }) => {
@@ -180,6 +182,42 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   };
 
 
+  // Explicitly save or update client as a contact in address book
+  const handleSaveContactFromForm = () => {
+    if (!formData.client?.name) {
+      toast.error("Zadejte nejprve název firmy nebo jméno klienta");
+      return;
+    }
+    const clientData = formData.client;
+    const contactId = (clientData.id && !clientData.id.startsWith("c_new")) 
+      ? clientData.id 
+      : "c_" + Date.now();
+
+    const newContact: Contact = {
+      id: contactId,
+      name: clientData.name,
+      street: clientData.street || "",
+      city: clientData.city || "",
+      zip: clientData.zip || "",
+      country: clientData.country || "CZ",
+      registrationNo: clientData.registrationNo || "",
+      vatNo: clientData.vatNo || "",
+    };
+
+    if (onSaveContact) {
+      onSaveContact(newContact);
+    }
+    setSelectedContactId(contactId);
+    setFormData(prev => ({
+      ...prev,
+      client: {
+        ...prev.client,
+        ...newContact
+      }
+    }));
+    toast.success(`Kontakt "${newContact.name}" byl uložen do adresáře!`);
+  };
+
   // Item management
   const handleItemChange = (index: number, field: keyof InvoiceItem, val: any) => {
     setFormData(prev => {
@@ -238,6 +276,26 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       toast.error("Vyplňte číslo faktury a název klienta");
       return;
     }
+
+    // Auto-save / sync client to contact directory
+    if (onSaveContact && formData.client?.name) {
+      const clientData = formData.client;
+      const contactId = (clientData.id && !clientData.id.startsWith("c_new")) 
+        ? clientData.id 
+        : "c_" + Date.now();
+
+      onSaveContact({
+        id: contactId,
+        name: clientData.name,
+        street: clientData.street || "",
+        city: clientData.city || "",
+        zip: clientData.zip || "",
+        country: clientData.country || "CZ",
+        registrationNo: clientData.registrationNo || "",
+        vatNo: clientData.vatNo || "",
+      });
+    }
+
     onSave(formData as Invoice);
     onOpenChange(false);
     toast.success(`Faktura ${formData.number} byla úspěšně uložena`);
@@ -385,6 +443,18 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 >
                   {aresLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-amber-500" />}
                   ARES / VIES Načíst
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  type="button"
+                  onClick={handleSaveContactFromForm}
+                  className="text-xs gap-1.5 font-semibold bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20"
+                  title="Uložit tyto údaje klienta jako nový kontakt v adresáři"
+                >
+                  <UserPlus className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  + Uložit Kontakt
                 </Button>
               </div>
             </div>
