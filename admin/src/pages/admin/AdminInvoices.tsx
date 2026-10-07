@@ -47,6 +47,7 @@ export default function AdminInvoices() {
     deleteInvoice, 
     updateInvoiceStatus, 
     duplicateInvoice, 
+    upsertContact,
     updateSettings,
     getPrimaryBankAccountForLanguage,
     getNextInvoiceNumber 
