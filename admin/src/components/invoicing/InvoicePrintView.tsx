@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Invoice } from "@/types/invoicing";
 import { QRCodeSVG } from "qrcode.react";
 import { COUNTRY_NAMES } from "@/lib/ares";
+import { resolveVatNote } from "@/lib/vatNotes";
 
 interface InvoicePrintViewProps {
   invoice: Invoice;
@@ -11,6 +12,7 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
   const isEn = invoice.language === "en";
   const isPixl = invoice.brand === "pixl";
   const isPersonal = invoice.brand === "personal";
+  const vatNote = resolveVatNote(invoice);
 
   // Automatically set document.title for browser PDF save naming (e.g. invoice 2026-0028-pixl)
   useEffect(() => {
@@ -339,6 +341,27 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
               </div>
             </div>
           </div>
+
+          {/* Daňová poznámka (dodání do jiného členského státu EU).
+              Musí být vidět — účetní protistrany ji na faktuře hledá. */}
+          {vatNote && (
+            <div className="mb-6 px-4 py-3 rounded-lg border border-zinc-900/15 bg-zinc-50">
+              <div className="text-sm font-semibold text-zinc-900">{vatNote.primary}</div>
+              {vatNote.secondary && (
+                <div className="text-xs text-zinc-600 mt-0.5">{vatNote.secondary}</div>
+              )}
+              {vatNote.legalRef && (
+                <div className="text-[10px] text-zinc-400 mt-1">{vatNote.legalRef}</div>
+              )}
+            </div>
+          )}
+
+          {/* Volitelná poznámka k faktuře */}
+          {invoice.note && (
+            <div className="mb-6 text-[11px] text-zinc-600 leading-relaxed whitespace-pre-line">
+              {invoice.note}
+            </div>
+          )}
 
           {/* Footer Legal Note */}
           <div className="text-[10px] text-zinc-400 text-center border-t border-zinc-200 pt-4 pb-2">

@@ -5,6 +5,16 @@ export type BrandType = 'pixl' | 'atmosferi' | 'personal';
 
 export type LanguageType = 'cs' | 'en';
 
+/**
+ * Daňový režim uvedený na faktuře. U dodání do jiného členského státu EU
+ * musí být na faktuře povinná poznámka + DIČ obou stran.
+ *  - reverse_charge   … služby do EU, daň odvede zákazník (čl. 196)
+ *  - intra_eu_goods   … dodání zboží do EU, osvobozeno od DPH (čl. 138)
+ *  - non_payer        … neplátce DPH
+ *  - custom           … vlastní text
+ */
+export type VatRegime = 'none' | 'reverse_charge' | 'intra_eu_goods' | 'non_payer' | 'custom';
+
 export type CurrencyType = 'CZK' | 'EUR' | 'USD' | 'GBP';
 
 
@@ -80,7 +90,11 @@ export interface Invoice {
   subtotal: number;
   total: number;
   exchangeRate?: number; // default 1.0 for CZK
-  
+
+  // Daňový režim + volitelný vlastní text poznámky (pro VatRegime 'custom').
+  vatRegime?: VatRegime;
+  vatNoteCustom?: string;
+
   note?: string;
 }
 

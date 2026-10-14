@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Invoice, Contact, BankAccount, BrandType, LanguageType, InvoiceItem, InvoicingSettings } from "@/types/invoicing";
+import { Invoice, Contact, BankAccount, BrandType, LanguageType, InvoiceItem, InvoicingSettings, VatRegime } from "@/types/invoicing";
+import { VAT_REGIME_LABELS, isCrossBorderEu, suggestVatRegime, resolveVatNote } from "@/lib/vatNotes";
 import { fetchCompanyByIco, fetchCompanyByVies, smartCompanyLookup, COUNTRY_OPTIONS, COUNTRY_NAMES } from "@/lib/ares";
 import { Plus, Trash2, Search, Loader2, Sparkles, Building2, Globe, UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -107,6 +109,24 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     }));
     toast.info(`Byl nastaven primární bankovní účet pro ${lang === 'cs' ? 'Češtinu' : 'Angličtinu'}: ${primaryBank.name}`);
   };
+
+  // Je faktura přeshraniční v rámci EU? Podle toho nabízíme daňovou poznámku.
+  const isEuCrossBorder = useMemo(
+    () => isCrossBorderEu(formData.supplier?.country, formData.client?.country),
+    [formData.supplier?.country, formData.client?.country]
+  );
+  const suggestedRegime = useMemo(
+    () => suggestVatRegime(formData.supplier?.country, formData.client?.country, formData.client?.vatNo),
+    [formData.supplier?.country, formData.client?.country, formData.client?.vatNo]
+  );
+  const vatPreview = useMemo(
+    () => resolveVatNote({
+      vatRegime: formData.vatRegime,
+      vatNoteCustom: formData.vatNoteCustom,
+      language: formData.language || "cs",
+    } as Invoice),
+    [formData.vatRegime, formData.vatNoteCustom, formData.language]
+  );
 
   // When brand changes -> update supplier info.
   // Dříve uložená nastavení nemusí obsahovat 'personal'; bez tohoto fallbacku
@@ -370,6 +390,69 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Daňový režim — povinná poznámka při fakturaci do jiného státu EU */}
+          <div className="p-4 rounded-xl border border-border bg-background space-y-3">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <Label className="text-xs font-bold text-muted-foreground uppercase">
+                  Daňový režim / poznámka na faktuře
+                </Label>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  U dodání do jiného členského státu EU musí faktura obsahovat povinnou poznámku a DIČ obou stran.
+                </p>
+              </div>
+              {isEuCrossBorder && (!formData.vatRegime || formData.vatRegime === "none") && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-[11px]"
+                  onClick={() => setFormData(prev => ({ ...prev, vatRegime: suggestedRegime }))}
+                >
+                  Doplnit pro EU
+                </Button>
+              )}
+            </div>
+
+            <Select
+              value={formData.vatRegime || "none"}
+              onValueChange={(val: VatRegime) => setFormData(prev => ({ ...prev, vatRegime: val }))}
+            >
+              <SelectTrigger className="bg-background font-semibold">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(VAT_REGIME_LABELS) as VatRegime[]).map(r => (
+                  <SelectItem key={r} value={r}>{VAT_REGIME_LABELS[r]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {formData.vatRegime === "custom" && (
+              <Textarea
+                className="text-xs"
+                rows={2}
+                placeholder="Vlastní znění poznámky, které se vytiskne na fakturu…"
+                value={formData.vatNoteCustom || ""}
+                onChange={(e) => setFormData(prev => ({ ...prev, vatNoteCustom: e.target.value }))}
+              />
+            )}
+
+            {vatPreview && (
+              <div className="text-[11px] rounded-md bg-muted/60 px-3 py-2">
+                <span className="text-muted-foreground">Na faktuře se vytiskne: </span>
+                <span className="font-semibold">{vatPreview.primary}</span>
+                {vatPreview.secondary && <span className="text-muted-foreground"> · {vatPreview.secondary}</span>}
+              </div>
+            )}
+
+            {isEuCrossBorder && !formData.client?.vatNo && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                Odběratel nemá vyplněné DIČ — pro reverse charge je povinné a je dobré ho ověřit ve VIES.
+              </p>
+            )}
           </div>
 
           {/* Basic Details: Number, VS, Dates, Status */}
