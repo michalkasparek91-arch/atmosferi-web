@@ -5,6 +5,7 @@ import { SniperTemplate } from "./email-templates/SniperTemplate.tsx";
 import { SniperRecruitmentEmail } from "./email-templates/SniperRecruitmentEmail.tsx";
 import { generateAtmosferiEmailHtml, EmailTemplateData } from "./EmailTemplateGenerator.ts";
 import { sendViaSes } from "./ses.ts";
+import { sendViaSmtp } from "./smtp.ts";
 
 export interface EmailPayload {
   to: string;
@@ -16,7 +17,7 @@ export interface EmailPayload {
   greeting?: string;
   secondaryText?: string;
   emoji?: string;
-  layoutType?: "standard" | "magazine" | "sniper" | "sniper_recruitment";
+  layoutType?: "standard" | "magazine" | "sniper" | "sniper_recruitment" | "atmosferi_studio" | "plain";
   heroImageUrl?: string;
   magazineArticles?: Array<{
     title: string;
@@ -53,14 +54,14 @@ export interface EmailPayload {
   segmentFilters?: any;
   heroCaption?: string;
   heroTagline?: string;
-  provider?: 'brevo' | 'ses';
+  provider?: 'brevo' | 'ses' | 'smtp';
   bcc?: string;
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; messageId?: string; html?: string }> {
   try {
     const apiKey = Deno.env.get("BREVO_API_KEY") || Deno.env.get("RESEND_API_KEY");
-    if (!apiKey && payload.provider !== 'ses') {
+    if (!apiKey && (!payload.provider || payload.provider === 'brevo')) {
        console.error('[Email] Missing BREVO_API_KEY environment variable');
        return { success: false, error: 'Missing BREVO_API_KEY environment variable' };
     }
@@ -190,6 +191,15 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       }
     }
 
+    if (payload.provider === 'smtp') {
+      const result = await sendViaSmtp({
+        from: payload.from || `${senderName} <${senderEmail}>`,
+        to: payload.to, subject: payload.subject, html,
+        ...(payload.bcc ? { bcc: payload.bcc } : {}),
+      });
+      return { ...result, html };
+    }
+
     // ─── Provider Routing: SES or Brevo ───
     if (payload.provider === 'ses') {
       console.log(`[Email] Routing via Amazon SES to: ${payload.to}`);
@@ -207,7 +217,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        "api-key": apiKey,
+        "api-key": apiKey!,
         "content-type": "application/json",
       },
       body: JSON.stringify({

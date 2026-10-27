@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { sendEmail } from "../_shared/email.ts";
+import { availableOutreachLeads } from "../_shared/outreach-leads.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,12 +10,7 @@ const corsHeaders = {
 const CHUNK_SIZE = {
   brevo: 25, // Pacing: Send max 25 emails per batch to fit in Edge function timeout
   ses: 25,
-} as const;
-
-// We will calculate a dynamic delay between 1.5 and 3.5 seconds
-const SEND_DELAY_MS = {
-  brevo: 1500, 
-  ses: 1500,
+  smtp: 5,
 } as const;
 
 function sleep(ms: number) {
@@ -58,54 +54,12 @@ function cleanCompanyName(name: string | null | undefined): string {
   return cleaned;
 }
 
-async function fetchAllOutboxLeadIds(
-  supabaseAdmin: SupabaseClient,
-  templateSlug: string,
-): Promise<string[]> {
-  const allLeadIds: string[] = [];
-  let from = 0;
-  const limit = 1000;
-
-  while (true) {
-    const { data } = await supabaseAdmin
-      .from("email_outbox")
-      .select("lead_id")
-      .eq("template_slug", templateSlug)
-      .not("lead_id", "is", null)
-      .range(from, from + limit - 1);
-
-    if (!data || data.length === 0) break;
-    allLeadIds.push(...data.map((o: { lead_id: string }) => o.lead_id));
-    if (data.length < limit) break;
-    from += limit;
-  }
-
-  return allLeadIds;
-}
-
 async function ensureDraftsForTemplate(
   supabaseAdmin: SupabaseClient,
   template: Record<string, any>,
   limit: number,
 ): Promise<number> {
-  const excludedLeadIds = await fetchAllOutboxLeadIds(supabaseAdmin, template.slug);
-
-  let langFilter = [template.language];
-  if (template.language === "cs" || template.language === "cz") {
-    langFilter = ["cs", "cz", "sk"];
-  }
-
-  const { data: availableLeads, error: leadsErr } = await supabaseAdmin
-    .from("marketing_leads")
-    .select("*")
-    .eq("category", template.category)
-    .in("language", langFilter);
-
-  if (leadsErr) throw leadsErr;
-
-  const leadsToProcess = (availableLeads || [])
-    .filter((l: any) => !excludedLeadIds.includes(l.id) && !(l.tags || []).includes("známé"))
-    .slice(0, limit);
+  const leadsToProcess = (await availableOutreachLeads(supabaseAdmin, template as { slug: string; category: string; language: string })).slice(0, limit);
 
   if (leadsToProcess.length === 0) return 0;
 
@@ -118,7 +72,7 @@ async function ensureDraftsForTemplate(
 
   const { error: upsertErr } = await supabaseAdmin
     .from("email_outbox")
-    .insert(outboxInserts);
+    .upsert(outboxInserts, { onConflict: "template_slug,lead_id", ignoreDuplicates: true });
 
   if (upsertErr) throw upsertErr;
   return leadsToProcess.length;
@@ -129,6 +83,7 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let releaseLease: (() => Promise<void>) | undefined;
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -173,8 +128,29 @@ Deno.serve(async (req) => {
       create_drafts,
     } = await req.json();
 
-    const provider = rawProvider === "ses" ? "ses" : "brevo";
+    if (rawProvider && !["brevo", "ses", "smtp"].includes(rawProvider)) throw new Error("Invalid provider");
+    const provider: "brevo" | "ses" | "smtp" = rawProvider || "brevo";
+    if (provider === "smtp" && (!Deno.env.get("SMTP_HOST") || !(Deno.env.get("SMTP_USER") || Deno.env.get("SMTP_USERNAME")) || !Deno.env.get("SMTP_PASSWORD"))) {
+      throw new Error("Nejprve nastavte serverové secrets SMTP_HOST, SMTP_USER a SMTP_PASSWORD.");
+    }
     const chunkSize = CHUNK_SIZE[provider];
+
+    const leaseToken = crypto.randomUUID();
+    const { data: acquired, error: leaseError } = await supabaseAdmin.rpc("acquire_email_dispatch_lease", { lease_token: leaseToken });
+    if (leaseError) throw leaseError;
+    if (!acquired) throw new Error("Jiné rozesílání právě běží. Zkuste to v další vlně.");
+    releaseLease = async () => {
+      const { error } = await supabaseAdmin.from("email_dispatch_state")
+        .update({ lease_until: null, lease_token: null }).eq("id", 1).eq("lease_token", leaseToken);
+      if (error) console.error("Failed to release email dispatch lease:", error.message);
+    };
+    const { data: settings, error: settingsError } = await supabaseAdmin.from("email_dispatch_state")
+      .select("daily_limit").eq("id", 1).single();
+    if (settingsError) throw settingsError;
+    const { data: budget, error: budgetError } = await supabaseAdmin.rpc("email_dispatch_remaining", { max_daily: settings.daily_limit });
+    if (budgetError) throw budgetError;
+    const remainingBudget = targetEmail ? 1 : Number(budget);
+    if (remainingBudget <= 0) throw new Error("Dosažen denní limit akvizičních e-mailů. Pokračování zítra.");
 
     let resolvedDraftIds = draftIds;
 
@@ -191,7 +167,7 @@ Deno.serve(async (req) => {
         throw new Error(`Template not found: ${templateErr?.message || template_id}`);
       }
 
-      const requestedBatchSize = Math.min(batch_limit || 300, CHUNK_SIZE[provider]);
+      const requestedBatchSize = Math.max(1, Math.min(Number(batch_limit) || 300, chunkSize, remainingBudget));
 
       if (create_drafts !== false) {
         const created = await ensureDraftsForTemplate(supabaseAdmin, template, requestedBatchSize);
@@ -202,7 +178,8 @@ Deno.serve(async (req) => {
         .from("email_outbox")
         .select("id")
         .eq("template_slug", template.slug)
-        .eq("status", "draft")
+        .in("status", ["draft", "pending"])
+        .is("dispatch_attempted_at", null)
         .order("created_at", { ascending: true })
         .limit(requestedBatchSize);
 
@@ -229,16 +206,15 @@ Deno.serve(async (req) => {
 
       const idsThisRun = action === "send_template_batch"
         ? resolvedDraftIds.slice(0, chunkSize)
-        : resolvedDraftIds;
+        : resolvedDraftIds.slice(0, Math.min(chunkSize, remainingBudget));
 
       // Check Brevo daily usage to avoid hitting backlog limit
       const startOfDay = new Date();
       startOfDay.setUTCHours(0, 0, 0, 0);
       const { count: brevoSentToday } = await supabaseAdmin
-        .from("email_history")
+        .from("email_outbox")
         .select("*", { count: "exact", head: true })
         .gte("sent_at", startOfDay.toISOString())
-        .eq("status", "sent")
         .eq("provider", "brevo");
 
       let brevoRemaining = Math.max(0, 300 - (brevoSentToday || 0));
@@ -273,7 +249,9 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const template = draft.template || {};
+        if (draft.dispatch_attempted_at || (draft.status !== "draft" && draft.status !== "pending")) continue;
+        if (!draft.template) throw new Error(`Chybí šablona konceptu ${draftId}`);
+        const template = draft.template;
         const recipientEmail = targetEmail || draft.worker?.email || draft.lead?.email;
         if (!recipientEmail) {
           failed_count++;
@@ -363,7 +341,7 @@ Deno.serve(async (req) => {
             .replace(/{{cena_rozpocet}}|{{rozpocet}}/g, draft.job?.price_note || "Není stanovena")
             .replace(/{{zakaznik}}/g, "Zákazník")
             .replace(/{{projekt}}/g, projektValue)
-            .replace(/{{firma}}|{{studio}}/g, companyName || name || "Vaše studio")
+            .replace(/{{firma}}|{{studio}}/g, companyName || personName || "Vaše studio")
             .replace(/{{odkaz_zakazky}}/g, template.cta_url || "https://zrobee.cz");
 
           replaced = replaced.replace(/Guten Tag liebes Team/gi, "Guten Tag, liebes Team");
@@ -378,18 +356,22 @@ Deno.serve(async (req) => {
         let finalMessageId: string | undefined;
         let finalHtml: string | undefined;
 
-        while (!success && providersTried < 2) {
+        while (!success && providersTried < 1) {
           providersTried++;
 
           if (currentProvider === "brevo" && brevoRemaining <= 0) {
-            console.log(`[send] Brevo daily limit reached locally. Forcing SES.`);
-            if (providersTried === 1) {
-              currentProvider = "ses";
-            } else {
-              break; // Already tried SES or forced Brevo
-            }
+            quotaHit = true;
+            quotaMessage = "Brevo: 300 e-mailů za den";
+            break;
           }
 
+          if (!targetEmail) {
+            const { error: claimError } = await supabaseAdmin.from("email_outbox").update({
+              dispatch_attempted_at: new Date().toISOString(),
+              error_message: "Odesílání zahájeno; při přerušení ověřte doručení před opakováním.",
+            }).eq("id", draftId).is("dispatch_attempted_at", null);
+            if (claimError) throw claimError;
+          }
           const result = await sendEmail({
             from: template.sender_email,
             to: recipientEmail,
@@ -406,7 +388,7 @@ Deno.serve(async (req) => {
             jobDescription: replaceVars(draft.job?.description || template.job_description),
             priceNote: replaceVars(draft.job?.price_note || template.price_note),
             customerName: "Zákazník",
-            workerName: isWorker ? name : undefined,
+            workerName: isWorker ? personName : undefined,
             urgencyBannerEnabled: template.urgency_banner_enabled ?? false,
             promoBannerEnabled: template.promo_banner_enabled ?? false,
             psFooterEnabled: template.ps_footer_enabled ?? false,
@@ -445,18 +427,19 @@ Deno.serve(async (req) => {
             if (currentProvider === "brevo") brevoRemaining--;
           } else {
             lastError = String(result.error);
+            if (currentProvider === "smtp") {
+              if (!targetEmail) await supabaseAdmin.from("email_outbox").update({ status: "failed", error_message: lastError }).eq("id", draftId);
+              await supabaseAdmin.from("email_dispatch_state").update({ enabled: false, last_error: lastError }).eq("id", 1);
+              throw new Error(lastError);
+            }
             const errStr = lastError.toLowerCase();
             const isQuota = errStr.includes("quota") || errStr.includes("limit") || errStr.includes("429") || errStr.includes("too many") || errStr.includes("plan") || errStr.includes("throttl") || errStr.includes("rate") || errStr.includes("credit");
 
             if (isQuota) {
+              if (!targetEmail) await supabaseAdmin.from("email_outbox").update({ dispatch_attempted_at: null }).eq("id", draftId);
               console.log(`[ProcessSniperOutbox] Quota hit for ${currentProvider}: ${lastError}. Falling back...`);
-              if (providersTried < 2) {
-                currentProvider = currentProvider === "ses" ? "brevo" : "ses";
-                await sleep(SEND_DELAY_MS[currentProvider]);
-              } else {
-                quotaHit = true;
-                quotaMessage = lastError;
-              }
+              quotaHit = true;
+              quotaMessage = lastError;
             } else {
               break; // Not a quota error, break and fail this draft
             }
@@ -480,14 +463,19 @@ Deno.serve(async (req) => {
               }
             }
 
-            await supabaseAdmin.from("email_outbox").update({
+            const { error: saveError } = await supabaseAdmin.from("email_outbox").update({
               status: "sent",
               sent_at: new Date().toISOString(),
               provider: currentProvider,
               provider_message_id: finalMessageId,
               delivery_status: "sent",
+              error_message: null,
               html_archive_url: htmlArchiveUrl,
             }).eq("id", draftId);
+            if (saveError) {
+              await supabaseAdmin.from("email_dispatch_state").update({ enabled: false }).eq("id", 1);
+              throw new Error(`SMTP/API zprávu přijalo, ale zápis stavu selhal: ${saveError.message}. Ověřte historii před opakováním.`);
+            }
           }
         } else if (quotaHit) {
           break; // Break the outer loop for the chunk
@@ -516,15 +504,21 @@ Deno.serve(async (req) => {
             .from("email_outbox")
             .select("id", { count: "exact", head: true })
             .eq("template_slug", templateRow.slug)
-            .eq("status", "draft");
+            .in("status", ["draft", "pending"]).is("dispatch_attempted_at", null);
           remainingDrafts = count || 0;
+          // A wave creates only one chunk; include the next eligible leads too.
+          if (create_drafts !== false && remainingDrafts === 0) {
+            const { data: fullTemplate, error } = await supabaseAdmin.from("email_templates").select("*").eq("id", template_id).single();
+            if (error) throw error;
+            remainingDrafts = await ensureDraftsForTemplate(supabaseAdmin, fullTemplate, chunkSize);
+          }
         }
       }
 
       if (quotaHit) {
         return new Response(JSON.stringify({
           sent_count,
-          failed_count: failed_count + remainingDrafts,
+          failed_count,
           has_more: remainingDrafts > 0,
           error: `Odesílání přerušeno: Dosažen limit e-mailů (${quotaMessage}). Zbývající e-maily zůstaly v konceptech.`,
         }), {
@@ -535,7 +529,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         sent_count,
         failed_count,
-        has_more: remainingDrafts > 0,
+        has_more: action === "send_selected_drafts" ? resolvedDraftIds.length > idsThisRun.length : remainingDrafts > 0,
         remaining: remainingDrafts,
         chunk_size: chunkSize,
       }), {
@@ -551,8 +545,10 @@ Deno.serve(async (req) => {
       error: err?.message || String(error),
       stack: err?.stack?.split("\n").slice(0, 5).join("\n"),
     }), {
-      status: 200,
+      status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  } finally {
+    if (releaseLease) await releaseLease();
   }
 });

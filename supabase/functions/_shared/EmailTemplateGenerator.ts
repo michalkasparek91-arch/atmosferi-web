@@ -16,6 +16,9 @@ export interface EmailTemplateData {
   psText: string;
   themeColor: string; // e.g. #D97757
   heroCaption?: string;
+  heroTagline?: string;
+  signatureAvatarUrl?: string;
+  isPlainText?: boolean;
   servicesWidgetEnabled?: boolean;
   servicesWidgetTitle?: string;
   service1Title?: string;

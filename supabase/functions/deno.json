@@ -1,0 +1,8 @@
+{
+  "importMap": "./import_map.json",
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "jsx": "react",
+    "types": ["npm:@types/react@18.3.23"]
+  }
+}

@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { availableOutreachLeads } from "../_shared/outreach-leads.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,25 +17,14 @@ Deno.serve(async (req: any) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const fetchAllOutboxLeadIds = async (templateSlug: string) => {
-      let allLeadIds: string[] = [];
-      let from = 0;
-      let limit = 1000;
-      while (true) {
-        const { data } = await supabaseClient
-          .from("email_outbox")
-          .select("lead_id")
-          .eq("template_slug", templateSlug)
-          .not("lead_id", "is", null)
-          .range(from, from + limit - 1);
-        
-        if (!data || data.length === 0) break;
-        allLeadIds.push(...data.map((o: any) => o.lead_id));
-        if (data.length < limit) break;
-        from += limit;
-      }
-      return allLeadIds;
-    };
+    const token = req.headers.get("Authorization")?.replace(/^Bearer /, "");
+    if (!token) throw new Error("Unauthorized");
+    if (token !== Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")) {
+      const { data: { user }, error } = await supabaseClient.auth.getUser(token);
+      if (error || !user) throw new Error("Unauthorized");
+      const { data: profile } = await supabaseClient.from("profiles").select("is_admin").eq("id", user.id).single();
+      if (!profile?.is_admin) throw new Error("Forbidden");
+    }
 
     const { action, template_id, batch_size } = await req.json();
 
@@ -52,33 +42,11 @@ Deno.serve(async (req: any) => {
       for (const t of templates) {
         if (!t.category || !t.language) continue;
 
-        // Fetch all outboxed lead_ids for this template
-        const excludedLeadIds = await fetchAllOutboxLeadIds(t.slug);
-
-        let langFilter = [t.language];
-        if (t.language === 'cs' || t.language === 'cz') langFilter = ['cs', 'cz', 'sk'];
-
-        // Count matching leads
-        let query = supabaseClient
-          .from("marketing_leads")
-          .select("id", { count: "exact", head: true })
-          .eq("category", t.category)
-          .in("language", langFilter);
-
-        const { count, error: countErr } = await query;
-        
-        if (countErr) continue;
-
-        // Unfortunately, PostgREST doesn't support complex NOT IN counts easily if the list is huge,
-        // so we fetch the leads ids and filter
-        const { data: allLeads } = await supabaseClient
-          .from("marketing_leads")
-          .select("id, tags")
-          .eq("category", t.category)
-          .in("language", langFilter);
-
-        const availableLeads = (allLeads || []).filter((l: any) => !excludedLeadIds.includes(l.id) && !(l.tags || []).includes("známé"));
-        const totalAudience = availableLeads.length;
+        const availableLeads = await availableOutreachLeads(supabaseClient, t);
+        const { count: drafts, error: draftError } = await supabaseClient.from("email_outbox")
+          .select("id", { count: "exact", head: true }).eq("template_slug", t.slug).in("status", ["draft", "pending"]).is("dispatch_attempted_at", null);
+        if (draftError) throw draftError;
+        const totalAudience = availableLeads.length + (drafts || 0);
 
         if (totalAudience > 0) {
           const batches = [];
@@ -124,23 +92,7 @@ Deno.serve(async (req: any) => {
         
       if (!template) throw new Error("Template not found");
 
-      // Fetch all outboxed lead_ids for this template
-      const excludedLeadIds = await fetchAllOutboxLeadIds(template.slug);
-
-      // Fetch available leads
-      let langFilter = [template.language];
-      if (template.language === 'cs' || template.language === 'cz') langFilter = ['cs', 'cz', 'sk'];
-      const { data: availableLeads, error: leadsErr } = await supabaseClient
-        .from("marketing_leads")
-        .select("*")
-        .eq("category", template.category)
-        .in("language", langFilter);
-        
-      if (leadsErr) throw leadsErr;
-      
-      const leadsToProcess = (availableLeads || [])
-        .filter((l: any) => !excludedLeadIds.includes(l.id) && !(l.tags || []).includes("známé"))
-        .slice(0, limit);
+      const leadsToProcess = (await availableOutreachLeads(supabaseClient, template)).slice(0, limit);
 
       // If there are new leads to add, insert them (ignoring duplicates)
       if (leadsToProcess.length > 0) {
@@ -152,9 +104,10 @@ Deno.serve(async (req: any) => {
         }));
 
         // Use upsert with ignoreDuplicates so existing records don't cause errors
-        await supabaseClient
+        const { error: insertError } = await supabaseClient
           .from("email_outbox")
           .upsert(outboxInserts, { onConflict: "template_slug,lead_id", ignoreDuplicates: true });
+        if (insertError) throw insertError;
       }
 
       // Now send all current drafts for this template via process-sniper-outbox
@@ -189,7 +142,7 @@ Deno.serve(async (req: any) => {
       });
 
       const sendData = await sendRes.json();
-      console.log("[campaign-batcher] process-sniper-outbox response:", sendData);
+      if (!sendRes.ok || sendData?.error) throw new Error(sendData?.error || "Sender failed");
 
       return new Response(
         JSON.stringify({ success: true, processed: draftIds.length, sent_count: sendData?.sent_count, failed_count: sendData?.failed_count }),
@@ -202,6 +155,7 @@ Deno.serve(async (req: any) => {
         .from("email_outbox")
         .update({ status: "draft" })
         .eq("status", "pending")
+        .is("dispatch_attempted_at", null)
         .select("id");
         
       if (error) throw error;

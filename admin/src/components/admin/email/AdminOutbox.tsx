@@ -21,7 +21,24 @@ export const AdminOutbox = () => {
   const [previewDraft, setPreviewDraft] = useState<any | null>(null);
   const [isOpeningEditor, setIsOpeningEditor] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<"all" | "job" | "general" | "campaigns">("general");
-  const [emailProvider, setEmailProvider] = useState<"brevo" | "ses">("brevo");
+  const [emailProvider, setEmailProvider] = useState<"brevo" | "ses" | "smtp">("brevo");
+  const { data: automation, isError: automationUnavailable } = useQuery({
+    queryKey: ["email-dispatch-state"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("email_dispatch_state" as any)
+        .select("enabled,provider,daily_limit,last_run_at,last_error").eq("id", 1).single();
+      if (error) throw error;
+      return data as unknown as { enabled: boolean; provider: string; daily_limit: number; last_run_at: string | null; last_error: string | null };
+    },
+    retry: false,
+    refetchInterval: 30000,
+  });
+  const campaignStopped = React.useRef(false);
+  const campaignTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  React.useEffect(() => () => {
+    campaignStopped.current = true;
+    if (campaignTimer.current) clearInterval(campaignTimer.current);
+  }, []);
 
   // Timed campaign state
   const [activeCampaign, setActiveCampaign] = useState<{
@@ -33,6 +50,7 @@ export const AdminOutbox = () => {
     dailyLimit: number;
     intervalId: ReturnType<typeof setInterval> | null;
     stopped: boolean;
+    error?: string;
   } | null>(null);
 
   const { data: virtualBatches = [], isLoading: isLoadingBatches } = useQuery({
@@ -47,20 +65,25 @@ export const AdminOutbox = () => {
     },
   });
 
-  const DAILY_LIMITS = { brevo: 300, ses: 200 } as const;
+  const DAILY_LIMITS = { brevo: 300, ses: 200, smtp: 300 } as const;
   const WAVE_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes between waves
 
-  const sendOneWave = React.useCallback(async (templateId: string): Promise<{ sent: number; failed: number; hasMore: boolean }> => {
+  const sendOneWave = React.useCallback(async (templateId: string, remaining: number): Promise<{ sent: number; failed: number; hasMore: boolean }> => {
+    if (!templateId) throw new Error("Chybí šablona kampaně. Obnovte seznam šablon.");
     const { data, error } = await supabase.functions.invoke("process-sniper-outbox", {
       body: {
         action: "send_template_batch",
         template_id: templateId,
-        batch_limit: emailProvider === "brevo" ? 50 : 20,
+        batch_limit: Math.min(remaining, emailProvider === "smtp" ? 5 : 20),
         provider: emailProvider,
         create_drafts: true,
       },
     });
-    if (error) throw error;
+    if (error) {
+      const detail = error.context instanceof Response
+        ? await error.context.clone().json().catch(() => null) : null;
+      throw new Error(detail?.error || error.message);
+    }
     if (data?.error) throw new Error(data.error);
     return {
       sent: data?.sent_count || 0,
@@ -70,6 +93,8 @@ export const AdminOutbox = () => {
   }, [emailProvider]);
 
   const stopCampaign = React.useCallback(() => {
+    campaignStopped.current = true;
+    if (campaignTimer.current) clearInterval(campaignTimer.current);
     setActiveCampaign(prev => {
       if (prev?.intervalId) clearInterval(prev.intervalId);
       return prev ? { ...prev, intervalId: null, stopped: true } : null;
@@ -79,14 +104,19 @@ export const AdminOutbox = () => {
   }, [queryClient]);
 
   const startCampaign = React.useCallback(async (templateId: string, templateName: string) => {
+    if (!templateId) { toast.error("Chybí šablona kampaně."); return; }
+    campaignStopped.current = false;
+    if (campaignTimer.current) clearInterval(campaignTimer.current);
     const dailyLimit = DAILY_LIMITS[emailProvider];
     let totalSent = 0;
     let totalFailed = 0;
     let wavesSent = 0;
     let stopped = false;
+    let inFlight = false;
 
     const doWave = async () => {
-      if (stopped || totalSent >= dailyLimit) {
+      if (inFlight || stopped || campaignStopped.current) return;
+      if (totalSent >= dailyLimit) {
         setActiveCampaign(prev => {
           if (prev?.intervalId) clearInterval(prev.intervalId);
           return prev ? { ...prev, intervalId: null, stopped: true } : null;
@@ -97,7 +127,8 @@ export const AdminOutbox = () => {
       }
 
       try {
-        const { sent, failed, hasMore } = await sendOneWave(templateId);
+        inFlight = true;
+        const { sent, failed, hasMore } = await sendOneWave(templateId, dailyLimit - totalSent);
         totalSent += sent;
         totalFailed += failed;
         wavesSent++;
@@ -109,11 +140,13 @@ export const AdminOutbox = () => {
         }
 
         if (!hasMore || totalSent >= dailyLimit) {
+          stopped = true;
           setActiveCampaign(prev => {
             if (prev?.intervalId) clearInterval(prev.intervalId);
             return prev ? { ...prev, intervalId: null, stopped: true } : null;
           });
-          toast.success(`Kampaň dokončena! Celkem odesláno: ${totalSent} e-mailů.`, { duration: 8000 });
+          if (totalFailed) toast.warning(`Kampaň skončila: odesláno ${totalSent}, selhalo ${totalFailed}.`);
+          else toast.success(`Kampaň dokončena! Celkem odesláno: ${totalSent} e-mailů.`, { duration: 8000 });
           queryClient.invalidateQueries({ queryKey: ["admin-outbox-batches"] });
         }
       } catch (err: any) {
@@ -122,8 +155,10 @@ export const AdminOutbox = () => {
         setActiveCampaign(prev => {
           if (prev?.intervalId) clearInterval(prev.intervalId);
           stopped = true;
-          return prev ? { ...prev, intervalId: null, stopped: true } : null;
+          return prev ? { ...prev, intervalId: null, stopped: true, error: detail || err.message } : null;
         });
+      } finally {
+        inFlight = false;
       }
     };
 
@@ -132,7 +167,7 @@ export const AdminOutbox = () => {
     await doWave();
 
     // Schedule subsequent waves
-    if (!stopped && totalSent < dailyLimit) {
+    if (!stopped && !campaignStopped.current && totalSent < dailyLimit) {
       const intervalId = setInterval(async () => {
         setActiveCampaign(prev => {
           if (!prev || prev.stopped) { clearInterval(intervalId); return prev; }
@@ -141,6 +176,7 @@ export const AdminOutbox = () => {
         });
         await doWave();
       }, WAVE_INTERVAL_MS);
+      campaignTimer.current = intervalId;
 
       setActiveCampaign(prev => prev ? { ...prev, intervalId } : null);
     }
@@ -227,7 +263,7 @@ export const AdminOutbox = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       
-      toast.success(`Úspěšně odesláno ihned! (Odesláno: ${data?.sent_count || 0}, Chyb: ${data?.failed_count || 0})`);
+      toast.info(`Odesláno: ${data?.sent_count || 0}, chyb: ${data?.failed_count || 0}.${data?.has_more ? " Zbývající koncepty zůstaly ve frontě pro další vlnu." : ""}`);
       queryClient.invalidateQueries({ queryKey: ["admin-outbox-drafts"] });
       setSelectedIds(new Set());
       setEditingDraft(null);
@@ -265,6 +301,7 @@ export const AdminOutbox = () => {
       const { error } = await supabase
         .from("email_outbox")
         .delete()
+        .is("dispatch_attempted_at" as any, null)
         .in("id", idsArray);
 
       if (error) throw error;
@@ -356,7 +393,7 @@ export const AdminOutbox = () => {
           size="sm" 
           className="text-xs text-red-500"
           onClick={async () => {
-            const { error, data } = await supabase.from('email_outbox').delete().eq('status', 'draft').select('id');
+            const { error, data } = await supabase.from('email_outbox').delete().eq('status', 'draft').is('dispatch_attempted_at' as any, null).select('id');
             if (error) alert(error.message);
             else {
               alert(`Smazáno ${data?.length} starých konceptů. Jsou zpět ve Volném náboru!`);
@@ -376,28 +413,32 @@ export const AdminOutbox = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold">Automatické rozesílání (300 / 300 denní limit)</h3>
-              <Badge className="bg-emerald-500 text-white font-black text-[10px]">AUTO-SEND AKTIVNÍ</Badge>
+              <h3 className="text-sm font-bold">Rozesílání kampaní (limit {DAILY_LIMITS[emailProvider]} denně)</h3>
+              <Badge variant="outline" className="text-[10px]">{automationUnavailable ? "AUTOMATIKA NENASTAVENA" : automation?.enabled ? `AUTO: ${automation.provider.toUpperCase()}` : "AUTOMATIKA VYPNUTA"}</Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Jakmile se naplní fronta 300 e-mailů, dávkové rozesílání se spustí automaticky v rozestupech.
+              {automation?.enabled
+                ? `Serverové vlny každé 3 minuty, společný limit ${automation.daily_limit}/den. Ruční spuštění používá zvoleného poskytovatele.`
+                : "Ruční kampaň běží v otevřeném prohlížeči. Serverová automatika zatím není aktivní."}
             </p>
+            {automation?.last_run_at && <p className="text-xs text-muted-foreground">Poslední běh: {new Date(automation.last_run_at).toLocaleString("cs-CZ")}</p>}
+            {automation?.last_error && <p className="text-xs text-red-600">Automatika: {automation.last_error}</p>}
           </div>
         </div>
         <Button
           size="sm"
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs gap-1.5 shadow-md shadow-emerald-600/20"
-          disabled={!!activeCampaign}
+          disabled={!!activeCampaign && !activeCampaign.stopped}
           onClick={() => {
             if (virtualBatches && virtualBatches.length > 0) {
-              startCampaign(virtualBatches[0].template_id, virtualBatches[0].template_name || "Automatická kampaň (300 limit)");
+              startCampaign(virtualBatches[0].template.id, virtualBatches[0].template.name);
             } else {
-              toast.info("Všechny e-maily ve frontě jsou připravené k automatickému rozeslání.");
+              toast.info("Žádné dostupné publikum k odeslání.");
             }
           }}
         >
           <Send className="h-3.5 w-3.5" />
-          {activeCampaign ? "Odesílání běží..." : "Odeslat dávku (300 e-mailů)"}
+          {activeCampaign && !activeCampaign.stopped ? "Odesílání běží..." : "Spustit první kampaň"}
         </Button>
       </div>
 
@@ -408,9 +449,10 @@ export const AdminOutbox = () => {
             <div className="flex items-center gap-2 mb-1">
               {!activeCampaign.stopped && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
               <p className="text-sm font-bold truncate">
-                {activeCampaign.stopped ? '✅ Kampaň dokončena' : `🚀 Kampaň běží – ${activeCampaign.templateName}`}
+                {activeCampaign.stopped ? (activeCampaign.error ? 'Kampaň přerušena chybou' : 'Kampaň ukončena') : `🚀 Kampaň běží – ${activeCampaign.templateName}`}
               </p>
             </div>
+            {activeCampaign.error && <p className="text-xs text-red-600 mt-1">{activeCampaign.error}</p>}
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span>Odesláno: <strong className="text-foreground">{activeCampaign.totalSent}</strong> / {activeCampaign.dailyLimit}</span>
               <span>Vlny: <strong className="text-foreground">{activeCampaign.wavesSent}</strong></span>
@@ -517,6 +559,10 @@ export const AdminOutbox = () => {
                           : 'bg-transparent border-border/40 text-muted-foreground hover:border-amber-500/30'
                       }`}
                     >Amazon SES</button>
+                    <button
+                      onClick={() => setEmailProvider('smtp')}
+                      className={`text-[10px] px-2 py-0.5 rounded-full border ${emailProvider === 'smtp' ? 'bg-blue-500/15 border-blue-500/40 font-bold' : 'border-border/40 text-muted-foreground'}`}
+                    >FORPSI SMTP</button>
                   </div>
 
                   <div className="space-y-2 mt-2">
@@ -525,10 +571,10 @@ export const AdminOutbox = () => {
                         <div>
                           <p className="text-xs font-bold">Dávka #{batch.batch_index}</p>
                           <p className={`text-[10px] ${batch.status === 'ready' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                            {batch.status === 'ready' ? 'Připraveno (300/300)' : `Čeká se na naplnění (${batch.size}/300)`}
+                            {`Připraveno: ${batch.size} kontaktů`}
                           </p>
                         </div>
-                    {batch.status === 'ready' && (
+                    {batch.size > 0 && (
                           <Button 
                             size="sm" 
                             className="h-7 text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-3 gap-1 shadow-sm"
