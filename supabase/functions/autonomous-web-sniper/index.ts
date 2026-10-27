@@ -293,10 +293,12 @@ async function harvestOne(
 
   let aiList: any[] = [];
   let attempts: { provider: string; ok: boolean; error?: string }[] = [];
-  let aiNote = "AI preskocena (zadne webove vysledky)";
+  let aiNote = "bez AI (rezim bez AI nebo vycerpane kvoty)";
   let aiProvider = "";
 
-  if (web.results.length > 0) {
+  // Kdyz je retezec prazdny (vsem AI dosly kvoty / rezim bez AI), AI vubec
+  // nevolame — sel by se jen cas na jistou chybu. Jede se rovnou bez-AI vetev.
+  if (web.results.length > 0 && allowed.length > 0) {
     const prompt = `Nize jsou REALNE vysledky webasoveho vyhledavani pro dotaz "${keyword} ${city}".
 Extrahuj z nich firmy z oboru "${keyword}" pusobici v meste ${city} (${country}).
 
@@ -436,7 +438,12 @@ Deno.serve(async (req) => {
     // Povolene AI providery (v poradi). Pollinations doplni router vzdy na konec.
     const engineOverride = body.engine;
     const allowed: string[] = [];
-    if (engineOverride) {
+    // Prepinac v scraper_config: {"disable_ai": true} → sber jede ciste
+    // na vyhledavani + OSM + crawl, bez jedineho volani AI.
+    const disableAi = config.disable_ai === true;
+    if (disableAi) {
+      console.log('Rezim bez AI — sber jede na vyhledavani, OSM a crawl.');
+    } else if (engineOverride) {
       allowed.push(engineOverride === "groq_places" ? "groq" : engineOverride);
     } else {
       if (config.use_gemini_engine !== false)      allowed.push("gemini");

@@ -320,9 +320,14 @@ Deno.serve(async (req) => {
 
         // Only inject icebreaker where the template explicitly has the {{icebreaker}} placeholder.
         // Never prepend it automatically — that caused duplicate/unexpected text in sent emails.
-        const bodyWithIcebreaker = activeBody.includes("{{icebreaker}}")
+        // Bez icebreakeru (typicky když neběželo AI obohacení) by v těle zůstal
+        // prázdný odstavec — proto po dosazení slijeme vzniklé prázdné řádky.
+        const bodyWithIcebreaker = (activeBody.includes("{{icebreaker}}")
           ? activeBody.replace(/{{icebreaker}}/g, draft.icebreaker || "")
-          : activeBody.replace(/{{icebreaker}}/g, "");
+          : activeBody.replace(/{{icebreaker}}/g, ""))
+          .replace(/[ \t]+\n/g, "\n")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
 
         const replaceVars = (txt: string | null | undefined) => {
           if (!txt) return "";
