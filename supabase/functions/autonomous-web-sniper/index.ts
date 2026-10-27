@@ -638,6 +638,8 @@ Deno.serve(async (req) => {
       else if (tc.includes("usa") || tc.includes("united states")) marketId = "us";
       else if (tc.includes("vcarsko") || tc.includes("switzerland") || tc.includes("schweiz")) marketId = "ch";
       else if (tc.includes("norsko") || tc.includes("norway")) marketId = "no";
+      // Maďarsko má vlastní sadu šablon, takže nesmí spadnout do univerzální anglické.
+      else if (tc.includes("madarsk") || tc.includes("maďarsk") || tc.includes("hungary")) marketId = "hu";
       // Vsechny ostatni zeme sveta → univerzalni anglicka sada sablon ("en").
       // Drive se sem dosazoval jazyk od AI (fr/it/ja…), na ktery neexistovala
       // zadna sablona → lead se nikdy neoslovil.
