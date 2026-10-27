@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { availableOutreachLeads } from "../_shared/outreach-leads.ts";
+import { availableOutreachLeads, countAvailableOutreachLeads } from "../_shared/outreach-leads.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,11 +42,12 @@ Deno.serve(async (req: any) => {
       for (const t of templates) {
         if (!t.category || !t.language) continue;
 
-        const availableLeads = await availableOutreachLeads(supabaseClient, t);
+        // Jen počet — nenačítáme celé řádky (dřív to byly desítky MB na jedno zobrazení).
+        const availableCount = await countAvailableOutreachLeads(supabaseClient, t);
         const { count: drafts, error: draftError } = await supabaseClient.from("email_outbox")
           .select("id", { count: "exact", head: true }).eq("template_slug", t.slug).in("status", ["draft", "pending"]).is("dispatch_attempted_at", null);
         if (draftError) throw draftError;
-        const totalAudience = availableLeads.length + (drafts || 0);
+        const totalAudience = availableCount + (drafts || 0);
 
         if (totalAudience > 0) {
           const batches = [];
@@ -92,7 +93,7 @@ Deno.serve(async (req: any) => {
         
       if (!template) throw new Error("Template not found");
 
-      const leadsToProcess = (await availableOutreachLeads(supabaseClient, template)).slice(0, limit);
+      const leadsToProcess = await availableOutreachLeads(supabaseClient, template, limit);
 
       // If there are new leads to add, insert them (ignoring duplicates)
       if (leadsToProcess.length > 0) {
@@ -173,8 +174,9 @@ Deno.serve(async (req: any) => {
         .from("email_templates").select("*").eq("id", template_id).single();
       if (tErr) throw tErr;
 
-      const leads = await availableOutreachLeads(supabaseClient, template);
-      const slim = leads.slice(0, Math.min(Number(audienceLimit) || 50, 200)).map((l: any) => ({
+      const max = Math.min(Number(audienceLimit) || 50, 200);
+      const leads = await availableOutreachLeads(supabaseClient, template, max);
+      const slim = leads.map((l: any) => ({
         id: l.id,
         company_name: l.company_name || l.full_name || "—",
         email: l.email,
@@ -187,7 +189,7 @@ Deno.serve(async (req: any) => {
       }));
 
       return new Response(
-        JSON.stringify({ success: true, total: leads.length, leads: slim }),
+        JSON.stringify({ success: true, total: slim.length, leads: slim }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

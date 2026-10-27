@@ -59,7 +59,7 @@ async function ensureDraftsForTemplate(
   template: Record<string, any>,
   limit: number,
 ): Promise<number> {
-  const leadsToProcess = (await availableOutreachLeads(supabaseAdmin, template as { slug: string; category: string; language: string })).slice(0, limit);
+  const leadsToProcess = await availableOutreachLeads(supabaseAdmin, template as { slug: string; category: string; language: string }, limit);
 
   if (leadsToProcess.length === 0) return 0;
 
