@@ -26,7 +26,7 @@ Deno.serve(async (req: any) => {
       if (!profile?.is_admin) throw new Error("Forbidden");
     }
 
-    const { action, template_id, batch_size } = await req.json();
+    const { action, template_id, batch_size, limit: audienceLimit } = await req.json();
 
     if (action === "get_batches") {
       // 1. Fetch active templates
@@ -166,20 +166,111 @@ Deno.serve(async (req: any) => {
       );
     }
 
-    if (action === "debug_leads") {
-      const { data, error } = await supabaseClient
-        .from("marketing_leads")
-        .select("category, language, email");
-      if (error) throw error;
-      
-      const summary: Record<string, number> = {};
-      data?.forEach((d: any) => {
-        const key = `${d.category || 'NULL'}_${d.language || 'NULL'}`;
-        summary[key] = (summary[key] || 0) + 1;
-      });
+    // Kontakty jednoho publika — pro rozbalený řádek skupiny v adminu.
+    // Načítá se až na vyžádání, aby přehled zůstal rychlý.
+    if (action === "get_audience") {
+      const { data: template, error: tErr } = await supabaseClient
+        .from("email_templates").select("*").eq("id", template_id).single();
+      if (tErr) throw tErr;
+
+      const leads = await availableOutreachLeads(supabaseClient, template);
+      const slim = leads.slice(0, Math.min(Number(audienceLimit) || 50, 200)).map((l: any) => ({
+        id: l.id,
+        company_name: l.company_name || l.full_name || "—",
+        email: l.email,
+        city: l.city,
+        country: l.country,
+        premium_score: l.premium_score,
+        decision_maker_name: l.decision_maker_name,
+        discovered_by: l.discovered_by,
+        website: l.website,
+      }));
 
       return new Response(
-        JSON.stringify({ success: true, summary, sample: data?.slice(0, 5) }),
+        JSON.stringify({ success: true, total: leads.length, leads: slim }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "debug_leads" || action === "audience_diagnostics") {
+      // Proč kontakt není v žádném publiku? Publikum filtruje PĚT podmínek
+      // (kategorie, jazyk, e-mail, import review, odhlášení) — stačí, aby
+      // selhala jedna, a lead je neviditelný. Tady spočítáme každou zvlášť.
+      const { data: templates } = await supabaseClient
+        .from("email_templates").select("category, language").eq("is_enabled", true);
+      const validPairs = new Set<string>();
+      const validCategories = new Set<string>();
+      for (const t of templates || []) {
+        if (!t.category || !t.language) continue;
+        validCategories.add(t.category);
+        const langs = ["cs", "cz"].includes(t.language) ? ["cs", "cz", "sk"] : [t.language];
+        for (const l of langs) validPairs.add(`${t.category}|${l}`);
+      }
+
+      const leads: Record<string, any>[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabaseClient
+          .from("marketing_leads")
+          .select("id, category, language, email, tags, outreach_import_review, marketing_notifications, email_notifications")
+          .order("id").range(from, from + 999);
+        if (error) throw error;
+        leads.push(...(data || []));
+        if (!data || data.length < 1000) break;
+      }
+
+      const reasons = {
+        celkem: leads.length,
+        bez_emailu: 0,
+        bez_kategorie: 0,
+        bez_jazyka: 0,
+        kategorie_bez_sablony: 0,
+        jazyk_bez_sablony: 0,
+        ceka_na_revizi_importu: 0,
+        odhlaseno_nebo_zname: 0,
+        v_publiku: 0,
+      };
+      const pairs: Record<string, number> = {};
+      const unmatchedCategories: Record<string, number> = {};
+      const unmatchedLanguages: Record<string, number> = {};
+
+      for (const l of leads) {
+        const cat = (l.category || "").trim();
+        const lang = (l.language || "").trim();
+        pairs[`${cat || "—"} | ${lang || "—"}`] = (pairs[`${cat || "—"} | ${lang || "—"}`] || 0) + 1;
+
+        if (!l.email) { reasons.bez_emailu++; continue; }
+        if (l.marketing_notifications === false || l.email_notifications === false || (l.tags || []).includes("známé")) {
+          reasons.odhlaseno_nebo_zname++; continue;
+        }
+        if (l.outreach_import_review) { reasons.ceka_na_revizi_importu++; continue; }
+        if (!cat) { reasons.bez_kategorie++; continue; }
+        if (!lang) { reasons.bez_jazyka++; continue; }
+        if (!validCategories.has(cat)) {
+          reasons.kategorie_bez_sablony++;
+          unmatchedCategories[cat] = (unmatchedCategories[cat] || 0) + 1;
+          continue;
+        }
+        if (!validPairs.has(`${cat}|${lang}`)) {
+          reasons.jazyk_bez_sablony++;
+          unmatchedLanguages[`${cat} | ${lang}`] = (unmatchedLanguages[`${cat} | ${lang}`] || 0) + 1;
+          continue;
+        }
+        reasons.v_publiku++;
+      }
+
+      const top = (o: Record<string, number>, n = 15) =>
+        Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n)
+          .map(([k, v]) => ({ klic: k, pocet: v }));
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          reasons,
+          dvojice_kategorie_jazyk: top(pairs, 25),
+          kategorie_bez_sablony: top(unmatchedCategories),
+          jazyky_bez_sablony: top(unmatchedLanguages),
+          summary: pairs, // zpětná kompatibilita
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

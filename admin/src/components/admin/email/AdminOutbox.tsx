@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Mail, Send, Trash2, Edit3, User, Sparkles, Layout, Zap } from "lucide-react";
+import { Loader2, Mail, Send, Trash2, Edit3, User, Sparkles, Layout, Zap, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { ModularEmailEditorDialogInner } from "./ModularEmailEditor";
 import CampaignReview from "@/components/admin/CampaignReview";
@@ -67,6 +67,24 @@ export const AdminOutbox = () => {
       return data?.data || [];
     },
   });
+
+  // Rozbalená skupina + její kontakty. Načítají se až na kliknutí,
+  // aby přehled zůstal rychlý i při desítkách tisíc kontaktů.
+  const [expandedTemplate, setExpandedTemplate] = React.useState<string | null>(null);
+
+  const { data: audienceData, isFetching: audienceLoading } = useQuery({
+    queryKey: ["admin-outbox-audience", expandedTemplate],
+    enabled: !!expandedTemplate,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("campaign-batcher", {
+        body: { action: "get_audience", template_id: expandedTemplate, limit: 50 },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+  });
+  const audienceLeads: any[] = audienceData?.leads || [];
 
   const DAILY_LIMITS = { brevo: 300, ses: 200, smtp: 300 } as const;
   const WAVE_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes between waves
@@ -525,83 +543,154 @@ export const AdminOutbox = () => {
               <p className="text-xs text-muted-foreground mt-1">Nebyly nalezeny žádné nové kontakty čekající na oslovení.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {virtualBatches.map((v: any, index: number) => (
-                <div key={index} className="flex flex-col space-y-3 border border-border/40 bg-card rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-bold text-sm text-foreground line-clamp-1">{v.template.name}</h3>
-                      <div className="flex items-center gap-1 mt-1 flex-wrap">
-                        <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-700">{v.template.language?.toUpperCase()}</Badge>
-                        <Badge variant="outline" className="text-[9px]">{v.template.category}</Badge>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 text-muted-foreground hover:text-primary shrink-0"
-                      onClick={() => navigate("../sablony", { state: { editTemplateId: v.template.id } })}
-                      title="Upravit šablonu"
-                    >
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    Celkové dostupné publikum: <strong className="text-foreground">{v.total_audience}</strong>
-                  </div>
-
-                  {/* Provider toggle */}
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-muted-foreground font-medium">Odesílat přes:</span>
+            <>
+              {/* Odesílací kanál je společný pro všechny skupiny — patří nad seznam,
+                  ne do každé karty zvlášť (dřív se opakoval u každé šablony). */}
+              <div className="flex items-center justify-between gap-3 flex-wrap px-4 py-2.5 rounded-xl border border-border/40 bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-muted-foreground font-medium">Odesílat přes:</span>
+                  {([
+                    { id: "brevo", label: "Brevo" },
+                    { id: "ses", label: "Amazon SES" },
+                    { id: "smtp", label: "FORPSI SMTP" },
+                  ] as const).map(p => (
                     <button
-                      onClick={() => setEmailProvider('brevo')}
-                      className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
-                        emailProvider === 'brevo'
-                          ? 'bg-blue-500/15 border-blue-500/40 text-blue-700 dark:text-blue-300 font-bold'
-                          : 'bg-transparent border-border/40 text-muted-foreground hover:border-blue-500/30'
+                      key={p.id}
+                      onClick={() => setEmailProvider(p.id as any)}
+                      className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                        emailProvider === p.id
+                          ? "bg-primary/10 border-primary/40 text-primary font-semibold"
+                          : "bg-transparent border-border/40 text-muted-foreground hover:border-primary/30"
                       }`}
-                    >Brevo</button>
-                    <button
-                      onClick={() => setEmailProvider('ses')}
-                      className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
-                        emailProvider === 'ses'
-                          ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300 font-bold'
-                          : 'bg-transparent border-border/40 text-muted-foreground hover:border-amber-500/30'
-                      }`}
-                    >Amazon SES</button>
-                    <button
-                      onClick={() => setEmailProvider('smtp')}
-                      className={`text-[10px] px-2 py-0.5 rounded-full border ${emailProvider === 'smtp' ? 'bg-blue-500/15 border-blue-500/40 font-bold' : 'border-border/40 text-muted-foreground'}`}
-                    >FORPSI SMTP</button>
-                  </div>
-
-                  <div className="space-y-2 mt-2">
-                    {v.batches.map((batch: any, bIdx: number) => (
-                      <div key={bIdx} className={`flex items-center justify-between p-2.5 rounded-xl border ${batch.status === 'ready' ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
-                        <div>
-                          <p className="text-xs font-bold">Dávka #{batch.batch_index}</p>
-                          <p className={`text-[10px] ${batch.status === 'ready' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                            {`Připraveno: ${batch.size} kontaktů`}
-                          </p>
-                        </div>
-                    {batch.size > 0 && (
-                          <Button 
-                            size="sm" 
-                            className="h-7 text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-3 gap-1 shadow-sm"
-                            disabled={!!activeCampaign && !activeCampaign.stopped}
-                            onClick={() => startCampaign(v.template.id, v.template.name)}
-                          >
-                            {(!!activeCampaign && !activeCampaign.stopped && activeCampaign.templateId === v.template.id) ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                            {(!!activeCampaign && !activeCampaign.stopped && activeCampaign.templateId === v.template.id) ? `Odesílám (${activeCampaign.totalSent})` : 'Odeslat'}
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                    >{p.label}</button>
+                  ))}
                 </div>
-              ))}
-            </div>
+                <div className="text-[11px] text-muted-foreground">
+                  {virtualBatches.length} skupin ·{" "}
+                  <strong className="text-foreground">
+                    {virtualBatches.reduce((s: number, b: any) => s + b.total_audience, 0).toLocaleString("cs-CZ")}
+                  </strong>{" "}kontaktů celkem
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border/40 bg-card overflow-hidden divide-y divide-border/40">
+                {virtualBatches.map((v: any, index: number) => {
+                  const isOpen = expandedTemplate === v.template.id;
+                  const sending = !!activeCampaign && !activeCampaign.stopped && activeCampaign.templateId === v.template.id;
+                  return (
+                    <div key={index}>
+                      {/* ── Řádek skupiny ── */}
+                      <div
+                        className={`flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer hover:bg-muted/30 ${isOpen ? "bg-muted/25" : ""}`}
+                        onClick={() => setExpandedTemplate(isOpen ? null : v.template.id)}
+                      >
+                        <ChevronRight className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? "rotate-90" : ""}`} />
+
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-sm text-foreground truncate">{v.template.name}</div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-mono">{v.template.language?.toUpperCase()}</Badge>
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0">{v.template.category}</Badge>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0 w-24">
+                          <div className="text-lg font-bold leading-none tabular-nums">{v.total_audience.toLocaleString("cs-CZ")}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">kontaktů</div>
+                        </div>
+
+                        <div className="shrink-0 w-28 hidden sm:block">
+                          <div className="text-[10px] text-muted-foreground mb-1">
+                            {v.batches.length} {v.batches.length === 1 ? "dávka" : "dávek"} po 300
+                          </div>
+                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (v.total_audience / 300) * 100)}%` }} />
+                          </div>
+                        </div>
+
+                        <Button
+                          size="sm"
+                          className="h-8 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-3 gap-1.5 shrink-0"
+                          disabled={!!activeCampaign && !activeCampaign.stopped}
+                          onClick={(e) => { e.stopPropagation(); startCampaign(v.template.id, v.template.name); }}
+                        >
+                          {sending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                          {sending ? `Odesílám (${activeCampaign!.totalSent})` : "Odeslat"}
+                        </Button>
+
+                        <Button
+                          variant="ghost" size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary shrink-0"
+                          onClick={(e) => { e.stopPropagation(); navigate("../sablony", { state: { editTemplateId: v.template.id } }); }}
+                          title="Upravit šablonu"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* ── Rozbalený seznam kontaktů ── */}
+                      {isOpen && (
+                        <div className="bg-muted/10 border-t border-border/30">
+                          {audienceLoading ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : audienceLeads.length === 0 ? (
+                            <p className="text-xs text-muted-foreground px-5 py-6">Žádné kontakty k zobrazení.</p>
+                          ) : (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-xs">
+                                <thead>
+                                  <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border/30">
+                                    <th className="text-left font-medium px-5 py-2">Firma</th>
+                                    <th className="text-left font-medium px-3 py-2">E-mail</th>
+                                    <th className="text-left font-medium px-3 py-2 hidden md:table-cell">Kontaktní osoba</th>
+                                    <th className="text-left font-medium px-3 py-2 hidden lg:table-cell">Město</th>
+                                    <th className="text-left font-medium px-3 py-2 hidden lg:table-cell">Zdroj</th>
+                                    <th className="text-right font-medium px-5 py-2">Score</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/20">
+                                  {audienceLeads.map((l: any) => (
+                                    <tr key={l.id} className="hover:bg-background/60">
+                                      <td className="px-5 py-2 font-medium text-foreground max-w-[220px] truncate" title={l.company_name}>
+                                        {l.company_name}
+                                      </td>
+                                      <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground max-w-[200px] truncate" title={l.email}>
+                                        {l.email}
+                                      </td>
+                                      <td className="px-3 py-2 text-muted-foreground hidden md:table-cell truncate max-w-[140px]">
+                                        {l.decision_maker_name || "—"}
+                                      </td>
+                                      <td className="px-3 py-2 text-muted-foreground hidden lg:table-cell">
+                                        {l.city || "—"}
+                                      </td>
+                                      <td className="px-3 py-2 hidden lg:table-cell">
+                                        {l.discovered_by
+                                          ? <span className="text-[10px] text-muted-foreground font-mono">{l.discovered_by}</span>
+                                          : <span className="text-muted-foreground">—</span>}
+                                      </td>
+                                      <td className="px-5 py-2 text-right tabular-nums text-muted-foreground">
+                                        {l.premium_score ?? "—"}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                              {v.total_audience > audienceLeads.length && (
+                                <p className="text-[11px] text-muted-foreground px-5 py-2.5 border-t border-border/20">
+                                  Zobrazeno prvních {audienceLeads.length} z {v.total_audience.toLocaleString("cs-CZ")} kontaktů.
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       ) : (
