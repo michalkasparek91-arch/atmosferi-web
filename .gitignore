@@ -12,3 +12,4 @@ admin/dist
 .env.local
 .DS_Store
 *.log
+artifacts/private/

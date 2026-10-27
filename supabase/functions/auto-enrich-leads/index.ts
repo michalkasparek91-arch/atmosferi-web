@@ -86,6 +86,7 @@ Deno.serve(async (req) => {
       .select("id, email, full_name, company_name, website, city, country, language, phone, description, decision_maker_name, category, subcategory, premium_score, last_project, updated_at")
       .or("description.is.null,description.eq.")
       .not("email", "is", null)
+      .not("tags", "cs", '{"no-external-ai"}')
       .order("updated_at", { ascending: true, nullsFirst: true })
       .limit(batchSize);
 

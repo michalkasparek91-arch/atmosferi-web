@@ -53,13 +53,16 @@ export const AdminOutbox = () => {
     error?: string;
   } | null>(null);
 
-  const { data: virtualBatches = [], isLoading: isLoadingBatches } = useQuery({
+  const { data: virtualBatches = [], isLoading: isLoadingBatches, error: batchesError, refetch: refetchBatches } = useQuery({
     queryKey: ["admin-outbox-batches"],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("campaign-batcher", {
         body: { action: "get_batches" }
       });
-      if (error) throw error;
+      if (error) {
+        const detail = error.context instanceof Response ? await error.context.clone().json().catch(() => null) : null;
+        throw new Error(detail?.error || error.message);
+      }
       if (data?.error) throw new Error(data.error);
       return data?.data || [];
     },
@@ -488,9 +491,10 @@ export const AdminOutbox = () => {
           className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${filterType === "general" ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20" : "bg-card text-card-foreground border-border hover:border-primary/30 shadow-sm"}`}
         >
           <div className="flex items-center justify-between mb-0.5">
-            <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "general" ? "font-black" : "text-muted-foreground"}`}>Volný nábor</p>
+            <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "general" ? "font-black" : "text-muted-foreground"}`}>Dostupné publikum pro šablony</p>
           </div>
-          <p className={`text-xl font-black ${filterType === "general" ? "" : "text-foreground/80"}`}>{drafts.filter((d: any) => !d.job_id).length}</p>
+          <p className={`text-xl font-black ${filterType === "general" ? "" : "text-foreground/80"}`}>{isLoadingBatches || batchesError ? "—" : virtualBatches.reduce((sum: number, batch: any) => sum + batch.total_audience, 0).toLocaleString("cs-CZ")}</p>
+          <p className="text-[10px] text-muted-foreground">Počet za jednotlivé šablony; stejný kontakt může patřit do více šablon. Konceptů: {drafts.filter((d: any) => !d.job_id).length}.</p>
         </button>
       </div>
 
@@ -504,6 +508,13 @@ export const AdminOutbox = () => {
           {isLoadingBatches ? (
             <div className="flex h-48 items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : batchesError ? (
+            <div role="alert" className="p-8 rounded-2xl border border-red-300 bg-red-50 text-red-800">
+              <p className="font-semibold">Publikum se nepodařilo načíst</p>
+              <p className="text-sm mt-2">{batchesError.message}</p>
+              <p className="text-sm mt-2">Tato chyba neznamená, že byli všichni kontaktováni.</p>
+              <Button variant="outline" className="mt-3" onClick={() => refetchBatches()}>Zkusit znovu</Button>
             </div>
           ) : virtualBatches.length === 0 ? (
             <div className="p-16 text-center flex flex-col items-center bg-card rounded-2xl border border-border/40">

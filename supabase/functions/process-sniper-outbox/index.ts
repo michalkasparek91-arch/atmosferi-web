@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { sendEmail } from "../_shared/email.ts";
-import { availableOutreachLeads } from "../_shared/outreach-leads.ts";
+import { availableOutreachLeads, isEligibleForOutreach } from "../_shared/outreach-leads.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -252,6 +252,7 @@ Deno.serve(async (req) => {
         if (draft.dispatch_attempted_at || (draft.status !== "draft" && draft.status !== "pending")) continue;
         if (!draft.template) throw new Error(`Chybí šablona konceptu ${draftId}`);
         const template = draft.template;
+        if (!targetEmail && draft.lead && !isEligibleForOutreach(draft.lead, template.slug)) continue;
         const recipientEmail = targetEmail || draft.worker?.email || draft.lead?.email;
         if (!recipientEmail) {
           failed_count++;

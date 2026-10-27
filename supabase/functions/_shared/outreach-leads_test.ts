@@ -1,4 +1,12 @@
-import { availableOutreachLeads } from "./outreach-leads.ts";
+import { availableOutreachLeads, isEligibleForOutreach } from "./outreach-leads.ts";
+
+Deno.test("imported contacts use exactly their reviewed template and preserve suppression", () => {
+  const lead = { email: "business@example.test", outreach_template_slug: "realtor-sk", tags: [] };
+  if (!isEligibleForOutreach(lead,"realtor-sk") || isEligibleForOutreach(lead,"developer-sk")) throw new Error("Wrong role template allowed");
+  for (const flag of [{outreach_import_review:true},{marketing_notifications:false},{email_notifications:false},{tags:["známé"]}]) {
+    if (isEligibleForOutreach({...lead,...flag},"realtor-sk")) throw new Error("Suppressed/review contact was eligible");
+  }
+});
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 function mockDb(rows: Record<string, unknown>[], excluded: string[], fail = false) {
