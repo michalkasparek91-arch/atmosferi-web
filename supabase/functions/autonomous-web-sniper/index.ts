@@ -654,6 +654,8 @@ Deno.serve(async (req) => {
           email: cleanEmail,
           full_name: item.company_name || "B2B Partner",
           company_name: item.company_name || "B2B Partner",
+          // Krátký název do předmětu e-mailu; AI ho vrací, dřív se zahazoval.
+          brand_name: (item.brand_name || "").trim() || null,
           phone: normalizePhone(item.phone || ""),
           website: item.website || "",
           city: item.city || "Nezname mesto",
