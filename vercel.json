@@ -1,5 +1,17 @@
 {
   "outputDirectory": "_vercel_out",
+  "redirects": [
+    {
+      "source": "/sluzby",
+      "destination": "https://www.atmosferi.com/",
+      "permanent": true
+    },
+    {
+      "source": "/sluzby/",
+      "destination": "https://www.atmosferi.com/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/admin/(.*)",
