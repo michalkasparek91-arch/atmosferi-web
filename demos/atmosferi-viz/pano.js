@@ -11,6 +11,9 @@
   var tour = document.getElementById("tour");
   if (!tour) return;
   var canvas = document.getElementById("tourCanvas");
+  var gate = document.getElementById("tourGate");
+  var startBtn = document.getElementById("tourStart");
+  var exitBtn = document.getElementById("tourExit");
   var reduce = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 
   /* ----- tour data: 4 linked rooms of a mountain house ----- */
@@ -71,6 +74,10 @@
 
   /* ----- graceful fallback if three.js is unavailable ----- */
   if (typeof THREE === "undefined") {
+    if (startBtn) {
+      startBtn.disabled = true;
+      startBtn.textContent = "360° preview unavailable";
+    }
     canvas.style.display = "none";
     tour.style.background = "#0b0a08 center/cover no-repeat url('" + NODES.living.img + "')";
     if (loadEl) loadEl.classList.add("gone");
@@ -96,6 +103,34 @@
   var autoOn = !reduce, dragging = false;
   var velLon = 0, velLat = 0;
   var pointers = {}, lastDist = 0;
+  var engaged = false;
+
+  function setEngaged(on) {
+    engaged = !!on;
+    tour.classList.toggle("is-active", engaged);
+    if (gate) gate.hidden = engaged;
+    if (exitBtn) exitBtn.hidden = !engaged;
+    if (!engaged) {
+      dragging = false;
+      pointers = {};
+      lastDist = 0;
+      velLon = velLat = 0;
+      tour.classList.remove("grabbing");
+      if (document.fullscreenElement === tour) {
+        document.exitFullscreen().catch(function () {});
+      }
+      if (startBtn) startBtn.focus({ preventScroll: true });
+    } else {
+      if (exitBtn) exitBtn.focus({ preventScroll: true });
+    }
+  }
+  if (startBtn) startBtn.addEventListener("click", function () { setEngaged(true); });
+  if (exitBtn) exitBtn.addEventListener("click", function () { setEngaged(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && engaged && document.fullscreenElement !== tour) {
+      setEngaged(false);
+    }
+  });
 
   function size() {
     var w = tour.clientWidth, h = tour.clientHeight;
@@ -229,13 +264,14 @@
 
   /* ----- interaction ----- */
   function onDown(e) {
+    if (!engaged) return;
     pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
     dragging = true; tour.classList.add("grabbing", "touched");
     velLon = velLat = 0;
     try { tour.setPointerCapture(e.pointerId); } catch (err) {}
   }
   function onMove(e) {
-    if (!pointers[e.pointerId]) return;
+    if (!engaged || !pointers[e.pointerId]) return;
     var ids = Object.keys(pointers);
     var prev = pointers[e.pointerId];
     if (ids.length >= 2) {
@@ -265,6 +301,7 @@
   window.addEventListener("pointercancel", onUp);
   var hintT = null;
   canvas.addEventListener("wheel", function (e) {
+    if (!engaged) return;
     // Opt-in zoom: modifier key or fullscreen. Otherwise the page keeps scrolling.
     var zoomIntent = e.ctrlKey || e.metaKey || !!document.fullscreenElement;
     if (!zoomIntent) {
@@ -288,7 +325,10 @@
     else if (tour.requestFullscreen) tour.requestFullscreen();
   });
   document.addEventListener("fullscreenchange", function () {
-    tour.classList.toggle("fs", !!document.fullscreenElement);
+    var wasFullscreen = tour.classList.contains("fs");
+    var isFullscreen = document.fullscreenElement === tour;
+    tour.classList.toggle("fs", isFullscreen);
+    if (wasFullscreen && !isFullscreen && engaged) setEngaged(false);
     setTimeout(size, 60);
   });
   tour.addEventListener("click", hideInfo);
@@ -300,7 +340,7 @@
       if (Math.abs(velLon) > 0.01 || Math.abs(velLat) > 0.01) {
         lon += velLon; lat += velLat; velLon *= 0.93; velLat *= 0.93;
         lat = Math.max(-85, Math.min(85, lat));
-      } else if (autoOn && !busy) {
+      } else if (engaged && autoOn && !busy) {
         lon += 0.035;
       }
     }
