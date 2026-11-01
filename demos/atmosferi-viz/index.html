@@ -641,6 +641,184 @@
   @media(prefers-reduced-motion:reduce){.feature__media img,.frame__img img{transition:none!important;}}
 
   .lb__cap .m{display:none;} /* A single translated image name is enough. */
+
+  /* November 2026: one image-led portfolio, one common alignment.
+     All full-width sections follow the same exterior edges as the hero. */
+  .visuals-page{--gut:clamp(20px,3.2vw,56px);}
+  .visuals-page .wrap{
+    max-width:none!important;
+    width:100%;
+    margin-inline:auto;
+    padding-inline:var(--gut)!important;
+  }
+  .visuals-page .nav__in{
+    max-width:none!important;
+    width:100%!important;
+    padding-inline:var(--gut)!important;
+  }
+  .visuals-page .hero{padding-inline:var(--gut);}
+  .visuals-page #work,.visuals-page #motion,.visuals-page #services,
+  .visuals-page #threesixty,.visuals-page #founder,.visuals-page #contact{
+    scroll-margin-top:var(--atmos-header-height,88px);
+  }
+  .visuals-page #work .shead{
+    padding-top:clamp(56px,6vw,94px);
+    padding-bottom:clamp(22px,2.4vw,36px);
+  }
+  .visuals-page .portfolio-grid{
+    column-count:3;
+    column-gap:clamp(12px,1.5vw,22px);
+  }
+  .visuals-page .portfolio-grid .portfolio-item{
+    display:block;
+    position:relative;
+    break-inside:avoid;
+    -webkit-column-break-inside:avoid;
+    margin:0 0 clamp(12px,1.5vw,22px);
+    border-radius:0!important;
+    overflow:hidden;
+    outline-offset:4px;
+  }
+  .visuals-page .portfolio-grid .frame__img{
+    display:block;
+    width:100%;
+    overflow:hidden;
+    border-radius:0!important;
+  }
+  .visuals-page .portfolio-grid .frame__img img{
+    display:block;
+    width:100%;
+    height:auto;
+    object-fit:contain;
+    transform:none;
+    transition:transform .6s var(--ease);
+  }
+  .visuals-page .portfolio-grid .portfolio-item:hover img{transform:scale(1.025);}
+  .visuals-page .portfolio-grid .frame__cap{
+    display:flex;
+    position:absolute;
+    inset:auto 0 0;
+    opacity:0;
+    transform:translateY(5px);
+    padding:clamp(14px,1.8vw,26px);
+    min-height:75px;
+    background:linear-gradient(0deg,rgba(0,0,0,.62),rgba(0,0,0,0));
+    color:#fff;
+    pointer-events:none;
+    transition:opacity .25s ease,transform .25s ease;
+    align-items:flex-end;
+  }
+  .visuals-page .portfolio-grid .frame__cap .t{
+    font:500 clamp(15px,1.4vw,21px)/1.3 var(--sans);
+    letter-spacing:-.015em;
+  }
+  .visuals-page .portfolio-grid .portfolio-item:hover .frame__cap,
+  .visuals-page .portfolio-grid .portfolio-item:focus-visible .frame__cap{
+    opacity:1;
+    transform:none;
+  }
+  .visuals-page #work:not(.show-all) .portfolio-item:nth-child(n+13){display:none!important;}
+  .visuals-page .portfolio-actions{
+    display:flex;
+    justify-content:center;
+    margin-top:clamp(20px,3vw,44px);
+  }
+  .visuals-page .portfolio-toggle{
+    display:inline-flex;
+    justify-content:center;
+    align-items:center;
+    gap:22px;
+    min-height:48px;
+    padding:13px 20px;
+    border:1px solid var(--ink)!important;
+    border-radius:0!important;
+    background:transparent;
+    font:500 14px/1.3 var(--sans);
+    letter-spacing:0;
+    transition:background .2s ease,color .2s ease;
+  }
+  .visuals-page .portfolio-toggle:hover{background:var(--ink);color:var(--canvas);}
+  .visuals-page .portfolio-toggle__less,
+  .visuals-page #work.show-all .portfolio-toggle__more{display:none;}
+  .visuals-page #work.show-all .portfolio-toggle__less{display:inline;}
+  .visuals-page #work.show-all .portfolio-toggle span[aria-hidden]{transform:rotate(180deg);}
+  .visuals-page .portfolio-toggle:focus-visible,
+  .visuals-page .portfolio-grid .portfolio-item:focus-visible{
+    outline:2px solid var(--ink);
+    outline-offset:4px;
+  }
+  /* Rectilinear visual language: square image edges, controls and panels. */
+  .visuals-page .hero__frame,
+  .visuals-page .film__stage,
+  .visuals-page .tour,
+  .visuals-page .fdr__media,
+  .visuals-page .fdr__media img,
+  .visuals-page .vform,
+  .visuals-page .vfield input,
+  .visuals-page .vfield textarea,
+  .visuals-page .vchip,
+  .visuals-page .vsubmit,
+  .visuals-page .vrcta__btn,
+  .visuals-page .film__btn,
+  .visuals-page .film__play,
+  .visuals-page .film__sound,
+  .visuals-page .tour__tool,
+  .visuals-page .tour__rail,
+  .visuals-page .tour__badge,
+  .visuals-page .vnav__mobile,
+  .visuals-page .swx,
+  .visuals-page .swx__seg,
+  .visuals-page .swx__knob{
+    border-radius:0!important;
+  }
+  .visuals-page .tour{
+    width:calc(100% - 2 * var(--gut));
+    margin-inline:var(--gut);
+  }
+  .visuals-page .lb__cap{max-width:min(800px,90vw);}
+  .visuals-page .lb__cap .m{
+    display:block!important;
+    font:400 12px/1.5 var(--sans);
+    letter-spacing:0;
+    text-transform:none;
+    color:rgba(255,255,255,.76);
+    margin-top:8px;
+  }
+  .visuals-page .lb__note{
+    font:400 13px/1.55 var(--sans);
+    color:rgba(255,255,255,.8);
+    max-width:64ch;
+    margin-top:10px;
+  }
+  .visuals-page .lb__note[hidden]{display:none;}
+  .visuals-page .film{padding-block:clamp(62px,7vw,108px);}
+  .visuals-page #services>.shead,
+  .visuals-page #threesixty .shead{padding-top:clamp(62px,7vw,108px);}
+  .visuals-page .fdr,
+  .visuals-page .contact{padding-block:clamp(68px,8vw,118px);}
+  @media(max-width:900px){
+    .visuals-page .portfolio-grid{column-count:2;}
+  }
+  @media(max-width:560px){
+    .visuals-page .portfolio-grid{column-count:1;column-gap:0;}
+    .visuals-page .portfolio-grid .portfolio-item{margin-bottom:26px;}
+    .visuals-page .portfolio-grid .frame__cap{
+      position:static;
+      background:transparent;
+      color:var(--ink);
+      opacity:1;
+      transform:none;
+      min-height:auto;
+      padding:10px 0 0;
+    }
+    .visuals-page .portfolio-grid .frame__cap .t{font-size:15px;}
+    .visuals-page .portfolio-grid .portfolio-item:hover img{transform:none;}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .visuals-page .portfolio-grid .frame__img img,
+    .visuals-page .portfolio-grid .frame__cap{transition:none!important;}
+  }
+
 </style>
 <link rel="stylesheet" href="../../assets/brand-header.css?v=20261101-aligned">
 
