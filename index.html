@@ -125,6 +125,13 @@
   .herofilm__cap{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(16px,2.6vw,34px);z-index:2;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:rgba(255,255,255,.92);line-height:1;}
   .herofilm__cap .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(255,255,255,.12);}
   @media (max-width:760px){ .herofilm__v{height:clamp(260px,46vh,420px);} }
+  /* Keep the human introduction visible on phones, not only the headline. */
+  @media (max-width:700px){
+    .heroover__lead{display:block;font-size:14px;line-height:1.52;max-width:40ch;}
+    .heroover__foot{align-items:flex-start;gap:16px;}
+    .heroover__title{font-size:clamp(2.2rem,9.2vw,3.3rem);max-width:17ch;}
+    .hero__film{min-height:640px;height:84svh;}
+  }
 
   /* ---- Capability media (photo-led) ---- */
   .cap__media{display:block;width:100%;aspect-ratio:3/2;overflow:hidden;margin-bottom:var(--space-4);background:var(--canvas-2);}
