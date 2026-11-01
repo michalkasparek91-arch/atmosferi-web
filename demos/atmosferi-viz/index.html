@@ -1408,13 +1408,14 @@
   function set(open){
     nav.classList.toggle('is-open',open);
     burger.setAttribute('aria-expanded',open?'true':'false');
-    try{ document.body.style.overflow=open?'hidden':''; }catch(e){}
+    // Keep scroll behavior consistent with the Websites dropdown.
   }
   burger.addEventListener('click',function(){ set(!nav.classList.contains('is-open')); });
   var closeBtn=document.getElementById('vnavClose');
   if(closeBtn) closeBtn.addEventListener('click',function(){ set(false); });
   if(drawer) drawer.addEventListener('click',function(e){ if(e.target.closest('a')) set(false); });
   window.addEventListener('keydown',function(e){ if(e.key==='Escape') set(false); });
+  window.addEventListener('resize',function(){ if(window.innerWidth>1180 && nav.classList.contains('is-open')) set(false); });
 })();
 </script>
 
