@@ -116,7 +116,7 @@
       var name = (form.querySelector("#vf-name").value || "").trim();
       var email = (form.querySelector("#vf-email").value || "").trim();
       var msg = (form.querySelector("#vf-msg").value || "").trim();
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || msg.length < 10) {
+      if (!/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(email) || msg.length < 10) {
         status.textContent = AtmosferiInquiry.t("invalid");
         (!email ? form.querySelector("#vf-email") : form.querySelector("#vf-msg")).focus();
         return;
