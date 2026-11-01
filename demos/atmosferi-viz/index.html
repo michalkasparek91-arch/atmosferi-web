@@ -719,10 +719,11 @@
   }
   html.has-portfolio-js .visuals-page #work:not(.show-all) .portfolio-item:nth-child(n+13){display:none!important;}
   .visuals-page .portfolio-actions{
-    display:flex;
+    display:none;
     justify-content:center;
     margin-top:clamp(20px,3vw,44px);
   }
+  html.has-portfolio-js .visuals-page .portfolio-actions{display:flex;}
   .visuals-page .portfolio-toggle{
     display:inline-flex;
     justify-content:center;
