@@ -3,8 +3,8 @@
   'use strict';
   var endpoint = 'https://paryiowezqlnffanxtnt.supabase.co/functions/v1/atmosferi-submit-inquiry';
   var strings = {
-    en: { sending: 'Sending…', success: 'Thank you! Your enquiry was sent. I’ll be in touch.', error: 'Could not send right now. Please email info@atmosferi.com.', invalid: 'Please enter a valid email and a short project description.', saved: 'Your message was saved, but email notification failed. Please also email info@atmosferi.com.' },
-    de: { sending: 'Wird gesendet…', success: 'Vielen Dank! Ihre Anfrage wurde gesendet. Ich melde mich bei Ihnen.', error: 'Senden derzeit nicht möglich. Bitte schreiben Sie an info@atmosferi.com.', invalid: 'Bitte geben Sie eine gültige E-Mail-Adresse und eine kurze Projektbeschreibung ein.', saved: 'Ihre Anfrage wurde gespeichert, aber die E-Mail-Benachrichtigung ist fehlgeschlagen. Schreiben Sie bitte auch an info@atmosferi.com.' },
+    en: { sending: 'Sending…', success: 'Thank you! Your enquiry was sent. I’ll be in touch.', error: 'Could not send right now. Please email info@atmosferi.com.', invalid: 'Please enter a valid email and a short project description.', saved: 'Your message was saved, but email notification failed. Please also email info@atmosferi.com.', invalidEmail: "Please enter a valid email address.", invalidMessage: "Please describe your project in at least 10 characters." },
+    de: { sending: 'Wird gesendet…', success: 'Vielen Dank! Ihre Anfrage wurde gesendet. Ich melde mich bei Ihnen.', error: 'Senden derzeit nicht möglich. Bitte schreiben Sie an info@atmosferi.com.', invalid: 'Bitte geben Sie eine gültige E-Mail-Adresse und eine kurze Projektbeschreibung ein.', saved: 'Ihre Anfrage wurde gespeichert, aber die E-Mail-Benachrichtigung ist fehlgeschlagen. Schreiben Sie bitte auch an info@atmosferi.com.', invalidEmail: "Bitte geben Sie eine gültige E-Mail-Adresse ein.", invalidMessage: "Bitte beschreiben Sie Ihr Projekt mit mindestens 10 Zeichen." },
     cs: { sending: 'Odesílám…', success: 'Děkuji! Poptávka byla odeslána. Brzy se ozvu.', error: 'Odeslání se nezdařilo. Napište prosím na info@atmosferi.com.', invalid: 'Vyplňte platný e-mail a krátký popis projektu.', saved: 'Poptávka se uložila, ale e-mailové upozornění selhalo. Napište prosím také na info@atmosferi.com.' }
   };
   function language() {
@@ -19,7 +19,7 @@
         method: 'POST',
         mode: 'cors',
         credentials: 'omit',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', invalidEmail: "Zadejte prosím platnou e-mailovou adresu.", invalidMessage: "Popište prosím projekt alespoň 10 znaky." },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(20000)
       });
