@@ -21,7 +21,7 @@
         { type: "nav", to: "dining",  yaw: 52,  pitch: -6, label: "To dining" },
         { type: "nav", to: "bedroom", yaw: 205, pitch: -7, label: "To bedroom" },
         { type: "info", yaw: -64, pitch: 4, label: "The glazing", title: "Floor-to-ceiling glass",
-          text: "A single 6-metre pane frames the valley — the room's only ornament is the weather outside." }
+          text: "Floor-to-ceiling glazing opens the living room towards the valley." }
       ]
     },
     dining: {
@@ -30,7 +30,7 @@
         { type: "nav", to: "living",  yaw: 232, pitch: -6, label: "To living room" },
         { type: "nav", to: "bedroom", yaw: 96,  pitch: -7, label: "To bedroom" },
         { type: "info", yaw: 8, pitch: 2, label: "The table", title: "Oak, in situ",
-          text: "A four-metre oak table built on site from a single felled trunk — the house designed around it." }
+          text: "A large oak table anchors the dining room." }
       ]
     },
     bedroom: {
@@ -39,7 +39,7 @@
         { type: "nav", to: "living", yaw: 12,  pitch: -6, label: "To living room" },
         { type: "nav", to: "bath",   yaw: 158, pitch: -7, label: "To bathroom" },
         { type: "info", yaw: -90, pitch: 6, label: "Morning light", title: "Due-east aspect",
-          text: "The bed faces the sunrise — the first room in the house to catch the light over the ridge." }
+          text: "The bedroom opens towards the morning light." }
       ]
     },
     bath: {
@@ -47,11 +47,15 @@
       hotspots: [
         { type: "nav", to: "bedroom", yaw: 188, pitch: -6, label: "To bedroom" },
         { type: "info", yaw: 20, pitch: 0, label: "The stone", title: "Cut from the slope",
-          text: "Walls and basin in the same grey stone quarried from the mountainside the house sits on." }
+          text: "Stone surfaces give the bathroom a quiet, simple finish." }
       ]
     }
   };
   var ORDER = ["living", "dining", "bedroom", "bath"];
+  function tr(key) {
+    var lang = document.documentElement.lang || "en";
+    return (window.I18N_DICT && window.I18N_DICT[lang] && window.I18N_DICT[lang][key]) || key;
+  }
 
   var nameEl = document.getElementById("tourName"),
       markersEl = document.getElementById("tourMarkers"),
@@ -111,7 +115,7 @@
       lon = node.start; lat = 0; fov = 75;
       camera.updateProjectionMatrix();
       current = id;
-      nameEl.textContent = node.name;
+      nameEl.textContent = tr(node.name);
       buildMarkers(node);
       buildRail();
       if (!firstLoaded) { firstLoaded = true; loadEl.classList.add("gone"); }
@@ -140,7 +144,7 @@
       var el = document.createElement("div");
       el.className = "hot hot--" + hs.type;
       el.innerHTML = '<span class="hot__ring">' + (hs.type === "nav" ? NAV_SVG : INFO_SVG) + '</span>' +
-                     '<span class="hot__lab">' + hs.label + '</span>';
+                     '<span class="hot__lab">' + tr(hs.label) + '</span>';
       markersEl.appendChild(el);
       var phi = THREE.MathUtils.degToRad(90 - hs.pitch);
       var theta = THREE.MathUtils.degToRad(hs.yaw);
@@ -177,7 +181,7 @@
   /* ----- info popover ----- */
   var infoTimer;
   function showInfo(hs) {
-    infoT.textContent = hs.title; infoP.textContent = hs.text;
+    infoT.textContent = tr(hs.title); infoP.textContent = tr(hs.text);
     infoEl.classList.add("show");
     clearTimeout(infoTimer);
     infoTimer = setTimeout(hideInfo, 5200);
@@ -191,11 +195,20 @@
       var n = NODES[id];
       var cell = document.createElement("div");
       cell.className = "rcell" + (id === current ? " on" : "");
-      cell.innerHTML = '<img src="' + n.img + '" alt="' + n.name + '"><span class="rcell__n">' + (i + 1) + '</span>';
+      cell.innerHTML = '<img src="' + n.img + '" alt="' + tr(n.name) + '"><span class="rcell__n">' + (i + 1) + '</span>';
       cell.addEventListener("click", function () { goTo(id); });
       railEl.appendChild(cell);
     });
   }
+
+  // Refresh labels after the visitor switches languages.
+  new MutationObserver(function (records) {
+    if (!records.some(function (r) { return r.attributeName === "lang"; })) return;
+    if (nameEl) nameEl.textContent = tr(NODES[current].name);
+    if (markersEl && typeof buildMarkers === "function") buildMarkers(NODES[current]);
+    if (railEl && typeof buildRail === "function") buildRail();
+    hideInfo();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
 
   /* ----- compass ----- */
   var DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
