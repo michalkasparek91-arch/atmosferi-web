@@ -93,3 +93,50 @@
     padding: clamp(20px, 5vw, 30px);
   }
 }
+
+/* Home hero: lower the statement while keeping the introduction and CTA
+   comfortably anchored at the foot of the opening frame. */
+@media (min-width: 761px) {
+  .homepage .hero--statement .heroover {
+    padding-top: clamp(185px, 27vh, 285px);
+    padding-bottom: clamp(36px, 4.3vw, 70px);
+    gap: clamp(36px, 5vh, 66px);
+  }
+}
+@media (max-width: 760px) {
+  .homepage .hero--statement .heroover {
+    padding-top: clamp(88px, 15vh, 150px);
+    padding-bottom: 32px;
+    gap: 36px;
+  }
+}
+
+/* Closing project invitation: centered over the original image, no tint. */
+.homepage .ctaband__media::before,
+.homepage .ctaband__media::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+.homepage .ctaband__over {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(24px, 3vw, 36px);
+}
+.homepage .ctaband__over .cta__title {
+  width: auto;
+  max-width: 14ch;
+  margin-inline: auto;
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .36);
+}
+.homepage .ctaband__over .btn {
+  margin-inline: auto;
+}
+@media (max-width: 760px) {
+  .homepage .ctaband__over {
+    gap: 22px;
+  }
+}
+
