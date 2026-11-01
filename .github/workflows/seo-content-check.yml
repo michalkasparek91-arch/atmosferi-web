@@ -36,7 +36,8 @@ jobs:
             ['architekturbuero-website-relaunch-checkliste.html', 'de', 'webdesign-fuer-architekten.html'],
             ['tilgjengelig-nettside-for-arkitektkontor.html', 'nb', 'nettsider-for-arkitekter.html'],
             ['residential-development-website-content-checklist.html', 'en', 'websites-for-architects.html'],
-            ['architekturleistungen-auf-website-darstellen.html', 'de', 'architekturbuero-website-relaunch-checkliste.html']
+            ['architekturleistungen-auf-website-darstellen.html', 'de', 'architekturbuero-website-relaunch-checkliste.html'],
+            ['cms-for-architecture-portfolio-website.html', 'en', 'prepare-architecture-projects-for-website.html']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming] of pages) {
