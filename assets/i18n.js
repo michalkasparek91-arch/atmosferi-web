@@ -27,7 +27,7 @@
       }
       if (node.nodeType !== 1) return;
       if (SKIP[node.tagName] || node.hasAttribute("data-no-i18n")) return;
-      ["placeholder", "aria-label", "title"].forEach(function (a) {
+      ["placeholder", "aria-label", "title", "alt"].forEach(function (a) {
         if (node.hasAttribute(a)) {
           var v = node.getAttribute(a);
           if (norm(v)) items.push({ t: "attr", node: node, attr: a, orig: v, norm: norm(v) });
