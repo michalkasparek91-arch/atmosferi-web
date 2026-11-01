@@ -243,4 +243,12 @@
   "Forest Kindergarten": "Lesní školka",
   "Black House": "Černý dům"
 });
+  Object.assign(window.I18N_DICT.de, {
+    "Send enquiry →": "Anfrage senden →",
+    "Secure submission. I will reply by email.": "Die Anfrage wird direkt übermittelt. Ich antworte per E-Mail."
+  });
+  Object.assign(window.I18N_DICT.cs, {
+    "Send enquiry →": "Odeslat poptávku →",
+    "Secure submission. I will reply by email.": "Poptávka se odešle přímo. Odpovím e-mailem."
+  });
 })();
