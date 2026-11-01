@@ -389,6 +389,7 @@
         </div>
       </div>
       <div class="fields">
+        <div aria-hidden="true" style="position:absolute;left:-9999px;height:1px;overflow:hidden"><label for="brief-website">Leave empty</label><input id="brief-website" name="website" tabindex="-1" autocomplete="off"></div>
         <div class="field"><label for="fName">Name <span style="opacity:.5">/ studio</span></label><input type="text" id="fName" placeholder="Jane Doe · Studio Name" autocomplete="name"></div>
         <div class="field"><label for="fEmail">Email</label><input type="email" id="fEmail" placeholder="you@studio.com" autocomplete="email"></div>
         <div class="field"><label for="fNote" id="noteLbl">Anything else?</label><textarea id="fNote" placeholder="A line about the project, the site, the deadline…"></textarea></div>
@@ -397,7 +398,8 @@
 
     <div class="submit">
       <button class="submit__btn" id="send"><span id="sendTxt">Send my brief</span><span class="ar">→</span></button>
-      <div class="submit__note">Opens your email to info@atmosferi.com · plus a summary you can save</div>
+      <div class="submit__note">Sent directly to Atmosferi. Reference files can be emailed separately.</div>
+      <p id="sendStatus" role="status" aria-live="polite" style="font-size:12px;line-height:1.5;margin-top:12px"></p>
     </div>
   </section>
 
@@ -436,19 +438,20 @@
 <!-- success overlay -->
 <div class="done" id="done">
   <div class="done__card">
-    <div class="done__hd"><span class="meta">Brief ready</span><button class="done__x" id="doneX" aria-label="Close">✕</button></div>
+    <div class="done__hd"><span class="meta">Brief sent</span><button class="done__x" id="doneX" aria-label="Close">✕</button></div>
     <div class="done__b">
       <h2>That's a <span class="it">brief.</span></h2>
-      <p id="doneMsg">Your email just opened, pre-filled and addressed to info@atmosferi.com — hit send and we'll reply within a day. Here's a copy you can screenshot too.</p>
+      <p id="doneMsg">Your brief has been sent to Atmosferi. Here is a copy for your records.</p>
       <div class="done__sum" id="doneSum"></div>
       <div class="done__btns">
-        <a class="pri" id="doneMail" href="#">Open email again</a>
+        <a class="pri" id="doneMail" href="#">Email reference files</a>
         <button class="sec" id="doneCopy">Copy as text</button>
       </div>
     </div>
   </div>
 </div>
 
+<script src="assets/inquiry.js?v=20261101-forms"></script>
 <script>
 (function(){
   "use strict";
@@ -678,58 +681,65 @@
 
   var done=$("#done");
 
-  /* ---------- Supabase (saves a copy of every brief to the DB) ---------- */
-  var SB_URL="https://paryiowezqlnffanxtnt.supabase.co";
-  var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhcnlpb3dlenFsbmZmYW54dG50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MzM3MzYsImV4cCI6MjA5NjQwOTczNn0.yyd-pRRXds1o8lU9mVWk21zu-5l_dcdxiBjDSKfKw5o";
+  /* ---------- Real server-side submission: no mail client required ---------- */
   function buildDetails(){
-    if(state.mode==="web"){
-      return {vibe:state.vibe,palette:state.pal,layout:state.layout,needs:Object.keys(state.scope),
-              project:state.sitestatus,current_site:($("#fSite")?$("#fSite").value.trim():""),
-              likes:refList("like"),dislikes:refList("no")};
-    }
-    return {subject:state.ptype,deliverables:Object.keys(state.deliver),
-            references:state.files.map(function(f){return f.name;})};
-  }
-  function saveToDB(){
-    var row={
-      mode:state.mode,
-      name:($("#fName").value.trim()||null),
-      email:$("#fEmail").value.trim(),
-      budget:(state.mode==="viz"?state.budget:null),
-      timeline:state.timeline,
-      summary:buildText(),
-      details:buildDetails(),
-      source:"start"
+    if(state.mode==="web")return {
+      vibe:state.vibe,palette:state.pal,layout:state.layout,needs:Object.keys(state.scope),
+      project:state.sitestatus,current_site:($("#fSite")?$("#fSite").value.trim():""),
+      likes:refList("like"),dislikes:refList("no")
     };
-    try{
-      return fetch(SB_URL+"/rest/v1/project_briefs",{
-        method:"POST",
-        headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
-        body:JSON.stringify(row)
-      }).catch(function(){/* never block the email */});
-    }catch(e){ return Promise.resolve(); }
+    return {subject:state.ptype,deliverables:Object.keys(state.deliver),
+      references:state.files.map(function(f){return f.name;})};
   }
-
-  $("#send").addEventListener("click",function(){
-    var em=$("#fEmail").value.trim();
-    if(!em || em.indexOf("@")<1){ $("#fEmail").focus(); $("#fEmail").style.borderColor="var(--ink)"; return; }
-    saveToDB();
-    var href=mailHref();
-    $("#doneMail").setAttribute("href",href);
-    // summary in overlay
-    $("#doneSum").innerHTML="";
-    var pre=document.createElement("div");
-    pre.style.cssText="font-family:var(--font-mono);font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--ink);padding-top:18px;";
-    pre.textContent=buildText();
-    $("#doneSum").appendChild(pre);
-    if(state.mode==="viz" && state.files.length){
-      var note=document.createElement("p"); note.className="meta"; note.style.cssText="margin-top:14px;color:var(--neutral-500);text-transform:none;letter-spacing:.04em;line-height:1.5;";
-      note.textContent="Tip: your "+state.files.length+" reference file(s) can't ride along in the email automatically — just drag them into the message that opened, and you're set.";
-      $("#doneSum").appendChild(note);
+  var startedAt=Date.now(),sending=false;
+  $("#send").addEventListener("click",async function(){
+    if(sending)return;
+    var email=$("#fEmail").value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      $("#fEmail").focus();
+      $("#sendStatus").textContent=AtmosferiInquiry.t("invalid");
+      return;
     }
-    done.classList.add("show");
-    try{ window.location.href=href; }catch(e){}
+    var text=buildText();
+    sending=true;
+    var send=$("#send");
+    send.disabled=true;
+    $("#sendTxt").textContent=AtmosferiInquiry.t("sending");
+    $("#sendStatus").textContent="";
+    try{
+      var response=await AtmosferiInquiry.send({
+        source:"brief-builder",mode:state.mode,name:$("#fName").value.trim(),
+        email:email,message:text,budget:state.budget?String(state.budget):"",
+        timeline:state.timeline,project_type:state.mode==="viz"?state.ptype:state.sitestatus,
+        started_at:startedAt,website:$("#brief-website").value,
+        details:Object.assign(buildDetails(),{
+          language:document.documentElement.lang||"en",page:location.pathname,
+          reference_file_names_only:state.files.length>0
+        })
+      });
+      $("#doneSum").innerHTML="";
+      var pre=document.createElement("div");
+      pre.style.cssText="font-family:var(--font-mono);font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--ink);padding-top:18px;";
+      pre.textContent=text;
+      $("#doneSum").appendChild(pre);
+      $("#doneMsg").textContent=AtmosferiInquiry.t("success")+
+        (state.files.length?" Reference files are not attached. Please send them using the link below.":"");
+      var attachmentLink=$("#doneMail");
+      attachmentLink.hidden=state.files.length===0;
+      attachmentLink.textContent="Email reference files";
+      attachmentLink.href="mailto:info@atmosferi.com?subject="+encodeURIComponent(
+        "Reference files for brief "+(response.reference||""));
+      done.classList.add("show");
+      startedAt=Date.now();
+    }catch(err){
+      $("#sendStatus").textContent=AtmosferiInquiry.t(err.kind||"error");
+    }finally{
+      sending=false;
+      send.disabled=false;
+      $("#sendTxt").textContent="Send my brief";
+    }
   });
+
   $("#doneX").addEventListener("click",function(){done.classList.remove("show");});
   done.addEventListener("click",function(e){ if(e.target===done) done.classList.remove("show"); });
   $("#doneCopy").addEventListener("click",function(){
