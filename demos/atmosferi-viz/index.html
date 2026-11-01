@@ -717,7 +717,7 @@
     opacity:1;
     transform:none;
   }
-  .visuals-page #work:not(.show-all) .portfolio-item:nth-child(n+13){display:none!important;}
+  html.has-portfolio-js .visuals-page #work:not(.show-all) .portfolio-item:nth-child(n+13){display:none!important;}
   .visuals-page .portfolio-actions{
     display:flex;
     justify-content:center;
@@ -791,6 +791,21 @@
     margin-top:10px;
   }
   .visuals-page .lb__note[hidden]{display:none;}
+  /* No detached cursor bubble or rounded photo-/form-related ornaments. */
+  .visuals-page .vcur{display:none!important;}
+  .visuals-page .vform__hint,
+  .visuals-page .lb__note{letter-spacing:0;}
+  .visuals-page .fdr__tag,
+  .visuals-page .tour__scrollhint,
+  .visuals-page .tour__info,
+  .visuals-page .tour__load,
+  .visuals-page .lb__close,
+  .visuals-page .lb__nav,
+  .visuals-page .film__sound,
+  .visuals-page .film__btn,
+  .visuals-page .nav__switch .swx,
+  .visuals-page .nav__switch .swx__seg,
+  .visuals-page .nav__switch .swx__knob{border-radius:0!important;}
   .visuals-page .film{padding-block:clamp(62px,7vw,108px);}
   .visuals-page #services>.shead,
   .visuals-page #threesixty .shead{padding-top:clamp(62px,7vw,108px);}
@@ -1443,44 +1458,12 @@
 
 
 
-<script src="viz.js?v=20261101viz2"></script>
+<script src="viz.js?v=20261101-gallery"></script>
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="pano.js?v=20261101viz2"></script>
 <script src="../../assets/i18n-dict.js?v=20261101viz2"></script>
-<script src="viz-i18n.js?v=20261101viz2"></script>
+<script src="viz-i18n.js?v=20261101-gallery"></script>
 <script src="../../assets/i18n.js?v=20261101viz2"></script>
-<script>
-(function(){
-  function wire(rail){
-    var track=rail.querySelector('.frail__track'); if(!track) return;
-    var items=[].slice.call(track.children);
-    var prev=rail.querySelector('[data-rail-prev]')||document.getElementById('frailPrev');
-    var next=rail.querySelector('[data-rail-next]')||document.getElementById('frailNext');
-    var count=rail.querySelector('[data-rail-count]')||document.getElementById('frailCount');
-    if(!items.length||!prev||!next) return;
-    function pad(n){return (n<10?'0':'')+n;}
-    function current(){
-      var c=track.scrollLeft+track.clientWidth/2, best=0, bd=Infinity;
-      items.forEach(function(el,i){var m=el.offsetLeft+el.offsetWidth/2,d=Math.abs(m-c); if(d<bd){bd=d;best=i;}});
-      return best;
-    }
-    function sync(){
-      var i=current();
-      if(count) count.textContent=pad(i+1)+' / '+pad(items.length);
-      prev.disabled = track.scrollLeft<=2;
-      next.disabled = track.scrollLeft >= track.scrollWidth-track.clientWidth-2;
-    }
-    function go(d){
-      var i=Math.min(items.length-1,Math.max(0,current()+d)), el=items[i];
-      track.scrollTo({left: el.offsetLeft-(track.clientWidth-el.offsetWidth)/2, behavior:'smooth'});
-    }
-    prev.addEventListener('click',function(){go(-1);});
-    next.addEventListener('click',function(){go(1);});
-    track.addEventListener('scroll',function(){clearTimeout(track._t);track._t=setTimeout(sync,90);},{passive:true});
-    sync();
-  }
-  [].slice.call(document.querySelectorAll('.frail')).forEach(wire);
-})();
-</script>
+
 </body>
 </html>
