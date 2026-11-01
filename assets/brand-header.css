@@ -1,6 +1,6 @@
 /* One shared masthead for Atmosferi Websites and Visuals.
    Keep the page-specific navigation destinations, but not different branding. */
-:root{--atmos-header-height:88px;--atmos-header-gut:clamp(20px,3.4vw,48px);}
+:root{--atmos-header-height:88px;--atmos-header-gut:clamp(20px,3.4vw,48px);--atmos-grid-width:1600px;}
 .nav,header.nav,header.nav.scrolled,header.nav.solid{
   background:#fafafa!important;
   border:0!important;
@@ -10,7 +10,7 @@
 }
 header.nav{position:sticky!important;top:0!important;left:auto;right:auto;width:100%;z-index:110;}
 .nav__inner,.nav__in{
-  width:100%;max-width:none!important;
+  width:100%;max-width:var(--atmos-grid-width)!important;margin-inline:auto!important;
   height:var(--atmos-header-height)!important;
   min-height:var(--atmos-header-height);
   padding:0 var(--atmos-header-gut)!important;
@@ -85,6 +85,12 @@ header.nav.scrolled .swx__seg.is-on{
 header.nav.scrolled .vnav__burger span{background:#111112!important;}
 header.nav .vnav__burger[aria-expanded="true"] span{background:#111112!important;}
 .nav a:focus-visible,.nav button:focus-visible{outline:2px solid #111112;outline-offset:4px;}
+/* The homepage hero and both mastheads share identical outer alignment.
+   At screens narrower than 1600px, both use the same fluid gutter. */
+.homepage .hero--statement .heroover{
+  max-width:var(--atmos-grid-width);
+  padding-inline:var(--atmos-header-gut);
+}
 /* Visuals: the masthead occupies its own row rather than overlaying the hero. */
 .visuals-page > header.nav + .hero{
   padding-top:clamp(24px,3.2vw,46px)!important;
