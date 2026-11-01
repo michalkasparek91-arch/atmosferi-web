@@ -8,6 +8,9 @@
 window.I18N_DICT = {
   /* ----------------------------------------------------------------- DE */
   de: {
+    "Available for new projects": "Offen für neue Projekte",
+    "Behind the studio": "Über das Studio",
+    "Founder, Atmosferi°": "Gründer, Atmosferi°",
     /* Homepage clean-up · November 2026 */
     "Websites & visualisation for architecture": "Webdesign und Visualisierung für Architektur",
     "A few ways to show your work.": "So könnte Ihre Arbeit online aussehen.",
@@ -542,6 +545,9 @@ window.I18N_DICT = {
 
   /* ----------------------------------------------------------------- CS */
   cs: {
+    "Available for new projects": "Přijímám nové zakázky",
+    "Behind the studio": "Kdo za tím stojí",
+    "Founder, Atmosferi°": "Zakladatel Atmosferi°",
     /* Homepage clean-up · November 2026 */
     "Websites & visualisation for architecture": "Weby a vizualizace pro architekturu",
     "A few ways to show your work.": "Několik možností, jak představit vaši práci.",
