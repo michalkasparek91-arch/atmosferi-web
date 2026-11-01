@@ -165,24 +165,43 @@
   var lbT = document.getElementById("lbT");
   var lbM = document.getElementById("lbM");
   var lbCount = document.getElementById("lbCount");
+  var lbNote = document.getElementById("lbNote");
   var idx = -1;
+  var activeItems = items;
 
+  // A project with several images opens its own series. Individual examples
+  // still browse the full portfolio, so visitors are never trapped on one image.
   function show(i) {
-    if (i < 0) i = items.length - 1;
-    if (i >= items.length) i = 0;
+    if (i < 0) i = activeItems.length - 1;
+    if (i >= activeItems.length) i = 0;
     idx = i;
-    var el = items[i];
+    var el = activeItems[i];
+    var title = el.getAttribute("data-project-title") || el.getAttribute("data-cap") || "";
+    var caption = el.getAttribute("data-cap") || "";
+    var meta = el.getAttribute("data-meta") || "";
+    var note = el.getAttribute("data-project-note") || "";
     lbImg.src = el.getAttribute("data-full");
-    lbImg.alt = el.getAttribute("data-cap") || "";
-    lbT.textContent = tr(el.getAttribute("data-cap") || "");
-    lbM.textContent = tr(el.getAttribute("data-meta") || "");
-    lbCount.textContent = ("0" + (i + 1)).slice(-2) + " / " + ("0" + items.length).slice(-2);
+    lbImg.alt = el.querySelector("img")?.alt || caption;
+    lbT.textContent = tr(title);
+    lbM.textContent = tr(caption) + (meta ? " · " + tr(meta) : "");
+    if (lbNote) {
+      lbNote.textContent = tr(note);
+      lbNote.hidden = !note;
+    }
+    lbCount.textContent = ("0" + (i + 1)).slice(-2) + " / " + ("0" + activeItems.length).slice(-2);
   }
   function open(i) {
-    show(i);
+    var selected = items[i];
+    var group = selected.getAttribute("data-project");
+    var matching = group ? items.filter(function (item) {
+      return item.getAttribute("data-project") === group;
+    }) : [];
+    activeItems = matching.length > 1 ? matching : items;
+    show(activeItems.indexOf(selected));
     lb.classList.add("open");
     lb.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    document.getElementById("lbClose").focus({ preventScroll: true });
   }
   function close() {
     lb.classList.remove("open");
@@ -209,6 +228,21 @@
     else if (e.key === "ArrowRight") show(idx + 1);
     else if (e.key === "ArrowLeft") show(idx - 1);
   });
+
+
+  /* Unified portfolio: reveal the complete archive on demand. */
+  var portfolioToggle = document.getElementById("portfolioToggle");
+  var portfolioSection = document.getElementById("work");
+  if (portfolioToggle && portfolioSection) {
+    portfolioToggle.addEventListener("click", function () {
+      var expanded = portfolioToggle.getAttribute("aria-expanded") !== "true";
+      portfolioToggle.setAttribute("aria-expanded", String(expanded));
+      portfolioSection.classList.toggle("show-all", expanded);
+      if (!expanded && portfolioSection.getBoundingClientRect().top < -window.innerHeight) {
+        portfolioSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
 
   /* =========================================================================
      IN MOTION — showreel video (muted autoplay, sound toggle, play/pause)
