@@ -1,64 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://atmosferi.com/</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://atmosferi.com/"/>
+    <loc>https://www.atmosferi.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/work.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://atmosferi.com/work.html"/>
+    <loc>https://www.atmosferi.com/contact.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/contact.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/services.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://atmosferi.com/services.html"/>
+    <loc>https://www.atmosferi.com/demos/atmosferi-viz/index.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/demos/atmosferi-viz/index.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/demos/atmosferi-viz/index.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/pricing.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://atmosferi.com/pricing.html"/>
+    <loc>https://www.atmosferi.com/nettsider-for-arkitekter.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/websites-for-architects.html"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://www.atmosferi.com/weby-pro-architekty.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.atmosferi.com/webdesign-fuer-architekten.html"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://www.atmosferi.com/nettsider-for-arkitekter.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/websites-for-architects.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/studio.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://atmosferi.com/studio.html"/>
+    <loc>https://www.atmosferi.com/pricing.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/pricing.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/pricing.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/contact.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://atmosferi.com/contact.html"/>
+    <loc>https://www.atmosferi.com/services.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/services.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/services.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/demos/atmosferi-viz/index.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.8</priority>
+    <loc>https://www.atmosferi.com/studio.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/studio.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/studio.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/demos/volum/index.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.5</priority>
+    <loc>https://www.atmosferi.com/webdesign-fuer-architekten.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/websites-for-architects.html"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://www.atmosferi.com/weby-pro-architekty.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.atmosferi.com/webdesign-fuer-architekten.html"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://www.atmosferi.com/nettsider-for-arkitekter.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/websites-for-architects.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/demos/voss/index.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.5</priority>
+    <loc>https://www.atmosferi.com/websites-for-architects.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/websites-for-architects.html"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://www.atmosferi.com/weby-pro-architekty.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.atmosferi.com/webdesign-fuer-architekten.html"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://www.atmosferi.com/nettsider-for-arkitekter.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/websites-for-architects.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/demos/meridian/index.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.5</priority>
+    <loc>https://www.atmosferi.com/weby-pro-architekty.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/websites-for-architects.html"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://www.atmosferi.com/weby-pro-architekty.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.atmosferi.com/webdesign-fuer-architekten.html"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://www.atmosferi.com/nettsider-for-arkitekter.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/websites-for-architects.html"/>
   </url>
   <url>
-    <loc>https://atmosferi.com/demos/quay/index.html</loc>
-    <lastmod>2026-06-11</lastmod>
-    <priority>0.5</priority>
+    <loc>https://www.atmosferi.com/work.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/work.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/work.html"/>
   </url>
 </urlset>

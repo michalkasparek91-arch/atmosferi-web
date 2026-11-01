@@ -20,6 +20,9 @@
   --wrap:1440px;
   --gut:clamp(20px,3.4vw,48px);
 }
+.international-links{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;width:100%;padding-top:28px;margin-top:28px;border-top:1px solid currentColor;font-size:13px;line-height:1.6;}
+.international-links span{opacity:.65;}
+.international-links a{text-decoration:underline;text-underline-offset:5px;}
 body{background:var(--canvas);color:var(--ink);}
 
 /* ---- Display type ------------------------------------------------------- */
