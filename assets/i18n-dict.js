@@ -8,6 +8,35 @@
 window.I18N_DICT = {
   /* ----------------------------------------------------------------- DE */
   de: {
+    /* Homepage clean-up · November 2026 */
+    "Websites & visualisation for architecture": "Webdesign und Visualisierung für Architektur",
+    "A few ways to show your work.": "So könnte Ihre Arbeit online aussehen.",
+    "View all five examples": "Alle fünf Beispiele ansehen",
+    "These are working website concepts, not client commissions. Each one explores a different way to present architecture. Click through and explore.": "Das sind funktionsfähige Website-Konzepte, keine Kundenaufträge. Jedes zeigt eine andere Möglichkeit, Architektur zu präsentieren. Schauen Sie sich die Beispiele an.",
+    "Large architecture studio": "Größeres Architekturbüro",
+    "Small architecture studio": "Kleineres Architekturbüro",
+    "Residential development": "Wohnbauprojekt",
+    "What I do.": "Meine Leistungen.",
+    "More about my work": "Mehr über meine Arbeit",
+    "Let's talk": "Sprechen wir darüber",
+    "Have a project": "Haben Sie ein Projekt",
+    "in mind?": "im Kopf?",
+    "Tell me about it": "Erzählen Sie mir davon",
+    "Explore VOLUM website concept": "VOLUM Website-Konzept öffnen",
+    "Explore Atelier Voss website concept": "Atelier Voss Website-Konzept öffnen",
+    "Explore Meridian website concept": "Meridian Website-Konzept öffnen",
+    "Explore OBJEKT website concept": "OBJEKT Website-Konzept öffnen",
+    "Five working website concepts, designed and built by me. The studios and projects are fictional, but the websites work. Open any one to see the design in action.": "Fünf funktionsfähige Website-Konzepte, die ich selbst gestaltet und umgesetzt habe. Die Büros und Projekte sind fiktiv, die Websites funktionieren aber. Öffnen Sie ein Beispiel und entdecken Sie das Design.",
+    "05 live demos · 2024—2026": "05 Demo-Websites · 2024—2026",
+    "Prague, Czechia": "Prag, Tschechien",
+    "Demo ↗": "Demo ↗",
+    "Architecture website displayed on a laptop": "Architektur-Website auf einem Laptop",
+    "Modern high-rise architecture from the VOLUM website concept": "Moderne Hochhausarchitektur im VOLUM-Website-Konzept",
+    "Minimal Nordic architecture from the Atelier Voss website concept": "Nordische Architektur im Atelier-Voss-Website-Konzept",
+    "Residential tower from the Meridian property website concept": "Wohnturm aus dem Meridian-Website-Konzept",
+    "Contemporary interior from the OBJEKT website concept": "Zeitgenössisches Interieur aus dem OBJEKT-Website-Konzept",
+    "A residential design from an architecture website concept": "Wohnprojekt aus einem Architektur-Website-Konzept",
+
     /* Homepage – clear, direct story (2026) */
     "Web design for architecture": "Webdesign für Architektur",
     "Design, development & visualisation": "Design, Entwicklung & Visualisierung",
@@ -513,6 +542,35 @@ window.I18N_DICT = {
 
   /* ----------------------------------------------------------------- CS */
   cs: {
+    /* Homepage clean-up · November 2026 */
+    "Websites & visualisation for architecture": "Weby a vizualizace pro architekturu",
+    "A few ways to show your work.": "Několik možností, jak představit vaši práci.",
+    "View all five examples": "Prohlédnout všech pět ukázek",
+    "These are working website concepts, not client commissions. Each one explores a different way to present architecture. Click through and explore.": "Jde o funkční ukázkové weby, ne o zakázky pro klienty. Každý ukazuje trochu jiný způsob prezentace architektury. Prohlédněte si je.",
+    "Large architecture studio": "Větší architektonický ateliér",
+    "Small architecture studio": "Menší architektonický ateliér",
+    "Residential development": "Rezidenční projekt",
+    "What I do.": "Co dělám.",
+    "More about my work": "Více o mé práci",
+    "Let's talk": "Pojďme se domluvit",
+    "Have a project": "Máte projekt",
+    "in mind?": "v hlavě?",
+    "Tell me about it": "Napište mi o něm",
+    "Explore VOLUM website concept": "Otevřít ukázku webu VOLUM",
+    "Explore Atelier Voss website concept": "Otevřít ukázku webu Atelier Voss",
+    "Explore Meridian website concept": "Otevřít ukázku webu Meridian",
+    "Explore OBJEKT website concept": "Otevřít ukázku webu OBJEKT",
+    "Five working website concepts, designed and built by me. The studios and projects are fictional, but the websites work. Open any one to see the design in action.": "Pět funkčních ukázkových webů, které jsem sám navrhl a vytvořil. Ateliéry a projekty jsou fiktivní, ale weby skutečně fungují. Otevřete si kterýkoliv z nich.",
+    "05 live demos · 2024—2026": "05 funkčních ukázek · 2024–2026",
+    "Prague, Czechia": "Praha, Česko",
+    "Demo ↗": "Ukázka ↗",
+    "Architecture website displayed on a laptop": "Architektonický web na notebooku",
+    "Modern high-rise architecture from the VOLUM website concept": "Současná výšková architektura z ukázky VOLUM",
+    "Minimal Nordic architecture from the Atelier Voss website concept": "Skandinávská architektura z ukázky Atelier Voss",
+    "Residential tower from the Meridian property website concept": "Rezidenční věž z ukázky Meridian",
+    "Contemporary interior from the OBJEKT website concept": "Současný interiér z ukázky OBJEKT",
+    "A residential design from an architecture website concept": "Rezidenční projekt z ukázkového architektonického webu",
+
     /* Homepage – clear, direct story (2026) */
     "Web design for architecture": "Webdesign pro architekturu",
     "Design, development & visualisation": "Design, vývoj a vizualizace",
