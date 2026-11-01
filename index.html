@@ -276,7 +276,7 @@
 }
 </script>
 </head>
-<body>
+<body class="homepage">
 
 <div class="scrollbar" id="scrollProgress"></div>
 
@@ -328,8 +328,7 @@
     </video>
     <div class="heroover">
       <div class="heroover__top">
-        <span class="eyebrow">Web design for architecture</span>
-        <span class="eyebrow">Design, development &amp; visualisation</span>
+        <span class="eyebrow">Websites &amp; visualisation for architecture</span>
       </div>
       <h1 class="heroover__title">Websites for architects and developers.</h1>
       <div class="heroover__foot">
@@ -340,156 +339,52 @@
   </div>
 </section>
 
-<!-- ============================ PROOF ============================ -->
-<section class="wrap homeintro" data-screen-label="Home / Approach">
-  <span class="eyebrow" data-rise>The approach</span>
-  <p class="homeintro__text" data-rise>I start with your projects: what visitors should see first, which details matter and what needs explaining. Then I design the website around your work, rather than fitting it into a template.</p>
-</section>
-
 <!-- ============================ SELECTED WORK ============================ -->
-<section class="section wrap" id="sample-work" data-screen-label="Home / Selected work">
+<section class="section wrap showcase" id="sample-work" data-screen-label="Home / Selected work">
   <div class="section__head" data-rise>
-    <h2 class="section__title">See how different websites can work.</h2>
-    <a href="work.html" class="arrow-link">All examples <span class="arrow">→</span></a>
+    <h2 class="section__title">A few ways to show your work.</h2>
+    <a href="work.html" class="arrow-link">View all five examples <span class="arrow">→</span></a>
   </div>
-  <p class="section__note" data-rise>These are five working website concepts I designed and built, not commissioned client projects. The studios and developments are fictional, but the websites are real. Open one to explore the layout, imagery and details.</p>
-  <div class="filters" id="workFilters" role="tablist" aria-label="Filter work">
-    <button class="filterpill is-on" type="button" data-filter="all">All examples</button>
-    <button class="filterpill" type="button" data-filter="portfolio">Architecture portfolios</button>
-    <button class="filterpill" type="button" data-filter="project">Project presentations</button>
-    <button class="filterpill" type="button" data-filter="interior">Interior studios</button>
-  </div>
-  <div class="workgroup" data-cat="portfolio">
-    <div class="workgroup__head" data-rise>
-      <span class="workgroup__title"><span class="n">01</span>Architecture portfolios</span>
-      <span class="workgroup__note">Show a studio's projects clearly</span>
-    </div>
-    <div class="workgrid">
-    <a href="demos/volum/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
-      <span class="browser">
-        <span class="browser__bar">
-          <span class="browser__dots"><span></span><span></span><span></span></span>
-          <span class="browser__url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg><b>volum.studio</b></span>
-          <span class="browser__live">Demo</span>
-        </span>
-        <span class="reveal workcard__img"><img src="demos/volum/img/helix.webp" alt="VOLUM website — Helix Tower"></span>
-      </span>
-      <span class="workcard__meta">
-        <span class="workcard__title">VOLUM&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Global practice</span>
-      </span>
-      <span class="workcard__blurb">An image-led portfolio for a larger practice, with bold typography and simple project browsing.</span>
+  <p class="section__note" data-rise>These are working website concepts, not client commissions. Each one explores a different way to present architecture. Click through and explore.</p>
+  <div class="showcase__grid">
+    <a class="showcase__card" href="demos/volum/index.html" target="_blank" rel="noopener" aria-label="Explore VOLUM website concept" data-rise>
+      <span class="showcase__image"><img src="demos/volum/img/helix.webp" alt="Modern high-rise architecture from the VOLUM website concept" loading="lazy"></span>
+      <span class="showcase__meta"><span class="showcase__name">VOLUM</span><span class="showcase__type">Large architecture studio</span></span>
     </a>
-    <a href="demos/voss/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
-      <span class="browser">
-        <span class="browser__bar">
-          <span class="browser__dots"><span></span><span></span><span></span></span>
-          <span class="browser__url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg><b>ateliervoss.no</b></span>
-          <span class="browser__live">Demo</span>
-        </span>
-        <span class="reveal workcard__img"><img src="demos/voss/img/hero.webp" alt="Atelier Voss website — Nordic studio"></span>
-      </span>
-      <span class="workcard__meta">
-        <span class="workcard__title">Atelier Voss&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Boutique studio</span>
-      </span>
-      <span class="workcard__blurb">A quieter portfolio for a smaller practice, with space to focus on each project.</span>
+    <a class="showcase__card" href="demos/voss/index.html" target="_blank" rel="noopener" aria-label="Explore Atelier Voss website concept" data-rise>
+      <span class="showcase__image"><img src="demos/voss/img/hero.webp" alt="Minimal Nordic architecture from the Atelier Voss website concept" loading="lazy"></span>
+      <span class="showcase__meta"><span class="showcase__name">Atelier Voss</span><span class="showcase__type">Small architecture studio</span></span>
     </a>
-    </div>
-  </div>
-
-  <div class="workgroup" data-cat="project">
-    <div class="workgroup__head" data-rise>
-      <span class="workgroup__title"><span class="n">02</span>Project presentations</span>
-      <span class="workgroup__note">Give a new development its own website</span>
-    </div>
-    <div class="workgrid">
-    <a href="demos/meridian/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
-      <span class="browser">
-        <span class="browser__bar">
-          <span class="browser__dots"><span></span><span></span><span></span></span>
-          <span class="browser__url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg><b>meridiantower.com</b></span>
-          <span class="browser__live">Demo</span>
-        </span>
-        <span class="reveal workcard__img"><img src="demos/meridian/img/hero.webp" alt="Meridian website — residential tower"></span>
-      </span>
-      <span class="workcard__meta">
-        <span class="workcard__title">Meridian&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Residential tower</span>
-      </span>
-      <span class="workcard__blurb">A dedicated presentation for a residential tower, from the opening image to the project enquiry.</span>
+    <a class="showcase__card" href="demos/meridian/index.html" target="_blank" rel="noopener" aria-label="Explore Meridian website concept" data-rise>
+      <span class="showcase__image"><img src="demos/meridian/img/hero.webp" alt="Residential tower from the Meridian property website concept" loading="lazy"></span>
+      <span class="showcase__meta"><span class="showcase__name">Meridian</span><span class="showcase__type">Residential development</span></span>
     </a>
-    <a href="demos/quay/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
-      <span class="browser">
-        <span class="browser__bar">
-          <span class="browser__dots"><span></span><span></span><span></span></span>
-          <span class="browser__url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg><b>quay9.co</b></span>
-          <span class="browser__live">Demo</span>
-        </span>
-        <span class="reveal workcard__img"><img src="demos/quay/img/hero.webp" alt="Quay 9 website — waterfront"></span>
-      </span>
-      <span class="workcard__meta">
-        <span class="workcard__title">Quay 9&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Waterfront district</span>
-      </span>
-      <span class="workcard__blurb">A bright project website for a new waterfront neighbourhood.</span>
+    <a class="showcase__card" href="demos/objekt/index.html" target="_blank" rel="noopener" aria-label="Explore OBJEKT website concept" data-rise>
+      <span class="showcase__image"><img src="demos/objekt/img/p1.webp" alt="Contemporary interior from the OBJEKT website concept" loading="lazy"></span>
+      <span class="showcase__meta"><span class="showcase__name">OBJEKT</span><span class="showcase__type">Interior design studio</span></span>
     </a>
-    </div>
-  </div>
-
-  <div class="workgroup" data-cat="interior">
-    <div class="workgroup__head" data-rise>
-      <span class="workgroup__title"><span class="n">03</span>Interior studios</span>
-      <span class="workgroup__note">Bring spaces and details to the front</span>
-    </div>
-    <div class="workgrid">
-    <a href="demos/objekt/index.html" target="_blank" rel="noopener" class="workcard reveal-card" data-rise>
-      <span class="browser">
-        <span class="browser__bar">
-          <span class="browser__dots"><span></span><span></span><span></span></span>
-          <span class="browser__url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg><b>objekt.studio</b></span>
-          <span class="browser__live">Demo</span>
-        </span>
-        <span class="reveal workcard__img"><img src="demos/objekt/img/p1.webp" alt="OBJEKT website — interior design studio"></span>
-      </span>
-      <span class="workcard__meta">
-        <span class="workcard__title">OBJEKT&#8202;<span style="font-family:var(--font-mono);font-size:0.42em;vertical-align:0.28em">↗</span></span>
-        <span class="workcard__cat">Interior design studio</span>
-      </span>
-      <span class="workcard__blurb">An interior design portfolio that puts photography and video first.</span>
-    </a>
-    </div>
   </div>
 </section>
-
-<hr class="horizon">
-
 
 <!-- ============================ CAPABILITIES ============================ -->
 <section class="section wrap" data-screen-label="Home / Capabilities">
   <div class="section__head" data-rise>
-    <h2 class="section__title">What I can help you with.</h2>
-    <span class="eyebrow">Design to delivery</span>
+    <h2 class="section__title">What I do.</h2>
+    
   </div>
   <div class="caps">
     <a href="services.html" class="cap" data-rise>
-      <span class="cap__media"><img src="img/cap-web.webp" alt="Architecture studio website on a laptop" loading="lazy"></span>
-      <span class="cap__icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"><rect x="3.5" y="5.5" width="25" height="21"></rect><line x1="3.5" y1="11.5" x2="28.5" y2="11.5"></line><line x1="10.5" y1="11.5" x2="10.5" y2="26.5"></line><line x1="14.5" y1="16" x2="24.5" y2="16"></line><line x1="14.5" y1="20" x2="21.5" y2="20"></line></svg></span>
-      <span class="cap__num">01</span>
+      <span class="cap__media"><img src="demos/voss/img/hero.webp" alt="A residential design from an architecture website concept" loading="lazy"></span>
       <span class="cap__title">Web Design</span>
       <span class="cap__desc">A considered website that makes your projects easy to browse, with clear navigation and images that have room to breathe.</span>
     </a>
     <a href="services.html" class="cap" data-rise>
-      <span class="cap__media"><img src="img/cap-dev.webp" alt="Built interior — clean modern apartment" loading="lazy"></span>
-      <span class="cap__icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"><path d="M11 10 L4.5 16 L11 22"></path><path d="M21 10 L27.5 16 L21 22"></path><line x1="18" y1="7.5" x2="14" y2="24.5"></line></svg></span>
-      <span class="cap__num">02</span>
+      <span class="cap__media"><img src="img/cap-web.webp" alt="Architecture website displayed on a laptop" loading="lazy"></span>
       <span class="cap__title">Development</span>
       <span class="cap__desc">I build the site too. It's fast, works on phones and lets you add projects or change text without needing a developer.</span>
     </a>
     <a href="services.html" class="cap" data-rise>
       <span class="cap__media"><img src="img/cap-viz.webp" alt="Photoreal architectural visualisation — concrete villa in forest" loading="lazy"></span>
-      <span class="cap__icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"><path d="M16 4 L28 10.5 L28 21.5 L16 28 L4 21.5 L4 10.5 Z"></path><path d="M4 10.5 L16 17 L28 10.5"></path><line x1="16" y1="17" x2="16" y2="28"></line></svg></span>
-      <span class="cap__num">03</span>
       <span class="cap__title">3D &amp; Visualisation</span>
       <span class="cap__desc">I can help select and improve your existing images, or create renders, films and 360° tours for projects that aren't built yet.</span>
     </a>
@@ -508,14 +403,8 @@
     <span class="eyebrow" data-i18n>Behind the studio</span>
     <h2 class="founder__title">I'm Michal, an architect who builds websites.</h2>
     <p class="founder__text">I trained as an architect and have spent more than a decade making visualisations for architecture studios and developers. That experience helps me choose the right images, organise projects and explain what makes a building interesting. I design and code the websites myself, so you'll work directly with the person making yours.</p>
-    <div class="founder__facts">
-      <span class="founder__fact"><b>Ing. arch.</b><span data-i18n>Trained architect</span></span>
-      <span class="founder__fact"><b>11 years</b><span data-i18n>Making architectural images</span></span>
-      <span class="founder__fact"><b>Prague</b><span data-i18n>Working across Europe</span></span>
-    </div>
     <div class="founder__cta">
-      <a href="contact.html" class="arrow-link primary" data-i18n>Let's talk about your project</a>
-      <a href="studio.html" class="arrow-link" data-i18n>More about me</a>
+      <a href="studio.html" class="arrow-link" data-i18n>More about my work</a>
     </div>
     <span class="founder__sign">Ing. arch. Michal Kašpárek · <span data-i18n>Founder, Atmosferi°</span></span>
   </div>
@@ -527,9 +416,9 @@
     <img src="demos/volum/img/tide.webp" alt="Tidewater — tidal park architectural visualisation">
   </div>
   <div class="ctaband__over">
-    <span class="eyebrow">Have a website in mind?</span>
-    <h2 class="cta__title">Tell me what you're<br>working on.</h2>
-    <a href="start.html" class="btn">Start a conversation <span class="arrow">→</span></a>
+    <span class="eyebrow">Let's talk</span>
+    <h2 class="cta__title">Have a project<br>in mind?</h2>
+    <a href="start.html" class="btn">Tell me about it <span class="arrow">→</span></a>
   </div>
 </section>
 
@@ -555,20 +444,8 @@
         <div class="footer__col">
           <span class="eyebrow">Elsewhere</span>
           <a href="demos/atmosferi-viz/index.html" class="mono muted">Visualisation</a>
-          <a href="#" class="mono muted">Instagram</a>
-          <a href="#" class="mono muted">LinkedIn</a>
-          <a href="/admin/prihlaseni" class="mono muted" style="margin-top: auto; opacity: 0.3;">Admin</a>
+<a href="/admin/prihlaseni" class="mono muted" style="margin-top: auto; opacity: 0.3;">Admin</a>
         </div>
-      </div>
-    </div>
-    <div class="footer__cta">
-      <span class="eyebrow" data-i18n>Have a project in mind?</span>
-      <a href="contact.html" class="footer__cta-link" data-i18n>Get in touch</a>
-      <div class="footer__soc">
-        <a href="mailto:info@atmosferi.com">Email</a>
-        <a href="demos/atmosferi-viz/index.html" data-i18n>Visualisation</a>
-        <a href="start.html" data-i18n>Start a brief</a>
-        <a href="pricing.html" data-i18n>Pricing</a>
       </div>
     </div>
     <div class="footer__bottom">
@@ -580,19 +457,7 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/home.js"></script>
-<script src="assets/i18n-dict.js"></script>
-<script src="assets/i18n.js"></script>
-<script>
-(function(){
-  var wrap=document.getElementById('workFilters'); if(!wrap) return;
-  var groups=[].slice.call(document.querySelectorAll('.workgroup[data-cat]'));
-  wrap.addEventListener('click',function(e){
-    var b=e.target.closest('.filterpill'); if(!b) return;
-    wrap.querySelectorAll('.filterpill').forEach(function(p){p.classList.toggle('is-on',p===b);});
-    var f=b.getAttribute('data-filter');
-    groups.forEach(function(g){ g.hidden = !(f==='all' || g.getAttribute('data-cat')===f); });
-  });
-})();
-</script>
+<script src="assets/i18n-dict.js?v=20261101b"></script>
+<script src="assets/i18n.js?v=20261101b"></script>
 </body>
 </html>
