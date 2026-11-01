@@ -234,6 +234,7 @@
   var portfolioToggle = document.getElementById("portfolioToggle");
   var portfolioSection = document.getElementById("work");
   if (portfolioToggle && portfolioSection) {
+    document.documentElement.classList.add("has-portfolio-js");
     portfolioToggle.addEventListener("click", function () {
       var expanded = portfolioToggle.getAttribute("aria-expanded") !== "true";
       portfolioToggle.setAttribute("aria-expanded", String(expanded));
