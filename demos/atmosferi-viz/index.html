@@ -1417,37 +1417,13 @@
 })();
 </script>
 
-<script>
-(function(){
-  /* In-motion film: subtle per-scene captions in the HUD title */
-  var v=document.getElementById('filmVideo'), t=document.getElementById('filmTitle');
-  if(!v||!t) return;
-  var scenes=[
-    {at:0,    label:'The hearth'},
-    {at:6.8,  label:'The long table'},
-    {at:12.0, label:'The stair'},
-    {at:18.6, label:'Morning room'},
-    {at:28.6, label:'The far shore'}
-  ];
-  function labelFor(time){ var l=scenes[0].label; for(var i=0;i<scenes.length;i++){ if(time>=scenes[i].at) l=scenes[i].label; } return l; }
-  var cur='';
-  function update(){
-    var next=labelFor(v.currentTime||0);
-    if(next===cur) return;
-    cur=next;
-    t.style.opacity='0';
-    setTimeout(function(){ t.textContent=next; t.style.opacity='1'; },260);
-  }
-  v.addEventListener('timeupdate',update);
-  v.addEventListener('loadeddata',function(){ cur=''; update(); });
-  t.textContent=scenes[0].label;
-})();
-</script>
+
 
 <script src="viz.js"></script>
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="pano.js"></script>
 <script src="../../assets/i18n-dict.js?v=20261101viz"></script>
+<script src="viz-i18n.js?v=20261101viz"></script>
 <script src="../../assets/i18n.js?v=20261101viz"></script>
 <script>
 (function(){
