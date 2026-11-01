@@ -1,0 +1,136 @@
+/* One shared masthead for Atmosferi Websites and Visuals.
+   Keep the page-specific navigation destinations, but not different branding. */
+:root{--atmos-header-height:88px;--atmos-header-gut:clamp(20px,3.4vw,48px);}
+.nav,header.nav,header.nav.scrolled,header.nav.solid{
+  background:#fafafa!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+header.nav{position:sticky!important;top:0!important;left:auto;right:auto;width:100%;z-index:110;}
+.nav__inner,.nav__in{
+  width:100%;max-width:none!important;
+  height:var(--atmos-header-height)!important;
+  min-height:var(--atmos-header-height);
+  padding:0 var(--atmos-header-gut)!important;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  position:relative;
+}
+.nav .wordmark,header.nav .brand{
+  display:inline-flex!important;flex-direction:row;align-items:baseline;
+  font-family:'Outfit','Geist',system-ui,sans-serif!important;
+  font-size:29px!important;line-height:1!important;
+  font-weight:600!important;letter-spacing:-.055em!important;
+  text-transform:lowercase;color:#111112!important;white-space:nowrap;flex-shrink:0;
+}
+.nav .wordmark sup,header.nav .brand sup{
+  font-size:.5em;color:#111112!important;font-weight:500;position:relative;top:-.48em;
+}
+header.nav .brand .tag{display:none!important;}
+.nav__place{display:none!important;}
+.nav__links,header.nav .nav__links{
+  position:static!important;left:auto!important;top:auto!important;transform:none!important;
+  display:flex;align-items:center;justify-content:flex-end;gap:6px;
+  margin-left:auto!important;
+  padding:0!important;background:none!important;border:0!important;
+  border-radius:0!important;box-shadow:none!important;
+}
+.nav__links .navlink,header.nav .nav__links a{
+  display:inline-flex;align-items:center;
+  background:none!important;box-shadow:none!important;border:0!important;
+  border-radius:0!important;
+  font-family:'Geist',system-ui,sans-serif!important;
+  font-size:14px!important;font-weight:500!important;letter-spacing:0!important;
+  text-transform:none!important;line-height:1.3;
+  padding:12px 14px!important;color:#111112!important;opacity:1!important;
+  white-space:nowrap;text-decoration:none;
+}
+.nav__links .navlink:hover,header.nav .nav__links a:hover,
+.nav__links .navlink[aria-current="page"],header.nav .nav__links a[aria-current="page"]{
+  text-decoration:underline!important;text-underline-offset:7px;
+  color:#111112!important;
+}
+header.nav .nav__links a.cta{background:none!important;color:#111112!important;}
+.nav__inner > .nav__switch,.nav__in > .nav__switch{
+  margin-left:20px!important;flex-shrink:0;
+  display:flex!important;align-items:center;gap:0;
+}
+.nav .nav__switch .swx,header.nav .nav__switch .swx{
+  display:inline-flex;position:relative;align-items:center;
+  margin:0!important;padding:3px!important;
+  background:transparent!important;border:1px solid #111112!important;
+  border-radius:3px!important;box-shadow:none!important;
+}
+.nav .swx__knob,header.nav .swx__knob{
+  background:#111112!important;border-radius:1px!important;
+}
+.nav .swx__seg,header.nav .swx__seg{
+  padding:9px 15px!important;border-radius:1px!important;
+  font-family:'Geist',system-ui,sans-serif!important;
+  font-size:12px!important;font-weight:500!important;letter-spacing:0!important;
+  line-height:1.25;text-transform:none!important;opacity:1!important;
+  color:#787878!important;
+}
+.nav .swx__seg.is-on,header.nav .swx__seg.is-on,
+header.nav.scrolled .swx__seg.is-on{
+  color:#fff!important;
+}
+.nav__switch .i18nsw{margin-left:0!important;margin-right:15px!important;}
+.nav__burger,header.nav .vnav__burger{
+  flex-shrink:0;margin-left:8px!important;
+  width:34px;height:34px;background:none;border:0;
+}
+.nav__burger span,header.nav .vnav__burger span,
+header.nav.scrolled .vnav__burger span{background:#111112!important;}
+header.nav .vnav__burger[aria-expanded="true"] span{background:#111112!important;}
+.nav a:focus-visible,.nav button:focus-visible{outline:2px solid #111112;outline-offset:4px;}
+/* Visuals: the masthead occupies its own row rather than overlaying the hero. */
+.visuals-page > header.nav + .hero{
+  padding-top:clamp(24px,3.2vw,46px)!important;
+}
+.visuals-page section[id]{scroll-margin-top:calc(var(--atmos-header-height) + 20px);}
+/* The two sites share a compact light mobile dropdown. */
+header.nav .vnav__mobile{
+  position:absolute!important;inset:100% 0 auto!important;
+  background:#fafafa!important;color:#111112!important;
+  display:none!important;visibility:visible!important;
+  flex-direction:column!important;gap:10px!important;
+  padding:22px var(--atmos-header-gut) 28px!important;
+  transform:none!important;transition:none!important;
+  box-shadow:0 20px 30px rgba(0,0,0,.08);
+  max-height:calc(100svh - var(--atmos-header-height));overflow-y:auto;
+}
+header.nav.is-open .vnav__mobile{display:flex!important;}
+header.nav .vnav__mobile > a{
+  font-family:'Geist',system-ui,sans-serif!important;
+  font-size:23px!important;font-weight:500!important;letter-spacing:-.02em!important;
+  line-height:1.25!important;color:#111112!important;
+  border:0!important;padding:8px 0!important;text-transform:none!important;
+}
+header.nav .vnav__mobile > .swx{align-self:flex-start;margin:12px 0 0!important;}
+header.nav .vnav__mobile .swx__seg{font-size:12px!important;}
+header.nav .vnav__mobile .i18nsw{align-self:flex-start;margin:0 0 6px!important;}
+@media(max-width:1180px){
+  .nav__links,header.nav .nav__links{display:none!important;}
+  .nav__burger,header.nav .vnav__burger{display:flex!important;}
+  .nav__inner > .nav__switch,.nav__in > .nav__switch{margin-left:auto!important;}
+}
+@media(min-width:1181px){
+  header.nav .vnav__burger,header.nav .vnav__mobile{display:none!important;}
+}
+@media(max-width:700px){
+  :root{--atmos-header-height:72px;}
+  .nav__inner,.nav__in{gap:10px;}
+  .nav .wordmark,header.nav .brand{font-size:25px!important;}
+  .nav__inner > .nav__switch,.nav__in > .nav__switch{margin-left:auto!important;}
+  .nav .swx__seg,header.nav .swx__seg{padding:8px 10px!important;font-size:11px!important;}
+  .nav__switch .i18nsw{margin-right:8px!important;}
+}
+@media(max-width:420px){
+  .nav__inner > .nav__switch .swx,.nav__in > .nav__switch .swx{display:none!important;}
+  header.nav .vnav__mobile > .swx{display:inline-flex!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .nav .swx__knob,header.nav .swx__knob{transition:none!important;}
+}
