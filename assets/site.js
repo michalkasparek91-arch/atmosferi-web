@@ -48,6 +48,7 @@
     burger.addEventListener('click', function () {
       var open = nav.classList.toggle('is-open');
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) requestAnimationFrame(function () { window.dispatchEvent(new Event('resize')); });
     });
 
     // Close the menu when a link inside the mobile drawer is followed.
