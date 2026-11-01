@@ -35,7 +35,8 @@ jobs:
             ['struktura-webu-architektonickeho-atelieru.html', 'cs', 'weby-pro-architekty.html'],
             ['architekturbuero-website-relaunch-checkliste.html', 'de', 'webdesign-fuer-architekten.html'],
             ['tilgjengelig-nettside-for-arkitektkontor.html', 'nb', 'nettsider-for-arkitekter.html'],
-            ['residential-development-website-content-checklist.html', 'en', 'websites-for-architects.html']
+            ['residential-development-website-content-checklist.html', 'en', 'websites-for-architects.html'],
+            ['architekturleistungen-auf-website-darstellen.html', 'de', 'architekturbuero-website-relaunch-checkliste.html']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming] of pages) {
@@ -57,5 +58,5 @@ jobs:
               assert(fs.existsSync(link.replace(/^\//, '')), path + ': broken local link ' + link);
             }
           }
-          console.log('Both editorial pages: canonical, sitemap, schema and links passed.');
+          console.log('Editorial pages: canonical, sitemap, schema and links passed.');
           NODE
