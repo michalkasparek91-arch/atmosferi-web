@@ -32,7 +32,8 @@ jobs:
           import assert from 'node:assert/strict';
           const pages = [
             ['prepare-architecture-projects-for-website.html', 'en', 'services.html'],
-            ['struktura-webu-architektonickeho-atelieru.html', 'cs', 'weby-pro-architekty.html']
+            ['struktura-webu-architektonickeho-atelieru.html', 'cs', 'weby-pro-architekty.html'],
+            ['architekturbuero-website-relaunch-checkliste.html', 'de', 'webdesign-fuer-architekten.html']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming] of pages) {
