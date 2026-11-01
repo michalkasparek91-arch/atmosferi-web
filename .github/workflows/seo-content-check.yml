@@ -37,7 +37,8 @@ jobs:
             ['tilgjengelig-nettside-for-arkitektkontor.html', 'nb', 'nettsider-for-arkitekter.html'],
             ['residential-development-website-content-checklist.html', 'en', 'websites-for-architects.html'],
             ['architekturleistungen-auf-website-darstellen.html', 'de', 'architekturbuero-website-relaunch-checkliste.html'],
-            ['cms-for-architecture-portfolio-website.html', 'en', 'prepare-architecture-projects-for-website.html']
+            ['cms-for-architecture-portfolio-website.html', 'en', 'prepare-architecture-projects-for-website.html'],
+            ['interactive-floor-plans-property-development-website.html', 'en', 'residential-development-website-content-checklist.html']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming] of pages) {
@@ -47,12 +48,20 @@ jobs:
             assert.equal((h.match(/<h1[\s>]/g) || []).length, 1, path + ': H1');
             assert(h.includes('<link rel="canonical" href="' + url + '">'), path + ': canonical');
             assert(h.includes('<meta name="robots" content="index, follow'), path + ': robots');
+            assert(h.includes('<meta name="viewport"'), path + ': viewport');
+            for (const css of ['assets/site.css', 'assets/redesign.css', 'assets/brand-header.css', 'assets/seo-services.css', 'assets/seo-guides.css']) {
+              assert(h.includes('href="' + css), path + ': stylesheet ' + css);
+            }
+            for (const meta of ['og:title', 'og:description', 'og:url', 'twitter:card', 'twitter:title', 'twitter:description']) {
+              assert(h.includes(meta), path + ': social metadata ' + meta);
+            }
             assert(sitemap.includes('<loc>' + url + '</loc>'), path + ': sitemap');
             assert(!/rel="alternate" hreflang=/.test(h), path + ': unreviewed translation alternates');
             assert(fs.readFileSync(incoming, 'utf8').includes('href="' + path + '"'), path + ': incoming link');
             const schema = JSON.parse(h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
             assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.inLanguage === lang));
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.inLanguage === lang));
+            assert(schema['@graph'].some(item => item['@type'] === 'Article' && /^2026-11-01$/.test(item.datePublished) && item.dateModified === item.datePublished), path + ': publication dates');
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
               if (/^(?:https?:|mailto:)/.test(link)) continue;
