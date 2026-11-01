@@ -606,10 +606,11 @@
   .feature__bar .id{display:none;}
   .railcard__cap{display:none;}
   .frame__cap{display:none;}
-  .railcard .psf{height:auto;aspect-ratio:16/10;min-height:0;max-height:none;}
-  .railcard .psf img{object-fit:cover;}
-  .frail__track .feature__media{height:auto;aspect-ratio:16/10;min-height:0;}
-  .feature__media.keep-tall{height:auto;aspect-ratio:4/5;}
+  .railcard .psf{height:auto;aspect-ratio:auto;min-height:0;max-height:none;}
+  .railcard .psf img{width:100%;height:auto;object-fit:contain;}
+  .frail__track .feature__media{height:auto;aspect-ratio:auto;min-height:0;}
+  .frail__track .feature__media img{width:100%;height:auto;object-fit:contain;}
+  .feature__media.keep-tall{height:auto;aspect-ratio:auto;}
   .feature__media.keep-tall img{object-fit:cover;}
   .frail__nav{margin-top:12px;}
   .services{gap:clamp(16px,2.1vw,30px);}
@@ -635,7 +636,7 @@
     .services{grid-template-columns:1fr;gap:8px;}
     .svc{padding:16px 0 12px;}
     .feature__bar .meta{max-width:45%;text-align:right;}
-    .railcard .psf{aspect-ratio:4/3;}
+    .railcard .psf{aspect-ratio:auto;}
   }
   @media(prefers-reduced-motion:reduce){.feature__media img,.frame__img img{transition:none!important;}}
 
