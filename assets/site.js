@@ -90,36 +90,53 @@
     }
   }
 
-  /* ---- Contact form (client-side only) ------------------------------ */
+  /* ---- Contact form: real server submission ------------------------ */
   function initForm() {
     var form = document.getElementById('contact-form');
     if (!form) return;
     var status = form.querySelector('.form-status');
     var email = form.querySelector('#c-email');
+    var submit = form.querySelector('[type="submit"]');
+    var originalLabel = submit ? submit.innerHTML : '';
+    var startedAt = Date.now();
+    var busy = false;
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
-      var value = (email && email.value || '').trim();
-      var ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
-      if (!ok) {
-        if (status) {
-          status.textContent = '— A valid email is required to reply.';
-          status.className = 'form-status is-error';
-        }
-        if (email) email.focus();
+      if (busy) return;
+      var address = (email && email.value || '').trim();
+      var msg = (form.querySelector('#c-message').value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address) || msg.length < 10) {
+        status.textContent = AtmosferiInquiry.t('invalid');
+        status.className = 'form-status is-error';
+        (!address ? email : form.querySelector('#c-message')).focus();
         return;
       }
-
-      if (status) {
-        status.textContent = '— Received. The studio replies within 2 working days.';
+      busy = true;
+      if (submit) { submit.disabled = true; submit.textContent = AtmosferiInquiry.t('sending'); }
+      if (status) status.textContent = '';
+      var payload = {
+        source: 'websites-contact', name: form.querySelector('#c-name').value.trim(),
+        email: address, message: msg, project_type: form.querySelector('[name="project_type"]').value,
+        budget: form.querySelector('[name="budget"]').value, website: form.querySelector('[name="website"]').value,
+        started_at: startedAt,
+        details: { language: document.documentElement.lang || 'en', page: location.pathname }
+      };
+      try {
+        await AtmosferiInquiry.send(payload);
+        status.textContent = AtmosferiInquiry.t('success');
         status.className = 'form-status is-ok';
+        form.reset();
+        form.querySelectorAll('.choice[aria-pressed="true"]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        form.querySelectorAll('input[type="hidden"]').forEach(function (input) { input.value = ''; });
+        startedAt = Date.now();
+      } catch (err) {
+        status.textContent = AtmosferiInquiry.t(err.kind || 'error');
+        status.className = 'form-status is-error';
+      } finally {
+        busy = false;
+        if (submit) { submit.disabled = false; submit.innerHTML = originalLabel; }
       }
-      form.reset();
-      var pressed = form.querySelectorAll('.choice[aria-pressed="true"]');
-      for (var i = 0; i < pressed.length; i++) pressed[i].setAttribute('aria-pressed', 'false');
-      var hiddens = form.querySelectorAll('input[type="hidden"]');
-      for (var j = 0; j < hiddens.length; j++) hiddens[j].value = '';
     });
   }
 
