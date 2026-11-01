@@ -93,7 +93,7 @@ header.nav .vnav__burger[aria-expanded="true"] span{background:#111112!important
 }
 /* Visuals: the masthead occupies its own row rather than overlaying the hero. */
 .visuals-page > header.nav + .hero{
-  padding-top:clamp(24px,3.2vw,46px)!important;
+  padding-top:0!important;
 }
 .visuals-page section[id]{scroll-margin-top:calc(var(--atmos-header-height) + 20px);}
 /* The two sites share a compact light mobile dropdown. */
