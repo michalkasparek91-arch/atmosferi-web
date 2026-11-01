@@ -30,24 +30,29 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
-          const path = 'prepare-architecture-projects-for-website.html';
-          const url = 'https://www.atmosferi.com/' + path;
-          const h = fs.readFileSync(path, 'utf8');
+          const pages = [
+            ['prepare-architecture-projects-for-website.html', 'en', 'services.html'],
+            ['struktura-webu-architektonickeho-atelieru.html', 'cs', 'weby-pro-architekty.html']
+          ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
-          assert(h.includes('<html lang="en">'));
-          assert.equal((h.match(/<h1[\s>]/g) || []).length, 1);
-          assert(h.includes('<link rel="canonical" href="' + url + '">'));
-          assert(h.includes('<meta name="robots" content="index, follow'));
-          assert(sitemap.includes('<loc>' + url + '</loc>'));
-          assert(!/rel="alternate" hreflang=/.test(h), 'No unreviewed translation alternates');
-          assert(fs.readFileSync('services.html', 'utf8').includes('href="' + path + '"'));
-          const json = JSON.parse(h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
-          assert(json['@graph'].some(item => item['@type'] === 'WebPage'));
-          assert(json['@graph'].some(item => item['@type'] === 'Article'));
-          const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
-          for (const link of local) {
-            if (/^(?:https?:|mailto:)/.test(link)) continue;
-            assert(fs.existsSync(link.replace(/^\//, '')), 'Broken local link: ' + link);
+          for (const [path, lang, incoming] of pages) {
+            const url = 'https://www.atmosferi.com/' + path;
+            const h = fs.readFileSync(path, 'utf8');
+            assert(h.includes('<html lang="' + lang + '">'), path + ': lang');
+            assert.equal((h.match(/<h1[\\s>]/g) || []).length, 1, path + ': H1');
+            assert(h.includes('<link rel="canonical" href="' + url + '">'), path + ': canonical');
+            assert(h.includes('<meta name="robots" content="index, follow'), path + ': robots');
+            assert(sitemap.includes('<loc>' + url + '</loc>'), path + ': sitemap');
+            assert(!/rel="alternate" hreflang=/.test(h), path + ': unreviewed translation alternates');
+            assert(fs.readFileSync(incoming, 'utf8').includes('href="' + path + '"'), path + ': incoming link');
+            const schema = JSON.parse(h.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+            assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.inLanguage === lang));
+            assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.inLanguage === lang));
+            const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
+            for (const link of local) {
+              if (/^(?:https?:|mailto:)/.test(link)) continue;
+              assert(fs.existsSync(link.replace(/^\\//, '')), path + ': broken local link ' + link);
+            }
           }
-          console.log('Editorial article canonical, sitemap, schema and links passed.');
+          console.log('Both editorial pages: canonical, sitemap, schema and links passed.');
           NODE
