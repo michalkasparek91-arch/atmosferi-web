@@ -34,7 +34,8 @@ jobs:
             ['prepare-architecture-projects-for-website.html', 'en', 'services.html'],
             ['struktura-webu-architektonickeho-atelieru.html', 'cs', 'weby-pro-architekty.html'],
             ['architekturbuero-website-relaunch-checkliste.html', 'de', 'webdesign-fuer-architekten.html'],
-            ['tilgjengelig-nettside-for-arkitektkontor.html', 'nb', 'nettsider-for-arkitekter.html']
+            ['tilgjengelig-nettside-for-arkitektkontor.html', 'nb', 'nettsider-for-arkitekter.html'],
+            ['residential-development-website-content-checklist.html', 'en', 'websites-for-architects.html']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming] of pages) {
