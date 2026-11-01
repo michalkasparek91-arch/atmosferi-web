@@ -606,10 +606,11 @@
   .feature__bar .id{display:none;}
   .railcard__cap{display:none;}
   .frame__cap{display:none;}
-  .railcard .psf{height:auto;aspect-ratio:16/10;min-height:0;max-height:none;}
-  .railcard .psf img{object-fit:cover;}
-  .frail__track .feature__media{height:auto;aspect-ratio:16/10;min-height:0;}
-  .feature__media.keep-tall{height:auto;aspect-ratio:4/5;}
+  .railcard .psf{height:auto;aspect-ratio:auto;min-height:0;max-height:none;}
+  .railcard .psf img{width:100%;height:auto;object-fit:contain;}
+  .frail__track .feature__media{height:auto;aspect-ratio:auto;min-height:0;}
+  .frail__track .feature__media img{width:100%;height:auto;object-fit:contain;}
+  .feature__media.keep-tall{height:auto;aspect-ratio:auto;}
   .feature__media.keep-tall img{object-fit:cover;}
   .frail__nav{margin-top:12px;}
   .services{gap:clamp(16px,2.1vw,30px);}
@@ -635,7 +636,7 @@
     .services{grid-template-columns:1fr;gap:8px;}
     .svc{padding:16px 0 12px;}
     .feature__bar .meta{max-width:45%;text-align:right;}
-    .railcard .psf{aspect-ratio:4/3;}
+    .railcard .psf{aspect-ratio:auto;}
   }
   @media(prefers-reduced-motion:reduce){.feature__media img,.frame__img img{transition:none!important;}}
 
@@ -848,9 +849,9 @@
       </video>
     </div>
     <div class="hero__c">
-      <h1>Architectural visualisations that bring projects to life.</h1>
+      <h1>Architectural images, films and 360° tours.</h1>
       <div class="hero__sub">
-        <p>I'm Michal, an architect and 3D artist. I create images, films and virtual tours to help studios and developers present their projects before they're built.</p>
+        <p>I'm Michal, an architect and 3D artist. I help architects and developers show their projects clearly, before there's a building to photograph.</p>
         
       </div>
     </div>
@@ -1324,8 +1325,8 @@
     <span class="fdr__tag"><span class="dot"></span><span data-i18n>Available for new projects</span></span>
   </div>
   <div data-rise>
-    <span class="mono" data-i18n>Behind the images</span>
-    <h2 class="fdr__title">I'm Michal. I work with architects to make their projects easier to see and understand.</h2>
+    
+    <h2 class="fdr__title">Hi, I'm Michal.</h2>
     <p class="fdr__text">I studied architecture and have worked in architectural visualisation for more than ten years. I understand plans and models, and I pay attention to the materials, light and details that matter to your design. You'll work directly with me from the first preview to the final image.</p>
 
     <span class="fdr__sign">Ing. arch. Michal Kašpárek · <span data-i18n>Founder, Atmosferi Visualisation</span></span>
