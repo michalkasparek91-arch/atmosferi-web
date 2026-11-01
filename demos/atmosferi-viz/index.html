@@ -1380,6 +1380,7 @@
     </div>
 
     <form class="vform" id="viz-form" data-rise novalidate>
+      <div aria-hidden="true" style="position:absolute;left:-9999px;height:1px;overflow:hidden"><label for="vf-website">Leave empty</label><input id="vf-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
       <div class="vrow">
         <div class="vfield">
           <label for="vf-name">Your name</label>
@@ -1408,8 +1409,8 @@
       </div>
 
       <div class="vform__foot">
-        <button type="submit" class="vsubmit">Prepare email →</button>
-        <span class="vform__hint">Opens your email app so you can review the message before sending.</span>
+        <button type="submit" class="vsubmit">Send enquiry →</button>
+        <span class="vform__hint">Secure submission. I will reply by email.</span>
         <span class="vstatus" role="status" aria-live="polite"></span>
       </div>
     </form>
@@ -1459,7 +1460,8 @@
 
 
 
-<script src="viz.js?v=20261101-gallery"></script>
+<script src="../../assets/inquiry.js?v=20261101-forms"></script>
+<script src="viz.js?v=20261101-forms"></script>
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="pano.js?v=20261101viz2"></script>
 <script src="../../assets/i18n-dict.js?v=20261101viz2"></script>
