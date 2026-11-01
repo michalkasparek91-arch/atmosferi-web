@@ -795,7 +795,7 @@
 }
 </script>
 </head>
-<body>
+<body class="visuals-page">
 
 <div class="vload" id="vload">
   <span class="vload__mark">Atmosferi<sup>°</sup></span>
@@ -1408,6 +1408,7 @@
   function set(open){
     nav.classList.toggle('is-open',open);
     burger.setAttribute('aria-expanded',open?'true':'false');
+    if(open) requestAnimationFrame(function(){ window.dispatchEvent(new Event('resize')); });
     // Keep scroll behavior consistent with the Websites dropdown.
   }
   burger.addEventListener('click',function(){ set(!nav.classList.contains('is-open')); });
