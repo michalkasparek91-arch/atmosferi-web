@@ -93,7 +93,6 @@
   "A valid email is needed so I can reply.": "Zadejte platnou e-mailovou adresu, abych mohl odpovědět.",
   "Opening your email app… or write to info@atmosferi.com.": "Otevírám e-mailovou aplikaci. Můžete také napsat na info@atmosferi.com."
 });
-}
   /* Project details, tour controls and image captions. */
   Object.assign(window.I18N_DICT.de, {
   "Valley view": "Talblick",
