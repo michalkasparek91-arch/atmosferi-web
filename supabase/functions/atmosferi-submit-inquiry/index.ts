@@ -15,7 +15,7 @@ const escapeHtml = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, c
 const clean = (v: unknown, max: number) => typeof v === "string" ? v.trim().slice(0, max) : "";
 const emailOk = (v: string) => v.length < 255 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 function reply(origin: string, status: number, data: unknown) {
-  return new Response(JSON.stringify(data), {
+  return new Response(status === 204 ? null : JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
