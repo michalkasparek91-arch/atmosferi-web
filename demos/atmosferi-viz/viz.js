@@ -90,12 +90,16 @@
     });
   }
 
-  /* ---- contact form: chips + mailto compose ---- */
+  /* ---- Visuals contact form: server-side submission ---- */
   (function () {
     var form = document.getElementById("viz-form");
     if (!form) return;
     var chipsWrap = form.querySelector("[data-viz-chips]");
     var chosen = "";
+    var status = form.querySelector(".vstatus");
+    var submit = form.querySelector('[type="submit"]');
+    var startedAt = Date.now();
+    var busy = false;
     if (chipsWrap) {
       chipsWrap.addEventListener("click", function (e) {
         var b = e.target.closest(".vchip");
@@ -106,27 +110,41 @@
         else { chosen = ""; }
       });
     }
-    var status = form.querySelector(".vstatus");
-    form.addEventListener("submit", function (e) {
+    form.addEventListener("submit", async function (e) {
       e.preventDefault();
+      if (busy) return;
       var name = (form.querySelector("#vf-name").value || "").trim();
       var email = (form.querySelector("#vf-email").value || "").trim();
       var msg = (form.querySelector("#vf-msg").value || "").trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        if (status) status.textContent = "— " + tr("A valid email is needed so I can reply.");
-        form.querySelector("#vf-email").focus();
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || msg.length < 10) {
+        status.textContent = AtmosferiInquiry.t("invalid");
+        (!email ? form.querySelector("#vf-email") : form.querySelector("#vf-msg")).focus();
         return;
       }
-      var subject = "Visualisation enquiry" + (chosen ? " · " + chosen : "");
-      var body =
-        "Name: " + (name || "—") + "\n" +
-        "Email: " + email + "\n" +
-        "Needs: " + (chosen || "—") + "\n\n" +
-        (msg || "");
-      var href = "mailto:info@atmosferi.com?subject=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent(body);
-      window.location.href = href;
-      if (status) status.textContent = "— " + tr("Opening your email app… or write to info@atmosferi.com.");
+      busy = true;
+      var oldLabel = submit.textContent;
+      submit.disabled = true;
+      submit.textContent = AtmosferiInquiry.t("sending");
+      status.textContent = "";
+      try {
+        await AtmosferiInquiry.send({
+          source: "visuals-contact", name: name, email: email, message: msg,
+          project_type: chosen, website: form.querySelector('[name="website"]').value,
+          started_at: startedAt,
+          details: { language: document.documentElement.lang || "en", page: location.pathname }
+        });
+        status.textContent = AtmosferiInquiry.t("success");
+        form.reset();
+        chosen = "";
+        form.querySelectorAll('.vchip[aria-pressed="true"]').forEach(function (chip) { chip.setAttribute("aria-pressed", "false"); });
+        startedAt = Date.now();
+      } catch (err) {
+        status.textContent = AtmosferiInquiry.t(err.kind || "error");
+      } finally {
+        busy = false;
+        submit.disabled = false;
+        submit.textContent = oldLabel;
+      }
     });
   })();
 
