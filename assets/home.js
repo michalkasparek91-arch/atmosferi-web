@@ -9,6 +9,32 @@
   html.classList.add("js");
   var reduce = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 
+  /* Match the sticky header to the hero it sits above.
+     Switch to the normal light masthead only after the hero is fully passed. */
+  var homeHero = document.querySelector(".homepage .hero--statement");
+  var homeNav = document.querySelector(".homepage > .nav");
+  if (homeHero && homeNav) {
+    var heroHeaderTicking = false;
+    function syncHeroHeader() {
+      document.body.classList.toggle(
+        "is-past-hero",
+        homeHero.getBoundingClientRect().bottom <= homeNav.getBoundingClientRect().bottom
+      );
+      heroHeaderTicking = false;
+    }
+    function scheduleHeroHeader() {
+      if (!heroHeaderTicking) {
+        heroHeaderTicking = true;
+        window.requestAnimationFrame(syncHeroHeader);
+      }
+    }
+    syncHeroHeader();
+    window.addEventListener("scroll", scheduleHeroHeader, { passive: true });
+    window.addEventListener("resize", scheduleHeroHeader);
+    window.addEventListener("pageshow", scheduleHeroHeader);
+  }
+
+
   /* ---- scroll-progress hairline ---- */
   var bar = document.getElementById("scrollProgress");
   if (bar && !reduce) {
