@@ -300,3 +300,47 @@ a:hover{color:var(--accent);}
 }
 @media(max-width:380px){.nav__inner > .nav__switch .swx{display:none;}}
 
+/* ================================================================
+   Quiet layout: replace decorative hairlines with spacing.
+   Applies to the public Websites pages only. Borders on buttons,
+   controls, input fields and functional selection panels remain.
+   ================================================================ */
+
+/* Header, editorial dividers and footer */
+.nav,.nav.scrolled,.nav.solid{border-bottom:0!important;}
+.nav__mobile{border-top:0!important;}
+.pagehead__meta,.footer,.footer__bottom,.footer__cta,
+.section__head,.section,.section__note{border-top:0!important;border-bottom:0!important;}
+.pagehead__meta{padding-bottom:0;}
+.footer__bottom{padding-top:clamp(18px,2.5vw,34px);}
+hr,hr.horizon,.horizon{display:none!important;}
+
+/* The homepage should start with its actual message, not a label and two rules. */
+.homepage .hero--statement .heroover__top{display:none!important;}
+.homepage .hero--statement .heroover{gap:clamp(34px,5vw,82px);}
+.homepage .hero--statement .heroover__foot{
+  border-top:0!important;
+  padding-top:0!important;
+}
+.homepage .ctaband__over > .eyebrow{display:none;}
+
+/* Headings and lists: separate by whitespace rather than hairlines. */
+.index-list,.index-row,.caps,.cap,
+.svc,.svc__deliver li,.process,.process__step,
+.principle,.stat-row,.contact-grid,.spec-list li,
+.contact-aside .block,.contact-aside .spec-list li,
+.tiers,.tier,.tier__list,.tier__list li,
+.how,.faq,.faq__q,.gantt,.gantt__scale,.gantt__row,
+.ctl-group,.stack-head,.stack-foot,.stack-legend{
+  border-top:0!important;
+  border-bottom:0!important;
+}
+.index-row + .index-row{margin-top:clamp(8px,1.5vw,22px);}
+.svc + .svc,.principle + .principle{margin-top:clamp(8px,1.8vw,24px);}
+.faq__q + .faq__q{margin-top:clamp(7px,1vw,14px);}
+.tier__list li + li,.svc__deliver li + li{margin-top:5px;}
+@media(max-width:700px){
+  .homepage .hero--statement .heroover{gap:clamp(32px,7vw,52px);}
+  .pagehead__meta{gap:12px;}
+}
+
