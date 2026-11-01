@@ -176,4 +176,35 @@
   "Sound off": "Bez zvuku",
   "Sound on": "Se zvukem"
 });
+  /* Further image titles for the lightbox. */
+  Object.assign(window.I18N_DICT.de, {
+  "Library exterior": "Bibliothek – Außenansicht",
+  "Library foyer": "Bibliothek – Foyer",
+  "Day view": "Tagesansicht",
+  "Concert hall": "Konzerthalle",
+  "Pedestrian crossing": "Fußgängerüberführung",
+  "Campus shade": "Campus im Schatten",
+  "Tower view": "Blick aus dem Hochhaus",
+  "Residential courtyards": "Wohnhöfe",
+  "Evening interior": "Interieur am Abend",
+  "Fjord house": "Haus am Fjord",
+  "Mountain retreat": "Rückzugsort in den Bergen",
+  "Evening exterior": "Außenansicht am Abend",
+  "Forest kindergarten": "Waldkindergarten"
+});
+  Object.assign(window.I18N_DICT.cs, {
+  "Library exterior": "Knihovna – exteriér",
+  "Library foyer": "Knihovna – foyer",
+  "Day view": "Denní pohled",
+  "Concert hall": "Koncertní sál",
+  "Pedestrian crossing": "Pěší lávka",
+  "Campus shade": "Stínění kampusu",
+  "Tower view": "Výhled z výškové budovy",
+  "Residential courtyards": "Rezidenční dvory",
+  "Evening interior": "Večerní interiér",
+  "Fjord house": "Dům u fjordu",
+  "Mountain retreat": "Horský dům",
+  "Evening exterior": "Večerní exteriér",
+  "Forest kindergarten": "Lesní školka"
+});
 })();
