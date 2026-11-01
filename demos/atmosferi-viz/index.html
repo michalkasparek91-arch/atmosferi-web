@@ -642,6 +642,7 @@
 
   .lb__cap .m{display:none;} /* A single translated image name is enough. */
 </style>
+<link rel="stylesheet" href="../../assets/brand-header.css?v=20261101a">
 
 <!-- SEO / social -->
 <link rel="canonical" href="https://atmosferi.com/demos/atmosferi-viz/index.html">
@@ -805,37 +806,35 @@
 <div class="grain"></div>
 <div class="progress" id="progress"></div>
 
-<header class="nav">
+<header class="nav" aria-label="Atmosferi Visuals navigation">
   <div class="wrap nav__in">
-    <a href="#top" class="brand"><span class="brand__name">atmosferi<sup>°</sup></span><span class="tag">Visualisation</span></a>
-    <nav class="nav__links">
+    <a href="#top" class="brand" aria-label="Atmosferi Visuals, back to top"><span class="brand__name">atmosferi<sup>°</sup></span></a>
+    <nav class="nav__links" aria-label="Visuals sections">
       <a href="#work">Work</a>
       <a href="#motion">Motion</a>
       <a href="#services">Services</a>
       <a href="#threesixty">360°</a>
-      <a href="#contact" class="cta">Contact</a>
+      <a href="#contact">Contact</a>
     </nav>
+    <div class="nav__switch">
+      <div class="swx" aria-label="Switch between Atmosferi sites">
+        <span class="swx__knob"></span>
+        <a class="swx__seg" href="../../index.html">Websites</a>
+        <a class="swx__seg is-on" aria-current="page" href="index.html">Visuals</a>
+      </div>
+    </div>
+    <button class="vnav__burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="vnavMobile"><span></span><span></span><span></span></button>
+  </div>
+  <div class="vnav__mobile" id="vnavMobile">
+    <a href="#work">Work</a>
+    <a href="#motion">Motion</a>
+    <a href="#services">Services</a>
+    <a href="#threesixty">360°</a>
+    <a href="#contact">Contact</a>
     <div class="swx" aria-label="Switch between Atmosferi sites">
       <span class="swx__knob"></span>
       <a class="swx__seg" href="../../index.html">Websites</a>
       <a class="swx__seg is-on" aria-current="page" href="index.html">Visuals</a>
-    </div>
-    <button class="vnav__burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
-  </div>
-  <div class="vnav__mobile" id="vnavMobile">
-    <div class="vnav__mobile-head">
-      <span class="mlead">Menu</span>
-      <button class="vnav__close" type="button" id="vnavClose" aria-label="Close menu">Close
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
-      </button>
-    </div>
-    <a href="#work">Work</a>
-    <a href="#motion">Motion &amp; Film</a>
-    <a href="#services">Services</a>
-    <a href="#threesixty">360° Tours</a>
-    <a href="#contact">Contact</a>
-    <div class="vnav__mobile-foot">
-      <a href="../../index.html"><span aria-hidden="true">←</span> Atmosferi Websites</a>
     </div>
   </div>
 </header>
