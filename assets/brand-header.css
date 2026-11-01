@@ -152,3 +152,74 @@ header.nav .vnav__mobile .i18nsw{align-self:flex-start;margin:0 0 6px!important;
 @media(prefers-reduced-motion:reduce){
   .nav .swx__knob,header.nav .swx__knob{transition:none!important;}
 }
+
+/* Homepage only: dark masthead above the dark hero.
+   JS sets .is-past-hero precisely when the hero clears the sticky header.
+   Other pages (including Visuals) keep the light masthead. */
+.homepage .nav{
+  transition:background-color .3s ease,color .3s ease;
+}
+.homepage:not(.is-past-hero) .nav,
+.homepage:not(.is-past-hero) .nav.scrolled,
+.homepage:not(.is-past-hero) .nav.solid{
+  background:#101010!important;
+  color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav .wordmark,
+.homepage:not(.is-past-hero) .nav .wordmark sup{
+  color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav__links .navlink,
+.homepage:not(.is-past-hero) .nav__links .navlink:hover,
+.homepage:not(.is-past-hero) .nav__links .navlink[aria-current="page"]{
+  color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav__links .navlink:hover{
+  text-decoration-color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav__switch .i18nsw{
+  color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav__switch .swx{
+  border-color:#fff!important;
+  background:transparent!important;
+}
+.homepage:not(.is-past-hero) .nav__switch .swx__knob{
+  background:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav__switch .swx__seg{
+  color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav__switch .swx__seg.is-on,
+.homepage:not(.is-past-hero) .nav__switch .swx__seg:hover{
+  color:#101010!important;
+}
+.homepage:not(.is-past-hero) .nav__burger span{
+  background:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav > .nav__mobile{
+  background:#101010;color:#fff;
+}
+.homepage:not(.is-past-hero) .nav > .nav__mobile > .navlink{
+  color:#fff;
+}
+.homepage:not(.is-past-hero) .nav > .nav__mobile .swx{
+  border-color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav > .nav__mobile .swx__knob{
+  background:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav > .nav__mobile .swx__seg{
+  color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav > .nav__mobile .swx__seg.is-on,
+.homepage:not(.is-past-hero) .nav > .nav__mobile .swx__seg:hover{
+  color:#101010!important;
+}
+.homepage:not(.is-past-hero) .nav > .nav__mobile .i18nsw{
+  color:#fff!important;
+}
+.homepage:not(.is-past-hero) .nav a:focus-visible,
+.homepage:not(.is-past-hero) .nav button:focus-visible{
+  outline-color:#fff!important;
+}
