@@ -39,19 +39,19 @@ jobs:
             const url = 'https://www.atmosferi.com/' + path;
             const h = fs.readFileSync(path, 'utf8');
             assert(h.includes('<html lang="' + lang + '">'), path + ': lang');
-            assert.equal((h.match(/<h1[\\s>]/g) || []).length, 1, path + ': H1');
+            assert.equal((h.match(/<h1[\s>]/g) || []).length, 1, path + ': H1');
             assert(h.includes('<link rel="canonical" href="' + url + '">'), path + ': canonical');
             assert(h.includes('<meta name="robots" content="index, follow'), path + ': robots');
             assert(sitemap.includes('<loc>' + url + '</loc>'), path + ': sitemap');
             assert(!/rel="alternate" hreflang=/.test(h), path + ': unreviewed translation alternates');
             assert(fs.readFileSync(incoming, 'utf8').includes('href="' + path + '"'), path + ': incoming link');
-            const schema = JSON.parse(h.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+            const schema = JSON.parse(h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
             assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.inLanguage === lang));
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.inLanguage === lang));
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
               if (/^(?:https?:|mailto:)/.test(link)) continue;
-              assert(fs.existsSync(link.replace(/^\\//, '')), path + ': broken local link ' + link);
+              assert(fs.existsSync(link.replace(/^\//, '')), path + ': broken local link ' + link);
             }
           }
           console.log('Both editorial pages: canonical, sitemap, schema and links passed.');
