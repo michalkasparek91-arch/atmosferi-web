@@ -194,6 +194,9 @@ header.nav .vnav__mobile .i18nsw{align-self:flex-start;margin:0 0 6px!important;
 .homepage:not(.is-past-hero) .nav__switch .swx__seg:hover{
   color:#101010!important;
 }
+.homepage:not(.is-past-hero) .nav__switch .swx:has(.swx__seg:not(.is-on):hover) .swx__seg.is-on{
+  color:#fff!important;
+}
 .homepage:not(.is-past-hero) .nav__burger span{
   background:#fff!important;
 }
