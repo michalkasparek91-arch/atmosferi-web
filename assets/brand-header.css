@@ -131,6 +131,24 @@ header.nav .vnav__mobile .i18nsw{align-self:flex-start;margin:0 0 6px!important;
   .nav__inner > .nav__switch .swx,.nav__in > .nav__switch .swx{display:none!important;}
   header.nav .vnav__mobile > .swx{display:inline-flex!important;}
 }
+/* Both sites open the same light dropdown without moving the page. */
+.nav .nav__mobile{
+  position:absolute;left:0;right:0;top:100%;z-index:55;
+  background:#fafafa;color:#111112;
+  display:none;flex-direction:column;gap:10px;
+  padding:22px var(--atmos-header-gut) 28px;
+  border:0!important;box-shadow:0 20px 30px rgba(0,0,0,.08);
+  max-height:calc(100svh - var(--atmos-header-height));overflow-y:auto;
+}
+.nav.is-open .nav__mobile{display:flex;}
+.nav .nav__mobile > .navlink{
+  font-family:'Geist',system-ui,sans-serif;
+  font-size:23px;font-weight:500;letter-spacing:-.02em;
+  line-height:1.25;color:#111112;
+  padding:8px 0;text-transform:none;border:0;
+}
+.nav .nav__mobile > .swx{align-self:flex-start;margin-top:12px;}
+.nav .nav__mobile .i18nsw{align-self:flex-start;margin:0 0 6px!important;}
 @media(prefers-reduced-motion:reduce){
   .nav .swx__knob,header.nav .swx__knob{transition:none!important;}
 }
