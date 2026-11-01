@@ -251,4 +251,18 @@
     "Send enquiry →": "Odeslat poptávku →",
     "Secure submission. I will reply by email.": "Poptávka se odešle přímo. Odpovím e-mailem."
   });
+
+  /* Opt-in 360° viewer UI. */
+  Object.assign(window.I18N_DICT.de, {
+    "Explore in 360°": "360°-Rundgang starten",
+    "Scroll to continue down the page": "Zum Weiterscrollen einfach wischen",
+    "Exit tour ×": "Rundgang beenden ×",
+    "360° preview unavailable": "360°-Vorschau nicht verfügbar"
+  });
+  Object.assign(window.I18N_DICT.cs, {
+    "Explore in 360°": "Spustit 360° prohlídku",
+    "Scroll to continue down the page": "Potažením pokračujte dolů po stránce",
+    "Exit tour ×": "Ukončit prohlídku ×",
+    "360° preview unavailable": "360° prohlídka není dostupná"
+  });
 })();
