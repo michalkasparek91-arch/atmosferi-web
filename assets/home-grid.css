@@ -1,0 +1,93 @@
+/* Atmosferi Websites homepage: one architectural grid from hero to footer.
+   The masthead and hero already use --atmos-grid-width (1600px) and
+   --atmos-header-gut; every following section shares those exact axes. */
+
+.homepage .wrap {
+  width: 100%;
+  max-width: var(--atmos-grid-width, 1600px);
+  margin-inline: auto;
+  padding-inline: var(--atmos-header-gut, clamp(20px, 3.4vw, 48px));
+}
+
+/* Keep every section heading, action, image grid, footer and CTA on
+   the same left/right limits. Do not add inner section padding. */
+.homepage .showcase .section__head,
+.homepage .showcase .section__note,
+.homepage .showcase__grid,
+.homepage .caps,
+.homepage .founder,
+.homepage .footer__top,
+.homepage .footer__bottom {
+  margin-inline: 0;
+}
+.homepage .showcase .section__head {
+  width: 100%;
+  align-items: end;
+}
+.homepage .showcase__grid { width: 100%; }
+.homepage .showcase__card,
+.homepage .cap {
+  min-width: 0;
+}
+
+/* Rectilinear imagery, panels, calls to action and controls.
+   No floating pill buttons or round image cards next to the stark hero. */
+.homepage .showcase__image,
+.homepage .cap,
+.homepage .cap__media,
+.homepage .cap__media img,
+.homepage .founder__media,
+.homepage .founder__media img,
+.homepage .founder__tag,
+.homepage .founder__fact,
+.homepage .ctaband__media,
+.homepage .ctaband__media img,
+.homepage .ctaband__over .btn,
+.homepage .arrow-link,
+.homepage .btn,
+.homepage .footer,
+.homepage .footer__soc a {
+  border-radius: 0 !important;
+}
+
+/* Services as three image-led columns, not inset soft-coloured tiles.
+   The left edge of the first photo now meets the section title axis. */
+.homepage .cap {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.homepage .cap__media {
+  width: 100%;
+  margin-bottom: clamp(16px, 1.5vw, 24px);
+}
+.homepage .cap__title,
+.homepage .cap__desc {
+  padding-inline: 0 !important;
+}
+.homepage .founder__facts {
+  gap: clamp(12px, 1.2vw, 20px);
+}
+.homepage .founder__fact {
+  box-shadow: none;
+}
+
+/* CTA image aligns with the rest of the content frame.
+   Its text keeps a deliberate inset for readability over the photograph. */
+.homepage .ctaband { width: 100%; }
+.homepage .ctaband__over {
+  padding: clamp(24px, 3.4vw, 48px);
+}
+
+/* The footer belongs to the same grid, even on an edge-to-edge dark field. */
+.homepage .footer__inner { max-width: var(--atmos-grid-width, 1600px); }
+
+@media (max-width: 760px) {
+  .homepage .showcase .section__head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .homepage .showcase__grid { grid-template-columns: 1fr; }
+  .homepage .ctaband__over {
+    padding: clamp(20px, 5vw, 30px);
+  }
+}
