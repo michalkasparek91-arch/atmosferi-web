@@ -116,9 +116,14 @@
       var name = (form.querySelector("#vf-name").value || "").trim();
       var email = (form.querySelector("#vf-email").value || "").trim();
       var msg = (form.querySelector("#vf-msg").value || "").trim();
-      if (!/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(email) || msg.length < 10) {
-        status.textContent = AtmosferiInquiry.t("invalid");
-        (!email ? form.querySelector("#vf-email") : form.querySelector("#vf-msg")).focus();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        status.textContent = AtmosferiInquiry.t("invalidEmail");
+        form.querySelector("#vf-email").focus();
+        return;
+      }
+      if (msg.length < 10) {
+        status.textContent = AtmosferiInquiry.t("invalidMessage");
+        form.querySelector("#vf-msg").focus();
         return;
       }
       busy = true;
