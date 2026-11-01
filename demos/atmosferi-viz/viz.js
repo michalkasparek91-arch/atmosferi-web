@@ -6,6 +6,10 @@
 (function () {
   "use strict";
   var reduce = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  function tr(key) {
+    var lang = document.documentElement.lang || "en";
+    return (window.I18N_DICT && window.I18N_DICT[lang] && window.I18N_DICT[lang][key]) || key;
+  }
   document.documentElement.classList.add("vz");  // enables curtain reveals
 
   /* ---- scroll progress + nav readability state ---- */
@@ -109,7 +113,7 @@
       var email = (form.querySelector("#vf-email").value || "").trim();
       var msg = (form.querySelector("#vf-msg").value || "").trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        if (status) status.textContent = "— A valid email is needed so I can reply.";
+        if (status) status.textContent = "— " + tr("A valid email is needed so I can reply.");
         form.querySelector("#vf-email").focus();
         return;
       }
@@ -122,7 +126,7 @@
       var href = "mailto:info@atmosferi.com?subject=" + encodeURIComponent(subject) +
         "&body=" + encodeURIComponent(body);
       window.location.href = href;
-      if (status) status.textContent = "— Opening your email app… or write to info@atmosferi.com.";
+      if (status) status.textContent = "— " + tr("Opening your email app… or write to info@atmosferi.com.");
     });
   })();
 
@@ -170,8 +174,8 @@
     var el = items[i];
     lbImg.src = el.getAttribute("data-full");
     lbImg.alt = el.getAttribute("data-cap") || "";
-    lbT.textContent = el.getAttribute("data-cap") || "";
-    lbM.textContent = el.getAttribute("data-meta") || "";
+    lbT.textContent = tr(el.getAttribute("data-cap") || "");
+    lbM.textContent = tr(el.getAttribute("data-meta") || "");
     lbCount.textContent = ("0" + (i + 1)).slice(-2) + " / " + ("0" + items.length).slice(-2);
   }
   function open(i) {
@@ -187,7 +191,13 @@
   }
 
   items.forEach(function (el, i) {
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("aria-label", tr(el.getAttribute("data-cap") || "Open image"));
     el.addEventListener("click", function () { open(i); });
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(i); }
+    });
   });
   document.getElementById("lbClose").addEventListener("click", close);
   document.getElementById("lbNext").addEventListener("click", function (e) { e.stopPropagation(); show(idx + 1); });
@@ -214,6 +224,14 @@
     var soundBtn = document.getElementById("filmSound");
     var soundLab = soundBtn ? soundBtn.querySelector(".film__sound-lab") : null;
     if (!video) return;
+    if (playBtn) {
+      playBtn.setAttribute("role", "button");
+      playBtn.setAttribute("tabindex", "0");
+      playBtn.setAttribute("aria-label", "Play or pause architectural film");
+      playBtn.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); playBtn.click(); }
+      });
+    }
 
     function fmt(s) { s = Math.max(0, Math.floor(s || 0)); return ("0" + Math.floor(s / 60)).slice(-2) + ":" + ("0" + (s % 60)).slice(-2); }
 
