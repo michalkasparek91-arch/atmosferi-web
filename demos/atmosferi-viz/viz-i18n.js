@@ -218,4 +218,29 @@
   "I'm Michal, an architect and 3D artist. I help architects and developers show their projects clearly, before there's a building to photograph.": "Jsem Michal, architekt a 3D výtvarník. Pomáhám architektům a developerům srozumitelně ukázat jejich projekty ještě před realizací.",
   "Hi, I'm Michal.": "Ahoj, jsem Michal."
 });
+  /* Unified portfolio controls and project labels. */
+  Object.assign(window.I18N_DICT.de, {
+  "Show all 40 images": "Alle 40 Bilder ansehen",
+  "Show fewer images": "Weniger Bilder anzeigen",
+  "Selected architectural visualisations": "Ausgewählte Architekturvisualisierungen",
+  "Hillside Villa": "Villa am Hang",
+  "Alpine Chalet": "Alpenchalet",
+  "University Library": "Universitätsbibliothek",
+  "Garden Pavilion": "Gartenpavillon",
+  "Mountain Retreat": "Rückzugsort in den Bergen",
+  "Forest Kindergarten": "Waldkindergarten",
+  "Black House": "Schwarzes Haus"
+});
+  Object.assign(window.I18N_DICT.cs, {
+  "Show all 40 images": "Zobrazit všech 40 obrázků",
+  "Show fewer images": "Zobrazit méně obrázků",
+  "Selected architectural visualisations": "Vybrané architektonické vizualizace",
+  "Hillside Villa": "Vila ve svahu",
+  "Alpine Chalet": "Horská chata",
+  "University Library": "Univerzitní knihovna",
+  "Garden Pavilion": "Zahradní pavilon",
+  "Mountain Retreat": "Horský dům",
+  "Forest Kindergarten": "Lesní školka",
+  "Black House": "Černý dům"
+});
 })();
