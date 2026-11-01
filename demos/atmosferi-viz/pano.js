@@ -104,6 +104,7 @@
   var velLon = 0, velLat = 0;
   var pointers = {}, lastDist = 0;
   var engaged = false;
+  var previewDirty = true;
 
   function setEngaged(on) {
     engaged = !!on;
@@ -111,6 +112,7 @@
     if (gate) gate.hidden = engaged;
     if (exitBtn) exitBtn.hidden = !engaged;
     if (!engaged) {
+      previewDirty = true;
       dragging = false;
       pointers = {};
       lastDist = 0;
@@ -137,6 +139,7 @@
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    previewDirty = true;
   }
 
   function loadNode(id, instant) {
@@ -153,6 +156,7 @@
       nameEl.textContent = tr(node.name);
       buildMarkers(node);
       buildRail();
+      previewDirty = true;
       if (!firstLoaded) { firstLoaded = true; loadEl.classList.add("gone"); }
       if (fadeEl) fadeEl.classList.remove("on");
       busy = false;
@@ -336,6 +340,10 @@
   /* ----- render loop ----- */
   function frame() {
     requestAnimationFrame(frame);
+    // Render a static preview once; pause expensive WebGL draws while the
+    // visitor scrolls past without opting into the interactive walkthrough.
+    if (!engaged && !previewDirty) return;
+    previewDirty = false;
     if (!dragging) {
       if (Math.abs(velLon) > 0.01 || Math.abs(velLat) > 0.01) {
         lon += velLon; lat += velLat; velLon *= 0.93; velLat *= 0.93;
