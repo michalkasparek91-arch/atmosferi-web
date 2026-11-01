@@ -1,0 +1,53 @@
+name: Validate SEO content
+on:
+  pull_request:
+    paths:
+      - '*.html'
+      - 'assets/**'
+      - 'scripts/**'
+      - 'package.json'
+      - '.github/workflows/seo-content-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  seo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate SEO pages and sitemap
+        run: npm run prebuild
+      - name: Validate international SEO
+        run: npm run seo:check
+      - name: Validate editorial article
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const path = 'prepare-architecture-projects-for-website.html';
+          const url = 'https://www.atmosferi.com/' + path;
+          const h = fs.readFileSync(path, 'utf8');
+          const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
+          assert(h.includes('<html lang="en">'));
+          assert.equal((h.match(/<h1[\s>]/g) || []).length, 1);
+          assert(h.includes('<link rel="canonical" href="' + url + '">'));
+          assert(h.includes('<meta name="robots" content="index, follow'));
+          assert(sitemap.includes('<loc>' + url + '</loc>'));
+          assert(!/rel="alternate" hreflang=/.test(h), 'No unreviewed translation alternates');
+          assert(fs.readFileSync('services.html', 'utf8').includes('href="' + path + '"'));
+          const json = JSON.parse(h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+          assert(json['@graph'].some(item => item['@type'] === 'WebPage'));
+          assert(json['@graph'].some(item => item['@type'] === 'Article'));
+          const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
+          for (const link of local) {
+            if (/^(?:https?:|mailto:)/.test(link)) continue;
+            assert(fs.existsSync(link.replace(/^\//, '')), 'Broken local link: ' + link);
+          }
+          console.log('Editorial article canonical, sitemap, schema and links passed.');
+          NODE
