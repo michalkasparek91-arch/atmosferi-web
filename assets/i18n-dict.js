@@ -8,6 +8,8 @@
 window.I18N_DICT = {
   /* ----------------------------------------------------------------- DE */
   de: {
+    "Open website": "Website öffnen",
+    "NEW TAB": "NEUER TAB",
     "Available for new projects": "Offen für neue Projekte",
     "Behind the studio": "Über das Studio",
     "Founder, Atmosferi°": "Gründer, Atmosferi°",
@@ -545,6 +547,8 @@ window.I18N_DICT = {
 
   /* ----------------------------------------------------------------- CS */
   cs: {
+    "Open website": "Otevřít web",
+    "NEW TAB": "NOVÁ KARTA",
     "Available for new projects": "Přijímám nové zakázky",
     "Behind the studio": "Kdo za tím stojí",
     "Founder, Atmosferi°": "Zakladatel Atmosferi°",
