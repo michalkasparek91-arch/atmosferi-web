@@ -1,7 +1,9 @@
 /* Architectural diagrams, one drawing language for all three disciplines. */
-.homepage .cap__symbol{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:clamp(190px,18vw,260px);margin-bottom:24px;border-top:1px solid var(--ink);color:var(--ink);}
+.homepage .cap{text-align:center;justify-items:center;}
+.homepage .cap__symbol{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:clamp(190px,18vw,260px);margin-bottom:20px;color:var(--ink);}
 .homepage .cap__symbol svg{display:block;width:min(100%,320px);height:100%;transition:transform .5s cubic-bezier(.22,1,.36,1);}
-.homepage .cap__index{position:absolute;top:14px;left:0;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;opacity:.45;}
+.homepage .cap .cap__title{width:100%;text-align:center;}
+.homepage .cap .cap__desc{width:100%;max-width:42ch;margin-inline:auto;text-align:center;text-wrap:pretty;}
 .homepage .cap:hover .cap__symbol svg,.homepage .cap:focus-visible .cap__symbol svg{transform:translateY(-5px);}
 @media(max-width:760px){.homepage .cap__symbol{height:220px;margin-bottom:18px;}.homepage .cap__symbol svg{width:260px;}}
 @media(prefers-reduced-motion:reduce){.homepage .cap__symbol svg{transition:none!important;transform:none!important;}}
