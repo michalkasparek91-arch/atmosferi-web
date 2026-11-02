@@ -48,7 +48,8 @@ jobs:
             ['architectural-rendering-sun-shadow-accuracy-checklist.html', 'en', 'architectural-photomontage-camera-matching-checklist.html', '2026-11-02'],
             ['architectural-360-virtual-tour-mobile-qa-checklist.html', 'en', 'services.html', '2026-11-02'],
             ['landscape-planting-accuracy-architectural-renderings.html', 'en', 'architectural-rendering-sun-shadow-accuracy-checklist.html', '2026-11-02'],
-            ['public-consultation-architecture-project-website-guide.html', 'en', 'residential-development-website-content-checklist.html', '2026-11-02']
+            ['public-consultation-architecture-project-website-guide.html', 'en', 'residential-development-website-content-checklist.html', '2026-11-02'],
+            ['architectural-animation-brief-shot-list-checklist.html', 'en', 'services.html', '2026-11-02']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
@@ -182,6 +183,21 @@ jobs:
               const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
               const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
               assert(nav.length >= 11 && nav.every(id => ids.has(id)), path + ': valid contents anchors');
+            }
+            if (path === 'architectural-animation-brief-shot-list-checklist.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert((h.match(/<section id=/g) || []).length >= 13, path + ': substantive sections');
+              assert(h.includes('Fictional shot list') && h.includes('Fictional delivery manifest'), path + ': fictional examples labelled');
+              assert(h.includes('https://www.w3.org/WAI/media/av/planning/'), path + ': accessible media reference');
+              assert(h.includes('https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video'), path + ': HTML video reference');
+              assert(h.includes('class="guide-table-wrap"'), path + ': mobile-scrollable table');
+              assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema page URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': article page relation');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(nav.length >= 13 && nav.every(id => ids.has(id)), path + ': valid contents anchors');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
