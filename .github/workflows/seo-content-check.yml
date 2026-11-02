@@ -97,7 +97,7 @@ jobs:
             }
             if (path === 'architectural-rendering-feedback-revision-checklist.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
-              assert(/@media\\s*\\(max-width:850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
               assert((h.match(/<section id=/g) || []).length >= 9, path + ': substantive sections');
               assert(h.includes('Fictional revision register') && h.includes('Fictional annotation'), path + ': illustrative examples labelled');
               assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
