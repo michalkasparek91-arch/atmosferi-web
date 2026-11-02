@@ -19,7 +19,8 @@
   /* ----- tour data: 4 linked rooms of a mountain house ----- */
   var NODES = {
     living: {
-      name: "Living room", img: "img/pano-living.webp", start: 0,
+      // Frame the seating, fireplace and mountain view rather than the seam/corridor.
+      name: "Living room", img: "img/pano-living.webp", start: 160, pitch: -8,
       hotspots: [
         { type: "nav", to: "dining",  yaw: 52,  pitch: -6, label: "To dining" },
         { type: "nav", to: "bedroom", yaw: 205, pitch: -7, label: "To bedroom" },
@@ -150,7 +151,7 @@
       tex.generateMipmaps = false;
       if (mat.map) mat.map.dispose();
       mat.map = tex; mat.needsUpdate = true;
-      lon = node.start; lat = 0; fov = 75;
+      lon = node.start; lat = node.pitch || 0; fov = 75;
       camera.updateProjectionMatrix();
       current = id;
       nameEl.textContent = tr(node.name);
