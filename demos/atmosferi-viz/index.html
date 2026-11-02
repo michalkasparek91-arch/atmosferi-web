@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="stylesheet" href="film-carousel.css?v=20261102">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Architectural Visualisation — 3D Renders, Films & 360° Tours | Atmosferi°</title>
 <meta name="description" content="Architectural visualisation studio — photoreal 3D renders, cinematic films, interactive 360° tours and real-time scenes of buildings before they're built.">
@@ -1170,8 +1171,8 @@
 <section class="hero" id="top">
   <div class="hero__frame">
     <div class="hero__img">
-      <video autoplay muted loop playsinline preload="metadata" poster="img/04-tidewater.webp">
-        <source src="media/hero-loop.mp4" type="video/mp4">
+      <video autoplay muted loop playsinline preload="metadata" poster="img/mountain-retreat-poster.jpg" aria-hidden="true">
+        <source src="media/mountain-retreat.mp4" type="video/mp4">
       </video>
     </div>
     <div class="hero__c">
@@ -1367,14 +1368,16 @@
       <h2>Animation & film.</h2>
       
     </div>
-    <div class="film__stage" id="film" data-rise>
-      <video class="film__video" id="filmVideo" src="media/interior-01.mp4" poster="img/chalet-living.jpg" muted loop playsinline preload="metadata"></video>
+    <div class="film__stage" id="film" data-rise tabindex="0" role="region" aria-label="Architectural films" aria-roledescription="carousel">
+      <video class="film__video" id="filmVideo" src="media/mountain-retreat.mp4" poster="img/mountain-retreat-poster.jpg" muted loop playsinline preload="metadata"></video>
+      <button class="film__switch film__switch--prev" id="filmPrev" type="button" aria-label="Previous film" aria-controls="filmVideo"><span aria-hidden="true">←</span></button>
+      <button class="film__switch film__switch--next" id="filmNext" type="button" aria-label="Next film" aria-controls="filmVideo"><span aria-hidden="true">→</span></button>
 
       <div class="film__bar t"></div>
       <div class="film__bar b"></div>
       <div class="film__top">
         <span>Architectural film</span>
-        <span></span>
+        <span id="filmIndex">01 / 02</span>
       </div>
 
       <button class="film__sound" id="filmSound" type="button" aria-pressed="false" aria-label="Toggle sound">
@@ -1384,10 +1387,11 @@
       </button>
 
       <div class="film__hud">
-        <span class="film__title" id="filmTitle">Architectural film</span>
+        <span class="film__title" id="filmTitle" aria-live="polite">Mountain retreat</span>
         <span class="film__tc"><span class="film__rec"></span><span id="filmTC">00:00</span> / <span id="filmDur">00:00</span></span>
       </div>
       <div class="film__prog" id="filmProg"></div>
+      <p class="film__error" id="filmError" role="status" hidden></p>
       <div class="film__play" id="filmPlay">
         <span class="film__btn">
           <svg class="ico-play" viewBox="0 0 100 100" fill="#fff"><polygon points="24,14 84,50 24,86"/></svg>
@@ -1603,7 +1607,7 @@
 
 
 <script src="../../assets/inquiry.js?v=20261101-email-validation"></script>
-<script src="viz.js?v=20261102-portfolio-cms"></script>
+<script src="viz.js?v=20261102-films"></script>
 <script src="portfolio-feed.js?v=20261102-cms"></script>
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="pano.js?v=20261101-activation2"></script>

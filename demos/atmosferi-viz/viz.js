@@ -33,6 +33,19 @@
 
   /* ---- hero bloom on load ---- */
   var hero = document.querySelector(".hero");
+  var heroVideo = hero ? hero.querySelector("video") : null;
+  if (heroVideo) {
+    heroVideo.muted = true;
+    if (reduce) { heroVideo.removeAttribute("autoplay"); heroVideo.pause(); }
+    else if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) { var play = heroVideo.play(); if (play && play.catch) play.catch(function () {}); }
+          else heroVideo.pause();
+        });
+      }, { threshold: .1 }).observe(heroVideo);
+    }
+  }
   if (hero) {
     if (reduce) hero.classList.add("lit");
     else setTimeout(function () { hero.classList.add("lit"); }, 360);
@@ -293,6 +306,41 @@
     var soundBtn = document.getElementById("filmSound");
     var soundLab = soundBtn ? soundBtn.querySelector(".film__sound-lab") : null;
     if (!video) return;
+    var clips = [
+      { src: "media/mountain-retreat.mp4", poster: "img/mountain-retreat-poster.jpg", title: "Mountain retreat" },
+      { src: "media/interior-01.mp4", poster: "img/chalet-living.jpg", title: "Interior study" }
+    ];
+    var clipIndex = 0;
+    var indexLabel = document.getElementById("filmIndex");
+    var titleLabel = document.getElementById("filmTitle");
+    var filmError = document.getElementById("filmError");
+    function selectFilm(next) {
+      clipIndex = (next + clips.length) % clips.length;
+      var clip = clips[clipIndex];
+      video.pause();
+      video.src = clip.src;
+      video.poster = clip.poster;
+      if (titleLabel) titleLabel.textContent = tr(clip.title);
+      if (indexLabel) indexLabel.textContent = ("0" + (clipIndex + 1)).slice(-2) + " / " + ("0" + clips.length).slice(-2);
+      tcEl.textContent = "00:00"; durEl.textContent = "00:00"; progEl.style.width = "0%";
+      if (filmError) filmError.hidden = true;
+      video.load();
+      tryPlay();
+    }
+    ["filmPrev", "filmNext"].forEach(function (id, i) {
+      var button = document.getElementById(id);
+      if (button) button.addEventListener("click", function (event) {
+        event.stopPropagation(); selectFilm(clipIndex + (i === 0 ? -1 : 1));
+      });
+    });
+    film.addEventListener("keydown", function (event) {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault(); event.stopPropagation(); selectFilm(clipIndex + (event.key === "ArrowLeft" ? -1 : 1));
+      }
+    });
+    video.addEventListener("error", function () {
+      if (filmError) { filmError.textContent = tr("This film could not be loaded. Try another film."); filmError.hidden = false; }
+    });
     if (playBtn) {
       playBtn.setAttribute("role", "button");
       playBtn.setAttribute("tabindex", "0");
@@ -328,6 +376,7 @@
     // play / pause on stage click
     film.addEventListener("click", function (e) {
       if (soundBtn && soundBtn.contains(e.target)) return;
+      if (e.target.closest(".film__switch")) return;
       if (video.paused) tryPlay(); else video.pause();
     });
     if (playBtn) playBtn.addEventListener("click", function (e) {

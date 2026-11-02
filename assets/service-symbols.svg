@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="design" viewBox="0 0 320 240">
+    <g fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M28 28v184M292 28v184M16 44h288M16 196h288" opacity=".15"/>
+      <path d="M54 44h212v152H54z"/>
+      <path d="M54 74h212M184 74v122"/>
+      <path d="M70 60h46M232 60h18M202 93h46M202 105h33M202 145h46M202 157h33M70 179h96"/>
+    </g>
+    <path fill="currentColor" d="M70 90h98v70H70z"/>
+    <path d="M82 148l22-28 19 15 21-27 12 40z" fill="#fafafa"/>
+    <circle cx="86" cy="105" r="4" fill="#fafafa"/>
+    <path d="M43 44h22M54 33v22M255 196h22M266 185v22" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  </symbol>
+  <symbol id="development" viewBox="0 0 320 240">
+    <g fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M28 44h264M28 196h264M54 28v184M266 28v184" opacity=".15"/>
+      <path d="M54 44h54v44H54zM212 44h54v44h-54zM212 152h54v44h-54z"/>
+      <path d="M81 88v32h79M160 120h79V88M160 120v54h52"/>
+      <path d="M65 60h32M65 71h20M223 60h32M223 71h20M223 169h32M223 180h20" opacity=".5"/>
+    </g>
+    <path d="M126 87h68v66h-68z" fill="currentColor"/>
+    <path d="M147 110l-10 10 10 10M173 110l10 10-10 10M164 104l-8 32" fill="none" stroke="#fafafa" stroke-width="2"/>
+    <circle cx="81" cy="120" r="3" fill="currentColor"/>
+    <circle cx="239" cy="120" r="3" fill="currentColor"/>
+  </symbol>
+  <symbol id="visualisation" viewBox="0 0 320 240">
+    <g fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M28 196h264M160 24v192" opacity=".15"/>
+      <ellipse cx="160" cy="157" rx="120" ry="39" stroke-dasharray="3 6" opacity=".25"/>
+      <path d="M160 42l74 43v86l-74 43-74-43V85zM86 85l74 43 74-43M160 128v86"/>
+      <path d="M62 71l24 14M234 85l24-14M160 214v12"/>
+    </g>
+    <path d="M86 85l74 43v86l-74-43z" fill="currentColor"/>
+    <path d="M103 116l39 23v41l-39-23z" fill="#fafafa"/>
+    <path d="M174 139l45-26M174 154l45-26M174 169l45-26" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+    <circle cx="280" cy="157" r="4" fill="currentColor"/>
+  </symbol>
+</svg>
