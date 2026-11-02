@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architectural 360° Virtual Tour QA Checklist | Atmosferi</title>
+<meta name="description" content="A practical QA checklist for architectural 360° tours: panorama quality, hotspots, mobile scrolling, keyboard controls, loading, disclosures and handover.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Michal Kašpárek">
+<link rel="canonical" href="https://www.atmosferi.com/architectural-360-virtual-tour-mobile-qa-checklist.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Atmosferi°">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Architectural 360° Virtual Tour QA Checklist | Atmosferi">
+<meta property="og:description" content="A practical QA checklist for architectural 360° tours: panorama quality, hotspots, mobile scrolling, keyboard controls, loading, disclosures and handover.">
+<meta property="og:url" content="https://www.atmosferi.com/architectural-360-virtual-tour-mobile-qa-checklist.html">
+<meta property="og:image" content="https://www.atmosferi.com/og.png">
+<meta property="og:image:alt" content="Atmosferi° studio identity">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Architectural 360° Virtual Tour QA Checklist | Atmosferi">
+<meta name="twitter:description" content="A practical QA checklist for architectural 360° tours: panorama quality, hotspots, mobile scrolling, keyboard controls, loading, disclosures and handover.">
+<meta name="twitter:image" content="https://www.atmosferi.com/og.png">
+<link rel="icon" href="/favicon-32.png">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/redesign.css?v=20261101-clean-lines">
+<link rel="stylesheet" href="assets/brand-header.css?v=20261101-aligned">
+<link rel="stylesheet" href="assets/seo-services.css?v=20261101">
+<link rel="stylesheet" href="assets/seo-guides.css?v=20261101">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://www.atmosferi.com/architectural-360-virtual-tour-mobile-qa-checklist.html#webpage","url":"https://www.atmosferi.com/architectural-360-virtual-tour-mobile-qa-checklist.html","name":"Architectural 360° Virtual Tour QA Checklist | Atmosferi","description":"A practical QA checklist for architectural 360° tours: panorama quality, hotspots, mobile scrolling, keyboard controls, loading, disclosures and handover.","inLanguage":"en","isPartOf":{"@id":"https://www.atmosferi.com/#website"},"mainEntity":{"@id":"https://www.atmosferi.com/architectural-360-virtual-tour-mobile-qa-checklist.html#article"}},{"@type":"Article","@id":"https://www.atmosferi.com/architectural-360-virtual-tour-mobile-qa-checklist.html#article","headline":"How to test a 360° architectural tour before it goes live.","description":"A practical QA checklist for architectural 360° tours: panorama quality, hotspots, mobile scrolling, keyboard controls, loading, disclosures and handover.","inLanguage":"en","datePublished":"2026-11-02","dateModified":"2026-11-02","author":{"@type":"Person","name":"Michal Kašpárek"},"publisher":{"@type":"Organization","name":"Atmosferi°","url":"https://www.atmosferi.com/"},"mainEntityOfPage":{"@id":"https://www.atmosferi.com/architectural-360-virtual-tour-mobile-qa-checklist.html#webpage"}}]}</script>
+</head>
+<body class="seo-service guide">
+<nav class="nav" aria-label="Atmosferi"><div class="wrap nav__inner">
+<a href="index.html" class="wordmark" aria-label="Atmosferi home">atmosferi<sup>°</sup></a>
+<div class="nav__links"><a class="navlink" href="work.html">Work</a><a class="navlink" href="services.html">Services</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="studio.html">Studio</a><a class="navlink" href="contact.html">Contact</a></div>
+<a class="seo-header-contact" href="contact.html">Discuss a project ↗</a>
+<button class="nav__burger" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</div><div class="nav__mobile"><a class="navlink" href="work.html">Work</a><a class="navlink" href="services.html">Services</a><a class="navlink" href="pricing.html">Pricing</a><a class="navlink" href="studio.html">Studio</a><a class="navlink" href="contact.html">Contact</a></div></nav>
+<main>
+<header class="seo-hero guide-hero"><div class="wrap">
+<p class="eyebrow">Field notes · Interactive architectural presentation</p>
+<h1>How to test a 360° architectural tour before it goes live.</h1>
+<p class="seo-intro">A panorama can look convincing on a desktop and become unusable on a phone. This is a release checklist for architects and developers commissioning fixed-point 360° tours: what to inspect, how to make navigation understandable, and which failures should block publication.</p>
+<div class="guide-hero__meta"><span>By Michal Kašpárek · Architect and visualisation specialist</span><span>2 November 2026</span></div>
+</div></header>
+<div class="wrap guide-main">
+<aside class="guide-index" aria-label="On this page"><span class="eyebrow">In this guide</span>
+<a href="#format">Choose the tour format</a>
+<a href="#source">Inspect the panoramas</a>
+<a href="#route">Map the visitor journey</a>
+<a href="#hotspots">Test every hotspot</a>
+<a href="#mobile">Protect mobile scrolling</a>
+<a href="#access">Provide accessible controls</a>
+<a href="#motion">Make motion optional</a>
+<a href="#loading">Test real loading conditions</a>
+<a href="#truth">Separate fact from illustration</a>
+<a href="#release">Build a release matrix</a>
+<a href="#handover">Keep the tour maintainable</a>
+<a href="#checklist">Sign-off checklist</a>
+</aside>
+<article class="guide-article">
+<section id="format">
+<h2>First define what kind of “virtual tour” you are actually delivering.</h2>
+<p>A 360° panorama tour, a 360° video and a freely navigable real-time 3D scene are not interchangeable products. A panorama tour joins a set of fixed camera positions with clickable transitions. It lets visitors look around from those positions, but it does not let them walk to any point in a room. A real-time scene can offer continuous movement, but demands different assets, performance budgets and interaction testing.</p>
+<p>Write the format into the acceptance brief. For a fixed-point tour, agree on the scene list, starting view, permitted transitions, captions, navigation method, target devices and hosting location. If a developer needs visitors to select individual apartments, that may be better handled by a <a href="interactive-floor-plans-property-development-website.html">unit selector or interactive floor plan</a> alongside the tour, not by hiding inventory inside a panorama.</p>
+<div class="guide-example"><span class="eyebrow">Acceptance question</span><p>Can someone who has never seen the project reach the entrance, a typical living room and the outdoor space without being told where to click? If not, the problem is likely navigation, not image resolution.</p></div>
+</section>
+<section id="source">
+<h2>Inspect the source panoramas before building hotspots.</h2>
+<p>For a conventional equirectangular panorama, the full image usually has a 2:1 aspect ratio representing 360° horizontally and 180° vertically. Confirm that the viewer expects this projection; a flat wide-angle image cannot simply be relabelled as a spherical panorama. Check the stitched seam by rotating across the full horizontal circle, then inspect the ceiling and floor poles for stretched objects, broken geometry or visible camera equipment.</p>
+<p>Review at normal viewing zoom on a phone and a large monitor. Look for doubled doorframes, displaced handrails, warped cabinetry, inconsistent reflections and people cut by the stitch. Keep a record of the intended eye height for each scene. A camera set too high can make a modest interior feel misleadingly spacious; an unexplained change of eye height between adjacent rooms makes transitions feel unstable.</p>
+<p>Check the current model revision and finish schedule against each panorama. A beautiful panorama with the wrong glazing configuration is still the wrong deliverable. If the tour uses rendered panoramas, the <a href="bim-cad-handover-architectural-visualisation.html">BIM/CAD handover guide</a> explains how to record source geometry and provisional materials.</p>
+</section>
+<section id="route">
+<h2>Draw the visitor journey as a simple map.</h2>
+<p>List scenes as nodes and transitions as links before adding decorative arrows. Each scene needs a stable identifier, a human-readable name and at least one obvious way back to a known point. A floor plan or room list can work as a persistent secondary navigation layer, especially when a visitor loses orientation after several jumps.</p>
+<p>Set a purposeful initial heading for each scene: the visitor should arrive facing the architectural feature that explains where they are, rather than a blank wall. If two adjacent panoramas represent the same corridor, align the arrival orientation so the viewer does not appear to turn around unexpectedly. Label stairs, lifts and exterior transitions accurately; never imply that a panorama hop is a step-free route unless that is actually verified.</p>
+<div class="guide-example"><span class="eyebrow">Fictional tour map · not a client project</span>
+<div class="guide-sample">ENT-01  Entrance → LOB-01 Lobby
+LOB-01  Lobby → ENT-01 / LIV-01 / TER-01
+LIV-01  Living room → LOB-01 / TER-01
+TER-01  Terrace → LIV-01 / LOB-01
+Default scene: ENT-01
+Return route: persistent scene list</div>
+<p>This fictional route is a test example, not a real building layout or a promise of accessible circulation. Verify every destination against the approved architectural plan.</p></div>
+</section>
+<section id="hotspots">
+<h2>Make hotspots predictable, labelled and testable.</h2>
+<p>Every navigation hotspot should answer two questions before activation: <strong>where will this take me?</strong> and <strong>what will happen?</strong> Use readable labels such as “Terrace” rather than a bare animated dot. A hotspot that changes rooms should behave differently from an information marker that opens a material note. Keep those actions visually and semantically distinct.</p>
+<p>Test hotspots near the left/right panorama seam and close to the poles, where placement errors become noticeable. Confirm that no control disappears behind a mobile browser bar or another overlay. Where multiple markers overlap, offer an alternative scene list rather than forcing precision tapping. On arrival, update the visible scene name and, where appropriate, the accessible status announcement.</p>
+<p>Give each hotspot a destination scene ID in the source manifest. During review, compare the ID with the visible label. A “Kitchen” marker accidentally linked to the bedroom is easy to miss when reviewers focus on rendering quality.</p>
+</section>
+<section id="mobile">
+<h2>Never make a tour trap the mobile page scroll.</h2>
+<p>On a phone, visitors often try to scroll past an embedded 360° viewer. If the viewer intercepts every touch gesture, the page feels frozen. A reliable pattern is a static preview with a clear <strong>“Explore 360° tour”</strong> button; only after activation does the panorama capture interaction. Provide an obvious exit or “Return to page” control that restores normal scrolling. This matters even when the tour is embedded in a visually impressive hero section.</p>
+<p>Test portrait and landscape layouts, browser address bars, the on-screen keyboard, notch/safe-area insets and orientation changes. The active viewport should not force sideways page scrolling. On small screens, the room list and exit button must remain reachable without covering the main view. If a tour opens full screen, check the fallback when the browser declines full-screen mode.</p>
+<p>Mobile QA must happen on real touch devices, not only in a desktop browser's narrow responsive preview. A simulated viewport can reveal layout breakpoints; it cannot reliably reproduce gesture competition, browser chrome or device sensor permissions.</p>
+</section>
+<section id="access">
+<h2>Offer controls that do not require dragging or a perfect sense of direction.</h2>
+<p>A drag-to-look interface is convenient, but it should not be the only way to explore. Provide visible turn-left/turn-right controls and a scene list that can be operated by tap, click and keyboard. Make hotspots real interactive elements with meaningful accessible names, visible focus indicators and a predictable focus order. The scene list should not disappear merely because the panorama has loaded.</p>
+<p><a href="https://www.w3.org/TR/WCAG22/" rel="noopener noreferrer">WCAG 2.2</a> includes requirements for keyboard operation and alternatives to certain dragging interactions. In particular, <a href="https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/" rel="noopener noreferrer">criterion 2.5.7</a> addresses dragging movements and 2.5.8 addresses pointer target size, with specified exceptions. These criteria are not a one-line certification for a 3D viewer: test the whole interaction, including modals, focus restoration, scene changes and content alternatives.</p>
+<p>Provide a plain-language scene description and, where useful, a static floor plan or conventional image gallery. A screen reader cannot infer the spatial meaning of a room merely because a spherical texture is present. Do not claim that a keyboard shortcut alone satisfies the separate single-pointer requirement for dragging alternatives.</p>
+</section>
+<section id="motion">
+<h2>Make gyroscope control and automatic movement optional.</h2>
+<p>Do not assume visitors want a panorama to rotate when they tilt a phone. Start in a stable, manually controlled view. If device orientation is supported, ask for it through a clearly labelled control and provide a way to disable it. Browser support and permissions vary. The <a href="https://developer.mozilla.org/en-US/docs/Web/API/DeviceOrientationEvent/requestPermission_static" rel="noopener noreferrer">MDN device-orientation permission reference</a> documents that permission requests in supporting browsers may require a user gesture and a secure context.</p>
+<p>Auto-rotation can make a scene feel lively, but it can also interfere with reading labels and locating navigation. Prefer it off by default; if enabled, provide a visible pause/stop action and respect reduced-motion preferences where relevant. Test what happens when a user backgrounds the tab, rotates the phone or returns after a permission denial. A denied sensor permission should leave the ordinary tap and button controls fully usable.</p>
+</section>
+<section id="loading">
+<h2>Measure the first useful view, not just the file size.</h2>
+<p>A tour that downloads every full-resolution panorama on initial page load may work on studio Wi-Fi and fail on mobile data. Set a loading strategy: a lightweight poster or preview, a first scene sized for the actual display, and later scenes fetched when needed. For high-resolution viewing, progressive or tiled imagery may be appropriate if the viewer supports it. Check that image detail is sufficient for the intended screen without assuming that one enormous texture is always better.</p>
+<p>Test a cold load on a throttled connection and a mid-range phone. Watch for a blank canvas, indefinite spinner, browser tab reload, texture upload delay and controls that become clickable before the scene is ready. A visible progress state should lead to a usable error message and a static fallback if an asset fails. Avoid promising a universal speed threshold without measurements on the actual build.</p>
+<p>The <a href="architecture-portfolio-image-optimization.html">architecture image-optimisation guide</a> covers responsive image delivery on ordinary portfolio pages. A panorama viewer adds texture memory, rendering and interaction costs, so the same JPEG byte count does not guarantee the same user experience.</p>
+</section>
+<section id="truth">
+<h2>Keep design-stage disclosures visible inside the experience.</h2>
+<p>A virtual tour can imply a degree of certainty that an unbuilt project does not yet have. Record whether rooms, furniture, finishes, planting and external views are approved, provisional or illustrative. If a terrace panorama shows a neighbouring view that depends on future construction or a particular camera position, do not present it as a guaranteed outlook.</p>
+<p>Keep a short disclaimer close to the tour and a fuller explanation in accompanying project information. Do not hide important caveats in a PDF no one sees. If a unit's layout or availability changes, the panorama may require review even when its pixels have not changed. Link the tour's release ID to the approved source model and published unit data. The <a href="architectural-rendering-change-control-after-launch.html">rendering change-control guide</a> describes how to trace revised imagery across sales channels.</p>
+<p>Use only photography, models, textures and views you have permission to publish. A visualisation of an unbuilt design should be described as such; a fictional demonstration in a portfolio should be labelled fictional, not disguised as a delivered client commission.</p>
+</section>
+<section id="release">
+<h2>Use a release matrix that catches failures a desktop review misses.</h2>
+<p>Do not approve a tour from a single laptop and one browser. Choose a small but representative matrix of input methods and network conditions. Record the actual device, operating system, browser version, viewport, test result, screenshot or video evidence, and the person who accepts the fix. “Works on mobile” is not a test result.</p>
+<div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Test situation</th><th>Expected behaviour</th><th>Release-blocking failure</th></tr></thead><tbody>
+<tr><td>Phone, portrait, touch</td><td>Preview activates on tap; page can be scrolled again after exit</td><td>Viewer permanently captures page gestures</td></tr>
+<tr><td>Phone, landscape</td><td>Exit, scene list and hotspots remain reachable</td><td>Critical controls hidden by browser chrome</td></tr>
+<tr><td>Keyboard only</td><td>Scene selection, turning and exit remain operable with visible focus</td><td>Visitor cannot leave or navigate the viewer</td></tr>
+<tr><td>Single-pointer, no drag</td><td>Visible controls provide equivalent essential navigation</td><td>Only drag gestures can change the view</td></tr>
+<tr><td>Slow network / failed asset</td><td>Progress and recoverable error; fallback remains available</td><td>Indefinite blank canvas or spinner</td></tr>
+<tr><td>Sensor permission denied</td><td>Manual controls continue to work</td><td>Tour becomes unusable</td></tr>
+<tr><td>Direct link to a scene</td><td>Correct scene, heading and disclosure appear</td><td>Wrong unit, stale view or broken destination</td></tr>
+</tbody></table></div>
+<p>Also test zoomed text, browser back/forward navigation, reloading a deep link and opening the tour from a consent-restricted environment. Analytics are optional; they should not be necessary for the viewer to function.</p>
+</section>
+<section id="handover">
+<h2>Hand over a maintainable tour, not an unexplained export folder.</h2>
+<p>At delivery, preserve a scene manifest, source-image inventory, revision identifiers, navigation graph, hotspot labels, fallback assets, publishing instructions and known limitations. Separate editable source panoramas from web-optimised outputs. Record who may update content and which changes require a new visual approval. If a CMS manages scene names or hotspots, explain how the team can preview edits before publishing them.</p>
+<div class="guide-example"><span class="eyebrow">Fictional release manifest · illustrative only</span>
+<div class="guide-sample">Tour ID: DEMO-360-R04 (fictional)
+Scene: LIV-01 / Living room
+Source model: fictional-design-R07
+Panorama: liv-01-r04.webp
+Initial heading: toward terrace opening
+Destinations: LOB-01, TER-01
+Content status: illustrative, unbuilt concept
+Keyboard/tap navigation: verified [test evidence needed]
+Fallback: liv-01-static.webp
+Approved by: [named project reviewer]
+Published URL / date: [fill after deployment]</div>
+<p>This is a fictional template, not a real tour, measured QA result or published project. Replace placeholders with verified project records.</p></div>
+<p>For a real release, test the public URL after deployment. Verify the canonical page, correct asset URLs, cache behaviour and any deep links. A successful build does not prove that the live tour can load its panoramas, and an approved panorama does not prove that every hotspot is correct.</p>
+</section>
+<section id="checklist">
+<h2>The pre-launch sign-off checklist.</h2>
+<ul class="guide-checklist">
+<li>The tour format, audience, intended use and target devices are documented.</li>
+<li>Every panorama matches the approved model revision and design stage.</li>
+<li>Stitch seams, ceiling/floor poles, eye heights and reflections have been inspected.</li>
+<li>Every scene has a stable ID, understandable name and clear starting heading.</li>
+<li>All hotspot labels match their destinations; every route has a return path.</li>
+<li>A visitor can move between scenes without dragging, and keyboard focus remains visible.</li>
+<li>The mobile page scrolls normally until the viewer is activated and after it is closed.</li>
+<li>Exit controls remain reachable in portrait, landscape and full-screen fallbacks.</li>
+<li>Gyroscope and auto-rotation are optional; denial or pause does not break navigation.</li>
+<li>Loading, error and static fallback states are tested on a slower connection.</li>
+<li>Illustrative finishes, unbuilt elements and unverified views are clearly disclosed.</li>
+<li>Permissions for published imagery and source assets are documented.</li>
+<li>The test matrix records devices, results, owners and outstanding issues.</li>
+<li>The production URL, scene links and assets are checked after deployment.</li>
+</ul>
+<p>A polished 360° tour is not finished when the last panorama renders. It is finished when an unfamiliar visitor can enter, understand, navigate and leave it on the devices they actually use. For a broader website launch, pair this with the <a href="residential-development-website-content-checklist.html">developer website content checklist</a>.</p>
+</section>
+</article></div>
+<section class="wrap section" aria-labelledby="related-title"><h2 id="related-title">Build the right experience around the tour.</h2>
+<div class="guide-related">
+<a href="interactive-floor-plans-property-development-website.html"><span>Unit selection</span>Decide when an interactive floor plan is useful ↗</a>
+<a href="bim-cad-handover-architectural-visualisation.html"><span>Source model</span>Prepare a reliable visualisation handover ↗</a>
+<a href="architecture-portfolio-image-optimization.html"><span>Image delivery</span>Optimise architectural images for the web ↗</a>
+<a href="services.html"><span>Scope</span>Explore architectural visualisation and web development ↗</a>
+</div></section>
+<section class="seo-cta"><div class="wrap"><h2>Make the tour usable before making it public.</h2>
+<p>Share your scene map, target devices, design stage and delivery format. We can help define a navigable presentation and a review process that tests more than the images.</p>
+<a class="arrow-link" href="contact.html">Discuss an architectural 360° tour ↗</a>
+</div></section>
+</main>
+<footer class="wrap seo-footer"><a class="wordmark" href="index.html">atmosferi<sup>°</sup></a><span>Michal Kašpárek · Architect / Visualisation · Remote collaboration</span><a href="contact.html">Contact ↗</a></footer>
+<script src="assets/site.js"></script>
+</body>
+</html>
