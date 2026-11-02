@@ -38,6 +38,18 @@ jobs:
         continue-on-error: true
         run: supabase functions deploy campaign-batcher --project-ref $PROJECT_ID
 
+      # These endpoints authenticate the Vault cron token inside the function.
+      # Keep the background jobs deployed alongside their sender dependencies.
+      - name: Deploy server email domain validation
+        run: |
+          test "$PROJECT_ID" = "paryiowezqlnffanxtnt"
+          supabase functions deploy validate-lead-domains --no-verify-jwt --project-ref $PROJECT_ID
+
+      - name: Deploy server acquisition dispatcher
+        run: |
+          test "$PROJECT_ID" = "paryiowezqlnffanxtnt"
+          supabase functions deploy dispatch-acquisition-emails --no-verify-jwt --project-ref $PROJECT_ID
+
       - name: Deploy send-template-test
         continue-on-error: true
         run: supabase functions deploy send-template-test --project-ref $PROJECT_ID
