@@ -107,7 +107,7 @@ jobs:
             }
             if (path === 'architectural-photomontage-camera-matching-checklist.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
-              assert(/@media\\s*\\(max-width:850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
               assert((h.match(/<section id=/g) || []).length >= 9, path + ': substantive sections');
               assert(h.includes('Fictional viewpoint log') && h.includes('Fictional delivery manifest'), path + ': fictional examples labelled');
               assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
