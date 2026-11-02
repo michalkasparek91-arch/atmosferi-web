@@ -38,10 +38,11 @@ jobs:
             ['residential-development-website-content-checklist.html', 'en', 'websites-for-architects.html'],
             ['architekturleistungen-auf-website-darstellen.html', 'de', 'architekturbuero-website-relaunch-checkliste.html'],
             ['cms-for-architecture-portfolio-website.html', 'en', 'prepare-architecture-projects-for-website.html'],
-            ['interactive-floor-plans-property-development-website.html', 'en', 'residential-development-website-content-checklist.html']
+            ['interactive-floor-plans-property-development-website.html', 'en', 'residential-development-website-content-checklist.html'],
+            ['architecture-portfolio-image-optimization.html', 'en', 'prepare-architecture-projects-for-website.html', '2026-11-02']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
-          for (const [path, lang, incoming] of pages) {
+          for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
             const h = fs.readFileSync(path, 'utf8');
             assert(h.includes('<html lang="' + lang + '">'), path + ': lang');
@@ -61,7 +62,12 @@ jobs:
             const schema = JSON.parse(h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
             assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.inLanguage === lang));
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.inLanguage === lang));
-            assert(schema['@graph'].some(item => item['@type'] === 'Article' && /^2026-11-01$/.test(item.datePublished) && item.dateModified === item.datePublished), path + ': publication dates');
+            assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === published), path + ': publication dates');
+            if (path === 'architecture-portfolio-image-optimization.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert(h.includes('https://developer.mozilla.org/'), path + ': technical references');
+            }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
               if (/^(?:https?:|mailto:)/.test(link)) continue;
