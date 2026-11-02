@@ -49,7 +49,8 @@ jobs:
             ['architectural-360-virtual-tour-mobile-qa-checklist.html', 'en', 'services.html', '2026-11-02'],
             ['landscape-planting-accuracy-architectural-renderings.html', 'en', 'architectural-rendering-sun-shadow-accuracy-checklist.html', '2026-11-02'],
             ['public-consultation-architecture-project-website-guide.html', 'en', 'residential-development-website-content-checklist.html', '2026-11-02'],
-            ['architectural-animation-brief-shot-list-checklist.html', 'en', 'services.html', '2026-11-02']
+            ['architectural-animation-brief-shot-list-checklist.html', 'en', 'services.html', '2026-11-02'],
+            ['architectural-renderings-print-ready-brochures-hoardings.html', 'en', 'residential-development-website-content-checklist.html', '2026-11-03']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
@@ -192,6 +193,22 @@ jobs:
               assert(h.includes('https://www.w3.org/WAI/media/av/planning/'), path + ': accessible media reference');
               assert(h.includes('https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video'), path + ': HTML video reference');
               assert(h.includes('class="guide-table-wrap"'), path + ': mobile-scrollable table');
+              assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema page URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': article page relation');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(nav.length >= 13 && nav.every(id => ids.has(id)), path + ': valid contents anchors');
+            }
+            if (path === 'architectural-renderings-print-ready-brochures-hoardings.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert((h.match(/<section id=/g) || []).length >= 13, path + ': substantive sections');
+              assert(h.includes('The following example is <strong>fictional</strong>'), path + ': illustrative manifest labelled');
+              assert(h.includes('class="guide-table-wrap"'), path + ': mobile-scrollable pixel calculation table');
+              assert(h.includes('required pixels = printed inches'), path + ': usable calculation');
+              assert(h.includes('https://helpx.adobe.com/indesign/desktop/save-export-and-publish/save-and-export/adobe-pdf-export-options.html'), path + ': print export reference');
+              assert(h.includes('https://gwg.org/resources/specifications-2/'), path + ': print preflight reference');
               assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
               assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema page URL');
               assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': article page relation');
