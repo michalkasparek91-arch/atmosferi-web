@@ -84,7 +84,7 @@ jobs:
             }
             if (path === 'bim-cad-handover-architectural-visualisation.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
-              assert(/@media\\s*\\(max-width:850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
               assert((h.match(/<section id=/g) || []).length >= 9, path + ': substantive sections');
               assert(h.includes('Fictional package layout') && h.includes('Fictional material decision log'), path + ': fictional examples labelled');
               assert(h.includes('https://up1.autodesk.com/2026/RVT/ADSKIFCExporterHelp_26_1.htm'), path + ': official exporter reference');
