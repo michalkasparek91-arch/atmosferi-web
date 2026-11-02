@@ -18,6 +18,7 @@ const routeLabels: Record<string, string> = {
   "kupony": "Kupóny",
   "notifikace": "Notifikace",
   "emaily": "E-maily",
+  "vizualizace": "Vizualizace",
   "hlaseni": "Hlášení",
   "log": "Audit Log",
   "kategorie": "Kategorie",

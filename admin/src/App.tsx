@@ -18,6 +18,7 @@ const AdminInvoices = React.lazy(() => import("./pages/admin/AdminInvoices"));
 const AdminContacts = React.lazy(() => import("./pages/admin/AdminContacts"));
 const AdminEmails = React.lazy(() => import("./pages/admin/AdminEmails"));
 const AdminAnalytics = React.lazy(() => import("./pages/admin/AdminAnalytics"));
+const AdminVisualizations = React.lazy(() => import("./pages/admin/AdminVisualizations"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const ProposalView = React.lazy(() => import("./pages/ProposalView"));
 
@@ -86,6 +87,7 @@ const App = () => {
                           <Route path="/kontakty" element={<AdminContacts />} />
                           <Route path="/emaily/*" element={<AdminEmails />} />
                           <Route path="/statistiky" element={<AdminAnalytics />} />
+                          <Route path="/vizualizace" element={<AdminVisualizations />} />
                         </Route>
                       </Route>
                       

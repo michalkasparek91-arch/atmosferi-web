@@ -40,6 +40,7 @@ const sidebarLinks = [
   { label: "Přehled", href: "/", icon: LayoutDashboard },
   { label: "Faktury", href: "/faktury", icon: ScrollText },
   { label: "Kontakty", href: "/kontakty", icon: Users },
+  { label: "Vizualizace", href: "/vizualizace", icon: FolderTree },
   { label: "Kampaně", href: "/emaily", icon: Mail },
   { label: "Statistiky", href: "/statistiky", icon: BarChart3 },
 ];

@@ -232,15 +232,26 @@
     document.body.style.overflow = "";
   }
 
-  items.forEach(function (el, i) {
+  function bindPortfolioItems() {
+    items = [].slice.call(document.querySelectorAll("[data-full]"));
+    items.forEach(function (el) {
+    if (el.dataset.lightboxBound) return;
+    el.dataset.lightboxBound = "true";
     el.setAttribute("role", "button");
     el.setAttribute("tabindex", "0");
     el.setAttribute("aria-label", tr(el.getAttribute("data-cap") || "Open image"));
-    el.addEventListener("click", function () { open(i); });
+    el.addEventListener("click", function () { open(items.indexOf(el)); });
     el.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(i); }
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(items.indexOf(el)); }
     });
+    if (vcur) {
+      el.addEventListener("mouseenter", function () { vcur.classList.add("show"); });
+      el.addEventListener("mouseleave", function () { vcur.classList.remove("show"); });
+    }
   });
+  }
+  bindPortfolioItems();
+  window.addEventListener("atmosferi:portfolio-updated", bindPortfolioItems);
   document.getElementById("lbClose").addEventListener("click", close);
   document.getElementById("lbNext").addEventListener("click", function (e) { e.stopPropagation(); show(idx + 1); });
   document.getElementById("lbPrev").addEventListener("click", function (e) { e.stopPropagation(); show(idx - 1); });
