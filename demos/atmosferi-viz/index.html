@@ -632,7 +632,10 @@
   @media(max-width:850px){.services{grid-template-columns:repeat(2,minmax(0,1fr));}}
   @media(max-width:720px){
     .hero{padding-top:90px;}
-    .hero__frame{min-height:580px;}
+    .visuals-page .hero__frame{height:auto;min-height:0;aspect-ratio:1 / 1;}
+    .visuals-page .hero__c{padding:20px;}
+    .visuals-page .hero__sub{margin-top:12px;}
+    .visuals-page .hero__sub p{font-size:13px;line-height:1.5;}
     .hero h1{font-size:clamp(30px,8vw,45px);}
     .services{grid-template-columns:1fr;gap:8px;}
     .svc{padding:16px 0 12px;}
