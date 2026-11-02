@@ -40,7 +40,8 @@ jobs:
             ['cms-for-architecture-portfolio-website.html', 'en', 'prepare-architecture-projects-for-website.html'],
             ['interactive-floor-plans-property-development-website.html', 'en', 'residential-development-website-content-checklist.html'],
             ['architecture-portfolio-image-optimization.html', 'en', 'prepare-architecture-projects-for-website.html', '2026-11-02'],
-            ['architecture-portfolio-website-url-migration.html', 'en', 'cms-for-architecture-portfolio-website.html', '2026-11-02']
+            ['architecture-portfolio-website-url-migration.html', 'en', 'cms-for-architecture-portfolio-website.html', '2026-11-02'],
+            ['bim-cad-handover-architectural-visualisation.html', 'en', 'services.html', '2026-11-02']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
@@ -80,6 +81,18 @@ jobs:
               const nodes = schema['@graph'];
               assert(nodes.some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema page URL');
               assert(nodes.some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': schema article relationship');
+            }
+            if (path === 'bim-cad-handover-architectural-visualisation.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert((h.match(/<section id=/g) || []).length >= 9, path + ': substantive sections');
+              assert(h.includes('Fictional package layout') && h.includes('Fictional material decision log'), path + ': fictional examples labelled');
+              assert(h.includes('https://up1.autodesk.com/2026/RVT/ADSKIFCExporterHelp_26_1.htm'), path + ': official exporter reference');
+              assert(h.includes('https://helpcenter.graphisoft.com/user-guide/137853/'), path + ': official IFC reference');
+              const nodes = schema['@graph'];
+              assert(nodes.some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema page URL');
+              assert(nodes.some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': schema article relationship');
+              assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
