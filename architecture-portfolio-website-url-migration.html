@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture Portfolio Website Migration: URL & Redirect Checklist | Atmosferi</title>
+<meta name="description" content="Moving an architecture studio website? Map project URLs, preserve portfolio links, test 301 redirects, canonicals, image files and the live launch.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Michal Kašpárek">
+<link rel="canonical" href="https://www.atmosferi.com/architecture-portfolio-website-url-migration.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Atmosferi°">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Architecture Portfolio Website Migration: URL & Redirect Checklist | Atmosferi">
+<meta property="og:description" content="Moving an architecture studio website? Map project URLs, preserve portfolio links, test 301 redirects, canonicals, image files and the live launch.">
+<meta property="og:url" content="https://www.atmosferi.com/architecture-portfolio-website-url-migration.html">
+<meta property="og:image" content="https://www.atmosferi.com/og.png">
+<meta property="og:image:alt" content="Atmosferi° studio identity for architecture websites and visualisation">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Architecture Portfolio Website Migration: URL & Redirect Checklist | Atmosferi">
+<meta name="twitter:description" content="Moving an architecture studio website? Map project URLs, preserve portfolio links, test 301 redirects, canonicals, image files and the live launch.">
+<meta name="twitter:image" content="https://www.atmosferi.com/og.png">
+<link rel="icon" href="/favicon-32.png">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/redesign.css?v=20261101-clean-lines">
+<link rel="stylesheet" href="assets/brand-header.css?v=20261101-aligned">
+<link rel="stylesheet" href="assets/seo-services.css?v=20261101">
+<link rel="stylesheet" href="assets/seo-guides.css?v=20261101">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://www.atmosferi.com/architecture-portfolio-website-url-migration.html#webpage","url":"https://www.atmosferi.com/architecture-portfolio-website-url-migration.html","name":"Architecture Portfolio Website Migration: URL & Redirect Checklist | Atmosferi","description":"Moving an architecture studio website? Map project URLs, preserve portfolio links, test 301 redirects, canonicals, image files and the live launch.","inLanguage":"en","isPartOf":{"@id":"https://www.atmosferi.com/#website"},"mainEntity":{"@id":"https://www.atmosferi.com/architecture-portfolio-website-url-migration.html#article"}},{"@type":"Article","@id":"https://www.atmosferi.com/architecture-portfolio-website-url-migration.html#article","headline":"How to migrate an architecture portfolio without breaking project links.","description":"Moving an architecture studio website? Map project URLs, preserve portfolio links, test 301 redirects, canonicals, image files and the live launch.","inLanguage":"en","datePublished":"2026-11-02","dateModified":"2026-11-02","author":{"@type":"Person","name":"Michal Kašpárek"},"publisher":{"@type":"Organization","name":"Atmosferi°","url":"https://www.atmosferi.com/"},"mainEntityOfPage":{"@id":"https://www.atmosferi.com/architecture-portfolio-website-url-migration.html#webpage"}}]}</script>
+</head>
+<body class="seo-service guide">
+<nav class="nav" aria-label="Atmosferi">
+  <div class="wrap nav__inner">
+    <a href="index.html" class="wordmark" aria-label="Atmosferi home">atmosferi<sup>°</sup></a>
+    <div class="nav__links">
+      <a class="navlink" href="work.html">Work</a>
+      <a class="navlink" href="services.html">Services</a>
+      <a class="navlink" href="pricing.html">Pricing</a>
+      <a class="navlink" href="studio.html">Studio</a>
+      <a class="navlink" href="contact.html">Contact</a>
+    </div>
+    <a class="seo-header-contact" href="contact.html">Discuss a project ↗</a>
+    <button class="nav__burger" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="nav__mobile">
+    <a class="navlink" href="work.html">Work</a>
+    <a class="navlink" href="services.html">Services</a>
+    <a class="navlink" href="pricing.html">Pricing</a>
+    <a class="navlink" href="studio.html">Studio</a>
+    <a class="navlink" href="contact.html">Contact</a>
+  </div>
+</nav>
+<main>
+  <header class="seo-hero guide-hero">
+    <div class="wrap">
+      <p class="eyebrow">Field notes · Architecture website relaunch</p>
+      <h1>How to migrate an architecture portfolio without breaking project links.</h1>
+      <p class="seo-intro">A project page may be linked from an award announcement, a photographer's portfolio, a planning document or a client's email years after publication. A new design should not make that address disappear. This guide gives architecture studios and developers a practical way to map old pages to new ones, test the move and keep the portfolio usable.</p>
+      <div class="guide-hero__meta"><span>By Michal Kašpárek · Architect and founder of Atmosferi</span><span>2 November 2026</span></div>
+    </div>
+  </header>
+  <div class="wrap guide-main">
+    <aside class="guide-index" aria-label="On this page">
+      <span class="eyebrow">In this guide</span>
+      <a href="#inventory">Inventory the old site</a>
+      <a href="#decisions">Decide which URLs move</a>
+      <a href="#mapping">Make a redirect map</a>
+      <a href="#assets">Protect drawings and downloads</a>
+      <a href="#technical">Check canonical and languages</a>
+      <a href="#prelaunch">Test before launch</a>
+      <a href="#after">Monitor after release</a>
+      <a href="#handover">Assign ownership</a>
+    </aside>
+    <article class="guide-article">
+      <section id="inventory">
+        <h2>Start with the addresses people already use.</h2>
+        <p>Architects tend to plan a redesign around images and page layouts. But the old portfolio also has a structure: project detail URLs, service pages, team profiles, competition entries, PDFs and sometimes a second language. Those addresses are part of the published work. Changing the design does not automatically justify changing them.</p>
+        <p>Before drawing a new sitemap, export the URLs you can find from the current site's crawl, its XML sitemap, the CMS and analytics or Search Console where access is available. Add known links from publications, award pages, collaborators and project documentation. A sitemap alone may miss an old project page that is still reachable through an external link.</p>
+        <p>Record the page title, language, project name, current status and whether a replacement exists. Mark URLs with inbound links or useful search traffic for careful review, but do not assume an unmeasured page has no visitors. Check the actual response of each URL; a visually identical page may already have several aliases or redirects.</p>
+        <div class="guide-example">
+          <span class="eyebrow">What belongs in the inventory</span>
+          <p><strong>Project detail:</strong> individual built and unbuilt work. <strong>Editorial:</strong> news, competitions and publications. <strong>Practice:</strong> services, people and contact. <strong>Assets:</strong> plans, press PDFs and directly linked image files. Include translated counterparts and historic domain or <code>www</code> variants if they exist.</p>
+        </div>
+      </section>
+      <section id="decisions">
+        <h2>Keep a good URL when nothing important has changed.</h2>
+        <p>There is no SEO benefit in renaming every project slug to match a new visual identity. If an existing address accurately describes a project and can be retained, keep it. Redesign the HTML around it. A stable URL is especially useful for projects repeatedly referenced by journals, collaborators and clients.</p>
+        <p>If the content has moved, choose a destination that answers the same visitor's question. An old page about a school should lead to that school's new project page, not the studio homepage. If two entries have genuinely been combined into one substantive page, both old addresses may point to that consolidated destination. If a project is no longer public and has no meaningful replacement, a genuine <code>404</code> or <code>410</code> is usually clearer than an unrelated redirect.</p>
+        <p>Preserve the distinction between built projects, proposals and competition work when reorganising. Do not quietly redirect an unbuilt concept to an unrelated completed building simply because both are residential. The migration should preserve the editorial meaning of the portfolio.</p>
+      </section>
+      <section id="mapping">
+        <h2>Make one explicit decision for every old project address.</h2>
+        <p>A redirect spreadsheet is less glamorous than a new hero animation, but it is a deliverable that can be reviewed by the studio and the developer. Give it columns for the old absolute URL, the intended new URL, the action, the reason, the reviewer and the test result. Use exact URLs rather than relying on a broad wildcard rule that might send unrelated pages to the same place.</p>
+        <div class="guide-table-wrap">
+          <table class="guide-table">
+            <thead><tr><th>Old address, fictional example</th><th>Decision</th><th>Expected response</th></tr></thead>
+            <tbody>
+              <tr><td><code>/projects/courtyard-house</code></td><td>Project retains its address</td><td><code>200</code> with self-canonical</td></tr>
+              <tr><td><code>/work/river-library</code></td><td>Same project now at <code>/projects/river-library</code></td><td><code>301</code> or <code>308</code> to new page</td></tr>
+              <tr><td><code>/journal/competition-2018</code></td><td>Archive removed, no equivalent page</td><td>Real <code>404</code> or <code>410</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>All paths in this table are fictional examples, not live client URLs.</strong> A permanent server-side <code>301</code> or <code>308</code> is appropriate for a genuine permanent move. A <code>302</code> or <code>307</code> signals a temporary move instead. Avoid using JavaScript navigation as the primary migration mechanism when the server can send the redirect directly.</p>
+        <p>Test the entire route, not just the first hop. An old project address should normally reach its final public page without a chain through a legacy domain, an intermediate slug and a trailing-slash rewrite. Update your own menus, related-project links and editorial references to point directly to the final URL. Google documents the distinction between <a href="https://developers.google.com/search/docs/crawling-indexing/301-redirects">permanent and temporary redirects</a>; the redirect is a signal, not a promise of unchanged search rankings.</p>
+      </section>
+      <section id="assets">
+        <h2>Do not forget the drawings, photographs and press files.</h2>
+        <p>A studio may move every project page correctly and still break links to a press kit, competition board or PDF floor plan. Publications and collaborators sometimes link straight to files rather than to the surrounding project page. Include known downloadable assets in the migration inventory, and check whether the new CMS changes their filenames or storage paths.</p>
+        <p>If an approved PDF remains relevant, keep its original URL where possible or map it to the corresponding updated file. If the file has changed substantially, consider whether the old document should remain accessible as an archive with its date and status made clear. Never replace an old approved drawing with a different project revision without checking what the link was meant to communicate.</p>
+        <p>Image ownership and publication rights also need a fresh review when moving between systems. Possessing a source image does not itself establish permission for every new use. Preserve credits, captions and the distinction between visualisations and built photography. The <a href="prepare-architecture-projects-for-website.html">project preparation guide</a covers that handover; the <a href="architecture-portfolio-image-optimization.html">image delivery guide</a covers web-ready sizes and crops.</p>
+      </section>
+      <section id="technical">
+        <h2>Make the destination's technical signals agree.</h2>
+        <p>Every indexable destination should return <code>200</code>, contain the intended project content and declare the appropriate absolute canonical URL. Its navigation, structured data, internal links and sitemap entry should agree on that address. Do not leave a canonical pointing to the old page while the server redirects visitors to the new one.</p>
+        <p>Check for leftover staging <code>noindex</code> tags, blocked assets and password protection on the public site. A preview URL is useful for review but should not be treated as the public canonical or submitted for indexing. An XML sitemap is a discovery aid; it should list canonical destination URLs, not the old addresses that now redirect.</p>
+        <h3>Multilingual project pages need separate decisions.</h3>
+        <p>When a studio has English and German versions of a project, map each old language URL to its corresponding new language page. Keep <code>hreflang</code> only between real, published equivalents. Do not send a deleted German project page to an English homepage just to avoid a 404. If a translation is not ready, do not advertise a nonexistent language counterpart.</p>
+        <p>A domain move is a different operation from changing paths on the same domain. If the domain itself changes, follow the additional verification and Search Console steps in Google's <a href="https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes">site-migration documentation</a>. Do not use the Change of Address tool merely because <code>/work/</code> became <code>/projects/</code>.</p>
+      </section>
+      <section id="prelaunch">
+        <h2>Test a migration with real requests before switching traffic.</h2>
+        <p>Review the redirect map with the architect who knows the project archive. Then test it in an environment that can serve the intended production host and redirects without exposing a public, indexable preview. Check at least one example of each rule type and every high-priority old URL. Automated tests should assert the status and destination, while a person checks that the page really contains the expected project.</p>
+        <div class="guide-example">
+          <span class="eyebrow">Illustrative terminal check · fictional host and paths</span>
+          <div class="guide-sample">curl -sSI https://studio.example/work/river-library
+# Expect: HTTP 301 or 308
+# Location: https://studio.example/projects/river-library
+
+curl -sSIL https://studio.example/work/river-library
+# Confirm the final response is 200, not a redirect loop</div>
+          <p>The domain and project paths above are fictional. Some servers handle HEAD requests differently from GET; if results are unclear, test a normal GET request and inspect its response headers. Test both old and new URLs over HTTPS.</p>
+        </div>
+        <ul class="guide-checklist">
+          <li>Every retained project URL responds with <code>200</code> and the correct project content.</li>
+          <li>Every moved project has a relevant permanent redirect to a live destination.</li>
+          <li>There are no accidental chains, loops or broad homepage redirects.</li>
+          <li>Direct links to important PDFs, drawings and image files still work or have reviewed replacements.</li>
+          <li>Canonical tags, indexability, language alternates and the XML sitemap agree.</li>
+          <li>Project cards, filters, related links and mobile navigation use final URLs.</li>
+          <li>The new project detail is readable on a phone, including plan downloads and enquiry links.</li>
+          <li>Contact forms, project references and any relevant conversion tracking work on the intended host.</li>
+        </ul>
+      </section>
+      <section id="after">
+        <h2>Monitor the live move, not only the launch checklist.</h2>
+        <p>Once the public deployment is confirmed, repeat the redirect tests against the real production host. Review server errors and crawl reports, inspect a sample of old and new project URLs in Search Console, and check whether the production sitemap contains the expected destinations. Do not request indexing of preview addresses.</p>
+        <p>Compare search impressions, landing-page visits and enquiries with a pre-launch baseline when those measurements exist. Changes can take time, and the data may be sparse for a small practice. Do not present a stable redirect configuration as a guarantee of rankings, traffic or leads.</p>
+        <p>Keep permanent redirects in place for the long term. Google generally advises retaining them for at least a year, and longer retention is useful when old links remain in print, articles and saved bookmarks. If the studio has moved to a new domain, remember to renew that domain and its hosting arrangements while the redirects are still needed.</p>
+      </section>
+      <section id="handover">
+        <h2>Make URL ownership part of the website handover.</h2>
+        <p>After the redesign, someone will publish the next project and eventually rename an existing one. Decide who can edit public slugs, who approves a permanent redirect, where the mapping file lives and how a broken link gets reported. Otherwise the careful migration work can unravel the first time a project title changes.</p>
+        <p>The <a href="cms-for-architecture-portfolio-website.html">CMS selection guide</a explains why project records and editorial approvals matter. For a smaller studio, a simple written policy may be enough: stable URLs by default, reviewed redirects when they change, and a quick production check after each release.</p>
+        <div class="guide-example">
+          <span class="eyebrow">A handover question worth asking</span>
+          <p>Six months after launch, can the person maintaining the portfolio find the redirect map, identify the canonical project URL and correct a broken link without reconstructing the entire redesign? If not, the migration is not fully handed over.</p>
+        </div>
+      </section>
+    </article>
+  </div>
+  <section class="wrap section" aria-labelledby="related-title">
+    <h2 id="related-title">A redesign should not erase the archive.</h2>
+    <div class="guide-related">
+      <a href="cms-for-architecture-portfolio-website.html"><span>Publishing system</span>Choose a CMS with stable project URLs ↗</a>
+      <a href="prepare-architecture-projects-for-website.html"><span>Project material</span>Prepare architectural images, plans and credits ↗</a>
+      <a href="architecture-portfolio-image-optimization.html"><span>Media delivery</span>Publish high-resolution images responsibly ↗</a>
+      <a href="websites-for-architects.html"><span>Website design</span>Websites for architects and architecture studios ↗</a>
+    </div>
+  </section>
+  <section class="seo-cta"><div class="wrap">
+    <h2>Refresh the presentation. Keep the paths to the work.</h2>
+    <p>Atmosferi combines architectural understanding with website design and development. A relaunch can begin with the existing project archive, its URLs and the content that deserves to stay discoverable.</p>
+    <a class="arrow-link" href="contact.html">Discuss a website relaunch ↗</a>
+  </div></section>
+</main>
+<footer class="wrap seo-footer">
+  <a class="wordmark" href="index.html">atmosferi<sup>°</sup></a>
+  <span>Ing. arch. Michal Kašpárek · Prague · Remote collaboration</span>
+  <a href="contact.html">Contact ↗</a>
+</footer>
+<script src="assets/site.js"></script>
+</body>
+</html>
