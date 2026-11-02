@@ -145,8 +145,9 @@ Deno.serve(async (req) => {
       if (error) console.error("Failed to release email dispatch lease:", error.message);
     };
     const { data: settings, error: settingsError } = await supabaseAdmin.from("email_dispatch_state")
-      .select("daily_limit").eq("id", 1).single();
+      .select("daily_limit,safety_paused").eq("id", 1).single();
     if (settingsError) throw settingsError;
+    if (!targetEmail && settings.safety_paused) throw new Error("Rozesílání je pozastavené kvůli doručitelnosti kontaktů.");
     const { data: budget, error: budgetError } = await supabaseAdmin.rpc("email_dispatch_remaining", { max_daily: settings.daily_limit });
     if (budgetError) throw budgetError;
     const remainingBudget = targetEmail ? 1 : Number(budget);
@@ -176,7 +177,8 @@ Deno.serve(async (req) => {
 
       const { data: draftsToSend, error: fetchDraftsErr } = await supabaseAdmin
         .from("email_outbox")
-        .select("id")
+        .select("id,lead:marketing_leads!inner(outreach_email_ready,outreach_import_review)")
+        .eq("lead.outreach_email_ready", true).eq("lead.outreach_import_review", false)
         .eq("template_slug", template.slug)
         .in("status", ["draft", "pending"])
         .is("dispatch_attempted_at", null)
@@ -258,6 +260,15 @@ Deno.serve(async (req) => {
           failed_count++;
           continue;
         }
+        if (!targetEmail && draft.lead) {
+          const { data: ready, error: readyError } = await supabaseAdmin.rpc("email_recipient_is_ready", { recipient: recipientEmail });
+          if (readyError) throw readyError;
+          if (ready !== true) continue;
+        }
+        const { data: currentSafety, error: safetyError } = await supabaseAdmin.from("email_dispatch_state")
+          .select("safety_paused").eq("id", 1).single();
+        if (safetyError) throw safetyError;
+        if (!targetEmail && currentSafety.safety_paused) throw new Error("Rozesílání bylo automaticky pozastaveno kvůli doručitelnosti.");
 
         let personName = draft.worker?.full_name || draft.lead?.decision_maker_name;
         if (personName?.trim().toLowerCase() === "studio") {
@@ -508,7 +519,8 @@ Deno.serve(async (req) => {
         if (templateRow?.slug) {
           const { count } = await supabaseAdmin
             .from("email_outbox")
-            .select("id", { count: "exact", head: true })
+            .select("id,lead:marketing_leads!inner(outreach_email_ready,outreach_import_review)", { count: "exact", head: true })
+            .eq("lead.outreach_email_ready", true).eq("lead.outreach_import_review", false)
             .eq("template_slug", templateRow.slug)
             .in("status", ["draft", "pending"]).is("dispatch_attempted_at", null);
           remainingDrafts = count || 0;

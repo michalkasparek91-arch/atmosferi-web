@@ -13,14 +13,16 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 /** Sloupce nutné k rozhodnutí, zda lze kontakt oslovit. */
 const ELIGIBILITY_COLUMNS =
-  "id,email,tags,outreach_import_review,marketing_notifications,email_notifications,outreach_template_slug";
+  "id,email,tags,outreach_import_review,marketing_notifications,email_notifications,outreach_template_slug,outreach_email_ready";
 
 /** Sloupce navíc pro zobrazení řádku v adminu. */
 const DISPLAY_COLUMNS =
   "company_name,full_name,city,country,premium_score,decision_maker_name,discovered_by,website";
 
 export function isEligibleForOutreach(lead: Record<string, any>, templateSlug: string) {
-  return !!lead.email && lead.marketing_notifications !== false && lead.email_notifications !== false
+  return !!lead.email && lead.outreach_email_ready === true
+    && !String(lead.email).toLowerCase().endsWith("@placeholder.zrobee.cz")
+    && lead.marketing_notifications !== false && lead.email_notifications !== false
     && !lead.outreach_import_review && !(lead.tags || []).includes("známé")
     && (!lead.outreach_template_slug || lead.outreach_template_slug === templateSlug);
 }
@@ -61,7 +63,7 @@ async function queryEligible(
 
   for (let from = 0; ; from += 1000) {
     const { data, error } = await db.from("marketing_leads").select(columns)
-      .eq("category", template.category).in("language", languages)
+      .eq("category", template.category).in("language", languages).eq("outreach_email_ready", true)
       .order("id").range(from, from + 999);
     if (error) throw error;
 

@@ -45,7 +45,9 @@ Deno.serve(async (req: any) => {
         // Jen počet — nenačítáme celé řádky (dřív to byly desítky MB na jedno zobrazení).
         const availableCount = await countAvailableOutreachLeads(supabaseClient, t);
         const { count: drafts, error: draftError } = await supabaseClient.from("email_outbox")
-          .select("id", { count: "exact", head: true }).eq("template_slug", t.slug).in("status", ["draft", "pending"]).is("dispatch_attempted_at", null);
+          .select("id,lead:marketing_leads!inner(outreach_email_ready,outreach_import_review)", { count: "exact", head: true })
+          .eq("lead.outreach_email_ready", true).eq("lead.outreach_import_review", false)
+          .eq("template_slug", t.slug).in("status", ["draft", "pending"]).is("dispatch_attempted_at", null);
         if (draftError) throw draftError;
         const totalAudience = availableCount + (drafts || 0);
 
@@ -117,7 +119,8 @@ Deno.serve(async (req: any) => {
 
       const { data: draftsToSend } = await supabaseClient
         .from("email_outbox")
-        .select("id")
+        .select("id,lead:marketing_leads!inner(outreach_email_ready,outreach_import_review)")
+        .eq("lead.outreach_email_ready", true).eq("lead.outreach_import_review", false)
         .eq("template_slug", template.slug)
         .eq("status", "draft")
         .order("created_at", { ascending: true })

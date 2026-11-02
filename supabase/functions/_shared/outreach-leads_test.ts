@@ -1,9 +1,9 @@
 import { availableOutreachLeads, isEligibleForOutreach } from "./outreach-leads.ts";
 
 Deno.test("imported contacts use exactly their reviewed template and preserve suppression", () => {
-  const lead = { email: "business@example.test", outreach_template_slug: "realtor-sk", tags: [] };
+  const lead = { email: "business@example.test", outreach_template_slug: "realtor-sk", tags: [], outreach_email_ready: true };
   if (!isEligibleForOutreach(lead,"realtor-sk") || isEligibleForOutreach(lead,"developer-sk")) throw new Error("Wrong role template allowed");
-  for (const flag of [{outreach_import_review:true},{marketing_notifications:false},{email_notifications:false},{tags:["známé"]}]) {
+  for (const flag of [{outreach_email_ready:false},{email:"test@placeholder.zrobee.cz"},{outreach_import_review:true},{marketing_notifications:false},{email_notifications:false},{tags:["známé"]}]) {
     if (isEligibleForOutreach({...lead,...flag},"realtor-sk")) throw new Error("Suppressed/review contact was eligible");
   }
 });
@@ -19,7 +19,7 @@ function mockDb(rows: Record<string, unknown>[], excluded: string[], fail = fals
         in(_column: string, value: unknown) { languages.push(value); return query; },
         range(from: number, to: number) {
           return Promise.resolve({
-            data: (table === "email_outbox" ? excluded.map(lead_id => ({ lead_id })) : rows).slice(from, to + 1),
+            data: (table === "email_outbox" ? excluded.map(lead_id => ({ lead_id })) : rows.map(r=>({outreach_email_ready:true,...r}))).slice(from, to + 1),
             error: fail ? new Error("Database unavailable") : null,
           });
         },

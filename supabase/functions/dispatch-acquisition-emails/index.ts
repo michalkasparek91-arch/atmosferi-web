@@ -19,6 +19,7 @@ Deno.serve(async (req: Request) => {
     const { data: state, error: stateError } = await db.from("email_dispatch_state").select("*").eq("id", 1).single();
     if (stateError || !state) throw stateError || new Error("Missing email_dispatch_state");
     if (!state.enabled) return json({ skipped: "disabled" });
+    if (state.safety_paused) return json({ skipped: "delivery_safety_pause" });
     if (state.lease_until && new Date(state.lease_until).getTime() > Date.now()) return json({ skipped: "busy" });
 
     // Outbound campaigns only during Czech/European daytime. Never blast at night.
@@ -53,7 +54,7 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           action: "send_template_batch", template_id: template.id,
-          provider: state.provider, batch_limit: Math.min(25, Number(remaining)),
+          provider: state.provider, batch_limit: Math.min(5, Number(remaining)),
           create_drafts: true,
         }),
       });

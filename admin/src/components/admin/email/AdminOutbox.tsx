@@ -26,12 +26,22 @@ export const AdminOutbox = () => {
     queryKey: ["email-dispatch-state"],
     queryFn: async () => {
       const { data, error } = await supabase.from("email_dispatch_state" as any)
-        .select("enabled,provider,daily_limit,last_run_at,last_error").eq("id", 1).single();
+        .select("enabled,provider,daily_limit,last_run_at,last_error,safety_paused").eq("id", 1).single();
       if (error) throw error;
-      return data as unknown as { enabled: boolean; provider: string; daily_limit: number; last_run_at: string | null; last_error: string | null };
+      return data as unknown as { enabled: boolean; provider: string; daily_limit: number; last_run_at: string | null; last_error: string | null; safety_paused: boolean };
     },
     retry: false,
     refetchInterval: 30000,
+  });
+  const { data: validation } = useQuery({
+    queryKey: ["email-validation-state"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("email_validation_state" as any)
+        .select("last_run_at,last_error,checked_domains").eq("id", 1).single();
+      if (error) throw error;
+      return data as unknown as { last_run_at: string | null; last_error: string | null; checked_domains: number };
+    },
+    retry: false, refetchInterval: 30000,
   });
   const campaignStopped = React.useRef(false);
   const campaignTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
@@ -434,14 +444,16 @@ export const AdminOutbox = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold">Rozesílání kampaní (limit {DAILY_LIMITS[emailProvider]} denně)</h3>
-              <Badge variant="outline" className="text-[10px]">{automationUnavailable ? "AUTOMATIKA NENASTAVENA" : automation?.enabled ? `AUTO: ${automation.provider.toUpperCase()}` : "AUTOMATIKA VYPNUTA"}</Badge>
+              <h3 className="text-sm font-bold">Rozesílání kampaní (limit {automation?.daily_limit ?? DAILY_LIMITS[emailProvider]} denně)</h3>
+              <Badge variant="outline" className="text-[10px]">{automationUnavailable ? "AUTOMATIKA NENASTAVENA" : automation?.safety_paused ? "POZASTAVENO: DORUČITELNOST" : automation?.enabled ? `AUTO: ${automation.provider.toUpperCase()}` : "AUTOMATIKA VYPNUTA"}</Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {automation?.enabled
-                ? `Serverové vlny každé 3 minuty, společný limit ${automation.daily_limit}/den. Ruční spuštění používá zvoleného poskytovatele.`
-                : "Ruční kampaň běží v otevřeném prohlížeči. Serverová automatika zatím není aktivní."}
+                ? `Běží na serveru i s vypnutým počítačem. Vlny každé 3 minuty, společný limit ${automation.daily_limit}/den. Odesílají se pouze kontakty s ověřenou doménou.`
+                : "Rozesílání je vypnuté. Kontrola domén běží na serveru nezávisle na této stránce."}
             </p>
+            {validation?.last_run_at && <p className="text-xs text-muted-foreground">Kontrola domén: {new Date(validation.last_run_at).toLocaleString("cs-CZ")} · poslední dávka {validation.checked_domains} domén</p>}
+            {validation?.last_error && <p className="text-xs text-red-600">Kontrola domén: {validation.last_error}</p>}
             {automation?.last_run_at && <p className="text-xs text-muted-foreground">Poslední běh: {new Date(automation.last_run_at).toLocaleString("cs-CZ")}</p>}
             {automation?.last_error && <p className="text-xs text-red-600">Automatika: {automation.last_error}</p>}
           </div>
@@ -449,7 +461,7 @@ export const AdminOutbox = () => {
         <Button
           size="sm"
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs gap-1.5 shadow-md shadow-emerald-600/20"
-          disabled={!!activeCampaign && !activeCampaign.stopped}
+          disabled={automation?.enabled || automation?.safety_paused || (!!activeCampaign && !activeCampaign.stopped)}
           onClick={() => {
             if (virtualBatches && virtualBatches.length > 0) {
               startCampaign(virtualBatches[0].template.id, virtualBatches[0].template.name);
@@ -459,7 +471,7 @@ export const AdminOutbox = () => {
           }}
         >
           <Send className="h-3.5 w-3.5" />
-          {activeCampaign && !activeCampaign.stopped ? "Odesílání běží..." : "Spustit první kampaň"}
+          {automation?.enabled ? "Běží automaticky na serveru" : automation?.safety_paused ? "Čeká na kontrolu doručitelnosti" : activeCampaign && !activeCampaign.stopped ? "Odesílání běží..." : "Spustit první kampaň"}
         </Button>
       </div>
 
