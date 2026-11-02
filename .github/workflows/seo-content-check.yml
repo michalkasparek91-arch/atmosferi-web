@@ -71,7 +71,7 @@ jobs:
             }
             if (path === 'architecture-portfolio-website-url-migration.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
-              assert(/@media\\s*\\(max-width:850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
               assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
               assert(h.includes('fictional examples'), path + ': fictional redirect map');
               assert(h.includes('https://developers.google.com/search/docs/crawling-indexing/301-redirects'), path + ': authoritative redirect reference');
