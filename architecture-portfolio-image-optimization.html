@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture Portfolio Image Optimization: A Practical Guide | Atmosferi</title>
+<meta name="description" content="How to publish large architectural photographs and 3D renders without a slow portfolio: responsive exports, crop decisions, image priority and mobile QA.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Michal Kašpárek">
+<link rel="canonical" href="https://www.atmosferi.com/architecture-portfolio-image-optimization.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Atmosferi°">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Architecture Portfolio Image Optimization: A Practical Guide | Atmosferi">
+<meta property="og:description" content="How to publish large architectural photographs and 3D renders without a slow portfolio: responsive exports, crop decisions, image priority and mobile QA.">
+<meta property="og:url" content="https://www.atmosferi.com/architecture-portfolio-image-optimization.html">
+<meta property="og:image" content="https://www.atmosferi.com/og.png">
+<meta property="og:image:alt" content="Atmosferi° studio identity for architecture websites and visualisation">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Architecture Portfolio Image Optimization: A Practical Guide | Atmosferi">
+<meta name="twitter:description" content="How to publish large architectural photographs and 3D renders without a slow portfolio: responsive exports, crop decisions, image priority and mobile QA.">
+<meta name="twitter:image" content="https://www.atmosferi.com/og.png">
+<link rel="icon" href="/favicon-32.png">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/redesign.css?v=20261101-clean-lines">
+<link rel="stylesheet" href="assets/brand-header.css?v=20261101-aligned">
+<link rel="stylesheet" href="assets/seo-services.css?v=20261101">
+<link rel="stylesheet" href="assets/seo-guides.css?v=20261101">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://www.atmosferi.com/architecture-portfolio-image-optimization.html#webpage","url":"https://www.atmosferi.com/architecture-portfolio-image-optimization.html","name":"Architecture Portfolio Image Optimization: A Practical Guide | Atmosferi","description":"How to publish large architectural photographs and 3D renders without a slow portfolio: responsive exports, crop decisions, image priority and mobile QA.","inLanguage":"en","isPartOf":{"@id":"https://www.atmosferi.com/#website"},"mainEntity":{"@id":"https://www.atmosferi.com/architecture-portfolio-image-optimization.html#article"}},{"@type":"Article","@id":"https://www.atmosferi.com/architecture-portfolio-image-optimization.html#article","headline":"How to optimize architecture portfolio images without losing the design","description":"How to publish large architectural photographs and 3D renders without a slow portfolio: responsive exports, crop decisions, image priority and mobile QA.","inLanguage":"en","datePublished":"2026-11-02","dateModified":"2026-11-02","author":{"@type":"Person","name":"Michal Kašpárek"},"publisher":{"@type":"Organization","name":"Atmosferi°","url":"https://www.atmosferi.com/"},"mainEntityOfPage":{"@id":"https://www.atmosferi.com/architecture-portfolio-image-optimization.html#webpage"}}]}</script>
+</head>
+<body class="seo-service guide">
+<nav class="nav" aria-label="Atmosferi">
+  <div class="wrap nav__inner">
+    <a href="index.html" class="wordmark" aria-label="Atmosferi home">atmosferi<sup>°</sup></a>
+    <div class="nav__links">
+      <a class="navlink" href="work.html">Work</a>
+      <a class="navlink" href="services.html">Services</a>
+      <a class="navlink" href="pricing.html">Pricing</a>
+      <a class="navlink" href="studio.html">Studio</a>
+      <a class="navlink" href="contact.html">Contact</a>
+    </div>
+    <a class="seo-header-contact" href="contact.html">Discuss a project ↗</a>
+    <button class="nav__burger" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+  <div class="nav__mobile">
+    <a class="navlink" href="work.html">Work</a>
+    <a class="navlink" href="services.html">Services</a>
+    <a class="navlink" href="pricing.html">Pricing</a>
+    <a class="navlink" href="studio.html">Studio</a>
+    <a class="navlink" href="contact.html">Contact</a>
+  </div>
+</nav>
+<main>
+  <header class="seo-hero guide-hero">
+    <div class="wrap">
+      <p class="eyebrow">Field notes · Image delivery for architecture websites</p>
+      <h1>How to optimize architecture portfolio images without losing the design.</h1>
+      <p class="seo-intro">An architectural photograph or 8K rendering deserves room to breathe. That does not mean every visitor should download the full master file. This guide explains how a studio and its web developer can preserve composition, texture and detail while delivering the right image for each screen.</p>
+      <div class="guide-hero__meta"><span>By Michal Kašpárek · Architect and founder of Atmosferi</span><span>2 November 2026</span></div>
+    </div>
+  </header>
+  <div class="wrap guide-main">
+    <aside class="guide-index" aria-label="On this page">
+      <span class="eyebrow">In this guide</span>
+      <a href="#two-files">Separate masters from delivery</a>
+      <a href="#roles">Choose sizes by image role</a>
+      <a href="#responsive">Build responsive image variants</a>
+      <a href="#composition">Protect the composition</a>
+      <a href="#priority">Load the first image first</a>
+      <a href="#accessibility">Preserve meaning and layout</a>
+      <a href="#workflow">Make the workflow repeatable</a>
+      <a href="#test">Test the actual website</a>
+    </aside>
+    <article class="guide-article">
+      <section id="two-files">
+        <h2>The master image is not the web image.</h2>
+        <p>An architect may need a high-resolution file for print, presentations and future crops. A visitor looking at a project on a phone needs a file sized for that display and connection. These are different deliverables. Keep the master untouched, then produce derivatives for specific uses on the website.</p>
+        <p>Start by separating <strong>visual quality</strong> from <strong>pixel count</strong>. A sharp 8K render can look worse after aggressive compression, but sending all 8K pixels to a narrow browser window does not recover detail the screen cannot display. The right export depends on rendered width, display density, image texture and the amount of acceptable compression.</p>
+        <div class="guide-example">
+          <span class="eyebrow">The handover question</span>
+          <p>Ask the designer or developer: “Where will this image appear, how wide can it become, and can someone open a larger version?” The answers determine the export variants. “Please make everything 2000 pixels wide” is not an image strategy.</p>
+        </div>
+        <p>If the studio is still choosing projects and collecting rights or credits, start with the <a href="prepare-architecture-projects-for-website.html">project-content preparation guide</a>. This article begins after the selection is made and addresses the technical delivery of those approved images.</p>
+      </section>
+
+      <section id="roles">
+        <h2>Give every image a job before choosing its size.</h2>
+        <p>A homepage hero, project index thumbnail and detailed plan serve different purposes. Reusing the same oversized file for all three creates needless transfers; forcing them all into the same crop can damage the architectural story.</p>
+        <div class="guide-table-wrap">
+          <table class="guide-table">
+            <thead><tr><th>Image role</th><th>What to optimise for</th><th>Implementation decision</th></tr></thead>
+            <tbody>
+              <tr><td>Opening project image</td><td>Composition, immediate visibility and legible focal point</td><td>Responsive sources; treat as a likely priority image</td></tr>
+              <tr><td>Project index card</td><td>Fast scanning and a consistent visual rhythm</td><td>Small variants; deliberate crop and descriptive link text</td></tr>
+              <tr><td>Full-width gallery frame</td><td>Material detail and the intended proportions</td><td>Several width variants; defer frames well below the fold</td></tr>
+              <tr><td>Floor plan or section</td><td>Readable labels, linework and spatial information</td><td>Clean export plus an accessible enlarged view and text</td></tr>
+              <tr><td>Panorama or 360° view</td><td>Usable interaction without blocking navigation</td><td>Poster image first; load the interactive experience on demand</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Not every image needs every size. A small card and a full-screen photograph have different upper bounds. Record the real maximum displayed width in the design before making a derivative list. A project page with varied image ratios can still use one shared responsive-image component, provided it does not force every asset into the same aspect ratio.</p>
+      </section>
+
+      <section id="responsive">
+        <h2>Let the browser choose a suitable image, not the master.</h2>
+        <p>The HTML <code>srcset</code> attribute offers files at several widths. The <code>sizes</code> attribute describes how much horizontal space the image occupies at different viewport widths. Together they let the browser choose a source using the layout and the device's pixel density. A responsive image is more than a single large file styled with <code>width:100%</code>.</p>
+        <p>For a hypothetical full-width architectural image, the markup might look like this. The filenames and dimensions below are <strong>fictional implementation examples</strong>, not files on this website or assets from a client project. Each candidate must really exist and have the declared pixel width before the example is used in production.</p>
+        <div class="guide-example">
+          <span class="eyebrow">Illustrative markup · fictional image filenames</span>
+          <div class="guide-sample" role="group" aria-label="Example responsive image HTML">&lt;img
+  src=&quot;courtyard-1200.webp&quot;
+  srcset=&quot;courtyard-640.webp 640w,
+          courtyard-1200.webp 1200w,
+          courtyard-2000.webp 2000w&quot;
+  sizes=&quot;(max-width: 760px) 100vw, 80vw&quot;
+  width=&quot;2000&quot; height=&quot;1250&quot;
+  alt=&quot;Courtyard between two timber-clad wings&quot;
+  decoding=&quot;async&quot;&gt;</div>
+          <p>The <code>width</code> and <code>height</code> describe the image's aspect ratio; CSS can still display it fluidly. The example's three files share that ratio. The <code>sizes</code> rule is only correct if it matches the actual layout. A narrow content column might require a different value.</p>
+        </div>
+        <h3>What about AVIF, WebP and JPEG?</h3>
+        <p>Choose formats by tested visual quality and compatibility rather than by a blanket rule. AVIF and WebP can reduce transfer size for many photographs and renders; JPEG remains a useful fallback. A <code>&lt;picture&gt;</code> element can offer alternative formats with an <code>&lt;img&gt;</code> fallback. Verify that the image pipeline produces the right variants and that the fallback actually loads.</p>
+        <p>Inspect fine brickwork, vegetation, glazing reflections and gradients after export. They reveal different compression problems. A smaller file is not automatically a better file if facade joints smear or a smooth sky breaks into visible bands. Compare exports at their actual on-screen size, not only at 100% zoom in an editing application.</p>
+      </section>
+
+      <section id="composition">
+        <h2>Do not sacrifice the architecture to a thumbnail grid.</h2>
+        <p>Architecture images often rely on precise relationships between a building, its surroundings and the edge of the frame. Cropping a wide elevation into a portrait card may remove the entrance, cut a roofline or imply a different relationship to the site. Decide which views tolerate a crop and which should remain intact.</p>
+        <p>Use <code>object-fit:cover</code> deliberately for index cards, with an individually reviewed focal position. Use <code>object-fit:contain</code> or natural proportions when the complete drawing or composition matters. A mobile crop may need a separate, approved export rather than an automatic centre crop.</p>
+        <div class="guide-example">
+          <span class="eyebrow">Fictional composition test</span>
+          <p>Imagine a wide visualisation of a small public library. The entrance is near the left edge and a mature tree explains the approach from the street. A centred portrait crop removes both. For the index card, choose a different camera view or a consciously framed mobile crop; on the detail page, retain the original wide composition. This library is a fictional example, not an Atmosferi commission.</p>
+        </div>
+        <p>If the mobile version uses a different crop, test the transition around the breakpoint. The crop must not silently change the building's apparent form or hide a key architectural feature. An alternative crop also needs an accurate text description where the visible content changes meaningfully.</p>
+      </section>
+
+      <section id="priority">
+        <h2>Load the first meaningful image first.</h2>
+        <p>On image-led architecture sites, the opening photograph or rendering is often a candidate for <strong>Largest Contentful Paint (LCP)</strong>, a loading metric. The browser should discover this important asset early. Avoid putting the main image behind a JavaScript-only loader or marking it <code>loading="lazy"</code>. For a genuinely critical hero image, <code>fetchpriority="high"</code> can help the browser prioritise its request.</p>
+        <p>Reserve lazy loading for images that are off screen, such as later gallery frames. Do not give every image high priority: a portfolio with ten competing “important” images has no meaningful priority order. If the hero is a CSS background, consider whether a responsive HTML image would make discovery, alternative text and sizing easier; any preload must match the actual chosen asset rather than accidentally causing a second download.</p>
+        <div class="guide-example">
+          <span class="eyebrow">A practical loading sequence</span>
+          <p><strong>Initial view:</strong> project name, introduction and first image render without waiting for a carousel script. <strong>Scrolling:</strong> later photographs load near the viewport. <strong>Optional interaction:</strong> a 360° viewer or large zoomable drawing loads when the visitor asks for it, with an accessible static fallback.</p>
+        </div>
+        <p>The guidance on image priority is explained further in <a href="https://developer.chrome.com/docs/modern-web-guidance/guides/performance/optimize-image-priority">Chrome's image-priority documentation</a>. Treat it as a starting point and verify the outcome on the actual page.</p>
+      </section>
+
+      <section id="accessibility">
+        <h2>Preserve layout and meaning while images load.</h2>
+        <p>Missing image dimensions can make text and controls jump as the image arrives. Declare intrinsic <code>width</code> and <code>height</code>, or reserve the correct aspect ratio in the layout. If responsive variants share a crop, their aspect ratios should match. When different mobile and desktop crops have different ratios, test that the layout reserves the appropriate space at each breakpoint.</p>
+        <p>Alternative text is not a place to stuff search keywords. Describe the architectural information the image contributes. “North-facing brick facade with a recessed entrance” is more useful than “architecture portfolio building design”. If a nearby caption already provides the same information, keep the alt text concise. Purely decorative images may use empty alt text.</p>
+        <h3>Drawings need more than an image description.</h3>
+        <p>A detailed floor plan can contain room names, dimensions, orientation and circulation. No single short alt attribute can replace all of that. Offer a readable larger view, retain essential information in adjacent HTML text and do not trap zoom or panning behind gestures that exclude keyboard users. Check whether downloadable drawings contain information the studio is permitted to publish.</p>
+        <p>For technical background, see <a href="https://web.dev/articles/optimize-cls">web.dev's explanation of image dimensions and layout shift</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Responsive_images">MDN's responsive-image guide</a>.</p>
+      </section>
+
+      <section id="workflow">
+        <h2>Make image delivery repeatable for the next project.</h2>
+        <p>The image system should work when the studio uploads its next commission, not only when a developer hand-tunes the launch portfolio. Agree on who supplies masters, who approves crops, who generates variants and who checks the published result. If a CMS handles derivatives automatically, test what it does to a portrait photograph, a panoramic rendering and a fine-line drawing before relying on it.</p>
+        <div class="guide-example">
+          <span class="eyebrow">Fictional asset manifest · not a real client archive</span>
+          <div class="guide-sample">project: courtyard-house (fictional)
+asset: exterior-01
+master: exterior-01-master.tif
+display roles: hero / project detail
+approved crops: wide original; mobile crop v2
+alt text: Timber-lined courtyard opening to the garden
+credit: verify against the publication licence
+variants: generated from the master
+review: phone, laptop, high-density desktop</div>
+          <p>Record the approved source and crop revision. If a design changes, replace the correct derivative set rather than re-compressing an old web file. Keep photographer and collaborator credits attached to the asset record and confirm publication rights for the website, not merely possession of the files.</p>
+        </div>
+        <p>A content-management system should expose the fields editors actually need. The <a href="cms-for-architecture-portfolio-website.html">architecture portfolio CMS guide</a explains project records, approval paths and the handover from the person maintaining the website.</p>
+      </section>
+
+      <section id="test">
+        <h2>Test the delivered page, not just the export folder.</h2>
+        <p>Open the page on a narrow phone, a normal laptop and a large high-density screen. Then use browser developer tools to inspect which image variant was actually requested. A correctly configured <code>srcset</code> is useful only if the browser receives an appropriately sized file. Check with an uncached reload and a slower connection profile, not only on a fast office network.</p>
+        <p>Inspect LCP and layout shifts using browser performance tools or PageSpeed Insights, but avoid declaring success from a single synthetic score. A real visitor's device and network may behave differently. Also check whether a CDN, cache or CMS has served an outdated crop after an image revision.</p>
+        <ul class="guide-checklist">
+          <li>At phone width, the first image is visible promptly and its main subject remains in frame.</li>
+          <li>The hero is not lazy-loaded; lower gallery images are not all competing with it immediately.</li>
+          <li>Requested image widths roughly match the actual layout and device density, rather than always selecting the largest file.</li>
+          <li>Every image reserves space before loading; headings and buttons do not jump when photographs arrive.</li>
+          <li>Brick, glass, foliage and gradients look acceptable at the size visitors will actually see.</li>
+          <li>Plans remain legible when enlarged, and essential information is available without reading microscopic labels.</li>
+          <li>Captions, alt text, credits and any visualisation-status labels match the published image.</li>
+          <li>Responsive crops have been approved by the studio, including portrait and panoramic assets.</li>
+          <li>A 360° viewer does not trap scrolling or block access to the static project information.</li>
+          <li>The production page loads the same variants, captions and image rights information that were approved in preview.</li>
+        </ul>
+        <p>The goal is not to shrink every image until a performance tool turns green. It is to deliver the architectural image at the quality its role requires, without asking each visitor to carry the weight of an archive master.</p>
+      </section>
+    </article>
+  </div>
+  <section class="wrap section" aria-labelledby="related-title">
+    <h2 id="related-title">From image archive to a usable portfolio.</h2>
+    <div class="guide-related">
+      <a href="prepare-architecture-projects-for-website.html"><span>Before export</span>Prepare project photographs, drawings and credits ↗</a>
+      <a href="cms-for-architecture-portfolio-website.html"><span>Editorial workflow</span>Choose a CMS that handles project images well ↗</a>
+      <a href="websites-for-architects.html"><span>Website service</span>Website design for architecture studios ↗</a>
+      <a href="work.html"><span>Explore concepts</span>Working website concepts for fictional practices ↗</a>
+    </div>
+  </section>
+  <section class="seo-cta"><div class="wrap">
+    <h2>Give the work space, not unnecessary weight.</h2>
+    <p>Atmosferi combines an architectural eye with website design and development. We can start with a few approved images and plan how they should appear, load and be maintained across the site.</p>
+    <a class="arrow-link" href="contact.html">Discuss a website project ↗</a>
+  </div></section>
+</main>
+<footer class="wrap seo-footer">
+  <a class="wordmark" href="index.html">atmosferi<sup>°</sup></a>
+  <span>Ing. arch. Michal Kašpárek · Prague · Remote collaboration</span>
+  <a href="contact.html">Contact ↗</a>
+</footer>
+<script src="assets/site.js"></script>
+</body>
+</html>
