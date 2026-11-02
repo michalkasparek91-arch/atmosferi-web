@@ -41,7 +41,8 @@ jobs:
             ['interactive-floor-plans-property-development-website.html', 'en', 'residential-development-website-content-checklist.html'],
             ['architecture-portfolio-image-optimization.html', 'en', 'prepare-architecture-projects-for-website.html', '2026-11-02'],
             ['architecture-portfolio-website-url-migration.html', 'en', 'cms-for-architecture-portfolio-website.html', '2026-11-02'],
-            ['bim-cad-handover-architectural-visualisation.html', 'en', 'services.html', '2026-11-02']
+            ['bim-cad-handover-architectural-visualisation.html', 'en', 'services.html', '2026-11-02'],
+            ['architectural-rendering-feedback-revision-checklist.html', 'en', 'bim-cad-handover-architectural-visualisation.html', '2026-11-02']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
@@ -93,6 +94,15 @@ jobs:
               assert(nodes.some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema page URL');
               assert(nodes.some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': schema article relationship');
               assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
+            }
+            if (path === 'architectural-rendering-feedback-revision-checklist.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert(/@media\\s*\\(max-width:850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert((h.match(/<section id=/g) || []).length >= 9, path + ': substantive sections');
+              assert(h.includes('Fictional revision register') && h.includes('Fictional annotation'), path + ': illustrative examples labelled');
+              assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema page URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': schema article relationship');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
