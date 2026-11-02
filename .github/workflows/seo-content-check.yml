@@ -170,7 +170,7 @@ jobs:
             }
             if (path === 'public-consultation-architecture-project-website-guide.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
-              assert(/@media\\s*\\(max-width:850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
               assert((h.match(/<section id=/g) || []).length >= 11, path + ': substantive sections');
               assert(h.includes('The following record is <strong>fictional</strong>'), path + ': fictional example labelled');
               assert(h.includes('class="guide-table-wrap"'), path + ': mobile-scrollable table');
