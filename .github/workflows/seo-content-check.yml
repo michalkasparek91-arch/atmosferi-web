@@ -186,7 +186,7 @@ jobs:
             }
             if (path === 'architectural-animation-brief-shot-list-checklist.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
-              assert(/@media\\s*\\(max-width:850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
               assert((h.match(/<section id=/g) || []).length >= 13, path + ': substantive sections');
               assert(h.includes('Fictional shot list') && h.includes('Fictional delivery manifest'), path + ': fictional examples labelled');
               assert(h.includes('https://www.w3.org/WAI/media/av/planning/'), path + ': accessible media reference');
