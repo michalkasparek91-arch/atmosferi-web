@@ -25,6 +25,8 @@
       var rh = ribbon ? ribbon.offsetHeight : 0;
       nav.style.top = Math.max(0, rh - st) + "px";
       nav.classList.toggle("scrolled", st >= (rh ? rh - 2 : 60));
+      var opening = document.querySelector(".hero");
+      document.body.classList.toggle("is-past-hero", !!opening && opening.getBoundingClientRect().bottom <= nav.getBoundingClientRect().bottom);
     }
   }
   window.addEventListener("scroll", onScroll, { passive: true });

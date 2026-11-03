@@ -159,76 +159,74 @@ header.nav .vnav__mobile .i18nsw{align-self:flex-start;margin:0 0 6px!important;
   .nav .swx__knob,header.nav .swx__knob{transition:none!important;}
 }
 
-/* Homepage only: dark masthead above the dark hero.
-   JS sets .is-past-hero precisely when the hero clears the sticky header.
-   Other pages (including Visuals) keep the light masthead. */
-.homepage .nav{
+/* Both homepages share the dark masthead until their hero clears it. */
+:is(.homepage,.visuals-page) .nav{
   transition:background-color .3s ease,color .3s ease;
 }
-.homepage:not(.is-past-hero) .nav,
-.homepage:not(.is-past-hero) .nav.scrolled,
-.homepage:not(.is-past-hero) .nav.solid{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav,
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav.scrolled,
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav.solid{
   background:#101010!important;
   color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav .wordmark,
-.homepage:not(.is-past-hero) .nav .wordmark sup{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav :is(.wordmark,.brand),
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav :is(.wordmark,.brand) sup{
   color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav__links .navlink,
-.homepage:not(.is-past-hero) .nav__links .navlink:hover,
-.homepage:not(.is-past-hero) .nav__links .navlink[aria-current="page"]{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__links a,
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__links .navlink:hover,
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__links .navlink[aria-current="page"]{
   color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav__links .navlink:hover{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__links .navlink:hover{
   text-decoration-color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav__switch .i18nsw{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__switch .i18nsw{
   color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav__switch .swx{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__switch .swx{
   border-color:#fff!important;
   background:transparent!important;
 }
-.homepage:not(.is-past-hero) .nav__switch .swx__knob{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__switch .swx__knob{
   background:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav__switch .swx__seg{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__switch .swx__seg{
   color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav__switch .swx__seg.is-on,
-.homepage:not(.is-past-hero) .nav__switch .swx__seg:hover{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__switch .swx__seg.is-on,
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__switch .swx__seg:hover{
   color:#101010!important;
 }
-.homepage:not(.is-past-hero) .nav__switch .swx:has(.swx__seg:not(.is-on):hover) .swx__seg.is-on{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav__switch .swx:has(.swx__seg:not(.is-on):hover) .swx__seg.is-on{
   color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav__burger span{
+:is(.homepage,.visuals-page):not(.is-past-hero) :is(.nav__burger,.vnav__burger) span{
   background:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav > .nav__mobile{
-  background:#101010;color:#fff;
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav > :is(.nav__mobile,.vnav__mobile){
+  background:#101010!important;color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav > .nav__mobile > .navlink{
-  color:#fff;
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav > :is(.nav__mobile,.vnav__mobile) > :is(.navlink,a){
+  color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav > .nav__mobile .swx{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav > :is(.nav__mobile,.vnav__mobile) .swx{
   border-color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav > .nav__mobile .swx__knob{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav > :is(.nav__mobile,.vnav__mobile) .swx__knob{
   background:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav > .nav__mobile .swx__seg{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav > :is(.nav__mobile,.vnav__mobile) .swx__seg{
   color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav > .nav__mobile .swx__seg.is-on,
-.homepage:not(.is-past-hero) .nav > .nav__mobile .swx__seg:hover{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav > :is(.nav__mobile,.vnav__mobile) .swx__seg.is-on,
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav > :is(.nav__mobile,.vnav__mobile) .swx__seg:hover{
   color:#101010!important;
 }
-.homepage:not(.is-past-hero) .nav > .nav__mobile .i18nsw{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav > :is(.nav__mobile,.vnav__mobile) .i18nsw{
   color:#fff!important;
 }
-.homepage:not(.is-past-hero) .nav a:focus-visible,
-.homepage:not(.is-past-hero) .nav button:focus-visible{
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav a:focus-visible,
+:is(.homepage,.visuals-page):not(.is-past-hero) .nav button:focus-visible{
   outline-color:#fff!important;
 }
