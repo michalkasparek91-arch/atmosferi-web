@@ -58,20 +58,26 @@ Deno.serve(async (req) => {
       if (notificationType === "Delivery") {
         newStatus = "delivered";
       } else if (notificationType === "Bounce") {
-        newStatus = "bounced";
+        newStatus = message.bounce?.bounceType === "Transient" ? "deferred" : "bounced";
       } else if (notificationType === "Complaint") {
         newStatus = "spam";
       }
 
       if (newStatus) {
         // We check for both forms of message ID because nodemailer adds brackets
-        const { error: outboxError } = await supabase
+        const reason = notificationType === "Bounce"
+          ? String(message.bounce?.bouncedRecipients?.[0]?.diagnosticCode || message.bounce?.bounceSubType || "SES bounce").slice(0,1000)
+          : notificationType === "Complaint" ? "SES complaint" : null;
+        let update = supabase
           .from("email_outbox")
-          .update({ delivery_status: newStatus })
+          .update({ delivery_status: newStatus, ...(reason ? { error_message: reason } : {}) })
           .in("provider_message_id", [rawMessageId, bracketMessageId]);
+        if (newStatus === "delivered" || newStatus === "deferred") update = update.not("delivery_status", "in", "(bounced,spam,unsubscribed)");
+        const { error: outboxError } = await update;
 
         if (outboxError) {
           console.error("Failed to update email_outbox:", outboxError);
+          throw outboxError;
         }
       }
       return new Response(JSON.stringify({ ok: true, status: newStatus }), { headers: corsHeaders });

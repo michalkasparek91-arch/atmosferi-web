@@ -445,6 +445,13 @@ Deno.serve(async (req) => {
           } else {
             lastError = String(result.error);
             if (currentProvider === "smtp") {
+              if (result.recipientRejected && !targetEmail) {
+                const { error } = await supabaseAdmin.from("email_outbox").update({
+                  status: "failed", provider: "smtp", delivery_status: "bounced", error_message: lastError,
+                }).eq("id", draftId);
+                if (error) throw error;
+                break; // Suppress this recipient; the delivery guard evaluates the overall failure rate.
+              }
               if (!targetEmail) await supabaseAdmin.from("email_outbox").update({ status: "failed", error_message: lastError }).eq("id", draftId);
               await supabaseAdmin.from("email_dispatch_state").update({ enabled: false, last_error: lastError }).eq("id", 1);
               throw new Error(lastError);

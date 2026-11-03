@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     );
 
     const body = await req.json().catch(() => ({}));
-    console.log("Brevo webhook received:", JSON.stringify(body));
+    console.log("Brevo delivery event:", String(body.event || "unknown"));
 
     // Brevo Webhook Payload contains `event`, `email`, and `message-id`
     const event = body.event;
@@ -43,8 +43,15 @@ Deno.serve(async (req) => {
         newStatus = "clicked";
         break;
       case "hard_bounce":
+        newStatus = /spamcop|blacklist|blocklist|spamhaus/i.test(body.reason || "") ? "blocked" : "bounced";
+        break;
       case "soft_bounce":
+      case "deferred":
+        newStatus = /spamcop|blacklist|blocklist|spamhaus/i.test(body.reason || "") ? "blocked" : "deferred";
+        break;
       case "blocked":
+        newStatus = "blocked";
+        break;
       case "invalid_email":
         newStatus = "bounced";
         break;
@@ -86,13 +93,14 @@ Deno.serve(async (req) => {
 
     // Also update email_outbox
     if (messageId) {
-      const { error: outboxError } = await supabase
-        .from("email_outbox")
-        .update({ delivery_status: newStatus })
-        .eq("provider_message_id", messageId);
+      const { error: outboxError } = await supabase.rpc("apply_email_delivery_event", {
+        p_message_id: String(messageId), p_event: String(event),
+        p_reason: String(body.reason || ""), p_at: String(body.ts_event || body.date || ""),
+      });
         
       if (outboxError) {
         console.error("Failed to update email_outbox:", outboxError);
+        throw outboxError;
       }
     }
 

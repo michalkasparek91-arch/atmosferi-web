@@ -58,7 +58,7 @@ export interface EmailPayload {
   bcc?: string;
 }
 
-export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; messageId?: string; html?: string }> {
+export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; messageId?: string; html?: string; recipientRejected?: boolean }> {
   try {
     const apiKey = Deno.env.get("BREVO_API_KEY") || Deno.env.get("RESEND_API_KEY");
     if (!apiKey && (!payload.provider || payload.provider === 'brevo')) {

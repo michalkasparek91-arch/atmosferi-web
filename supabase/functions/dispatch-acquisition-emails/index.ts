@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
+import { checkSmtpConnection } from "../_shared/smtp.ts";
 
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
@@ -14,6 +15,9 @@ Deno.serve(async (req: Request) => {
   const secret = req.headers.get("x-atmosferi-cron-token") || "";
   const { data: authorized, error: authError } = await db.rpc("verify_atmosferi_email_cron_token", { p_token: secret });
   if (authError || authorized !== true) return json({ error: "Unauthorized" }, 401);
+  const body = await req.json().catch(() => ({}));
+  // Authenticated diagnostics never sends a message or changes the sending switch.
+  if (body.action === "check_smtp") return json(await checkSmtpConnection());
 
   try {
     const { data: state, error: stateError } = await db.from("email_dispatch_state").select("*").eq("id", 1).single();
@@ -54,7 +58,7 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           action: "send_template_batch", template_id: template.id,
-          provider: state.provider, batch_limit: Math.min(5, Number(remaining)),
+          provider: state.provider, batch_limit: Math.min(state.provider === "smtp" ? 1 : 5, Number(remaining)),
           create_drafts: true,
         }),
       });
@@ -68,7 +72,7 @@ Deno.serve(async (req: Request) => {
         last_run_at: new Date().toISOString(),
         last_error: result.failed_count ? "Failed messages: " + result.failed_count + "; inspect email_outbox." : null,
       };
-      const { error: saveError } = await db.from("email_dispatch_state").update(update).eq("id", 1);
+      const { error: saveError } = await db.from("email_dispatch_state").update(update).eq("id", 1).eq("safety_paused", false);
       if (saveError) throw saveError;
       if (result.sent_count || result.failed_count) return json({
         sent_count: result.sent_count || 0,
@@ -81,7 +85,7 @@ Deno.serve(async (req: Request) => {
     const message = err instanceof Error ? err.message : String(err);
     await db.from("email_dispatch_state").update({
       last_run_at: new Date().toISOString(), last_error: message.slice(0, 1000),
-    }).eq("id", 1);
+    }).eq("id", 1).eq("safety_paused", false);
     console.error("dispatch-acquisition-emails:", message);
     return json({ error: message }, 500);
   }
