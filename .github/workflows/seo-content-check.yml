@@ -61,6 +61,7 @@ jobs:
             ['architectural-rendering-overlooking-privacy-viewpoints.html', 'en', 'apartment-view-visualisation-accuracy-checklist.html', '2026-11-03'],
             ['flood-resilience-architectural-visualisation-review.html', 'en', 'landscape-planting-accuracy-architectural-renderings.html', '2026-11-03'],
             ['existing-proposed-building-fabric-rendering-review.html', 'en', 'architectural-photomontage-camera-matching-checklist.html', '2026-11-03'],
+            ['rooftop-plant-screening-architectural-rendering-review.html', 'en', 'existing-proposed-building-fabric-rendering-review.html', '2026-11-03'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
