@@ -62,6 +62,7 @@ jobs:
             ['flood-resilience-architectural-visualisation-review.html', 'en', 'landscape-planting-accuracy-architectural-renderings.html', '2026-11-03'],
             ['existing-proposed-building-fabric-rendering-review.html', 'en', 'architectural-photomontage-camera-matching-checklist.html', '2026-11-03'],
             ['rooftop-plant-screening-architectural-rendering-review.html', 'en', 'existing-proposed-building-fabric-rendering-review.html', '2026-11-03'],
+            ['architectural-rendering-glazing-reflection-transparency-review.html', 'en', 'architectural-rendering-material-finish-approval-checklist.html', '2026-11-03'],
             ['site-grading-retaining-wall-architectural-rendering-review.html', 'en', 'flood-resilience-architectural-visualisation-review.html', '2026-11-03'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
