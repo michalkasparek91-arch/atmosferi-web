@@ -52,7 +52,8 @@ jobs:
             ['architectural-animation-brief-shot-list-checklist.html', 'en', 'services.html', '2026-11-02'],
             ['architectural-renderings-print-ready-brochures-hoardings.html', 'en', 'residential-development-website-content-checklist.html', '2026-11-03'],
             ['apartment-view-visualisation-accuracy-checklist.html', 'en', 'interactive-floor-plans-property-development-website.html', '2026-11-03'],
-            ['architectural-design-options-rendering-comparison.html', 'en', 'architectural-rendering-feedback-revision-checklist.html', '2026-11-03']
+            ['architectural-design-options-rendering-comparison.html', 'en', 'architectural-rendering-feedback-revision-checklist.html', '2026-11-03'],
+            ['phased-development-architectural-visualisation-checklist.html', 'en', 'architectural-rendering-change-control-after-launch.html', '2026-11-03']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
