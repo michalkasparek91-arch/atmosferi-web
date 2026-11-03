@@ -233,10 +233,17 @@
     railEl.innerHTML = "";
     ORDER.forEach(function (id, i) {
       var n = NODES[id];
-      var cell = document.createElement("div");
+      var cell = document.createElement("button");
+      cell.type = "button";
+      cell.setAttribute("aria-label", tr(n.name));
+      cell.setAttribute("aria-pressed", id === current ? "true" : "false");
       cell.className = "rcell" + (id === current ? " on" : "");
       cell.innerHTML = '<img src="' + n.img + '" alt="' + tr(n.name) + '"><span class="rcell__n">' + (i + 1) + '</span>';
-      cell.addEventListener("click", function () { goTo(id); });
+      cell.addEventListener("click", function (event) {
+        event.stopPropagation();
+        setEngaged(true);
+        goTo(id);
+      });
       railEl.appendChild(cell);
     });
   }

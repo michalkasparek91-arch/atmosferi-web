@@ -430,6 +430,9 @@
   .rcell img{width:100%;height:100%;object-fit:cover;}
   .rcell.on,.rcell:hover{opacity:1;filter:none;}
   .rcell.on::after{content:"";position:absolute;inset:0;border:1.5px solid #fff;}
+  .visuals-page .tour__rail{z-index:10;pointer-events:auto;}
+  .visuals-page .rcell{display:block;padding:0;border:0;background:transparent;flex-shrink:0;min-height:44px;}
+  .visuals-page .rcell:focus-visible{outline:2px solid #fff;outline-offset:3px;opacity:1;filter:none;}
   .rcell__n{position:absolute;left:5px;bottom:3px;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);}
 
   /* loading */
@@ -1488,10 +1491,10 @@
 
     <div class="tour__bottom">
       <div class="tour__compass"><div class="strip" id="tourStrip"></div></div>
-      <div class="tour__rail" id="tourRail"></div>
       <div class="tour__hint" id="tourHint"><span class="ar">←</span><span>Drag to look around</span><span class="ar">→</span></div>
     </div>
 
+    <div class="tour__rail" id="tourRail" role="group" aria-label="Rooms"></div>
     <div class="tour__scrollhint"><span>Hold ⌘ / Ctrl to zoom</span></div>
     <div class="tour__load" id="tourLoad"><span class="sp"></span></div>
   </div>
@@ -1614,7 +1617,7 @@
 <script src="viz.js?v=20261102-films"></script>
 <script src="portfolio-feed.js?v=20261102-cms"></script>
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
-<script src="pano.js?v=20261102-opening-view"></script>
+<script src="pano.js?v=20261103-room-thumbnails"></script>
 <script src="../../assets/i18n-dict.js?v=20261101viz2"></script>
 <script src="viz-i18n.js?v=20261101-tour-optin"></script>
 <script src="../../assets/i18n.js?v=20261101viz2"></script>
