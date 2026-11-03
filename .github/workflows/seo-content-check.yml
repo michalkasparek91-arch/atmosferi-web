@@ -219,7 +219,7 @@ jobs:
             }
             if (path === 'apartment-view-visualisation-accuracy-checklist.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
-              assert(/@media\\s*\\(max-width:850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
+              assert(fs.readFileSync('assets/seo-guides.css', 'utf8').includes('@media(max-width:850px)'), path + ': mobile breakpoint');
               assert((h.match(/<section id=/g) || []).length >= 13, path + ': substantive sections');
               assert(h.includes('The following example is <strong>fictional</strong>'), path + ': example marked fictional');
               assert(h.includes('class="guide-table-wrap"'), path + ': mobile-scrollable verification table');
