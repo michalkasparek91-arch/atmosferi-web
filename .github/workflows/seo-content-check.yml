@@ -72,6 +72,7 @@ jobs:
             ['ev-charging-parking-bay-architectural-rendering-review.html', 'en', 'accessible-route-accuracy-architectural-renderings.html', '2026-11-03'],
             ['rainwater-downpipes-architectural-rendering-review.html', 'en', 'site-grading-retaining-wall-architectural-rendering-review.html', '2026-11-03'],
             ['facade-movement-joints-architectural-rendering-review.html', 'en', 'existing-proposed-building-fabric-rendering-review.html', '2026-11-03'],
+            ['site-boundary-fences-gates-architectural-rendering-review.html', 'en', 'site-grading-retaining-wall-architectural-rendering-review.html', '2026-11-03'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
