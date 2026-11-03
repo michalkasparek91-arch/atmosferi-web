@@ -19,6 +19,7 @@
     el.dataset.project = "cms-" + project.id;
     el.dataset.projectTitle = project.title;
     el.dataset.projectNote = [project.description, project.credits].filter(Boolean).join("\n");
+    el.dataset.galleryKey = "cms:" + image.full;
     var frame = document.createElement("span"); frame.className = "frame__img";
     var img = document.createElement("img");
     img.src = storage + image.thumb;
@@ -37,7 +38,18 @@
     return el;
   }
   async function load() {
+    var controls = [];
+    for (var position = 0; ; position += 1000) {
+      var settingsResponse = await fetch(root + "/rest/v1/visualization_gallery_controls?select=image_key,hidden,sort_order&order=image_key&limit=1000&offset=" + position,
+        { headers: { apikey: key, Authorization: "Bearer " + key }, cache: "no-store", signal: AbortSignal.timeout(10000) });
+      if (!settingsResponse.ok) throw new Error("Gallery settings HTTP " + settingsResponse.status);
+      var settingsPage = await settingsResponse.json();
+      if (!Array.isArray(settingsPage)) throw new Error("Invalid gallery settings");
+      controls = controls.concat(settingsPage);
+      if (settingsPage.length < 1000) break;
+    }
     var projects = [];
+    try {
     for (var offset = 0; ; offset += 100) {
       var url = root + "/rest/v1/visualization_projects?select=id,title,location,project_year,category,description,credits,images&published=eq.true&order=created_at.desc,id.desc&limit=100&offset=" + offset;
       var response = await fetch(url, { headers: { apikey: key, Authorization: "Bearer " + key }, signal: AbortSignal.timeout(10000) });
@@ -47,9 +59,8 @@
       projects = projects.concat(page);
       if (page.length < 100) break;
     }
+    } catch (error) { console.warn("Uploaded projects unavailable", error.message); }
     var covers = document.createDocumentFragment();
-    var series = document.createElement("div");
-    series.id = "cms-portfolio-series"; series.hidden = true; series.style.display = "none";
     projects.forEach(function (project) {
       if (!/^[a-f0-9-]{36}$/.test(project.id) || !Array.isArray(project.images)) return;
       var images = project.images.filter(function (image) {
@@ -57,12 +68,23 @@
           && image.width > 0 && image.height > 0;
       });
       images.forEach(function (image, i) {
-        var el = figure(project, image, i === 0);
-        (i === 0 ? covers : series).appendChild(el);
+        covers.appendChild(figure(project, image, true));
       });
     });
     grid.insertBefore(covers, grid.firstChild);
-    grid.parentNode.appendChild(series);
+    var byKey = new Map(controls.map(function (control) { return [control.image_key, control]; }));
+    var ordered = Array.from(grid.querySelectorAll(".portfolio-item")).map(function (el, i) {
+      var imageKey = el.dataset.galleryKey || "static:" + el.getAttribute("data-full");
+      var control = byKey.get(imageKey);
+      return { el: el, index: i, hidden: control && control.hidden, order: control ? control.sort_order : i };
+    }).sort(function (a, b) { return a.order - b.order || a.index - b.index; });
+    ordered.forEach(function (item) {
+      // Remove hidden images from both the grid and the lightbox's source list.
+      if (item.hidden) item.el.remove();
+      else grid.appendChild(item.el);
+    });
+    var toggle = document.getElementById("portfolioToggle");
+    if (toggle) toggle.hidden = grid.querySelectorAll(".portfolio-item").length <= 12;
     window.dispatchEvent(new CustomEvent("atmosferi:portfolio-updated"));
   }
   load().catch(function (err) { console.warn("Published portfolio unavailable; existing work remains visible.", err.message); });

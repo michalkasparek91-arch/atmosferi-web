@@ -220,7 +220,7 @@
 });
   /* Unified portfolio controls and project labels. */
   Object.assign(window.I18N_DICT.de, {
-  "Show all 40 images": "Alle 40 Bilder ansehen",
+  "Show all images": "Alle Bilder ansehen",
   "Show fewer images": "Weniger Bilder anzeigen",
   "Selected architectural visualisations": "Ausgewählte Architekturvisualisierungen",
   "Hillside Villa": "Villa am Hang",
@@ -232,7 +232,7 @@
   "Black House": "Schwarzes Haus"
 });
   Object.assign(window.I18N_DICT.cs, {
-  "Show all 40 images": "Zobrazit všech 40 obrázků",
+  "Show all images": "Zobrazit všechny obrázky",
   "Show fewer images": "Zobrazit méně obrázků",
   "Selected architectural visualisations": "Vybrané architektonické vizualizace",
   "Hillside Villa": "Vila ve svahu",

@@ -4,6 +4,7 @@ import { Images, Upload, X, ArrowUp, ArrowDown, Loader2, ExternalLink } from "lu
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { VisualizationGalleryManager } from "@/components/admin/VisualizationGalleryManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,6 +140,7 @@ export default function AdminVisualizations() {
   return <div className="max-w-6xl mx-auto pb-12">
     <AdminPageHeader icon={Images} title="Portfolio vizualizací" subtitle="Obrázky nahrajte jednou. Komprese a hlavní portfolio se propojí automaticky."
       actions={<Button asChild variant="outline"><a href="/demos/atmosferi-viz/index.html#work" target="_blank" rel="noopener noreferrer"><ExternalLink className="w-4 h-4 mr-2" />Otevřít portfolio</a></Button>} />
+    <VisualizationGalleryManager projects={projects} disabled={busy || !!pendingSave || isPending || !!error} />
     <div className="grid lg:grid-cols-[1fr_1.15fr] gap-6">
       <fieldset disabled={busy || !!pendingSave} className="space-y-5 rounded-xl border p-5 min-w-0">
         <h2 className="font-semibold">Nový projekt</h2>
