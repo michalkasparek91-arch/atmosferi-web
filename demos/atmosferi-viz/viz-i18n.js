@@ -26,7 +26,7 @@
   "More images.": "Weitere Bilder.",
   "Behind the images": "Über mich",
   "I'm Michal. I work with architects to make their projects easier to see and understand.": "Ich bin Michal. Ich helfe Architekturbüros dabei, ihre Entwürfe anschaulich und verständlich zu präsentieren.",
-  "I studied architecture and have worked in architectural visualisation for more than ten years. I understand plans and models, and I pay attention to the materials, light and details that matter to your design. You'll work directly with me from the first preview to the final image.": "Ich habe Architektur studiert und arbeite seit über zehn Jahren in der Architekturvisualisierung. Ich verstehe Pläne und Modelle und achte auf Materialien, Licht und Details, die für Ihren Entwurf wichtig sind. Von der ersten Vorschau bis zum fertigen Bild arbeiten Sie direkt mit mir.",
+  "I studied architecture and have worked in architectural visualisation for 15 years. I understand plans and models, and I pay attention to the materials, light and details that matter to your design. You'll work directly with me from the first preview to the final image.": "Ich habe Architektur studiert und arbeite seit 15 Jahren in der Architekturvisualisierung. Ich verstehe Pläne und Modelle und achte auf Materialien, Licht und Details, die für Ihren Entwurf wichtig sind. Von der ersten Vorschau bis zum fertigen Bild arbeiten Sie direkt mit mir.",
   "Founder, Atmosferi Visualisation": "Gründer, Atmosferi Visualisation",
   "Tell me about your project.": "Erzählen Sie mir von Ihrem Projekt.",
   "A few details are enough to start. Tell me what you're working on and when you need the images.": "Für den Anfang reichen ein paar Angaben. Worum geht es bei Ihrem Projekt, und wann benötigen Sie die Bilder?",
@@ -72,7 +72,7 @@
   "More images.": "Další vizualizace.",
   "Behind the images": "Kdo za tím stojí",
   "I'm Michal. I work with architects to make their projects easier to see and understand.": "Jsem Michal. Pomáhám architektům ukázat jejich projekty srozumitelně a působivě.",
-  "I studied architecture and have worked in architectural visualisation for more than ten years. I understand plans and models, and I pay attention to the materials, light and details that matter to your design. You'll work directly with me from the first preview to the final image.": "Vystudoval jsem architekturu a přes deset let se věnuji architektonickým vizualizacím. Rozumím výkresům a modelům a záleží mi na materiálech, světle i detailech vašeho návrhu. Od prvního náhledu po finální obrázek jednáte přímo se mnou.",
+  "I studied architecture and have worked in architectural visualisation for 15 years. I understand plans and models, and I pay attention to the materials, light and details that matter to your design. You'll work directly with me from the first preview to the final image.": "Vystudoval jsem architekturu a už 15 let se věnuji architektonickým vizualizacím. Rozumím výkresům a modelům a záleží mi na materiálech, světle i detailech vašeho návrhu. Od prvního náhledu po finální obrázek jednáte přímo se mnou.",
   "Founder, Atmosferi Visualisation": "Zakladatel Atmosferi Visualisation",
   "Tell me about your project.": "Napište mi o svém projektu.",
   "A few details are enough to start. Tell me what you're working on and when you need the images.": "Na začátek stačí pár informací. Co navrhujete a kdy potřebujete vizualizace?",
@@ -211,12 +211,12 @@
   Object.assign(window.I18N_DICT.de, {
   "Architectural images, films and 360° tours.": "Architekturvisualisierungen, Filme und 360°-Rundgänge.",
   "I'm Michal, an architect and 3D artist. I help architects and developers show their projects clearly, before there's a building to photograph.": "Ich bin Michal, Architekt und 3D-Artist. Ich helfe Architekturbüros und Projektentwicklern, ihre Entwürfe anschaulich zu zeigen – noch bevor das Gebäude gebaut ist.",
-  "The architect behind your visualisations.": "Der Architekt hinter Ihren Visualisierungen."
+  "15 years of architectural visualisation.": "15 Jahre Erfahrung in der Architekturvisualisierung."
 });
   Object.assign(window.I18N_DICT.cs, {
   "Architectural images, films and 360° tours.": "Architektonické vizualizace, filmy a 360° prohlídky.",
   "I'm Michal, an architect and 3D artist. I help architects and developers show their projects clearly, before there's a building to photograph.": "Jsem Michal, architekt a 3D výtvarník. Pomáhám architektům a developerům srozumitelně ukázat jejich projekty ještě před realizací.",
-  "The architect behind your visualisations.": "Architekt za vašimi vizualizacemi."
+  "15 years of architectural visualisation.": "15 let zkušeností s architektonickými vizualizacemi."
 });
   /* Unified portfolio controls and project labels. */
   Object.assign(window.I18N_DICT.de, {
