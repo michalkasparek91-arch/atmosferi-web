@@ -67,6 +67,7 @@ jobs:
             ['facade-maintenance-access-architectural-rendering-review.html', 'en', 'rooftop-plant-screening-architectural-rendering-review.html', '2026-11-03'],
             ['architectural-rendering-balcony-guardrail-accuracy.html', 'en', 'architectural-rendering-glazing-reflection-transparency-review.html', '2026-11-03'],
             ['wayfinding-signage-architectural-rendering-review.html', 'en', 'accessible-route-accuracy-architectural-renderings.html', '2026-11-03'],
+            ['acoustic-screen-architectural-rendering-review.html', 'en', 'rooftop-plant-screening-architectural-rendering-review.html', '2026-11-03'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
