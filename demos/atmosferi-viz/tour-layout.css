@@ -1,0 +1,21 @@
+/* A compact interactive preview paired with the introduction and actions. */
+.visuals-page #threesixty .tour-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:center;gap:clamp(32px,5vw,80px);padding-top:clamp(64px,7vw,108px);}
+.visuals-page #threesixty #tour:not(.fs):not(:fullscreen){width:100%;max-width:none;margin:0;height:auto!important;min-height:0!important;max-height:560px;aspect-ratio:4/3;}
+.visuals-page #threesixty .tour-copy{min-width:0;}
+.visuals-page #threesixty .tour-copy .shead{padding-top:0;margin-bottom:24px;}
+.visuals-page #threesixty .tour-copy h2{max-width:15ch;text-wrap:balance;}
+.visuals-page #threesixty .tour-copy p{max-width:43ch;color:var(--ink-2);font-size:clamp(15px,1.2vw,17px);line-height:1.65;margin-bottom:28px;}
+.visuals-page #threesixty .tour-actions{display:flex;flex-direction:column;align-items:flex-start;gap:18px;}
+.visuals-page #threesixty .tour-actions .tour__start{background:var(--ink);color:var(--canvas);box-shadow:none;}
+.visuals-page #threesixty .tour-actions .tour__start:hover{background:var(--ink-2);}
+.visuals-page #threesixty .tour-actions .vrcta__btn{background:transparent;color:var(--ink);padding:8px 0;font-family:var(--sans);font-size:14px;letter-spacing:0;text-transform:none;}
+.visuals-page #threesixty .tour__gate{pointer-events:none;}
+.visuals-page #threesixty .tour__gate .tour__start-icon{width:58px;height:58px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.8);border-radius:50%;color:#fff;background:rgba(0,0,0,.2);}
+.visuals-page #threesixty .tour-actions button:focus-visible,.visuals-page #threesixty .tour-actions a:focus-visible{outline:2px solid var(--ink);outline-offset:5px;}
+@media(max-width:760px){
+  .visuals-page #threesixty .tour-layout{grid-template-columns:minmax(0,1fr);gap:28px;}
+  .visuals-page #threesixty .tour-copy{grid-row:1;}
+  .visuals-page #threesixty .tour-copy h2{max-width:18ch;}
+  .visuals-page #threesixty .tour-copy p{margin-bottom:22px;}
+  .visuals-page #threesixty #tour:not(.fs):not(:fullscreen){aspect-ratio:1/1;max-height:none;}
+}

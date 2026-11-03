@@ -1134,6 +1134,7 @@
 }
 </script>
 <link rel="stylesheet" href="../demo-polish.css?v=20261103">
+<link rel="stylesheet" href="tour-layout.css?v=20261103">
 </head>
 <body data-demo="atmosferi-viz" class="visuals-page">
 
@@ -1454,21 +1455,11 @@
 
 <!-- 360° — step inside -->
 <section id="threesixty">
-  <div class="wrap">
-    <div class="shead" data-rise>
-      <h2>Explore a space in 360°.</h2>
-      
-    </div>
-  </div>
+  <div class="wrap tour-layout">
   <div class="tour" id="tour" data-rise>
     <canvas class="tour__canvas" id="tourCanvas"></canvas>
     <div class="tour__gate" id="tourGate">
-      <button type="button" class="tour__start" id="tourStart" aria-controls="tourCanvas">
-        <span class="tour__start-icon" aria-hidden="true">360°</span>
-        <span>Explore in 360°</span>
-        <span class="tour__start-arrow" aria-hidden="true">↗</span>
-      </button>
-      <span class="tour__gate-hint">Scroll to continue down the page</span>
+      <span class="tour__start-icon" aria-hidden="true">360°</span>
     </div>
     <div class="tour__vig"></div>
     <div class="tour__markers" id="tourMarkers"></div>
@@ -1499,12 +1490,18 @@
     <div class="tour__scrollhint"><span>Hold ⌘ / Ctrl to zoom</span></div>
     <div class="tour__load" id="tourLoad"><span class="sp"></span></div>
   </div>
-  <div class="wrap vrcta" data-rise>
-    <div class="vrcta__txt">
-      <span class="vrcta__k"></span>
-      <p>This is a working sample tour. Look around, move between rooms or open the full-screen VR version.</p>
+  <div class="tour-copy" data-rise>
+    <div class="shead"><h2>Explore a space in 360°.</h2></div>
+    <p>This is a working sample tour. Look around, move between rooms or open the full-screen VR version.</p>
+    <div class="tour-actions">
+      <button type="button" class="tour__start" id="tourStart" aria-controls="tourCanvas">
+        <span class="tour__start-icon" aria-hidden="true">360°</span>
+        <span>Explore in 360°</span>
+        <span class="tour__start-arrow" aria-hidden="true">↗</span>
+      </button>
+      <a class="vrcta__btn" href="tour.html">Open the VR tour <span aria-hidden="true">↗</span></a>
     </div>
-    <a class="vrcta__btn" href="tour.html">Open the VR tour <span aria-hidden="true">↗</span></a>
+  </div>
   </div>
 </section>
 
