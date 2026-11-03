@@ -56,6 +56,7 @@
     }
   };
   var ORDER = ["living", "dining", "bedroom", "bath"];
+  var INITIAL_ROOM = "dining";
   function tr(key) {
     var lang = document.documentElement.lang || "en";
     return (window.I18N_DICT && window.I18N_DICT[lang] && window.I18N_DICT[lang][key]) || key;
@@ -80,7 +81,7 @@
       startBtn.textContent = "360° preview unavailable";
     }
     canvas.style.display = "none";
-    tour.style.background = "#0b0a08 center/cover no-repeat url('" + NODES.living.img + "')";
+    tour.style.background = "#0b0a08 center/cover no-repeat url('" + NODES[INITIAL_ROOM].img + "')";
     if (loadEl) loadEl.classList.add("gone");
     return;
   }
@@ -100,7 +101,7 @@
 
   var lon = 0, lat = 0, fov = 75;
   var targetVec = new THREE.Vector3();
-  var current = "living", busy = false, firstLoaded = false;
+  var current = INITIAL_ROOM, busy = false, firstLoaded = false;
   var autoOn = !reduce, dragging = false;
   var velLon = 0, velLat = 0;
   var pointers = {}, lastDist = 0;
@@ -375,6 +376,6 @@
 
   window.addEventListener("resize", size);
   size();
-  loadNode("living", true);
+  loadNode(INITIAL_ROOM, true);
   frame();
 })();
