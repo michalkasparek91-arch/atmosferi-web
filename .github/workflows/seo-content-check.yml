@@ -57,7 +57,8 @@ jobs:
             ['interior-rendering-furniture-scale-clearance-checklist.html', 'en', 'apartment-view-visualisation-accuracy-checklist.html', '2026-11-03'],
             ['architectural-rendering-material-finish-approval-checklist.html', 'en', 'architectural-rendering-feedback-revision-checklist.html', '2026-11-03'],
             ['accessible-route-accuracy-architectural-renderings.html', 'en', 'interior-rendering-furniture-scale-clearance-checklist.html', '2026-11-03'],
-            ['nighttime-architectural-rendering-light-spill-review.html', 'en', 'architectural-rendering-sun-shadow-accuracy-checklist.html', '2026-11-03']
+            ['nighttime-architectural-rendering-light-spill-review.html', 'en', 'architectural-rendering-sun-shadow-accuracy-checklist.html', '2026-11-03'],
+            ['architectural-rendering-overlooking-privacy-viewpoints.html', 'en', 'apartment-view-visualisation-accuracy-checklist.html', '2026-11-03'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
