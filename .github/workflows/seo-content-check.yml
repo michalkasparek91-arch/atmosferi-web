@@ -51,7 +51,8 @@ jobs:
             ['public-consultation-architecture-project-website-guide.html', 'en', 'residential-development-website-content-checklist.html', '2026-11-02'],
             ['architectural-animation-brief-shot-list-checklist.html', 'en', 'services.html', '2026-11-02'],
             ['architectural-renderings-print-ready-brochures-hoardings.html', 'en', 'residential-development-website-content-checklist.html', '2026-11-03'],
-            ['apartment-view-visualisation-accuracy-checklist.html', 'en', 'interactive-floor-plans-property-development-website.html', '2026-11-03']
+            ['apartment-view-visualisation-accuracy-checklist.html', 'en', 'interactive-floor-plans-property-development-website.html', '2026-11-03'],
+            ['architectural-design-options-rendering-comparison.html', 'en', 'architectural-rendering-feedback-revision-checklist.html', '2026-11-03']
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
@@ -230,6 +231,19 @@ jobs:
               const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
               const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
               assert(nav.length >= 13 && nav.every(id => ids.has(id)), path + ': valid contents anchors');
+            }
+            if (path === 'architectural-design-options-rendering-comparison.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert((h.match(/<section id=/g) || []).length >= 13, path + ': substantive sections');
+              assert(h.includes('Fictional example.'), path + ': illustrative example labelled');
+              assert(h.includes('class="guide-table-wrap"'), path + ': mobile comparison table');
+              assert(h.includes('scope="col"'), path + ': accessible table headings');
+              assert(h.includes('property="og:url" content="' + url + '"'), path + ': OG URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relation');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(nav.length >= 13 && nav.every(id => ids.has(id)), path + ': contents anchors');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
