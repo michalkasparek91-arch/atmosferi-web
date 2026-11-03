@@ -73,6 +73,7 @@ jobs:
             ['rainwater-downpipes-architectural-rendering-review.html', 'en', 'site-grading-retaining-wall-architectural-rendering-review.html', '2026-11-03'],
             ['facade-movement-joints-architectural-rendering-review.html', 'en', 'existing-proposed-building-fabric-rendering-review.html', '2026-11-03'],
             ['site-boundary-fences-gates-architectural-rendering-review.html', 'en', 'site-grading-retaining-wall-architectural-rendering-review.html', '2026-11-03'],
+            ['external-sun-shading-louvers-architectural-rendering-review.html', 'en', 'architectural-rendering-sun-shadow-accuracy-checklist.html', '2026-11-03'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
