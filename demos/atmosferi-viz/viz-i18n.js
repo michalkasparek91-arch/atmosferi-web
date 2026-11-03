@@ -211,12 +211,12 @@
   Object.assign(window.I18N_DICT.de, {
   "Architectural images, films and 360° tours.": "Architekturvisualisierungen, Filme und 360°-Rundgänge.",
   "I'm Michal, an architect and 3D artist. I help architects and developers show their projects clearly, before there's a building to photograph.": "Ich bin Michal, Architekt und 3D-Artist. Ich helfe Architekturbüros und Projektentwicklern, ihre Entwürfe anschaulich zu zeigen – noch bevor das Gebäude gebaut ist.",
-  "Hi, I'm Michal.": "Hallo, ich bin Michal."
+  "The architect behind your visualisations.": "Der Architekt hinter Ihren Visualisierungen."
 });
   Object.assign(window.I18N_DICT.cs, {
   "Architectural images, films and 360° tours.": "Architektonické vizualizace, filmy a 360° prohlídky.",
   "I'm Michal, an architect and 3D artist. I help architects and developers show their projects clearly, before there's a building to photograph.": "Jsem Michal, architekt a 3D výtvarník. Pomáhám architektům a developerům srozumitelně ukázat jejich projekty ještě před realizací.",
-  "Hi, I'm Michal.": "Ahoj, jsem Michal."
+  "The architect behind your visualisations.": "Architekt za vašimi vizualizacemi."
 });
   /* Unified portfolio controls and project labels. */
   Object.assign(window.I18N_DICT.de, {
