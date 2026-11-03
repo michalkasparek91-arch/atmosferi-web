@@ -64,6 +64,7 @@ jobs:
             ['rooftop-plant-screening-architectural-rendering-review.html', 'en', 'existing-proposed-building-fabric-rendering-review.html', '2026-11-03'],
             ['architectural-rendering-glazing-reflection-transparency-review.html', 'en', 'architectural-rendering-material-finish-approval-checklist.html', '2026-11-03'],
             ['site-grading-retaining-wall-architectural-rendering-review.html', 'en', 'flood-resilience-architectural-visualisation-review.html', '2026-11-03'],
+            ['facade-maintenance-access-architectural-rendering-review.html', 'en', 'rooftop-plant-screening-architectural-rendering-review.html', '2026-11-03'],
             ['architectural-rendering-balcony-guardrail-accuracy.html', 'en', 'architectural-rendering-glazing-reflection-transparency-review.html', '2026-11-03'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
@@ -269,6 +270,18 @@ jobs:
               const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
               assert(nav.length >= 12 && nav.every(id => ids.has(id)), path + ': contents anchors');
               assert(/@media\s*\(max-width:\s*850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')) || fs.readFileSync('assets/seo-guides.css', 'utf8').includes('@media(max-width:850px)'), path + ': mobile breakpoint');
+            }
+            if (path === 'facade-maintenance-access-architectural-rendering-review.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert((h.match(/<section id=/g) || []).length >= 12, path + ': substantive sections');
+              assert(h.includes('Fictional illustrative example'), path + ': fictional example labelled');
+              assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': accessible responsive table');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': article relation');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(nav.length >= 12 && nav.every(id => ids.has(id)), path + ': contents anchors');
+              assert(/@media\\s*\\(max-width:\\s*850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')) || fs.readFileSync('assets/seo-guides.css', 'utf8').includes('@media(max-width:850px)'), path + ': mobile breakpoint');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
