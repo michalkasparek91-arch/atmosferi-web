@@ -6,7 +6,13 @@ import { readFileSync } from 'node:fs';
 let skip = false;
 if (process.env.VERCEL_ENV === 'preview' && /^seo[-/]/.test(process.env.VERCEL_GIT_COMMIT_REF || '')) {
   try {
-    const git = (...args) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const git = (...args) => execFileSync('git', args, { encoding: 'utf8', timeout: 10000, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    try {
+      git('merge-base', 'HEAD', 'origin/main');
+    } catch {
+      // Vercel may clone just the feature branch. Fetch only the comparison ref.
+      git('fetch', '--no-tags', '--depth=100', 'origin', 'main:refs/remotes/origin/main');
+    }
     const base = git('merge-base', 'HEAD', 'origin/main');
     const files = git('diff', '--name-only', '-z', base, 'HEAD').split('\0').filter(Boolean);
     skip = files.length > 0 && files.every(file => {
