@@ -1,5 +1,6 @@
 {
   "outputDirectory": "_vercel_out",
+  "ignoreCommand": "node scripts/vercel-ignore-build.mjs",
   "redirects": [
     {
       "source": "/sluzby",
