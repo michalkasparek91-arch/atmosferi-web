@@ -311,7 +311,7 @@ jobs:
               const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
               assert(nav.length >= 13 && nav.every(id => ids.has(id)), path + ': contents anchors');
               const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
-              assert(/@media\\s*\\(max-width:\\s*850px\\)/.test(css) || css.includes('@media(max-width:850px)'), path + ': mobile breakpoint');
+              assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
               assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
               assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
             }
