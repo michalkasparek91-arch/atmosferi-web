@@ -83,6 +83,7 @@ jobs:
             ['bicycle-storage-architectural-rendering-review.html', 'en', 'bin-store-refuse-collection-architectural-rendering-review.html', '2026-11-04'],
             ['green-roof-architectural-rendering-accuracy-review.html', 'en', 'rooftop-plant-screening-architectural-rendering-review.html', '2026-11-04'],
             ['rain-garden-bioswale-architectural-rendering-review.html', 'en', 'flood-resilience-architectural-visualisation-review.html', '2026-11-04'],
+            ['architecture-competition-rendering-submission-checklist.html', 'en', 'architectural-design-options-rendering-comparison.html', '2026-11-04'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
@@ -299,6 +300,20 @@ jobs:
               const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
               assert(nav.length >= 12 && nav.every(id => ids.has(id)), path + ': contents anchors');
               assert(/@media\\s*\\(max-width:\\s*850px\\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')) || fs.readFileSync('assets/seo-guides.css', 'utf8').includes('@media(max-width:850px)'), path + ': mobile breakpoint');
+            }
+            if (path === 'architecture-competition-rendering-submission-checklist.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert((h.match(/<section id=/g) || []).length >= 13, path + ': substantive sections');
+              assert(h.includes('Fictional illustrative example'), path + ': example labelled');
+              assert(h.includes('4,000 ÷ (600 ÷ 25.4)'), path + ': usable pixel calculation');
+              assert(h.includes('architectural-renderings-print-ready-brochures-hoardings.html'), path + ': topical print reference');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(nav.length >= 13 && nav.every(id => ids.has(id)), path + ': contents anchors');
+              const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
+              assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
