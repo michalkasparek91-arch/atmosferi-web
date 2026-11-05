@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           action: "send_template_batch", template_id: template.id,
-          provider: state.provider, batch_limit: Math.min(state.provider === "smtp" ? 1 : 5, Number(remaining)),
+          provider: state.provider, batch_limit: Math.min(5, Number(remaining)),
           create_drafts: true,
           require_recipient_evidence: true,
         }),

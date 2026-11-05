@@ -108,6 +108,7 @@ export const AdminOutbox = () => {
         batch_limit: Math.min(remaining, emailProvider === "smtp" ? 5 : 20),
         provider: emailProvider,
         create_drafts: true,
+        require_recipient_evidence: true,
       },
     });
     if (error) {
@@ -138,7 +139,7 @@ export const AdminOutbox = () => {
     if (!templateId) { toast.error("Chybí šablona kampaně."); return; }
     campaignStopped.current = false;
     if (campaignTimer.current) clearInterval(campaignTimer.current);
-    const dailyLimit = DAILY_LIMITS[emailProvider];
+    const dailyLimit = automation?.daily_limit ?? DAILY_LIMITS[emailProvider];
     let totalSent = 0;
     let totalFailed = 0;
     let wavesSent = 0;
@@ -211,7 +212,7 @@ export const AdminOutbox = () => {
 
       setActiveCampaign(prev => prev ? { ...prev, intervalId } : null);
     }
-  }, [emailProvider, sendOneWave, queryClient]);
+  }, [emailProvider, sendOneWave, queryClient, automation?.daily_limit]);
   const { data: drafts = [], isLoading } = useQuery({
     queryKey: ["admin-outbox-drafts"],
     queryFn: async () => {
@@ -449,7 +450,7 @@ export const AdminOutbox = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {automation?.enabled
-                ? `Běží na serveru i s vypnutým počítačem. Vlny každé 3 minuty, společný limit ${automation.daily_limit}/den. Odesílají se pouze kontakty s ověřenou doménou.`
+                ? `Běží na serveru i s vypnutým počítačem. Až 5 kontaktů každé 3 minuty, společný limit ${automation.daily_limit}/den. Před odesláním se ověřuje doména i adresa na webu firmy.`
                 : "Rozesílání je vypnuté. Kontrola domén běží na serveru nezávisle na této stránce."}
             </p>
             {validation?.last_run_at && <p className="text-xs text-muted-foreground">Kontrola domén: {new Date(validation.last_run_at).toLocaleString("cs-CZ")} · poslední dávka {validation.checked_domains} domén</p>}
@@ -482,10 +483,11 @@ export const AdminOutbox = () => {
             <div className="flex items-center gap-2 mb-1">
               {!activeCampaign.stopped && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
               <p className="text-sm font-bold truncate">
-                {activeCampaign.stopped ? (activeCampaign.error ? 'Kampaň přerušena chybou' : 'Kampaň ukončena') : `🚀 Kampaň běží – ${activeCampaign.templateName}`}
+                {activeCampaign.stopped ? (activeCampaign.error ? 'Poslední ruční kampaň skončila chybou' : 'Ruční kampaň ukončena') : `🚀 Ruční kampaň běží – ${activeCampaign.templateName}`}
               </p>
             </div>
             {activeCampaign.error && <p className="text-xs text-red-600 mt-1">{activeCampaign.error}</p>}
+            {activeCampaign.stopped && automation?.enabled && !automation.safety_paused && <p className="text-xs text-emerald-700 mt-1">Toto je výsledek ručního pokusu. Serverová automatika mezitím běží samostatně podle stavu výše.</p>}
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span>Odesláno: <strong className="text-foreground">{activeCampaign.totalSent}</strong> / {activeCampaign.dailyLimit}</span>
               <span>Vlny: <strong className="text-foreground">{activeCampaign.wavesSent}</strong></span>

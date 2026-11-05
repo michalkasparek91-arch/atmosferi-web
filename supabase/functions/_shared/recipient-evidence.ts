@@ -15,9 +15,9 @@ export function publicWebsite(url: string): URL {
   u.hash=''; return u;
 }
 
-async function publicDns(host: string) {
+async function publicDns(host: string, signal: AbortSignal) {
   for (const type of ['A','AAAA']) {
-    const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=${type}`, {signal:AbortSignal.timeout(3000)});
+    const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=${type}`, {signal:AbortSignal.any([signal,AbortSignal.timeout(3000)])});
     if(!r.ok) throw new Error('DNS unavailable');
     const data=await r.json();
     for(const answer of data.Answer || []) {
@@ -29,14 +29,15 @@ async function publicDns(host: string) {
 
 export async function verifyRecipientWebsite(email: string, website: string): Promise<{status:'verified'|'not_found'|'unknown';url:string|null}> {
   try {
-    const first=publicWebsite(website); await publicDns(first.hostname);
+    const signal=AbortSignal.timeout(8000);
+    const first=publicWebsite(website); await publicDns(first.hostname,signal);
     const allowed=(u: URL) => u.hostname.replace(/^www\./,'') === first.hostname.replace(/^www\./,'');
     const load=async (initial: URL) => {
       let url=initial;
       for(let redirects=0;redirects<3;redirects++) {
         publicWebsite(url.href); if(!allowed(url)) throw new Error('External redirect');
-        const r=await fetch(url,{redirect:'manual',signal:AbortSignal.timeout(4000),headers:{'User-Agent':'Atmosferi contact verification'}});
-        if(r.status>=300 && r.status<400 && r.headers.get('location')) { await r.body?.cancel();url=publicWebsite(new URL(r.headers.get('location')!,url).href);await publicDns(url.hostname);continue; }
+        const r=await fetch(url,{redirect:'manual',signal:AbortSignal.any([signal,AbortSignal.timeout(4000)]),headers:{'User-Agent':'Atmosferi contact verification'}});
+        if(r.status>=300 && r.status<400 && r.headers.get('location')) { await r.body?.cancel();url=publicWebsite(new URL(r.headers.get('location')!,url).href);await publicDns(url.hostname,signal);continue; }
         if(!r.ok || !r.headers.get('content-type')?.includes('text/html')) {await r.body?.cancel();throw new Error('Website unavailable');}
         const reader=r.body!.getReader(); let text='',size=0;const decoder=new TextDecoder();
         try {while(size<500000) {const part=await reader.read();if(part.done) break;size+=part.value.length;text+=decoder.decode(part.value,{stream:true});}} finally {await reader.cancel();}

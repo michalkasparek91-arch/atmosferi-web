@@ -231,7 +231,9 @@ Deno.serve(async (req) => {
       let quotaMessage: string | undefined;
       let bccSent = false;
 
+      const waveStarted = Date.now();
       for (let i = 0; i < idsThisRun.length; i++) {
+        if (Date.now() - waveStarted > 45000) break; // Leave unattempted drafts for the next server wave.
         const draftId = idsThisRun[i];
         // Dynamic random sleep (1.5 - 3.5 seconds) to mimic human pacing while fitting in limits
         const randomMs = Math.floor(Math.random() * (3500 - 1500 + 1)) + 1500;
