@@ -60,6 +60,7 @@ Deno.serve(async (req: Request) => {
           action: "send_template_batch", template_id: template.id,
           provider: state.provider, batch_limit: Math.min(state.provider === "smtp" ? 1 : 5, Number(remaining)),
           create_drafts: true,
+          require_recipient_evidence: true,
         }),
       });
       const result = await response.json();
@@ -74,9 +75,10 @@ Deno.serve(async (req: Request) => {
       };
       const { error: saveError } = await db.from("email_dispatch_state").update(update).eq("id", 1).eq("safety_paused", false);
       if (saveError) throw saveError;
-      if (result.sent_count || result.failed_count) return json({
+      if (result.sent_count || result.failed_count || result.review_count) return json({
         sent_count: result.sent_count || 0,
         failed_count: result.failed_count || 0,
+        review_count: result.review_count || 0,
         template_slug: template.slug,
       });
     }

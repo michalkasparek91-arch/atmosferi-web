@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { sendEmail } from "../_shared/email.ts";
 import { availableOutreachLeads, isEligibleForOutreach } from "../_shared/outreach-leads.ts";
+import { verifyRecipientWebsite } from "../_shared/recipient-evidence.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -126,6 +127,7 @@ Deno.serve(async (req) => {
       batch_limit,
       provider: rawProvider,
       create_drafts,
+      require_recipient_evidence,
     } = await req.json();
 
     if (rawProvider && !["brevo", "ses", "smtp"].includes(rawProvider)) throw new Error("Invalid provider");
@@ -224,6 +226,7 @@ Deno.serve(async (req) => {
 
       let sent_count = 0;
       let failed_count = 0;
+      let review_count = 0;
       let quotaHit = false;
       let quotaMessage: string | undefined;
       let bccSent = false;
@@ -269,6 +272,25 @@ Deno.serve(async (req) => {
           .select("safety_paused").eq("id", 1).single();
         if (safetyError) throw safetyError;
         if (!targetEmail && currentSafety.safety_paused) throw new Error("Rozesílání bylo automaticky pozastaveno kvůli doručitelnosti.");
+
+        // Automated acquisition verifies each address on the company's public website.
+        // A questionable contact is deferred individually; it is not a failed send.
+        if (!targetEmail && draft.lead && require_recipient_evidence === true) {
+          const evidence = await verifyRecipientWebsite(recipientEmail, draft.lead.website || "");
+          if (evidence.status !== "verified") {
+            const tags = [...new Set([...(draft.lead.tags || []), "email:needs-website-evidence", `email:evidence-${evidence.status}`])];
+            const { error: reviewError } = await supabaseAdmin.from("marketing_leads").update({
+              outreach_import_review: true, outreach_email_ready: false, tags,
+            }).eq("id", draft.lead.id);
+            if (reviewError) throw reviewError;
+            const {error: draftError} = await supabaseAdmin.from("email_outbox").update({
+              error_message: "Odloženo před odesláním: adresa nebyla ověřena na webu firmy. Kontakt čeká na kontrolu.",
+            }).eq("id", draftId).is("dispatch_attempted_at", null);
+            if(draftError) throw draftError;
+            review_count++;
+            continue;
+          }
+        }
 
         let personName = draft.worker?.full_name || draft.lead?.decision_maker_name;
         if (personName?.trim().toLowerCase() === "studio") {
@@ -554,6 +576,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         sent_count,
         failed_count,
+        review_count,
         has_more: action === "send_selected_drafts" ? resolvedDraftIds.length > idsThisRun.length : remainingDrafts > 0,
         remaining: remainingDrafts,
         chunk_size: chunkSize,
