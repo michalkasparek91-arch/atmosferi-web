@@ -93,6 +93,7 @@ jobs:
             ['architectural-rendering-screen-colour-approval-workflow.html', 'en', 'architectural-rendering-material-finish-approval-checklist.html', '2026-11-05'],
             ['brick-bond-coursing-architectural-rendering-review.html', 'en', 'facade-movement-joints-architectural-rendering-review.html', '2026-11-05'],
             ['timber-cladding-board-layout-rendering-review.html', 'en', 'architectural-rendering-material-finish-approval-checklist.html', '2026-11-05'],
+            ['staircase-tread-riser-geometry-rendering-review.html', 'en', 'accessible-route-accuracy-architectural-renderings.html', '2026-11-05'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
