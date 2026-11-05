@@ -88,6 +88,7 @@ jobs:
             ['architectural-rendering-deliverables-source-files-handover.html', 'en', 'architectural-rendering-feedback-revision-checklist.html', '2026-11-04'],
             ['architectural-rendering-rfp-tender-comparison-checklist.html', 'en', 'architectural-rendering-deliverables-source-files-handover.html', '2026-11-04'],
             ['interior-rendering-daylight-artificial-lighting-review.html', 'en', 'nighttime-architectural-rendering-light-spill-review.html', '2026-11-04'],
+            ['architectural-rendering-image-provenance-ai-editing-review.html', 'en', 'architectural-rendering-deliverables-source-files-handover.html', '2026-11-05'],
           ];
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
