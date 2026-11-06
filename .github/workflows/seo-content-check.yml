@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['loading-bay-delivery-access-architectural-rendering-review.html', 'en', 'underground-parking-ramp-architectural-rendering-review.html', '2026-11-07'],
             ['playground-architectural-rendering-safety-review.html', 'en', 'landscape-planting-accuracy-architectural-renderings.html', '2026-11-06'],
             ['prepare-architecture-projects-for-website.html', 'en', 'services.html'],
             ['struktura-webu-architektonickeho-atelieru.html', 'cs', 'weby-pro-architekty.html'],
