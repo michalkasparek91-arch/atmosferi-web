@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['construction-hoarding-architectural-rendering-review.html', 'en', 'phased-development-architectural-visualisation-checklist.html', '2026-11-07'],
             ['permeable-paving-architectural-rendering-review.html', 'en', 'rain-garden-bioswale-architectural-rendering-review.html', '2026-11-07'],
             ['basement-lightwell-architectural-rendering-review.html', 'en', 'interior-rendering-daylight-artificial-lighting-review.html', '2026-11-07'],
             ['loading-bay-delivery-access-architectural-rendering-review.html', 'en', 'underground-parking-ramp-architectural-rendering-review.html', '2026-11-07'],
@@ -328,6 +329,16 @@ jobs:
               assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
               assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
               assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
+            }
+            if (path === 'construction-hoarding-architectural-rendering-review.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert((h.match(/<section id=/g) || []).length >= 13, path + ': substantive sections');
+              assert(h.includes('Fictional illustrative example'), path + ': fictional example labelled');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(nav.length >= 13 && nav.every(id => ids.has(id)), path + ': contents anchors');
+              const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
+              assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
