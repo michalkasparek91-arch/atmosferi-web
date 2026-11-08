@@ -55,34 +55,81 @@
   window.addEventListener("resize", requestSync);
   window.addEventListener("pageshow", requestSync);
 
-  var buttons = Array.from(document.querySelectorAll(".un-filter"));
-  var cards = Array.from(document.querySelectorAll(".un-work-card"));
-  var grid = document.getElementById("workGrid");
-  var announcer = document.createElement("span");
-  announcer.className = "sr-only";
-  announcer.setAttribute("role", "status");
-  announcer.setAttribute("aria-live", "polite");
-  announcer.style.cssText = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;";
-  if (grid) grid.before(announcer);
+  /* The full architecture archive keeps its individual project series in
+     one native, keyboard-accessible dialog. No duplicate gallery script. */
+  var gallery = Array.from(document.querySelectorAll(".un-viz-item"));
+  var lightbox = document.getElementById("visualLightbox");
+  if (gallery.length && lightbox && typeof lightbox.showModal === "function") {
+    var large = document.getElementById("visualLarge");
+    var count = document.getElementById("visualCount");
+    var title = document.getElementById("visualTitle");
+    var caption = document.getElementById("visualCaption");
+    var note = document.getElementById("visualNote");
+    var closeButton = document.getElementById("visualClose");
+    var previous = document.getElementById("visualPrev");
+    var next = document.getElementById("visualNext");
+    var activeItems = gallery;
+    var activeIndex = 0;
+    var opener = null;
+    var oldOverflow = "";
 
-  buttons.forEach(function (button) {
-    button.addEventListener("click", function () {
-      var filter = button.getAttribute("data-filter") || "all";
-      buttons.forEach(function (b) {
-        b.setAttribute("aria-pressed", String(b === button));
+    function showImage(index) {
+      if (!activeItems.length) return;
+      activeIndex = (index + activeItems.length) % activeItems.length;
+      var imageButton = activeItems[activeIndex];
+      var image = imageButton.querySelector("img");
+      large.src = imageButton.getAttribute("data-full");
+      large.alt = image ? image.getAttribute("alt") || "" : "";
+      title.textContent = tr(imageButton.getAttribute("data-project-title") || imageButton.getAttribute("data-cap") || "");
+      var imageCaption = imageButton.getAttribute("data-cap") || "";
+      var imageMeta = imageButton.getAttribute("data-meta") || "";
+      caption.textContent = tr(imageCaption) + (imageMeta ? " · " + tr(imageMeta) : "");
+      var message = imageButton.getAttribute("data-project-note") || "";
+      note.textContent = tr(message);
+      note.hidden = !message;
+      count.textContent = String(activeIndex + 1).padStart(2,"0") + " / " + String(activeItems.length).padStart(2,"0");
+    }
+
+    function openImage(imageButton) {
+      opener = imageButton;
+      var groupName = imageButton.getAttribute("data-project");
+      var group = groupName ? gallery.filter(function (entry) {
+        return entry.getAttribute("data-project") === groupName;
+      }) : [];
+      // As on the original Visuals page, single-image projects navigate
+      // the whole archive; series navigate only that project's images.
+      activeItems = group.length > 1 ? group : gallery;
+      showImage(activeItems.indexOf(imageButton));
+      oldOverflow = document.body.style.overflow;
+      lightbox.showModal();
+      document.body.style.overflow = "hidden";
+      closeButton.focus({ preventScroll: true });
+    }
+
+    gallery.forEach(function (imageButton) {
+      imageButton.addEventListener("click", function () {
+        openImage(imageButton);
       });
-      var visible = 0;
-      cards.forEach(function (card) {
-        var keep = filter === "all" || card.getAttribute("data-category") === filter;
-        card.hidden = !keep;
-        if (keep) {
-          card.classList.add("visible");
-          visible++;
-        }
-      });
-      announcer.textContent = visible + " " + tr("projects shown");
     });
-  });
+    closeButton.addEventListener("click", function () { lightbox.close(); });
+    previous.addEventListener("click", function () { showImage(activeIndex - 1); });
+    next.addEventListener("click", function () { showImage(activeIndex + 1); });
+    lightbox.addEventListener("click", function (event) {
+      if (event.target === lightbox) lightbox.close();
+    });
+    lightbox.addEventListener("close", function () {
+      document.body.style.overflow = oldOverflow;
+      large.removeAttribute("src");
+      if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+      opener = null;
+    });
+    document.addEventListener("keydown", function (event) {
+      if (!lightbox.open) return;
+      if (event.key === "ArrowRight") { event.preventDefault(); showImage(activeIndex + 1); }
+      if (event.key === "ArrowLeft") { event.preventDefault(); showImage(activeIndex - 1); }
+      // Escape is handled by <dialog> natively.
+    });
+  }
 
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if ("IntersectionObserver" in window && !reduced) {
