@@ -2,6 +2,19 @@
 
 > Atmospheric design studio. Contemporary, minimal, light, bold — and chic.
 
+## Current public website structure (November 2026)
+
+- `index.html` — **one unified Atmosferi° homepage**, showing architectural visualisation, animation and websites together.
+- `websites.html` — preserved specialist website-design landing page and working website concepts (previous homepage).
+- `demos/atmosferi-viz/index.html` — specialist visualisation portfolio, motion and interactive 360° experiences.
+- `work.html`, `services.html`, `pricing.html`, `studio.html`, `contact.html`, `start.html` — retained deeper pages and enquiry journeys.
+- `assets/unified-home.css`, `assets/unified-home.js`, `assets/unified-home-i18n.js` — homepage styles, behaviour and EN/DE/CS translations.
+
+Do not split the root homepage back into a Websites/Visuals switcher. The separate service pages are for deeper explanations, targeted traffic and SEO. The website previews are working **concept demos**, not client-commissioned sites; describe them accordingly. Preserve the root canonical URL and the four static-language architecture-website landing pages.
+
+The notes below describe the original design-system foundations and are retained as historical background.
+
+
 Atmosferi is a (fictional/in-development) creative-technology studio working at the
 intersection of **photography, spatial design, and interface**. The brand voice is
 that of a precision instrument: severe Swiss typography, a strictly monochrome
