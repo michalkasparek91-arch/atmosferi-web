@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['multilingual-architecture-portfolio-website-qa.html', 'en', 'architecture-portfolio-website-url-migration.html', '2026-11-08'],
             ['planning-submission-visualisation-evidence-pack.html', 'en', 'architectural-photomontage-camera-matching-checklist.html', '2026-11-08'],
             ['rooflight-skylight-architectural-rendering-review.html', 'en', 'roof-snow-guards-architectural-rendering-review.html', '2026-11-08'],
             ['facade-ventilation-grilles-architectural-rendering-review.html', 'en', 'rooftop-plant-screening-architectural-rendering-review.html', '2026-11-08'],
