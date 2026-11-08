@@ -107,4 +107,28 @@
 });
   Object.assign(window.I18N_DICT.de, { "All website concepts": "Alle Website-Konzepte", "Architecture websites by language": "Architekturwebsites nach Sprache" });
   Object.assign(window.I18N_DICT.cs, { "All website concepts": "Všechny koncepty webů", "Architecture websites by language": "Architektonické weby podle jazyka" });
+  Object.assign(window.I18N_DICT.de, {
+  "projects shown": "Projekte angezeigt",
+  "Warmly lit contemporary villa at dusk": "Zeitgenössische Villa mit warmer Beleuchtung in der Abenddämmerung",
+  "Expressive green high-rise used in the VOLUM website concept": "Markantes begrüntes Hochhaus aus dem VOLUM-Website-Konzept",
+  "Timber kindergarten integrated into a green forest landscape": "Holz-Kindergarten in einer grünen Waldlandschaft",
+  "Timber cabin by a mountain lake from Atelier Voss website concept": "Holzhaus an einem Bergsee aus dem Atelier-Voss-Konzept",
+  "Modern timber and concrete retreat surrounded by a remote Norwegian mountain valley": "Modernes Haus aus Holz und Beton in einem norwegischen Bergtal",
+  "Warm, carefully detailed interior from the OBJEKT studio website concept": "Warmer, sorgfältig gestalteter Innenraum aus dem OBJEKT-Konzept",
+  "Architectural rendering of a residential high-rise beside an urban plaza": "Architekturvisualisierung eines Wohnturms an einem Stadtplatz",
+  "Contemporary architecture featured in the Meridian developer website concept": "Zeitgenössische Architektur aus dem Meridian-Konzept für Projektentwickler",
+  "Portrait of Atmosferi founder and architect Michal": "Porträt des Atmosferi-Gründers und Architekten Michal"
+});
+  Object.assign(window.I18N_DICT.cs, {
+  "projects shown": "zobrazených projektů",
+  "Warmly lit contemporary villa at dusk": "Současná vila s teplým osvětlením za soumraku",
+  "Expressive green high-rise used in the VOLUM website concept": "Výrazná zelená výšková budova z konceptu webu VOLUM",
+  "Timber kindergarten integrated into a green forest landscape": "Dřevěná školka zasazená do zelené lesní krajiny",
+  "Timber cabin by a mountain lake from Atelier Voss website concept": "Dřevěný dům u horského jezera z konceptu Atelier Voss",
+  "Modern timber and concrete retreat surrounded by a remote Norwegian mountain valley": "Moderní dřevobetonový dům v odlehlém norském horském údolí",
+  "Warm, carefully detailed interior from the OBJEKT studio website concept": "Útulný, pečlivě navržený interiér z konceptu OBJEKT",
+  "Architectural rendering of a residential high-rise beside an urban plaza": "Architektonická vizualizace obytné výškové budovy u městského náměstí",
+  "Contemporary architecture featured in the Meridian developer website concept": "Současná architektura z developerského konceptu webu Meridian",
+  "Portrait of Atmosferi founder and architect Michal": "Portrét zakladatele Atmosferi, architekta Michala"
+});
 })();
