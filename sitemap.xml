@@ -67,4 +67,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://www.atmosferi.com/work.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/work.html"/>
   </url>
+  <url>
+    <loc>https://www.atmosferi.com/websites.html</loc>
+  </url>
 </urlset>
