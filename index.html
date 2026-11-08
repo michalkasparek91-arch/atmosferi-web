@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/unified-home.css?v=20261108-square-rail">
+  <link rel="stylesheet" href="assets/unified-home.css?v=20261108-hero-film-bg">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Atmosferi°">
   <meta property="og:title" content="Atmosferi° — Architecture, beautifully presented.">
@@ -64,20 +64,23 @@
   </header>
 
   <main id="main">
-    <section class="un-hero" id="home" aria-label="Atmosferi studio">
-      <div class="container">
+    <section class="un-hero un-hero--video" id="home" aria-label="Atmosferi studio">
+      <div class="un-hero__media" aria-hidden="true">
+        <video id="heroFilm" autoplay muted loop playsinline preload="metadata" poster="demos/atmosferi-viz/img/mountain-retreat-poster.jpg">
+          <source src="demos/atmosferi-viz/media/mountain-retreat.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="un-hero__shade" aria-hidden="true"></div>
+      <div class="container un-hero__content">
         <h1><span>Architecture,</span><span>beautifully presented.</span></h1>
         <div class="un-hero__intro">
           <p class="un-hero__lead">Architectural visualisations, films and websites. Made by an architect, with an eye for how projects should look and feel.</p>
           <a class="un-action un-action--light" href="#work">Explore selected work <span class="un-action__arrow" aria-hidden="true">↗</span></a>
         </div>
-        <div class="un-film">
-          <video id="heroFilm" autoplay muted loop playsinline preload="metadata" poster="demos/atmosferi-viz/img/mountain-retreat-poster.jpg" aria-label="Architectural animation showing a contemporary retreat">
-            <source src="demos/atmosferi-viz/media/mountain-retreat.mp4" type="video/mp4">
-          </video>
-          <span class="un-film__line">Architecture in motion · Atmosferi°</span>
-          <button class="un-film__pause" id="filmToggle" type="button" aria-label="Pause film" aria-pressed="false"><span aria-hidden="true">Ⅱ</span></button>
-        </div>
+      </div>
+      <div class="container un-hero__meta">
+        <span class="un-film__line">Architecture in motion · Atmosferi°</span>
+        <button class="un-film__pause" id="filmToggle" type="button" aria-label="Pause film" aria-pressed="false"><span aria-hidden="true">Ⅱ</span></button>
       </div>
     </section>
 
