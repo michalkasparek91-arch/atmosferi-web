@@ -3,8 +3,15 @@ export function hasEmailEvidence(html: string, email: string): boolean {
   const decoded = html.replace(/&#(x[0-9a-f]+|[0-9]+);?/gi, (_, n) =>
     String.fromCodePoint(n[0].toLowerCase() === 'x' ? parseInt(n.slice(1),16) : Number(n)))
     .replace(/&commat;/gi,'@').replace(/&period;/gi,'.').replace(/&amp;/gi,'&');
-  const addresses = decoded.match(/[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9.-]+\.[a-z]{2,}/gi) || [];
-  return addresses.some(value => value.toLowerCase() === email.trim().toLowerCase());
+  // Search only for the known address. Extracting every address with a greedy
+  // regex can consume the worker CPU limit on long scripts/base64 without '@'.
+  const text=decoded.toLowerCase(), needle=email.trim().toLowerCase();
+  if(!needle || !needle.includes('@')) return false;
+  for(let at=text.indexOf(needle);at!==-1;at=text.indexOf(needle,at+needle.length)) {
+    const before=at>0?text[at-1]:'',after=text[at+needle.length] || '';
+    if(!/[a-z0-9.!#$%&'*+/=?^_`{|}~-]/i.test(before) && !/[a-z0-9.-]/i.test(after)) return true;
+  }
+  return false;
 }
 
 export function publicWebsite(url: string): URL {

@@ -1,5 +1,10 @@
 import {hasEmailEvidence, publicWebsite, verifyRecipientWebsite} from './recipient-evidence.ts';
 const assert=(value:unknown)=>{if(!value) throw new Error('Assertion failed');};
+Deno.test('large script data without an address does not backtrack',()=>{
+ const html='<script>'+ 'a'.repeat(500000)+'</script>';
+ assert(!hasEmailEvidence(html,'info@studio.ch'));
+ assert(hasEmailEvidence(html+'<a href="mailto:info@studio.ch">Email</a>','info@studio.ch'));
+});
 Deno.test('exact address evidence, entities and case',()=>{
  assert(hasEmailEvidence('<a href="mailto:Info&#64;Studio.ch">Email</a>','info@studio.ch'));
  assert(!hasEmailEvidence('otherinfo@studio.ch info@studio.ch.example.com','info@studio.ch'));
