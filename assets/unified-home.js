@@ -2,6 +2,12 @@
 (function () {
   "use strict";
   document.documentElement.classList.add("js-enabled");
+  function tr(value) {
+    var lang = document.documentElement.lang || "en";
+    return lang !== "en" && window.I18N_DICT && window.I18N_DICT[lang] &&
+      window.I18N_DICT[lang][value] || value;
+  }
+
 
   var header = document.getElementById("siteHeader");
   var hero = document.getElementById("home");
@@ -12,14 +18,14 @@
     if (!header || !burger) return;
     header.classList.remove("menu-open");
     burger.setAttribute("aria-expanded", "false");
-    burger.setAttribute("aria-label", "Open menu");
+    burger.setAttribute("aria-label", tr("Open menu"));
   }
 
   if (header && burger && mobile) {
     burger.addEventListener("click", function () {
       var expanded = header.classList.toggle("menu-open");
       burger.setAttribute("aria-expanded", String(expanded));
-      burger.setAttribute("aria-label", expanded ? "Close menu" : "Open menu");
+      burger.setAttribute("aria-label", tr(expanded ? "Close menu" : "Open menu"));
     });
     mobile.addEventListener("click", function (event) {
       if (event.target.closest("a")) closeMenu();
@@ -74,7 +80,7 @@
           visible++;
         }
       });
-      announcer.textContent = visible + " projects shown";
+      announcer.textContent = visible + " " + tr("projects shown");
     });
   });
 
@@ -99,7 +105,7 @@
   function syncFilmButton() {
     if (!film || !filmToggle) return;
     var paused = film.paused;
-    filmToggle.setAttribute("aria-label", paused ? "Play film" : "Pause film");
+    filmToggle.setAttribute("aria-label", tr(paused ? "Play film" : "Pause film"));
     filmToggle.setAttribute("aria-pressed", String(!paused));
     var label = filmToggle.querySelector("span");
     if (label) label.textContent = paused ? "▶" : "Ⅱ";
