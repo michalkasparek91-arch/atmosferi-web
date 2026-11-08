@@ -188,4 +188,18 @@
   "Warm, natural material interior in the OBJEKT studio concept": "Útulný interiér z přírodních materiálů v konceptu OBJEKT",
   "Waterfront architecture in the Quay 9 development website concept": "Architektura u vody z developerského konceptu Quay 9"
 });
+  Object.assign(window.I18N_DICT.de, {
+  "Website carousel controls": "Website-Karussell bedienen",
+  "Website examples": "Website-Beispiele",
+  "Previous websites": "Vorherige Websites",
+  "Next websites": "Nächste Websites",
+  "carousel": "Karussell"
+});
+  Object.assign(window.I18N_DICT.cs, {
+  "Website carousel controls": "Ovládání posuvného pásu webů",
+  "Website examples": "Ukázky webů",
+  "Previous websites": "Předchozí weby",
+  "Next websites": "Další weby",
+  "carousel": "karusel"
+});
 })();
