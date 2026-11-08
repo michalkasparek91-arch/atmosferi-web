@@ -199,3 +199,193 @@ section[id] { scroll-margin-top: 94px; }
   .un-film video { object-fit:cover; }
   *,*::before,*::after { transition-duration:.001ms!important; animation-duration:.001ms!important; }
 }
+
+
+/* Websites-first portfolio and full architectural gallery.
+   Restore the original Atmosferi display type (Outfit), leaving body/UI Geist. */
+:root { --display: "Outfit", "Geist", system-ui, sans-serif; }
+.un-brand,
+.un-hero h1,
+.un-h2,
+.un-service h3,
+.un-work-card__title,
+.un-footer__brand,
+.un-mobile a {
+  font-family: var(--display);
+}
+.un-brand { font-weight: 600; letter-spacing: -.055em; }
+.un-hero h1 {
+  font-weight: 400;
+  letter-spacing: -.028em;
+  line-height: 1.01;
+  font-size: clamp(56px, 7.1vw, 124px);
+}
+.un-h2 {
+  font-size: clamp(40px, 4.3vw, 76px);
+  font-weight: 400;
+  letter-spacing: -.025em;
+  line-height: 1.06;
+}
+.un-service h3 {
+  font-weight: 400;
+  letter-spacing: -.025em;
+}
+.un-work-card__title {
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+.un-footer__brand {
+  font-weight: 500;
+  letter-spacing: -.055em;
+}
+.un-work__header { align-items: end; }
+.un-work__link { flex: none; margin-bottom: 4px; }
+.un-web-grid .un-work-card[data-width="full"] { grid-column: span 12; }
+.un-web-grid .un-work-card[data-width="full"] .un-work-card__media img {
+  aspect-ratio: 2.1 / 1;
+  max-height: 640px;
+}
+.un-web-note {
+  max-width: none;
+  margin: clamp(35px, 4vw, 60px) 0 0;
+}
+/* Visualisation gallery directly follows the website grid. No category tabs. */
+.un-visuals { padding-top: clamp(72px, 7vw, 118px); background: #ededea; }
+.un-visuals__head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: clamp(38px, 4.3vw, 74px);
+}
+.un-visuals__head .un-h2 { max-width: 20ch; }
+.un-visuals__head .un-text-link { flex: none; margin-bottom: 4px; }
+.un-viz-grid {
+  column-count: 3;
+  column-gap: clamp(14px, 1.8vw, 28px);
+}
+.un-viz-item {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 clamp(14px, 1.8vw, 28px);
+  background: #d4d3cf;
+  color: #fff;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+.un-viz-item img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.un-viz-item__cap {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 36px 17px 17px;
+  opacity: 0;
+  transform: translateY(8px);
+  background: linear-gradient(0deg, rgba(0,0,0,.54),transparent);
+  color: #fff;
+  font: 400 clamp(15px, 1.6vw, 22px)/1.2 var(--display);
+  letter-spacing: -.025em;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s var(--ease);
+}
+.un-viz-item:hover .un-viz-item__cap,
+.un-viz-item:focus-visible .un-viz-item__cap {
+  opacity: 1;
+  transform: none;
+}
+
+/* Native modal provides Esc, focus containment and keyboard accessibility. */
+.un-lightbox {
+  position: fixed;
+  inset: 0;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(15,15,15,.985);
+  color: #fff;
+}
+.un-lightbox::backdrop { background: rgba(0,0,0,.9); }
+.un-lightbox[open] {
+  display: grid;
+  place-items: center;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+.un-lightbox__image {
+  grid-row: 1;
+  grid-column: 1;
+  max-width: calc(100vw - 135px);
+  max-height: calc(100dvh - 175px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  justify-self: center;
+  align-self: center;
+}
+.un-lightbox__close, .un-lightbox__prev, .un-lightbox__next {
+  position: absolute;
+  z-index: 4;
+  background: rgba(40,40,40,.8);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 0;
+  cursor: pointer;
+}
+.un-lightbox__close:hover, .un-lightbox__prev:hover, .un-lightbox__next:hover {
+  background: #fff;
+  color: #151515;
+}
+.un-lightbox__close { right: clamp(15px,3vw,48px); top: clamp(15px,3vw,44px); padding: 11px 17px; font: 500 13px var(--sans); }
+.un-lightbox__count { position: absolute; left: clamp(15px,3vw,48px); top: clamp(23px,3vw,52px); font: 400 12px var(--mono); color: #b5b5b3; }
+.un-lightbox__prev,.un-lightbox__next { top:50%;transform:translateY(-50%);height:48px;width:48px;font-size:28px; }
+.un-lightbox__prev { left: clamp(15px,2vw,30px); }
+.un-lightbox__next { right: clamp(15px,2vw,30px); }
+.un-lightbox__caption {
+  grid-row: 2;
+  grid-column: 1;
+  width: 100%;
+  text-align: center;
+  padding: 0 18px clamp(24px,3vw,42px);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+}
+.un-lightbox__caption strong { font: 400 clamp(20px,2.3vw,29px)/1.2 var(--display); }
+.un-lightbox__caption span { font: 400 12px/1.5 var(--sans);color:#aaa; }
+.un-lightbox__caption p { margin: 8px 0 0; max-width: 66ch; font-size: 12px;line-height:1.5;color:#999; }
+@media(max-width:1000px) {
+  .un-viz-grid { column-count: 2; }
+}
+@media(max-width:760px) {
+  .un-hero h1 { font-size:clamp(48px,11vw,80px); }
+  .un-h2 { font-size:clamp(35px,8vw,55px); }
+  .un-work__header,.un-visuals__head { flex-direction: column; align-items: flex-start; gap: 23px; }
+  .un-web-grid .un-work-card[data-width="full"] { grid-column: span 12; }
+  .un-web-grid .un-work-card[data-width="full"] .un-work-card__media img { aspect-ratio: 1.35/1; }
+  .un-lightbox__image { max-width: calc(100vw - 30px); max-height: calc(100dvh - 220px); }
+  .un-lightbox__prev, .un-lightbox__next { top: 47%; width:38px;height:40px;background:rgba(0,0,0,.5); }
+  .un-lightbox__prev { left: 3px; }
+  .un-lightbox__next { right: 3px; }
+  .un-lightbox__caption { padding: 0 17px 36px; }
+}
+@media(max-width:560px) {
+  .un-viz-grid { column-count: 1; }
+  .un-viz-item__cap { opacity: 1; transform:none; padding:28px 12px 12px; }
+}
+@media(prefers-reduced-motion:reduce){
+  .un-viz-item__cap { transition:none; }
+}
