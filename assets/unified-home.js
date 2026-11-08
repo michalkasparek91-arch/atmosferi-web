@@ -55,6 +55,48 @@
   window.addEventListener("resize", requestSync);
   window.addEventListener("pageshow", requestSync);
 
+  /* Website rail: native scroll-snap handles touch and keyboard scrolling;
+     arrows advance one square card, disabled accurately at either end. */
+  var websiteRail = document.getElementById("websiteRail");
+  var websitePrev = document.getElementById("websitePrev");
+  var websiteNext = document.getElementById("websiteNext");
+  if (websiteRail && websitePrev && websiteNext) {
+    var railTicking = false;
+    function updateWebsiteArrows() {
+      var end = Math.max(0, websiteRail.scrollWidth - websiteRail.clientWidth);
+      websitePrev.disabled = websiteRail.scrollLeft <= 2;
+      websiteNext.disabled = websiteRail.scrollLeft >= end - 2;
+      railTicking = false;
+    }
+    function requestRailUpdate() {
+      if (railTicking) return;
+      railTicking = true;
+      requestAnimationFrame(updateWebsiteArrows);
+    }
+    function scrollWebsites(direction) {
+      var card = websiteRail.querySelector(".un-work-card");
+      if (!card) return;
+      var styles = getComputedStyle(websiteRail);
+      var gap = parseFloat(styles.columnGap || styles.gap) || 0;
+      var distance = card.getBoundingClientRect().width + gap;
+      var reducedMotion = window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      websiteRail.scrollBy({
+        left: direction * distance,
+        behavior: reducedMotion ? "auto" : "smooth"
+      });
+    }
+    websitePrev.addEventListener("click", function () { scrollWebsites(-1); });
+    websiteNext.addEventListener("click", function () { scrollWebsites(1); });
+    websiteRail.addEventListener("scroll", requestRailUpdate, { passive: true });
+    window.addEventListener("resize", requestRailUpdate);
+    window.addEventListener("pageshow", requestRailUpdate);
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(requestRailUpdate).observe(websiteRail);
+    }
+    requestRailUpdate();
+  }
+
   /* The full architecture archive keeps its individual project series in
      one native, keyboard-accessible dialog. No duplicate gallery script. */
   var gallery = Array.from(document.querySelectorAll(".un-viz-item"));
