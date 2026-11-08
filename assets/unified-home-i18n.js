@@ -105,4 +105,6 @@
   "Footer navigation": "Navigace v patičce",
   "Atmosferi home": "Atmosferi úvodní stránka"
 });
+  Object.assign(window.I18N_DICT.de, { "All website concepts": "Alle Website-Konzepte", "Architecture websites by language": "Architekturwebsites nach Sprache" });
+  Object.assign(window.I18N_DICT.cs, { "All website concepts": "Všechny koncepty webů", "Architecture websites by language": "Architektonické weby podle jazyka" });
 })();
