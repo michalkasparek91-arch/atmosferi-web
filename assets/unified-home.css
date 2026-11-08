@@ -448,7 +448,8 @@ section[id] { scroll-margin-top: 94px; }
   grid-column: auto;
   scroll-snap-align: start;
 }
-.un-web-grid .un-work-card__media { display: block; aspect-ratio: 1 / 1; }
+.un-web-grid .un-work-card__media { display: block; position: relative; aspect-ratio: 1 / 1; }
+.un-web-grid .un-work-card__media img { position: absolute; inset: 0; }
 .un-web-grid .un-work-card__media img,
 .un-web-grid .un-work-card[data-width="wide"] .un-work-card__media img,
 .un-web-grid .un-work-card[data-width="narrow"] .un-work-card__media img,
