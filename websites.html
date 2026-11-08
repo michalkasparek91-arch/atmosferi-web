@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Websites for Architects &amp; Developers | Atmosferi°</title>
+<meta name="description" content="Bespoke, image-led website design and development for architects, interior designers and property developers. Explore working website concepts by Atmosferi°.">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/redesign.css?v=20261101-clean-lines">
+<link rel="stylesheet" href="assets/brand-header.css?v=20261101-aligned">
+<link rel="stylesheet" href="assets/service-symbols.css?v=20261102-centered">
+<link rel="stylesheet" href="assets/home-grid.css?v=20261102-new-tab-overlay">
+<style>
+  /* ---- Landing-only enhancements (scoped; other pages unaffected) ---- */
+  html.js [data-rise]{opacity:0;transform:translateY(24px);}
+  html.js [data-rise].in{opacity:1;transform:none;transition:opacity .9s var(--curve), transform 1s var(--curve);}
+  /* staggered cascade within a row */
+  html.js .cap:nth-child(2).in{transition-delay:.08s;}
+  html.js .cap:nth-child(3).in{transition-delay:.16s;}
+  html.js .workcard:nth-child(2).in{transition-delay:.07s;}
+  html.js .workcard:nth-child(3).in{transition-delay:.14s;}
+  html.js .workcard:nth-child(4).in{transition-delay:.21s;}
+
+  /* scroll-progress hairline */
+  .scrollbar{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:60;transition:width .12s linear;}
+  @media(prefers-reduced-motion:reduce){.scrollbar{display:none;}html.js [data-rise]{opacity:1;transform:none;}}
+
+  /* Proof band */
+  .proof{padding-block:var(--space-6);}
+  .proof__grid{display:grid;}
+  .proof__item{display:flex;padding:0;}
+  .proof__item:first-child{padding-left:0;}
+  .proof__item:last-child{border-right:0;padding-right:0;}
+  .proof__fig{font-size:clamp(46px,6vw,96px);font-weight:700;letter-spacing:-0.03em;line-height:.86;font-variant-numeric:tabular-nums;display:flex;align-items:flex-start;}
+  .proof__fig .sfx{font-size:.42em;color:var(--accent);margin-left:2px;line-height:1;}
+  .proof__lab{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);}
+
+  /* Process */
+  .process{border-top:1px solid var(--ink);}
+  .process__step{display:grid;grid-template-columns:3ch 1fr;gap:var(--space-4);align-items:baseline;padding:var(--space-5) 0;border-bottom:1px solid var(--line);transition:padding-left var(--dur-standard) var(--curve);}
+  .process__step:hover{padding-left:var(--space-3);}
+  .process__n{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);color:var(--neutral-500);}
+  .process__body{display:grid;grid-template-columns:18ch 1fr;gap:var(--space-5);align-items:baseline;}
+  .process__t{font-size:var(--text-3xl);font-weight:600;letter-spacing:-0.02em;}
+  .process__d{font-size:var(--text-md);line-height:var(--leading-body);color:var(--neutral-700);max-width:52ch;}
+  .process__meta{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);justify-self:end;white-space:nowrap;}
+
+  /* Work card live affordance */
+  .workcard__img{position:relative;}
+  .workcard__live{position:absolute;left:14px;bottom:14px;font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;background:var(--ink);color:var(--canvas);padding:7px 11px;opacity:0;transform:translateY(8px);transition:opacity var(--dur-standard) var(--curve),transform var(--dur-standard) var(--curve);pointer-events:none;}
+  .workcard:hover .workcard__live{opacity:1;transform:none;}
+
+  @media (max-width:760px){
+    .proof__grid{grid-template-columns:1fr;}
+    .proof__item{padding-left:0;padding-right:var(--space-3);}
+    .proof__item:nth-child(even){padding-left:var(--space-3);padding-right:0;}
+    .proof__item:nth-child(2){border-right:0;}
+    .proof__item:nth-child(1),.proof__item:nth-child(2){border-bottom:1px solid var(--line);}
+    .process__step{grid-template-columns:1fr;gap:var(--space-2);}
+    .process__body{grid-template-columns:1fr;gap:var(--space-2);}
+    .process__meta{justify-self:start;}
+  }
+
+  /* ---- site switcher (Studio ↔ Visual) ---- */
+  .swx{position:relative;display:inline-flex;align-items:center;padding:3px;border:1px solid color-mix(in srgb,currentColor 28%,transparent);border-radius:999px;}
+  .swx__knob{position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:0;border-radius:999px;background:var(--accent-soft);transition:left .5s cubic-bezier(.22,1,.36,1),width .5s cubic-bezier(.22,1,.36,1);}
+  .swx__seg{position:relative;z-index:1;padding:7px 13px;border-radius:999px;font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:.17em;text-transform:uppercase;white-space:nowrap;opacity:.5;transition:opacity .35s cubic-bezier(.22,1,.36,1);cursor:pointer;color:var(--ink);}
+  .swx__seg.is-on,.swx__seg:hover{opacity:1;}
+  .swx__seg.is-on{color:var(--accent-ink);}
+
+  /* ---- Device showcase (hero) ---- */
+  .devices{margin-top:var(--space-5);}
+  .devices__stage{position:relative;max-width:760px;margin:0 auto;}
+  .laptop{display:block;width:100%;}
+  .laptop__lid{display:block;background:var(--ink);border:1px solid var(--ink);padding:9px 9px 10px;}
+  .laptop__screen{display:block;aspect-ratio:16/10;overflow:hidden;background:var(--ink);}
+  .laptop__screen img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:saturate(.95);transition:filter var(--dur-standard) var(--curve),transform 3s var(--curve);}
+  .devices:hover .laptop__screen img{filter:saturate(1.05);}
+  .laptop__base{display:block;position:relative;width:113%;margin-left:-6.5%;height:13px;background:var(--canvas);border:1px solid var(--ink);border-top:0;}
+  .laptop__base::after{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:16%;height:4px;background:var(--ink);}
+  .phone{display:block;position:absolute;right:-7%;bottom:-34px;width:22%;min-width:122px;z-index:3;background:var(--ink);border:1px solid var(--ink);padding:6px;border-radius:26px;box-shadow:0 18px 50px rgba(22,20,15,.18);}
+  .phone__screen{display:block;position:relative;aspect-ratio:9/19;overflow:hidden;background:var(--ink);border-radius:18px;}
+  .phone__screen img{width:100%;height:100%;object-fit:cover;object-position:top center;}
+  .phone__speaker{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.5);z-index:4;}
+  .devices__cap{display:flex;justify-content:space-between;gap:var(--space-3);max-width:760px;margin:var(--space-4) auto 0;}
+  .devices__cap span{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);}
+
+  /* ---- Gantt timeline (process) ---- */
+  .gantt{border-top:1px solid var(--ink);}
+  .gantt__scale{display:grid;grid-template-columns:repeat(8,1fr);border-bottom:1px solid var(--line);}
+  .gantt__scale span{padding:10px 0 10px 10px;font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);border-right:1px solid var(--line);}
+  .gantt__scale span:last-child{border-right:0;}
+  .gantt__row{display:grid;grid-template-columns:repeat(8,1fr);align-items:stretch;border-bottom:1px solid var(--line);min-height:74px;}
+  .gantt__bar{display:flex;flex-direction:column;justify-content:center;gap:3px;margin:10px 0;padding:0 16px;background:var(--ink);color:var(--canvas);}
+  .gantt__bar--ghost{background:transparent;color:var(--neutral-400);border:1px dashed var(--line-2,rgba(22,20,15,.22));}
+  .gantt__phase{font-size:var(--text-lg);font-weight:var(--weight-semi);letter-spacing:-0.01em;display:flex;align-items:baseline;gap:9px;}
+  .gantt__phase small{font-family:var(--font-mono);font-size:var(--text-nano);letter-spacing:var(--track-meta);opacity:.6;font-weight:var(--weight-reg);}
+  .gantt__note{font-size:var(--text-sm);line-height:1.4;opacity:.82;}
+  .gantt__foot{display:flex;justify-content:space-between;gap:var(--space-3);padding-top:var(--space-3);flex-wrap:wrap;}
+  .gantt__foot span{font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:var(--neutral-500);}
+
+  /* ---- Home image band (relocated) ---- */
+  .homeband{display:block;width:100%;height:46vh;min-height:340px;overflow:hidden;}
+  .homeband img{width:100%;height:100%;object-fit:cover;}
+
+  /* ---- Hero: image-led split ---- */
+  .hero.hero--split{display:grid;grid-template-columns:1.02fr 0.98fr;gap:clamp(28px,4vw,60px);align-items:center;padding-top:var(--space-5);padding-bottom:var(--space-6);}
+  .hero__col{display:flex;flex-direction:column;min-width:0;}
+  .hero--split .hero__head{padding-bottom:var(--space-4);}
+  .hero--split .hero__foot{grid-template-columns:1fr;gap:var(--space-3);margin-top:var(--space-4);align-items:start;}
+  .hero--split .hero__lead{font-size:var(--text-xl);max-width:44ch;}
+  .hero__film{position:relative;overflow:hidden;background:#16140F;height:clamp(620px,88vh,980px);align-self:stretch;}
+  .hero__film-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .hero__film::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,14,12,0.45) 0%,rgba(15,14,12,0.12) 35%,rgba(15,14,12,0.72) 100%);z-index:2;pointer-events:none;}
+  .hero__film-cap{position:absolute;left:20px;bottom:18px;z-index:4;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:rgba(255,255,255,.92);line-height:1;}
+  .hero__film-cap .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(255,255,255,.12);}
+  @media (max-width:860px){ .hero.hero--split{grid-template-columns:1fr;gap:26px;} }
+
+  /* ---- Hero film band ---- */
+  .herofilm{position:relative;width:100%;overflow:visible;background:transparent;}
+  .herofilm__v{display:block;width:100%;height:clamp(340px,60vh,680px);object-fit:cover;transform:scale(1.08);transform-origin:42% 38%;}
+  .herofilm::after{content:none;}
+  .herofilm__cap{position:absolute;left:clamp(20px,4vw,64px);bottom:clamp(16px,2.6vw,34px);z-index:2;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:var(--text-meta);letter-spacing:var(--track-meta);text-transform:uppercase;color:rgba(255,255,255,.92);line-height:1;}
+  .herofilm__cap .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(255,255,255,.12);}
+  @media (max-width:760px){ .herofilm__v{height:clamp(260px,46vh,420px);} }
+  /* Keep the human introduction visible on phones, not only the headline. */
+  @media (max-width:700px){
+    .heroover__lead{display:block;font-size:14px;line-height:1.52;max-width:40ch;}
+    .heroover__foot{align-items:flex-start;gap:16px;}
+    .heroover__title{font-size:clamp(2.2rem,9.2vw,3.3rem);max-width:17ch;}
+    .hero__film{min-height:640px;height:84svh;}
+  }
+
+  /* ---- Capability media (photo-led) ---- */
+  .cap__media{display:block;width:100%;aspect-ratio:3/2;overflow:hidden;margin-bottom:var(--space-4);background:var(--canvas-2);}
+  .cap__media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1s var(--curve);}
+  .cap:hover .cap__media img{transform:scale(1.045);}
+  /* ---- Capability diagrams (monoline) ---- */
+  .cap__viz{display:block;height:84px;margin-bottom:var(--space-4);color:var(--ink);}
+  .cap__viz svg{height:100%;width:auto;display:block;overflow:visible;}
+  .cap__viz svg *{vector-effect:non-scaling-stroke;}
+  .cap__viz circle{fill:currentColor;stroke:none;}
+  .cap{transition:transform var(--dur-standard) var(--curve);}
+
+  @media (max-width:760px){
+    .phone{width:30%;min-width:108px;right:-4%;bottom:-20px;border-radius:22px;}
+    .gantt__scale{display:none;}
+    .gantt__row{grid-template-columns:1fr;min-height:0;}
+    .gantt__bar{grid-column:1/-1 !important;margin:0;border-top:0;}
+    .gantt__row{border-bottom:1px solid var(--line);}
+  }
+</style>
+
+<!-- SEO / social -->
+<link rel="canonical" href="https://www.atmosferi.com/websites.html">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Atmosferi°">
+<meta name="theme-color" content="#16140F">
+<link rel="icon" type="image/png" sizes="32x32" href="https://www.atmosferi.com/favicon-32.png">
+<link rel="apple-touch-icon" href="https://www.atmosferi.com/apple-touch-icon.png">
+<link rel="manifest" href="https://www.atmosferi.com/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atmosferi°">
+<meta property="og:locale" content="en">
+<meta property="og:locale:alternate" content="de">
+<meta property="og:locale:alternate" content="cs">
+<meta property="og:title" content="Atmosferi° — Websites & 3D Visualisation for Architecture">
+<meta property="og:description" content="Custom websites and architectural visualisation for architects, design studios and property developers. Designed and built by an architect.">
+<meta property="og:url" content="https://www.atmosferi.com/">
+<meta property="og:image" content="https://www.atmosferi.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Atmosferi° — websites & 3D visualisation for architecture">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Atmosferi° — Websites & 3D Visualisation for Architecture">
+<meta name="twitter:description" content="Custom websites and architectural visualisation for architects, design studios and property developers. Designed and built by an architect.">
+<meta name="twitter:image" content="https://www.atmosferi.com/og.png">
+<link rel="alternate" hreflang="en" href="https://www.atmosferi.com/">
+<link rel="alternate" hreflang="x-default" href="https://www.atmosferi.com/">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://www.atmosferi.com/#org",
+   "name": "Atmosferi°",
+   "url": "https://www.atmosferi.com/",
+   "logo": "https://www.atmosferi.com/icon-512.png",
+   "image": "https://www.atmosferi.com/og.png",
+   "description": "Custom websites and architectural visualisation for architects, design studios and property developers. Designed and built by an architect.",
+   "email": "info@atmosferi.com",
+   "founder": {
+    "@type": "Person",
+    "name": "Ing. arch. Michal Kašpárek"
+   },
+   "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Prague",
+    "addressCountry": "CZ"
+   },
+   "areaServed": [
+    "CZ",
+    "DE",
+    "AT",
+    "CH",
+    "FI",
+    "NO",
+    "US",
+    "AU",
+    "EU"
+   ],
+   "sameAs": []
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://www.atmosferi.com/#website",
+   "url": "https://www.atmosferi.com/",
+   "name": "Atmosferi°",
+   "publisher": {
+    "@id": "https://www.atmosferi.com/#org"
+   },
+   "inLanguage": "en"
+  },
+  {
+   "@type": "ProfessionalService",
+   "@id": "https://www.atmosferi.com/#service",
+   "name": "Atmosferi°",
+   "image": "https://www.atmosferi.com/og.png",
+   "url": "https://www.atmosferi.com/",
+   "email": "info@atmosferi.com",
+   "priceRange": "€€",
+   "areaServed": [
+    { "@type": "City", "name": "Prague" },
+    { "@type": "City", "name": "Brno" },
+    { "@type": "City", "name": "Vienna" },
+    { "@type": "City", "name": "Berlin" },
+    { "@type": "City", "name": "Zurich" },
+    { "@type": "AdministrativeArea", "name": "Europe" }
+   ],
+   "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Prague",
+    "addressCountry": "CZ"
+   },
+   "makesOffer": [
+    {
+     "@type": "Offer",
+     "itemOffered": {
+      "@type": "Service",
+      "name": "Web design for architecture"
+     }
+    },
+    {
+     "@type": "Offer",
+     "itemOffered": {
+      "@type": "Service",
+      "name": "Web development"
+     }
+    },
+    {
+     "@type": "Offer",
+     "itemOffered": {
+      "@type": "Service",
+      "name": "3D architectural visualisation"
+     }
+    }
+   ]
+  }
+ ]
+}
+</script>
+</head>
+<body class="homepage">
+
+<div class="scrollbar" id="scrollProgress"></div>
+
+<!-- ============================ NAV ============================ -->
+<nav class="nav">
+  <div class="wrap nav__inner">
+    <a href="index.html" class="wordmark">atmosferi<sup>°</sup><span class="nav__place">Prague, Czechia</span></a>
+    <div class="nav__links">
+      <a href="work.html" class="navlink">Work</a>
+      <a href="services.html" class="navlink">Services</a>
+      <a href="pricing.html" class="navlink">Pricing</a>
+      <a href="studio.html" class="navlink">Studio</a>
+      <a href="contact.html" class="navlink">Contact</a>
+    </div>
+    <div class="nav__switch">
+      <div class="swx" aria-label="Switch between Atmosferi sites">
+        <span class="swx__knob"></span>
+        <a class="swx__seg is-on" aria-current="page" href="websites.html">Websites</a>
+        <a class="swx__seg" href="demos/atmosferi-viz/index.html">Visuals</a>
+      </div>
+    </div>
+    <button class="nav__burger" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav__mobile">
+    <a href="work.html" class="navlink">Work</a>
+    <a href="services.html" class="navlink">Services</a>
+    <a href="pricing.html" class="navlink">Pricing</a>
+    <a href="studio.html" class="navlink">Studio</a>
+    <a href="contact.html" class="navlink">Contact</a>
+    <div class="swx" aria-label="Switch between Atmosferi sites">
+      <span class="swx__knob"></span>
+      <a class="swx__seg is-on" aria-current="page" href="websites.html">Websites</a>
+      <a class="swx__seg" href="demos/atmosferi-viz/index.html">Visuals</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================ HERO ============================ -->
+<section class="herofilm hero--statement" data-screen-label="Home / Introduction" aria-label="Architecture website design">
+  <div class="hero__film">
+    <div class="heroover">
+      <h1 class="heroover__title">Websites for architects and developers.</h1>
+      <div class="heroover__foot">
+        <p class="heroover__lead">I'm Michal, an architect who designs and builds websites. I help you present your projects clearly, from the images and text to the finished site.</p>
+        <a href="#sample-work" class="arrow-link">See website examples <span class="arrow">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SELECTED WORK ============================ -->
+<section class="section wrap showcase" id="sample-work" data-screen-label="Home / Selected work">
+  <div class="section__head" data-rise>
+    <h2 class="section__title">A few ways to show your work.</h2>
+    <a href="work.html" class="arrow-link">View all five examples <span class="arrow">→</span></a>
+  </div>
+  <p class="section__note" data-rise>These are working website concepts, not client commissions. Each one explores a different way to present architecture. Click through and explore.</p>
+  <div class="showcase__grid">
+    <a class="showcase__card" href="demos/volum/index.html" target="_blank" rel="noopener" aria-label="Explore VOLUM website concept (opens in a new tab)" data-rise>
+      <span class="showcase__image"><img src="demos/volum/img/helix.webp" alt="Modern high-rise architecture from the VOLUM website concept" loading="lazy"><span class="showcase__open" aria-hidden="true"><span class="showcase__open-sign"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M12.5 5H5v14h14v-7.5"/><path d="M12 12 20 4M13 4h7v7"/></svg><span class="showcase__open-label">Open website<small>NEW TAB</small></span></span></span></span>
+      <span class="showcase__meta"><span class="showcase__name">VOLUM</span><span class="showcase__type">Large architecture studio</span></span>
+    </a>
+    <a class="showcase__card" href="demos/voss/index.html" target="_blank" rel="noopener" aria-label="Explore Atelier Voss website concept (opens in a new tab)" data-rise>
+      <span class="showcase__image"><img src="demos/voss/img/hero.webp" alt="Minimal Nordic architecture from the Atelier Voss website concept" loading="lazy"><span class="showcase__open" aria-hidden="true"><span class="showcase__open-sign"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M12.5 5H5v14h14v-7.5"/><path d="M12 12 20 4M13 4h7v7"/></svg><span class="showcase__open-label">Open website<small>NEW TAB</small></span></span></span></span>
+      <span class="showcase__meta"><span class="showcase__name">Atelier Voss</span><span class="showcase__type">Small architecture studio</span></span>
+    </a>
+    <a class="showcase__card" href="demos/meridian/index.html" target="_blank" rel="noopener" aria-label="Explore Meridian website concept (opens in a new tab)" data-rise>
+      <span class="showcase__image"><img src="demos/meridian/img/hero.webp" alt="Residential tower from the Meridian property website concept" loading="lazy"><span class="showcase__open" aria-hidden="true"><span class="showcase__open-sign"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M12.5 5H5v14h14v-7.5"/><path d="M12 12 20 4M13 4h7v7"/></svg><span class="showcase__open-label">Open website<small>NEW TAB</small></span></span></span></span>
+      <span class="showcase__meta"><span class="showcase__name">Meridian</span><span class="showcase__type">Residential development</span></span>
+    </a>
+    <a class="showcase__card" href="demos/objekt/index.html" target="_blank" rel="noopener" aria-label="Explore OBJEKT website concept (opens in a new tab)" data-rise>
+      <span class="showcase__image"><img src="demos/objekt/img/p1.webp" alt="Contemporary interior from the OBJEKT website concept" loading="lazy"><span class="showcase__open" aria-hidden="true"><span class="showcase__open-sign"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M12.5 5H5v14h14v-7.5"/><path d="M12 12 20 4M13 4h7v7"/></svg><span class="showcase__open-label">Open website<small>NEW TAB</small></span></span></span></span>
+      <span class="showcase__meta"><span class="showcase__name">OBJEKT</span><span class="showcase__type">Interior design studio</span></span>
+    </a>
+  </div>
+</section>
+
+<!-- ============================ CAPABILITIES ============================ -->
+<section class="section wrap" data-screen-label="Home / Capabilities">
+  <div class="section__head" data-rise>
+    <h2 class="section__title">What I do.</h2>
+    
+  </div>
+  <div class="caps">
+    <a href="services.html" class="cap" data-rise>
+      <span class="cap__symbol" aria-hidden="true"><svg viewBox="0 0 320 240" focusable="false"><use href="assets/service-symbols.svg#design"/></svg></span>
+      <span class="cap__title">Web Design</span>
+      <span class="cap__desc">A considered website that makes your projects easy to browse, with clear navigation and images that have room to breathe.</span>
+    </a>
+    <a href="services.html" class="cap" data-rise>
+      <span class="cap__symbol" aria-hidden="true"><svg viewBox="0 0 320 240" focusable="false"><use href="assets/service-symbols.svg#development"/></svg></span>
+      <span class="cap__title">Development</span>
+      <span class="cap__desc">I build the site too. It's fast, works on phones and lets you add projects or change text without needing a developer.</span>
+    </a>
+    <a href="services.html" class="cap" data-rise>
+      <span class="cap__symbol" aria-hidden="true"><svg viewBox="0 0 320 240" focusable="false"><use href="assets/service-symbols.svg#visualisation"/></svg></span>
+      <span class="cap__title">3D &amp; Visualisation</span>
+      <span class="cap__desc">I can help select and improve your existing images, or create renders, films and 360° tours for projects that aren't built yet.</span>
+    </a>
+  </div>
+</section>
+
+<hr class="horizon">
+
+<!-- ============================ FOUNDER ============================ -->
+<section class="founder wrap" id="founder" data-screen-label="Home / Founder">
+  <div class="founder__media" data-rise>
+    <img src="img/michal.jpg" alt="Ing. arch. Michal Kašpárek, founder of Atmosferi" loading="lazy">
+  </div>
+  <div class="founder__body" data-rise>
+    <span class="eyebrow" data-i18n>Behind the studio</span>
+    <h2 class="founder__title">I'm Michal, an architect who builds websites.</h2>
+    <p class="founder__text">I trained as an architect and have spent more than a decade making visualisations for architecture studios and developers. That experience helps me choose the right images, organise projects and explain what makes a building interesting. I design and code the websites myself, so you'll work directly with the person making yours.</p>
+    <div class="founder__cta">
+      <a href="studio.html" class="arrow-link" data-i18n>More about my work</a>
+    </div>
+    <span class="founder__sign">Ing. arch. Michal Kašpárek · <span data-i18n>Founder, Atmosferi°</span></span>
+  </div>
+</section>
+
+<!-- ============================ CTA OVER IMAGE ============================ -->
+<section class="ctaband wrap" data-screen-label="Home / CTA">
+  <div class="ctaband__media reveal">
+    <img src="demos/volum/img/tide.webp" alt="Tidewater — tidal park architectural visualisation">
+  </div>
+  <div class="ctaband__over">
+    <h2 class="cta__title">Have a project<br>in mind?</h2>
+    <a href="start.html" class="btn">Tell me about it <span class="arrow">→</span></a>
+  </div>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__top">
+      <a href="index.html" class="wordmark" style="font-size:40px">atmosferi<sup>°</sup></a>
+      <div class="footer__cols">
+        <div class="footer__col">
+          <span class="eyebrow">Studio</span>
+          <span class="mono">Prague · Remote</span>
+          <a href="mailto:info@atmosferi.com" class="mono">info@atmosferi.com</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Index</span>
+          <a href="work.html" class="mono muted">Work</a>
+          <a href="services.html" class="mono muted">Services</a>
+          <a href="pricing.html" class="mono muted">Pricing</a>
+          <a href="studio.html" class="mono muted">Studio</a>
+          <a href="contact.html" class="mono muted">Contact</a>
+        </div>
+        <div class="footer__col">
+          <span class="eyebrow">Elsewhere</span>
+          <a href="demos/atmosferi-viz/index.html" class="mono muted">Visualisation</a>
+          <a href="/admin/prihlaseni" class="mono muted" style="margin-top: auto; opacity: 0.3;">Admin</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span class="eyebrow">© MMXXVI Atmosferi°</span>
+      <span class="eyebrow">Prague · <span id="praClock">——:——</span> CET</span>
+    </div>
+  </div>
+<nav class="international-links" aria-label="Website design for architects by language"><span>Websites for architects</span><a href="websites-for-architects.html" hreflang="en" lang="en">English</a><a href="weby-pro-architekty.html" hreflang="cs" lang="cs">Česky</a><a href="webdesign-fuer-architekten.html" hreflang="de" lang="de">Deutsch</a><a href="nettsider-for-arkitekter.html" hreflang="nb" lang="nb">Norsk</a></nav>
+</footer>
+
+<script src="assets/site.js?v=20261101-header"></script>
+<script src="assets/home.js?v=20261101-dark-hero"></script>
+<script src="assets/i18n-dict.js?v=20261102-newtab"></script>
+<script src="assets/i18n.js?v=20261101c"></script>
+</body>
+</html>
