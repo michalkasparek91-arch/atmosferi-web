@@ -111,6 +111,7 @@ section[id] { scroll-margin-top: 94px; }
 .un-text-link { display:inline-flex; align-items:center; gap:16px; font-weight:520; font-size:15px; border-bottom:1px solid currentColor; padding-bottom:6px; }
 .un-text-link:hover { opacity:.6; }
 .un-work__note { max-width:48ch; color:var(--muted); font-size:13px; line-height:1.5; }
+.un-work__links { display:flex; gap:clamp(16px,2.8vw,42px); flex-wrap:wrap; align-items:center; }
 
 /* Two services, one direction. */
 .un-services { background:#eaeae7; }
