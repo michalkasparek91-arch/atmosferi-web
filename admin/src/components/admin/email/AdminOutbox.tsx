@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Mail, Send, Trash2, Edit3, User, Sparkles, Layout, Zap, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import EmailSendingHistory from "./EmailSendingHistory";
 import { ModularEmailEditorDialogInner } from "./ModularEmailEditor";
 import CampaignReview from "@/components/admin/CampaignReview";
 
@@ -95,6 +96,22 @@ export const AdminOutbox = () => {
     },
   });
   const audienceLeads: any[] = audienceData?.leads || [];
+
+  // Kolik dnes reálně odešlo — čte se ze stejného zdroje, ze kterého
+  // si server počítá denní rozpočet, takže číslo sedí s realitou.
+  const { data: sentToday } = useQuery({
+    queryKey: ["admin-sent-today"],
+    queryFn: async () => {
+      const start = new Date(); start.setHours(0, 0, 0, 0);
+      const { count, error } = await supabase
+        .from("email_outbox")
+        .select("id", { count: "exact", head: true })
+        .gte("sent_at", start.toISOString());
+      if (error) throw error;
+      return count ?? 0;
+    },
+    refetchInterval: 60000,
+  });
 
   const DAILY_LIMITS = { brevo: 300, ses: 200, smtp: 300 } as const;
   const WAVE_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes between waves
@@ -437,85 +454,66 @@ export const AdminOutbox = () => {
         </Button>
       </div>
       
-      {/* AUTO-DISPATCH ALERT BANNER WHEN QUEUE REACHES 300 */}
-      <div className="rounded-2xl border p-4 bg-emerald-500/10 border-emerald-500/30 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-            <Zap className="h-5 w-5 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold">Rozesílání kampaní (limit {automation?.daily_limit ?? DAILY_LIMITS[emailProvider]} denně)</h3>
-              <Badge variant="outline" className="text-[10px]">{automationUnavailable ? "AUTOMATIKA NENASTAVENA" : automation?.safety_paused ? "POZASTAVENO: DORUČITELNOST" : automation?.enabled ? `AUTO: ${automation.provider.toUpperCase()}` : "AUTOMATIKA VYPNUTA"}</Badge>
+      {/* ── STAV SERVEROVÉHO ROZESÍLÁNÍ ──────────────────────────────────
+          Ruční kampaň z prohlížeče je pryč. Server i prohlížeč si sahaly
+          na stejný zámek a ruční pokus končil hláškou "Jiné rozesílání
+          právě běží". Odesílatel je teď jen jeden. */}
+      <div className={`rounded-2xl border p-5 ${
+        automationUnavailable ? "bg-muted/30 border-border"
+        : automation?.safety_paused ? "bg-amber-500/10 border-amber-500/30"
+        : automation?.enabled ? "bg-emerald-500/10 border-emerald-500/30"
+        : "bg-muted/30 border-border"}`}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className={`p-2.5 rounded-xl shrink-0 ${
+              automation?.enabled && !automation?.safety_paused
+                ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                : "bg-muted text-muted-foreground"}`}>
+              <Zap className={`h-5 w-5 ${automation?.enabled && !automation?.safety_paused ? "animate-pulse" : ""}`} />
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {automation?.enabled
-                ? `Běží na serveru i s vypnutým počítačem. Až 5 kontaktů každé 3 minuty, společný limit ${automation.daily_limit}/den. Před odesláním se ověřuje doména i adresa na webu firmy.`
-                : "Rozesílání je vypnuté. Kontrola domén běží na serveru nezávisle na této stránce."}
-            </p>
-            {validation?.last_run_at && <p className="text-xs text-muted-foreground">Kontrola domén: {new Date(validation.last_run_at).toLocaleString("cs-CZ")} · poslední dávka {validation.checked_domains} domén</p>}
-            {validation?.last_error && <p className="text-xs text-red-600">Kontrola domén: {validation.last_error}</p>}
-            {automation?.last_run_at && <p className="text-xs text-muted-foreground">Poslední běh: {new Date(automation.last_run_at).toLocaleString("cs-CZ")}</p>}
-            {automation?.last_error && <p className="text-xs text-red-600">Automatika: {automation.last_error}</p>}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-bold">
+                  {automationUnavailable ? "Automatika není nastavena"
+                   : automation?.safety_paused ? "Pozastaveno — doručitelnost"
+                   : automation?.enabled ? "Odesílá se automaticky na serveru"
+                   : "Automatické odesílání je vypnuté"}
+                </h3>
+                {automation?.enabled && !automation?.safety_paused && (
+                  <Badge variant="outline" className="text-[10px] uppercase">{automation.provider}</Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {automation?.enabled
+                  ? "Běží i s vypnutým počítačem. Až 5 kontaktů každé 3 minuty. Před odesláním se ověřuje doména i adresa."
+                  : "Zapíná se v nastavení rozesílání (email_dispatch_state)."}
+              </p>
+              {automation?.last_error && <p className="text-xs text-red-600 mt-1">Chyba: {automation.last_error}</p>}
+              {validation?.last_error && <p className="text-xs text-red-600 mt-1">Kontrola domén: {validation.last_error}</p>}
+            </div>
           </div>
-        </div>
-        <Button
-          size="sm"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs gap-1.5 shadow-md shadow-emerald-600/20"
-          disabled={automation?.enabled || automation?.safety_paused || (!!activeCampaign && !activeCampaign.stopped)}
-          onClick={() => {
-            if (virtualBatches && virtualBatches.length > 0) {
-              startCampaign(virtualBatches[0].template.id, virtualBatches[0].template.name);
-            } else {
-              toast.info("Žádné dostupné publikum k odeslání.");
-            }
-          }}
-        >
-          <Send className="h-3.5 w-3.5" />
-          {automation?.enabled ? "Běží automaticky na serveru" : automation?.safety_paused ? "Čeká na kontrolu doručitelnosti" : activeCampaign && !activeCampaign.stopped ? "Odesílání běží..." : "Spustit první kampaň"}
-        </Button>
-      </div>
 
-      {/* ACTIVE CAMPAIGN BANNER */}
-      {activeCampaign && (
-        <div className={`rounded-2xl border p-4 flex items-center gap-4 ${activeCampaign.stopped ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-blue-500/5 border-blue-500/20'}`}>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              {!activeCampaign.stopped && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
-              <p className="text-sm font-bold truncate">
-                {activeCampaign.stopped ? (activeCampaign.error ? 'Poslední ruční kampaň skončila chybou' : 'Ruční kampaň ukončena') : `🚀 Ruční kampaň běží – ${activeCampaign.templateName}`}
-              </p>
+          {/* Dnešní průběh */}
+          {automation?.enabled && (
+            <div className="shrink-0 text-right min-w-[150px]">
+              <div className="text-2xl font-bold tabular-nums leading-none">
+                {sentToday ?? "—"}<span className="text-sm font-normal text-muted-foreground"> / {automation.daily_limit}</span>
+              </div>
+              <div className="text-[11px] text-muted-foreground mt-1">odesláno dnes</div>
+              <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-500 transition-all"
+                     style={{ width: `${Math.min(100, ((sentToday ?? 0) / Math.max(1, automation.daily_limit)) * 100)}%` }} />
+              </div>
             </div>
-            {activeCampaign.error && <p className="text-xs text-red-600 mt-1">{activeCampaign.error}</p>}
-            {activeCampaign.stopped && automation?.enabled && !automation.safety_paused && <p className="text-xs text-emerald-700 mt-1">Toto je výsledek ručního pokusu. Serverová automatika mezitím běží samostatně podle stavu výše.</p>}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span>Odesláno: <strong className="text-foreground">{activeCampaign.totalSent}</strong> / {activeCampaign.dailyLimit}</span>
-              <span>Vlny: <strong className="text-foreground">{activeCampaign.wavesSent}</strong></span>
-              {!activeCampaign.stopped && <span className="text-blue-500 font-medium">Další vlna za ~3 min…</span>}
-            </div>
-            {!activeCampaign.stopped && (
-              <p className="text-[11px] text-amber-600 font-medium mt-1">
-                ⚠️ Neodcházejte z této stránky a nezavírejte prohlížeč, dokud se kampaň nedokončí!
-              </p>
-            )}
-            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
-              <div 
-                className={`h-full rounded-full transition-all duration-500 ${activeCampaign.stopped ? 'bg-emerald-500' : 'bg-blue-500'}`} 
-                style={{ width: `${Math.min(100, (activeCampaign.totalSent / activeCampaign.dailyLimit) * 100)}%` }} 
-              />
-            </div>
-          </div>
-          {!activeCampaign.stopped ? (
-            <Button size="sm" variant="outline" className="rounded-full text-xs shrink-0 border-red-400 text-red-500 hover:bg-red-50" onClick={stopCampaign}>
-              Zastavit
-            </Button>
-          ) : (
-            <Button size="sm" variant="ghost" className="rounded-full text-xs shrink-0" onClick={() => setActiveCampaign(null)}>
-              Zavřít
-            </Button>
           )}
         </div>
-      )}
+
+        {/* Drobnosti o posledních bězích */}
+        <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 pt-3 border-t border-border/40 text-[11px] text-muted-foreground">
+          {automation?.last_run_at && <span>Poslední odeslání: {new Date(automation.last_run_at).toLocaleString("cs-CZ")}</span>}
+          {validation?.last_run_at && <span>Kontrola domén: {new Date(validation.last_run_at).toLocaleString("cs-CZ")} ({validation.checked_domains} domén)</span>}
+        </div>
+      </div>
 
       {/* Filters (Sablony style) */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">        <button 
@@ -622,15 +620,11 @@ export const AdminOutbox = () => {
                           </div>
                         </div>
 
-                        <Button
-                          size="sm"
-                          className="h-8 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-3 gap-1.5 shrink-0"
-                          disabled={!!activeCampaign && !activeCampaign.stopped}
-                          onClick={(e) => { e.stopPropagation(); startCampaign(v.template.id, v.template.name); }}
-                        >
-                          {sending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                          {sending ? `Odesílám (${activeCampaign!.totalSent})` : "Odeslat"}
-                        </Button>
+                        {/* Odesílá server v rotaci; ruční spouštění po skupinách
+                            kolidovalo se zámkem automatiky. */}
+                        <span className="text-[11px] text-muted-foreground shrink-0 w-24 text-right">
+                          {automation?.enabled ? "ve frontě" : "čeká"}
+                        </span>
 
                         <Button
                           variant="ghost" size="icon"
@@ -706,6 +700,8 @@ export const AdminOutbox = () => {
               </div>
             </>
           )}
+
+          <EmailSendingHistory />
         </div>
       ) : (
       <div className="rounded-2xl border border-border/40 bg-card shadow-sm overflow-hidden">
