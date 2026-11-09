@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/unified-home.css?v=20261108-sites-first">
+  <link rel="stylesheet" href="assets/unified-home.css?v=20261109-sonido-cinematic">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Atmosferi°">
   <meta property="og:title" content="Atmosferi° — Architecture, beautifully presented.">
@@ -64,20 +64,23 @@
   </header>
 
   <main id="main">
-    <section class="un-hero" id="home" aria-label="Atmosferi studio">
-      <div class="container">
+    <section class="un-hero un-hero--video" id="home" aria-label="Atmosferi studio">
+      <div class="un-hero__media" aria-hidden="true">
+        <video id="heroFilm" autoplay muted loop playsinline preload="metadata" poster="demos/atmosferi-viz/img/mountain-retreat-poster.jpg">
+          <source src="demos/atmosferi-viz/media/mountain-retreat.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="un-hero__shade" aria-hidden="true"></div>
+      <div class="container un-hero__content">
         <h1><span>Architecture,</span><span>beautifully presented.</span></h1>
         <div class="un-hero__intro">
           <p class="un-hero__lead">Architectural visualisations, films and websites. Made by an architect, with an eye for how projects should look and feel.</p>
           <a class="un-action un-action--light" href="#work">Explore selected work <span class="un-action__arrow" aria-hidden="true">↗</span></a>
         </div>
-        <div class="un-film">
-          <video id="heroFilm" autoplay muted loop playsinline preload="metadata" poster="demos/atmosferi-viz/img/mountain-retreat-poster.jpg" aria-label="Architectural animation showing a contemporary retreat">
-            <source src="demos/atmosferi-viz/media/mountain-retreat.mp4" type="video/mp4">
-          </video>
-          <span class="un-film__line">Architecture in motion · Atmosferi°</span>
-          <button class="un-film__pause" id="filmToggle" type="button" aria-label="Pause film" aria-pressed="false"><span aria-hidden="true">Ⅱ</span></button>
-        </div>
+      </div>
+      <div class="container un-hero__meta">
+        <span class="un-film__line">Architecture in motion · Atmosferi°</span>
+        <button class="un-film__pause" id="filmToggle" type="button" aria-label="Pause film" aria-pressed="false"><span aria-hidden="true">Ⅱ</span></button>
       </div>
     </section>
 
@@ -90,9 +93,15 @@
             <h2 class="un-h2" id="webWorkTitle">Websites we do.</h2>
             <p class="un-section__intro">A few ways to present architecture online. Explore five working website concepts for architects, designers and property developments.</p>
           </div>
-          <a class="un-text-link un-work__link" href="websites.html">More about websites <span aria-hidden="true">↗</span></a>
+          <div class="un-work__controls">
+            <a class="un-text-link un-work__link" href="websites.html">More about websites <span aria-hidden="true">↗</span></a>
+            <div class="un-web-arrows" role="group" aria-label="Website carousel controls">
+              <button type="button" class="un-web-arrow" id="websitePrev" aria-label="Previous websites" aria-controls="websiteRail" disabled><span aria-hidden="true">←</span></button>
+              <button type="button" class="un-web-arrow" id="websiteNext" aria-label="Next websites" aria-controls="websiteRail"><span aria-hidden="true">→</span></button>
+            </div>
+          </div>
         </div>
-        <div class="un-work-grid un-web-grid"><a class="un-work-card" data-width="wide" href="demos/volum/index.html" target="_blank" rel="noopener noreferrer" aria-label="Open VOLUM website concept in a new tab" data-reveal>
+        <div class="un-web-grid" id="websiteRail" role="region" aria-label="Website examples" aria-roledescription="carousel" tabindex="0"><a class="un-work-card" data-width="wide" href="demos/volum/index.html" target="_blank" rel="noopener noreferrer" aria-label="Open VOLUM website concept in a new tab" data-reveal>
     <span class="un-work-card__media"><img src="demos/volum/img/helix.webp" alt="Vertical architecture in the VOLUM website concept" loading="lazy" decoding="async"><span class="un-work-card__open" aria-hidden="true"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 5H5v14h14v-7M12 12l8-8M13 4h7v7"/></svg> Open website</span></span></span>
     <span class="un-work-card__caption"><span class="un-work-card__title">VOLUM</span><span class="un-work-card__type">Architecture studio · Website concept</span></span>
   </a>
@@ -364,8 +373,8 @@
     </section>
   </main>
   <script src="assets/i18n-dict.js?v=20261108"></script>
-  <script src="assets/unified-home-i18n.js?v=20261108-sites-first"></script>
+  <script src="assets/unified-home-i18n.js?v=20261108-square-rail"></script>
   <script src="assets/i18n.js?v=20261108"></script>
-  <script src="assets/unified-home.js?v=20261108-sites-first"></script>
+  <script src="assets/unified-home.js?v=20261108-square-rail"></script>
 </body>
 </html>
