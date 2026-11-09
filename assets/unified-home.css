@@ -56,25 +56,14 @@ section[id] { scroll-margin-top: 94px; }
 .un-mobile a { display:block; padding:12px 0; font-size:24px; font-weight:480; letter-spacing:-.035em; }
 .un-header.menu-open .un-mobile { display:block; }
 
-/* Opening statement is the product proposition, not an artificial slogan deck. */
-.un-hero { color:#fff; background:var(--black); padding-block:clamp(40px,5.5vw,96px) clamp(66px,8vw,136px); }
-.un-hero h1 { max-width:1520px; margin:0; font-size:clamp(55px,8.3vw,156px); font-weight:560; letter-spacing:-.079em; line-height:.93; text-wrap:balance; }
-.un-hero h1 span { display:block; }
-.un-hero__intro {
-  margin-block:clamp(32px,5vw,86px) clamp(35px,5vw,76px);
-  display:flex; align-items:end; justify-content:space-between; gap:32px;
-}
-.un-hero__lead { margin:0; max-width:570px; font-size:clamp(17px,1.45vw,23px); line-height:1.48; letter-spacing:-.018em; color:rgba(255,255,255,.8); }
+/* Hero actions. The cinematic hero layout is defined once, at the end. */
 .un-action { display:inline-flex; align-items:center; justify-content:space-between; gap:30px; font-size:14px; font-weight:520; transition:background .2s ease,color .2s ease; }
 .un-action--light { padding:20px 23px; color:var(--black); background:#fff; min-width:230px; }
 .un-action--light:hover { color:#fff; background:#30302d; }
 .un-action__arrow { font-size:23px; font-weight:350; line-height:.8; transition:transform .3s var(--ease); }
 .un-action:hover .un-action__arrow { transform:translate(4px,-2px); }
-.un-film { position:relative; isolation:isolate; background:#333; width:100%; overflow:hidden; }
-.un-film video { aspect-ratio: 2.15/1; object-fit:cover; object-position:center; max-height:720px; }
-.un-film::after { content:""; position:absolute; inset:auto 0 0; height:25%; pointer-events:none; background:linear-gradient(0deg,rgba(0,0,0,.28),transparent); }
-.un-film__line { position:absolute; bottom:24px; left:25px; z-index:2; color:#fff; font:450 11px/1.25 var(--mono); letter-spacing:.045em; }
-.un-film__pause { position:absolute; right:20px; bottom:17px; z-index:3; width:42px; height:42px; border:1px solid rgba(255,255,255,.75); background:rgba(0,0,0,.25); color:#fff; }
+.un-film__line { color:#fff; font:450 11px/1.25 var(--mono); letter-spacing:.045em; }
+.un-film__pause { display:grid;place-items:center;width:44px;height:44px;border:1px solid rgba(255,255,255,.75);background:rgba(0,0,0,.35);color:#fff; }
 .un-film__pause:hover { background:#fff;color:#111; }
 .un-film__pause span { font-size:17px; }
 
@@ -485,26 +474,43 @@ section[id] { scroll-margin-top: 94px; }
   .un-web-arrow { transition: none; }
 }
 
-/* Architectural film as the actual homepage hero background.
-   Keep the original Outfit statement and the site-wide content grid. */
+/* Cinematic studio hero, inspired by Sonido's simple editorial hierarchy.
+   One stacking context: video 0, wash 1, content 2, navigation 100.
+   Header overlays the full-bleed film instead of reserving a white strip. */
+.un-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  width: 100%;
+  height: 86px;
+  background: transparent;
+  color: #fff;
+  border: 0;
+  transition: background .25s ease, color .25s ease;
+}
+.un-header.is-light { background: var(--paper); color: var(--ink); }
+.un-header.menu-open:not(.is-light) { background: #111; color: #fff; }
+.un-header.is-light .un-mobile { background: var(--paper); color: var(--ink); }
+.un-header:not(.is-light) .un-mobile { background: #111; color: #fff; }
+
 .un-hero--video {
   position: relative;
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  min-height: max(680px, calc(100svh - 86px));
-  padding-block: clamp(62px, 8vh, 116px) clamp(24px, 3vw, 46px);
+  min-height: max(720px, 100svh);
+  padding: 0;
   overflow: hidden;
+  background: #1d1d1a;
   color: #fff;
-  background: #151512;
 }
 .un-hero--video .un-hero__media {
   position: absolute;
-  z-index: 0;
   inset: 0;
-  overflow: hidden;
+  z-index: 0;
   pointer-events: none;
-  background: #262723;
+  overflow: hidden;
+  background: #252522 url("../demos/atmosferi-viz/img/mountain-retreat-poster.jpg") center / cover no-repeat;
 }
 .un-hero--video .un-hero__media video {
   position: absolute;
@@ -513,89 +519,133 @@ section[id] { scroll-margin-top: 94px; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center center;
+  object-position: 50% 50%;
 }
 .un-hero--video .un-hero__shade {
   position: absolute;
-  z-index: 1;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(8,8,7,.62) 0%, rgba(8,8,7,.34) 55%, rgba(8,8,7,.22) 100%),
-    linear-gradient(180deg, rgba(8,8,7,.12) 0%, rgba(8,8,7,.07) 34%, rgba(8,8,7,.61) 100%);
+    linear-gradient(180deg,rgba(10,10,10,.34) 0%,rgba(10,10,10,.16) 40%,rgba(10,10,10,.56) 100%),
+    linear-gradient(90deg,rgba(10,10,10,.26) 0%,transparent 82%);
 }
 .un-hero--video .un-hero__content {
   position: relative;
   z-index: 2;
-  flex: 1 0 auto;
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
-  justify-content: space-between;
-  gap: clamp(90px, 14vh, 180px);
+  justify-content: flex-end;
+  min-height: 0;
+  gap: clamp(36px, 5vh, 74px);
+  padding-top: clamp(185px, 25vh, 330px);
+  padding-bottom: clamp(105px, 13vh, 160px);
+  pointer-events: auto;
 }
 .un-hero--video h1 {
-  max-width: 1350px;
+  display: block;
+  max-width: min(100%, 1380px);
   margin: 0;
   color: #fff;
-  text-shadow: 0 2px 22px rgba(0,0,0,.16);
+  font-family: var(--display);
+  font-size: clamp(62px, 7.6vw, 135px);
+  font-weight: 400;
+  line-height: .99;
+  letter-spacing: -.038em;
+  text-wrap: balance;
+  text-shadow: 0 2px 24px rgba(0,0,0,.17);
 }
+.un-hero--video h1 span { display: block; }
 .un-hero--video .un-hero__intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(28px, 4vw, 70px);
   margin: 0;
   padding: 0;
-  gap: 32px;
 }
 .un-hero--video .un-hero__lead {
-  color: rgba(255,255,255,.96);
-  text-shadow: 0 1px 12px rgba(0,0,0,.3);
+  max-width: 570px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(17px, 1.35vw, 21px);
+  line-height: 1.5;
+  text-shadow: 0 1px 12px rgba(0,0,0,.4);
 }
+.un-hero--video .un-action--light {
+  flex: none;
+  align-self: flex-end;
+  min-width: 236px;
+  padding: 19px 23px;
+  color: #111;
+  background: #fff;
+  border: 1px solid #fff;
+  border-radius: 0;
+}
+.un-hero--video .un-action--light:hover { background: #111; color: #fff; border-color: #111; }
 .un-hero--video .un-hero__meta {
-  position: relative;
+  position: absolute;
   z-index: 3;
+  bottom: clamp(21px, 3vw, 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, var(--grid-width));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex: none;
-  gap: 18px;
-  margin-top: clamp(32px, 4vw, 58px);
+  gap: 16px;
+  pointer-events: none;
 }
 .un-hero--video .un-film__line {
   position: static;
-  inset: auto;
-  color: rgba(255,255,255,.85);
-  text-shadow: 0 1px 8px rgba(0,0,0,.4);
+  max-width: 75%;
+  color: rgba(255,255,255,.82);
+  font-size: 11px;
+  line-height: 1.45;
+  text-shadow: 0 1px 8px rgba(0,0,0,.5);
 }
 .un-hero--video .un-film__pause {
   position: static;
-  inset: auto;
   flex: none;
-  width: 44px;
-  height: 44px;
-  background: rgba(12,12,12,.4);
-  backdrop-filter: blur(4px);
+  pointer-events: auto;
+  background: rgba(15,15,15,.38);
+  backdrop-filter: blur(5px);
 }
 .un-hero--video .un-film__pause:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 4px;
 }
 @media (max-width: 760px) {
-  .un-hero--video {
-    min-height: max(630px, calc(100svh - 72px));
-    padding-block: clamp(45px, 7vh, 72px) 24px;
-  }
-  .un-hero--video .un-hero__media video {
-    object-position: 56% center;
-  }
+  .un-header { height: 72px; }
+  .un-hero--video { min-height: max(680px, 100svh); }
+  .un-hero--video .un-hero__media video { object-position: 54% center; }
   .un-hero--video .un-hero__shade {
-    background:
-      linear-gradient(180deg, rgba(8,8,7,.54) 0%, rgba(8,8,7,.23) 45%, rgba(8,8,7,.77) 100%),
-      linear-gradient(90deg, rgba(8,8,7,.25), rgba(8,8,7,.06));
+    background: linear-gradient(180deg,rgba(10,10,10,.45),rgba(10,10,10,.24) 43%,rgba(10,10,10,.72));
   }
-  .un-hero--video .un-hero__content { gap: clamp(74px, 10vh, 140px); }
-  .un-hero--video h1 { font-size: clamp(43px, 10.2vw, 72px); }
-  .un-hero--video .un-hero__intro { gap: 28px; }
-  .un-hero--video .un-hero__meta { margin-top: 32px; }
+  .un-hero--video .un-hero__content {
+    gap: clamp(30px, 5vh, 62px);
+    padding-top: clamp(140px, 21vh, 215px);
+    padding-bottom: 110px;
+  }
+  .un-hero--video h1 {
+    font-size: clamp(48px, 10.5vw, 76px);
+    line-height: 1.03;
+    letter-spacing: -.04em;
+  }
+  .un-hero--video .un-hero__intro {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 26px;
+  }
+  .un-hero--video .un-hero__lead { font-size: 16px; max-width: 420px; }
+  .un-hero--video .un-action--light { align-self: flex-start; min-width: 230px; }
+  .un-hero--video .un-hero__meta { bottom: 20px; }
 }
 @media (max-width: 390px) {
-  .un-hero--video h1 { font-size: 42px; }
-  .un-hero--video .un-film__line { max-width: 230px; line-height: 1.45; }
+  .un-hero--video h1 { font-size: clamp(43px, 10.8vw, 49px); }
+  .un-hero--video .un-hero__content { padding-top: 122px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .un-header { transition: none; }
 }
