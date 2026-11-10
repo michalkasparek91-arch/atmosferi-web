@@ -51,7 +51,17 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
     return `SPD*1.0*ACC:${accFormatted}*AM:${amountStr}*CC:CZK*X-VS:${vs}*MSG:Faktura ${invoice.number}`;
   };
 
-  const spaydString = buildSpaydString();
+  const paymentMethod = invoice.paymentMethod || "bank_transfer";
+  const isTransfer = paymentMethod === "bank_transfer";
+  const PAYMENT_LABEL: Record<string, { cs: string; en: string }> = {
+    bank_transfer: { cs: "Bankovní převod", en: "Bank Transfer" },
+    cash: { cs: "Hotově", en: "Cash" },
+    card: { cs: "Platební kartou", en: "Card" },
+  };
+  const paymentLabel = isEn ? PAYMENT_LABEL[paymentMethod].en : PAYMENT_LABEL[paymentMethod].cs;
+
+  // QR platba dává smysl jen u převodu — u hotovosti/karty by mátla.
+  const spaydString = isTransfer ? buildSpaydString() : null;
 
   // Helper to format country name
   const getCountryLabel = (codeOrName?: string) => {
@@ -245,7 +255,7 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
 
             <div>
               <div className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{isEn ? "Payment Method" : "Způsob úhrady"}</div>
-              <div className="font-medium text-xs text-zinc-200 mt-0.5">{isEn ? "Bank Transfer" : "Bankovní převod"}</div>
+              <div className="font-medium text-xs text-zinc-200 mt-0.5">{paymentLabel}</div>
             </div>
 
             <div>
@@ -254,7 +264,8 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
             </div>
           </div>
 
-          {/* Bank Account Details Strip */}
+          {/* Bank Account Details Strip — jen u úhrady převodem */}
+          {isTransfer && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4 py-3 mb-8 rounded-lg border border-zinc-200/80 bg-zinc-50/50 text-xs">
             {invoice.bankAccount.accountNumber && (
               <div>
@@ -275,6 +286,7 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
               </div>
             )}
           </div>
+          )}
 
           {/* Items Table */}
           <div className="mb-8">
@@ -314,6 +326,17 @@ export const InvoicePrintView: React.FC<InvoicePrintViewProps> = ({ invoice }) =
                     <div className="text-[11px] text-zinc-500 mt-0.5 leading-snug">
                       Naskenujte v bankovní aplikaci<br />pro okamžitou úhradu.
                     </div>
+                  </div>
+                </div>
+              ) : !isTransfer ? (
+                <div className="text-[11px] text-zinc-500 bg-zinc-50 p-3 rounded-xl border border-zinc-200/70 leading-relaxed max-w-sm">
+                  <div className="font-semibold text-zinc-900 mb-0.5">
+                    {isEn ? `Payment method: ${paymentLabel}` : `Způsob úhrady: ${paymentLabel.toLowerCase()}`}
+                  </div>
+                  <div>
+                    {paymentMethod === "cash"
+                      ? (isEn ? "To be paid in cash on receipt of this invoice." : "Úhrada v hotovosti při předání faktury.")
+                      : (isEn ? "To be paid by payment card." : "Úhrada platební kartou.")}
                   </div>
                 </div>
               ) : (

@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Invoice, Contact, BankAccount, BrandType, LanguageType, InvoiceItem, InvoicingSettings, VatRegime } from "@/types/invoicing";
+import { Invoice, Contact, BankAccount, BrandType, LanguageType, InvoiceItem, InvoicingSettings, VatRegime, PaymentMethod } from "@/types/invoicing";
+
+// Zákon č. 254/2004 Sb.: platby nad tento limit (součet za den mezi stejným
+// plátcem a příjemcem) se musí provést bezhotovostně.
+const CASH_LIMIT_CZK = 270_000;
 import { VAT_REGIME_LABELS, isCrossBorderEu, suggestVatRegime, resolveVatNote } from "@/lib/vatNotes";
 import { fetchCompanyByIco, fetchCompanyByVies, smartCompanyLookup, COUNTRY_OPTIONS, COUNTRY_NAMES } from "@/lib/ares";
 import { Plus, Trash2, Search, Loader2, Sparkles, Building2, Globe, UserPlus } from "lucide-react";
@@ -109,6 +113,14 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     }));
     toast.info(`Byl nastaven primární bankovní účet pro ${lang === 'cs' ? 'Češtinu' : 'Angličtinu'}: ${primaryBank.name}`);
   };
+
+  // Hotovost nad zákonným limitem — přepočet na Kč přes kurz faktury.
+  const cashOverLimit = useMemo(() => {
+    if (formData.paymentMethod !== "cash") return false;
+    const rate = formData.currency === "CZK" ? 1 : (formData.exchangeRate || 0);
+    if (!rate) return false;
+    return (formData.total || 0) * rate > CASH_LIMIT_CZK;
+  }, [formData.paymentMethod, formData.total, formData.currency, formData.exchangeRate]);
 
   // Je faktura přeshraniční v rámci EU? Podle toho nabízíme daňovou poznámku.
   const isEuCrossBorder = useMemo(
@@ -296,6 +308,10 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       toast.error("Vyplňte číslo faktury a název klienta");
       return;
     }
+    if (cashOverLimit) {
+      toast.error(`Platba v hotovosti nad ${CASH_LIMIT_CZK.toLocaleString("cs-CZ")} Kč není podle zákona povolená. Zvolte převod na účet.`);
+      return;
+    }
 
     // Auto-save / sync client to contact directory
     if (onSaveContact && formData.client?.name) {
@@ -390,6 +406,45 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Způsob úhrady */}
+          <div className="p-4 rounded-xl border border-border bg-background space-y-2">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <Label className="text-xs font-bold text-muted-foreground uppercase">Způsob úhrady</Label>
+              <div className="flex gap-1.5">
+                {([
+                  { id: "bank_transfer", label: "Převodem" },
+                  { id: "cash", label: "Hotově" },
+                  { id: "card", label: "Kartou" },
+                ] as { id: PaymentMethod; label: string }[]).map(m => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: m.id }))}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                      (formData.paymentMethod || "bank_transfer") === m.id
+                        ? "bg-primary/10 border-primary/40 text-primary font-semibold"
+                        : "border-border text-muted-foreground hover:border-primary/30"
+                    }`}
+                  >{m.label}</button>
+                ))}
+              </div>
+            </div>
+
+            {formData.paymentMethod === "cash" && (
+              <p className="text-[11px] text-muted-foreground">
+                Na faktuře se místo bankovního spojení a QR platby vytiskne „Způsob úhrady: hotově".
+              </p>
+            )}
+
+            {cashOverLimit && (
+              <p className="text-[11px] text-red-600 bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2">
+                Částka přesahuje zákonný limit pro platbu v hotovosti {CASH_LIMIT_CZK.toLocaleString("cs-CZ")} Kč
+                (zákon č. 254/2004 Sb.). Takovou platbu nesmíš v hotovosti přijmout. Hrozí pokuta až 5 mil. Kč,
+                proto zvol převod na účet.
+              </p>
+            )}
           </div>
 
           {/* Daňový režim — povinná poznámka při fakturaci do jiného státu EU */}

@@ -17,6 +17,9 @@ export type VatRegime = 'none' | 'reverse_charge' | 'intra_eu_goods' | 'non_paye
 
 export type CurrencyType = 'CZK' | 'EUR' | 'USD' | 'GBP';
 
+/** Způsob úhrady faktury. */
+export type PaymentMethod = 'bank_transfer' | 'cash' | 'card';
+
 
 export interface InvoiceItem {
   id: string;
@@ -90,6 +93,9 @@ export interface Invoice {
   subtotal: number;
   total: number;
   exchangeRate?: number; // default 1.0 for CZK
+
+  // Způsob úhrady. Chybí-li (starší faktury), bere se jako převod na účet.
+  paymentMethod?: PaymentMethod;
 
   // Daňový režim + volitelný vlastní text poznámky (pro VatRegime 'custom').
   vatRegime?: VatRegime;
