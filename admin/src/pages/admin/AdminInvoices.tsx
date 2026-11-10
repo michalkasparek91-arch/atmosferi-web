@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { planInvoiceMove, useInvoicing } from "@/lib/invoicingStore";
+import { planInvoiceDateOrder, planInvoiceMove, useInvoicing } from "@/lib/invoicingStore";
 import { Invoice, InvoiceStatus, BrandType, CurrencyType } from "@/types/invoicing";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -114,6 +114,15 @@ export default function AdminInvoices() {
   });
 
   const canReorder = sortBy !== "due" && !searchTerm && statusFilter === "all" && brandFilter === "all" && currencyFilter === "all";
+  const requestDateOrder = () => {
+    try {
+      const changes = planInvoiceDateOrder(invoices);
+      if (changes.length) setNumberChanges(changes);
+      else toast.info("Faktury už jsou přečíslované podle data vystavení.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Faktury se nepodařilo seřadit.");
+    }
+  };
   const requestInvoiceMove = (sourceId: string, targetId: string) => {
     if (!canReorder || sourceId === targetId) return;
     const changes = planInvoiceMove(invoices, sourceId, targetId);
@@ -405,6 +414,11 @@ export default function AdminInvoices() {
 
       {/* Invoices Table */}
       <Card className="rounded-xl border border-border overflow-hidden shadow-sm">
+        <div className="flex justify-end px-4 pt-3">
+          <Button variant="outline" size="sm" disabled={!canReorder || invoices.length < 2} onClick={requestDateOrder}>
+            <ArrowUpDown className="mr-2 h-4 w-4" /> Přečíslovat podle data vystavení
+          </Button>
+        </div>
         <p className="px-4 py-2 text-xs text-muted-foreground">
           {canReorder ? "Přetáhněte fakturu za úchyt ve stejné roční řadě. Změny čísel uvidíte před uložením." : "Pro přečíslování vypněte filtry a seřaďte faktury podle čísla."}
         </p>

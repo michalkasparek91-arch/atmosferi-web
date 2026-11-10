@@ -6,6 +6,30 @@ const INVOICES_STORAGE_KEY = "atmosferi_admin_invoices_v1";
 const CONTACTS_STORAGE_KEY = "atmosferi_admin_contacts_v1";
 const SETTINGS_STORAGE_KEY = "atmosferi_admin_invoicing_settings_v1";
 
+export function planInvoiceDateOrder(invoices: Invoice[]) {
+  const series = new Map<string, Invoice[]>();
+  for (const invoice of invoices) {
+    const year = invoice.number.match(/^(\d{4})-\d+$/)?.[1];
+    if (!year) continue;
+    const group = series.get(year) ?? [];
+    group.push(invoice);
+    series.set(year, group);
+  }
+  const compareNumbers = (a: Invoice, b: Invoice) => a.number.localeCompare(b.number, undefined, { numeric: true });
+  return [...series.values()].flatMap(group => {
+    if (new Set(group.map(invoice => invoice.number)).size !== group.length) {
+      throw new Error("Roční řada obsahuje duplicitní čísla faktur.");
+    }
+    if (group.some(invoice => !/^\d{4}-\d{2}-\d{2}$/.test(invoice.issuedOn))) {
+      throw new Error("Některá faktura nemá vyplněné datum vystavení.");
+    }
+    const slots = [...group].sort(compareNumbers);
+    return group.sort((a, b) => a.issuedOn.localeCompare(b.issuedOn) || compareNumbers(a, b))
+      .map((invoice, index) => ({ id: invoice.id, before: invoice.number, after: slots[index].number }))
+      .filter(change => change.before !== change.after);
+  });
+}
+
 export function planInvoiceMove(invoices: Invoice[], sourceId: string, targetId: string) {
   const source = invoices.find(invoice => invoice.id === sourceId);
   const year = source?.number.match(/^(\d{4})-\d+$/)?.[1];
