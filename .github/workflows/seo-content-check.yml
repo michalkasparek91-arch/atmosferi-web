@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['architecture-portfolio-confidential-project-embargo-checklist.html', 'en', 'architecture-portfolio-project-attribution-approval.html', '2026-11-10'],
             ['accessible-architecture-portfolio-pdf-downloads.html', 'en', 'prepare-architecture-projects-for-website.html', '2026-11-09'],
             ['architecture-portfolio-project-attribution-approval.html', 'en', 'prepare-architecture-projects-for-website.html', '2026-11-08'],
             ['multilingual-architecture-portfolio-website-qa.html', 'en', 'architecture-portfolio-website-url-migration.html', '2026-11-08'],
