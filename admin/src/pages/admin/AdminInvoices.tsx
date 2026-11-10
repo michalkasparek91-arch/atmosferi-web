@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useInvoicing } from "@/lib/invoicingStore";
+import { planInvoiceMove, useInvoicing } from "@/lib/invoicingStore";
 import { Invoice, InvoiceStatus, BrandType, CurrencyType } from "@/types/invoicing";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { InvoicePrintView } from "@/components/invoicing/InvoicePrintView";
 import { InvoiceFormModal } from "@/components/invoicing/InvoiceFormModal";
@@ -27,6 +27,7 @@ import {
   Edit, 
   Settings, 
   ArrowUpDown, 
+  GripVertical,
   Download, 
   Upload, 
   Building2,
@@ -40,6 +41,7 @@ import { toast } from "sonner";
 export default function AdminInvoices() {
   const { 
     invoices, 
+    renumberInvoices,
     contacts, 
     settings, 
     stats, 
@@ -65,6 +67,9 @@ export default function AdminInvoices() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
+  const [draggedInvoice, setDraggedInvoice] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [numberChanges, setNumberChanges] = useState<ReturnType<typeof planInvoiceMove>>([]);
 
   // Auto open form modal if redirected from contacts with query param ?newFor=contactId
   useEffect(() => {
@@ -102,11 +107,22 @@ export default function AdminInvoices() {
 
     return true;
   }).sort((a, b) => {
-    if (sortBy === "newest") return b.number.localeCompare(a.number);
-    if (sortBy === "oldest") return a.number.localeCompare(b.number);
+    if (sortBy === "newest") return b.number.localeCompare(a.number, undefined, { numeric: true });
+    if (sortBy === "oldest") return a.number.localeCompare(b.number, undefined, { numeric: true });
     if (sortBy === "due") return a.dueOn.localeCompare(b.dueOn);
     return 0;
   });
+
+  const canReorder = sortBy !== "due" && !searchTerm && statusFilter === "all" && brandFilter === "all" && currencyFilter === "all";
+  const requestInvoiceMove = (sourceId: string, targetId: string) => {
+    if (!canReorder || sourceId === targetId) return;
+    const changes = planInvoiceMove(invoices, sourceId, targetId);
+    if (!changes.length) {
+      toast.error("Přesouvat lze faktury ve stejné roční řadě s jedinečnými čísly.");
+      return;
+    }
+    setNumberChanges(changes);
+  };
 
   const handleCreateNew = () => {
     setEditingInvoice(null);
@@ -389,6 +405,9 @@ export default function AdminInvoices() {
 
       {/* Invoices Table */}
       <Card className="rounded-xl border border-border overflow-hidden shadow-sm">
+        <p className="px-4 py-2 text-xs text-muted-foreground">
+          {canReorder ? "Přetáhněte fakturu za úchyt ve stejné roční řadě. Změny čísel uvidíte před uložením." : "Pro přečíslování vypněte filtry a seřaďte faktury podle čísla."}
+        </p>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -411,10 +430,42 @@ export default function AdminInvoices() {
                   </td>
                 </tr>
               ) : (
-                filteredInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors group">
+                filteredInvoices.map((inv, index) => (
+                  <tr key={inv.id}
+                    onDragOver={event => {
+                      if (!canReorder || !draggedInvoice || draggedInvoice === inv.id) return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                      setDropTarget(inv.id);
+                    }}
+                    onDrop={event => {
+                      if (!draggedInvoice) return;
+                      event.preventDefault();
+                      requestInvoiceMove(draggedInvoice, inv.id);
+                      setDraggedInvoice(null);
+                      setDropTarget(null);
+                    }}
+                    className={dropTarget === inv.id ? "bg-primary/10 ring-1 ring-inset ring-primary" : "hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors group"}>
                     {/* Number */}
                     <td className="py-3.5 px-4 font-mono font-bold text-foreground">
+                      {canReorder && /^\d{4}-\d+$/.test(inv.number) && (
+                        <button type="button" draggable aria-label={`Přesunout fakturu ${inv.number} šipkami nahoru a dolů`}
+                          title="Přetáhnout nebo přesunout šipkami" className="mr-2 inline-flex cursor-grab align-middle text-muted-foreground active:cursor-grabbing"
+                          onDragStart={event => {
+                            event.dataTransfer.effectAllowed = "move";
+                            event.dataTransfer.setData("text/plain", inv.id);
+                            setDraggedInvoice(inv.id);
+                          }}
+                          onDragEnd={() => { setDraggedInvoice(null); setDropTarget(null); }}
+                          onKeyDown={event => {
+                            if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                            event.preventDefault();
+                            const target = filteredInvoices[index + (event.key === "ArrowUp" ? -1 : 1)];
+                            if (target) requestInvoiceMove(inv.id, target.id);
+                          }}>
+                          <GripVertical className="h-4 w-4" />
+                        </button>
+                      )}
                       <button 
                         onClick={() => handlePrint(inv)}
                         className="hover:underline text-primary text-left"
@@ -499,6 +550,30 @@ export default function AdminInvoices() {
           </table>
         </div>
       </Card>
+
+      <Dialog open={numberChanges.length > 0} onOpenChange={open => { if (!open) setNumberChanges([]); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Přečíslovat faktury?</DialogTitle>
+            <DialogDescription>Změní se čísla uvedených faktur. Variabilní symboly se při přesunu nepřepisují.</DialogDescription>
+          </DialogHeader>
+          <ul className="max-h-60 overflow-y-auto space-y-1 text-sm">
+            {numberChanges.map(change => (
+              <li key={change.id} className="flex justify-between gap-3 rounded bg-muted px-3 py-2">
+                <span className="truncate">{invoices.find(invoice => invoice.id === change.id)?.client.name}</span>
+                <span className="shrink-0 font-mono">{change.before} → {change.after}</span>
+              </li>
+            ))}
+          </ul>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNumberChanges([])}>Zrušit</Button>
+            <Button onClick={() => {
+              renumberInvoices(numberChanges);
+              setNumberChanges([]);
+            }}>Uložit přečíslování</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Invoice Form Modal */}
       <InvoiceFormModal

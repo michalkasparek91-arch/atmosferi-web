@@ -6,6 +6,23 @@ const INVOICES_STORAGE_KEY = "atmosferi_admin_invoices_v1";
 const CONTACTS_STORAGE_KEY = "atmosferi_admin_contacts_v1";
 const SETTINGS_STORAGE_KEY = "atmosferi_admin_invoicing_settings_v1";
 
+export function planInvoiceMove(invoices: Invoice[], sourceId: string, targetId: string) {
+  const source = invoices.find(invoice => invoice.id === sourceId);
+  const year = source?.number.match(/^(\d{4})-\d+$/)?.[1];
+  if (!year || sourceId === targetId) return [];
+
+  const series = invoices.filter(invoice => /^\d{4}-\d+$/.test(invoice.number) && invoice.number.startsWith(`${year}-`))
+    .sort((a, b) => b.number.localeCompare(a.number, undefined, { numeric: true }));
+  const from = series.findIndex(invoice => invoice.id === sourceId);
+  const to = series.findIndex(invoice => invoice.id === targetId);
+  if (to < 0 || new Set(series.map(invoice => invoice.number)).size !== series.length) return [];
+
+  const reordered = [...series];
+  reordered.splice(to, 0, ...reordered.splice(from, 1));
+  return reordered.map((invoice, index) => ({ id: invoice.id, before: invoice.number, after: series[index].number }))
+    .filter(change => change.before !== change.after);
+}
+
 // Helper for initial load
 export function loadInvoicesFromStorage(): Invoice[] {
   try {
@@ -109,6 +126,18 @@ export function useInvoicing() {
     });
   };
 
+  const renumberInvoices = (changes: ReturnType<typeof planInvoiceMove>) => {
+    const numbers = new Map(changes.map(change => [change.id, change.after]));
+    setInvoices(previous => {
+      if (changes.some(change => !previous.some(invoice => invoice.id === change.id && invoice.number === change.before))) return previous;
+      if (previous.some(invoice => !numbers.has(invoice.id) && changes.some(change => change.after === invoice.number))) return previous;
+      return previous.map(invoice => {
+        const number = numbers.get(invoice.id);
+        return number ? { ...invoice, number } : invoice;
+      });
+    });
+  };
+
   // Delete invoice
   const deleteInvoice = (id: string) => {
     setInvoices(prev => prev.filter(i => i.id !== id));
@@ -130,16 +159,13 @@ export function useInvoicing() {
     const existing = invoices.find(i => i.id === id);
     if (!existing) return null;
 
-    const currentYear = new Date().getFullYear();
-    const countThisYear = invoices.filter(i => i.number.startsWith(`${currentYear}-`)).length + 1;
-    const nextNum = `${currentYear}-${String(countThisYear).padStart(4, '0')}`;
-    const nextVs = `${currentYear}${String(countThisYear).padStart(4, '0')}`;
+    const next = getNextInvoiceNumber();
 
     const newInvoice: Invoice = {
       ...existing,
       id: "inv_" + Date.now(),
-      number: nextNum,
-      variableSymbol: nextVs,
+      number: next.number,
+      variableSymbol: next.variableSymbol,
       status: 'open',
       issuedOn: new Date().toISOString().split('T')[0],
       dueOn: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
@@ -242,6 +268,7 @@ export function useInvoicing() {
     settings,
     stats,
     upsertInvoice,
+    renumberInvoices,
     deleteInvoice,
     updateInvoiceStatus,
     duplicateInvoice,
