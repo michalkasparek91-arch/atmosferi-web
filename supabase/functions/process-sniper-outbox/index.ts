@@ -229,7 +229,6 @@ Deno.serve(async (req) => {
       let review_count = 0;
       let quotaHit = false;
       let quotaMessage: string | undefined;
-      let bccSent = false;
 
       const waveStarted = Date.now();
       for (let i = 0; i < idsThisRun.length; i++) {
@@ -457,12 +456,10 @@ Deno.serve(async (req) => {
             })(),
             segmentFilters: filters,
             provider: currentProvider,
-            bcc: !bccSent ? "michal.kasparek91@gmail.com" : undefined,
           });
 
           if (result.success) {
             success = true;
-            bccSent = true;
             finalMessageId = result.messageId;
             finalHtml = result.html;
             if (currentProvider === "brevo") brevoRemaining--;
