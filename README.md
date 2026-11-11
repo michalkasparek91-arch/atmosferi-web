@@ -9,7 +9,7 @@
 - `demos/atmosferi-viz/index.html` — specialist visualisation portfolio, motion and interactive 360° experiences.
 - `work.html`, `services.html`, `pricing.html`, `studio.html`, `contact.html`, `start.html` — retained deeper pages and enquiry journeys.
 - `assets/unified-home.css`, `assets/unified-home.js`, `assets/unified-home-i18n.js` — homepage styles, behaviour and EN/DE/CS translations.
-- Original Atmosferi typographic hierarchy is maintained: **Outfit** for headlines and wordmark; **Geist** for body/UI text. Keep the sharp geometry and shared content edges.
+- The unified homepage uses the **Fabrica-inspired editorial layer** in `assets/fabrica-editorial.css` (loaded after `assets/unified-home.css`): **Inter Tight** for display headlines, **DM Sans** for body/UI, **Outfit** retained for the wordmark, and **Geist Mono** for technical metadata. Fonts load from Google Fonts; no proprietary Fabrica assets are copied. Keep sharp edges, monochrome sections, cinematic hero motion, and accessible reduced-motion fallbacks.
 
 Do not split the root homepage back into a Websites/Visuals switcher. The separate service pages are for deeper explanations, targeted traffic and SEO. The website previews are working **concept demos**, not client-commissioned sites; describe them accordingly. Preserve the root canonical URL and the four static-language architecture-website landing pages.
 
