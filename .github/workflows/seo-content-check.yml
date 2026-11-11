@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['accessible-restroom-architectural-rendering-review.html', 'en', 'interior-rendering-furniture-scale-clearance-checklist.html', '2026-11-11'],
             ['accessible-parking-bays-architectural-rendering-review.html', 'en', 'ev-charging-parking-bay-architectural-rendering-review.html', '2026-11-11'],
             ['roof-parapet-coping-architectural-rendering-review.html', 'en', 'green-roof-architectural-rendering-accuracy-review.html', '2026-11-11'],
             ['tree-protection-zones-architectural-visualisation-review.html', 'en', 'landscape-planting-accuracy-architectural-renderings.html', '2026-11-11'],
