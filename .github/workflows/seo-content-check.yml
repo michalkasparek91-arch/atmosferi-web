@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['tree-protection-zones-architectural-visualisation-review.html', 'en', 'landscape-planting-accuracy-architectural-renderings.html', '2026-11-11'],
             ['tactile-paving-architectural-rendering-review.html', 'en', 'accessible-route-accuracy-architectural-renderings.html', '2026-11-11'],
             ['architecture-portfolio-confidential-project-embargo-checklist.html', 'en', 'architecture-portfolio-project-attribution-approval.html', '2026-11-10'],
             ['accessible-architecture-portfolio-pdf-downloads.html', 'en', 'prepare-architecture-projects-for-website.html', '2026-11-09'],
@@ -134,6 +135,19 @@ jobs:
             assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.inLanguage === lang));
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.inLanguage === lang));
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === published), path + ': publication dates');
+            if (path === 'tree-protection-zones-architectural-visualisation-review.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert((h.match(/<section id=/g) || []).length >= 12, path + ': substantive sections');
+              assert(h.includes('Fictional illustrative example'), path + ': fictional example labelled');
+              assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': responsive table');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const anchors = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(anchors.length >= 12 && anchors.every(id => ids.has(id)), path + ': table of contents');
+              const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
+              assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage schema');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relation');
+            }
             if (path === 'architecture-portfolio-image-optimization.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
               assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile breakpoint');
