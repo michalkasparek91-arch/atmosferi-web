@@ -117,6 +117,7 @@ jobs:
             ['staircase-tread-riser-geometry-rendering-review.html', 'en', 'accessible-route-accuracy-architectural-renderings.html', '2026-11-05'],
           ];
           pages.push(['window-reveal-depth-facade-insulation-rendering-review.html', 'en', 'operable-window-opening-architectural-rendering-review.html', '2026-11-13']);
+          pages.push(['interior-floor-finish-transitions-rendering-review.html', 'en', 'architectural-rendering-material-finish-approval-checklist.html', '2026-11-14']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
