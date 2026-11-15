@@ -122,6 +122,7 @@ jobs:
           pages.push(['roof-overflow-scuppers-architectural-rendering-review.html', 'en', 'rainwater-downpipes-architectural-rendering-review.html', '2026-11-14']);
           pages.push(['stair-handrail-termination-architectural-rendering-review.html', 'en', 'staircase-tread-riser-geometry-rendering-review.html', '2026-11-15']);
           pages.push(['interior-skirting-shadow-gap-rendering-review.html', 'en', 'interior-floor-finish-transitions-rendering-review.html', '2026-11-15']);
+          pages.push(['recessed-curtain-tracks-pocket-interior-rendering-review.html', 'en', 'ceiling-access-panel-interior-rendering-review.html', '2026-11-15']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
