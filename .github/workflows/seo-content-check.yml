@@ -129,6 +129,7 @@ jobs:
           pages.push(['underfloor-heating-manifold-interior-rendering-review.html', 'en', 'interior-floor-finish-transitions-rendering-review.html', '2026-11-15']);
           pages.push(['kitchen-extractor-duct-bulkhead-interior-rendering-review.html', 'en', 'kitchen-island-power-outlets-interior-rendering-review.html', '2026-11-15']);
           pages.push(['roof-terrace-pedestal-paving-architectural-rendering-review.html', 'en', 'balcony-drainage-threshold-architectural-rendering-review.html', '2026-11-15']);
+          pages.push(['interior-ventilation-diffuser-grille-rendering-review.html', 'en', 'facade-ventilation-grilles-architectural-rendering-review.html', '2026-11-15']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
