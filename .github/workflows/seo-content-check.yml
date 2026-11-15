@@ -123,6 +123,7 @@ jobs:
           pages.push(['stair-handrail-termination-architectural-rendering-review.html', 'en', 'staircase-tread-riser-geometry-rendering-review.html', '2026-11-15']);
           pages.push(['interior-skirting-shadow-gap-rendering-review.html', 'en', 'interior-floor-finish-transitions-rendering-review.html', '2026-11-15']);
           pages.push(['recessed-curtain-tracks-pocket-interior-rendering-review.html', 'en', 'ceiling-access-panel-interior-rendering-review.html', '2026-11-15']);
+          pages.push(['kitchen-island-power-outlets-interior-rendering-review.html', 'en', 'interior-rendering-furniture-scale-clearance-checklist.html', '2026-11-15']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
@@ -145,6 +146,17 @@ jobs:
             assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.inLanguage === lang));
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.inLanguage === lang));
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === published), path + ': publication dates');
+            if (path === 'kitchen-island-power-outlets-interior-rendering-review.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive layout');
+              assert((h.match(/<section id=/g) || []).length >= 13, path + ': substantive sections');
+              assert(h.includes('Fictional illustrative example'), path + ': illustrative case labelled');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const anchors = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(anchors.length >= 13 && anchors.every(id => ids.has(id)), path + ': working guide index');
+              assert(/@media\s*\(max-width:850px\)/.test(fs.readFileSync('assets/seo-guides.css', 'utf8')), path + ': mobile CSS');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': schema relation');
+            }
             if (path === 'tree-protection-zones-architectural-visualisation-review.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
               assert((h.match(/<section id=/g) || []).length >= 12, path + ': substantive sections');
