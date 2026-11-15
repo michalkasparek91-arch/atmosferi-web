@@ -126,6 +126,7 @@ jobs:
           pages.push(['recessed-curtain-tracks-pocket-interior-rendering-review.html', 'en', 'ceiling-access-panel-interior-rendering-review.html', '2026-11-15']);
           pages.push(['kitchen-island-power-outlets-interior-rendering-review.html', 'en', 'interior-rendering-furniture-scale-clearance-checklist.html', '2026-11-15']);
           pages.push(['shower-linear-drain-floor-falls-interior-rendering-review.html', 'en', 'interior-floor-finish-transitions-rendering-review.html', '2026-11-15']);
+          pages.push(['underfloor-heating-manifold-interior-rendering-review.html', 'en', 'interior-floor-finish-transitions-rendering-review.html', '2026-11-15']);
           pages.push(['kitchen-extractor-duct-bulkhead-interior-rendering-review.html', 'en', 'kitchen-island-power-outlets-interior-rendering-review.html', '2026-11-15']);
           pages.push(['roof-terrace-pedestal-paving-architectural-rendering-review.html', 'en', 'balcony-drainage-threshold-architectural-rendering-review.html', '2026-11-15']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
