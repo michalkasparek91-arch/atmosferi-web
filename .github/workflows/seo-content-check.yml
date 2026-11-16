@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['smoke-detector-ceiling-interior-rendering-review.html', 'en', 'sprinkler-head-ceiling-architectural-rendering-review.html', '2026-11-16'],
             ['accessible-restroom-architectural-rendering-review.html', 'en', 'interior-rendering-furniture-scale-clearance-checklist.html', '2026-11-11'],
             ['accessible-parking-bays-architectural-rendering-review.html', 'en', 'ev-charging-parking-bay-architectural-rendering-review.html', '2026-11-11'],
             ['roof-parapet-coping-architectural-rendering-review.html', 'en', 'green-roof-architectural-rendering-accuracy-review.html', '2026-11-11'],
@@ -397,6 +398,17 @@ jobs:
               const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
               const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
               assert(nav.length >= 13 && nav.every(id => ids.has(id)), path + ': contents anchors');
+              const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
+              assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
+            }
+            if (path === 'smoke-detector-ceiling-interior-rendering-review.html') {
+              assert((h.match(/<section id=/g) || []).length >= 12, path + ': substantive sections');
+              assert(h.includes('Fictional illustrative example'), path + ': fictional example labelled');
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const nav = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(nav.length >= 12 && nav.every(id => ids.has(id)), path + ': contents anchors');
+              assert(h.includes('sprinkler-head-ceiling-architectural-rendering-review.html'), path + ': related article');
               const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
               assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
             }
