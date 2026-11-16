@@ -138,6 +138,7 @@ jobs:
           pages.push(['interior-movement-joint-covers-rendering-review.html', 'en', 'interior-floor-finish-transitions-rendering-review.html', '2026-11-16']);
           pages.push(['trench-convector-glazed-facade-interior-rendering-review.html', 'en', 'interior-floor-finish-transitions-rendering-review.html', '2026-11-16']);
           pages.push(['interior-acoustic-wall-panel-layout-rendering-review.html', 'en', 'architectural-rendering-material-finish-approval-checklist.html', '2026-11-16']);
+          pages.push(['integrated-roller-shutter-box-facade-rendering-review.html', 'en', 'external-sun-shading-louvers-architectural-rendering-review.html', '2026-11-16']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
