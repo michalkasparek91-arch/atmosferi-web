@@ -97,16 +97,16 @@ const solarCarportFile='solar-carport-architectural-rendering-review.html';
 const solarCarportHtml=fs.readFileSync(solarCarportFile,'utf8');
 const solarCarportUrl=origin+'/'+solarCarportFile;
 assert.match(solarCarportHtml,/<html lang="en">/,'solar carport: language');
-assert.equal((solarCarportHtml.match(/<h1[\\s>]/g)||[]).length,1,'solar carport: one H1');
+assert.equal((solarCarportHtml.match(/<h1[\s>]/g)||[]).length,1,'solar carport: one H1');
 assert(solarCarportHtml.includes('<link rel="canonical" href="'+solarCarportUrl+'">'),'solar carport: canonical');
 assert.match(solarCarportHtml,/<meta name="robots" content="index, follow/,'solar carport: indexable');
 assert(solarCarportHtml.includes('name="viewport"'),'solar carport: mobile viewport');
 for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(solarCarportHtml.includes('href="assets/'+css+'.css"'),'solar carport: CSS '+css);
 for(const key of ['og:title','og:url','og:description','twitter:card','twitter:title'])assert(solarCarportHtml.includes(key),'solar carport: social '+key);
-const solarCarportSchema=JSON.parse(solarCarportHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+const solarCarportSchema=JSON.parse(solarCarportHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
 for(const type of ['Article','WebPage'])assert(solarCarportSchema['@graph'].some(item=>item['@type']===type),'solar carport: schema '+type);
 assert(solarCarportSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-18'&&item.mainEntityOfPage['@id']===solarCarportUrl+'#webpage'),'solar carport: schema date and URL');
 assert(locations.includes(solarCarportUrl),'solar carport: sitemap');
 assert(fs.readFileSync('photovoltaic-roof-array-architectural-rendering-review.html','utf8').includes('href="'+solarCarportFile+'"'),'solar carport: incoming link');
-for(const [,href] of solarCarportHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\\/,'')),'solar carport: missing link '+href);}
+for(const [,href] of solarCarportHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\/,'')),'solar carport: missing link '+href);}
 console.log('Solar carport guide metadata, schema, links, viewport and sitemap checks passed.');
