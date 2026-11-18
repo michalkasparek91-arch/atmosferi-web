@@ -37,19 +37,19 @@ const livingWall='living-wall-facade-architectural-rendering-review.html';
 const livingHtml=fs.readFileSync(livingWall,'utf8');
 const livingUrl=origin+'/'+livingWall;
 assert.match(livingHtml,/<html lang="en">/, 'living wall: language');
-assert.equal((livingHtml.match(/<h1[\\s>]/g)||[]).length,1,'living wall: one H1');
+assert.equal((livingHtml.match(/<h1[\s>]/g)||[]).length,1,'living wall: one H1');
 assert(livingHtml.includes('<link rel="canonical" href="'+livingUrl+'">'),'living wall: self canonical');
 assert.match(livingHtml,/<meta name="robots" content="index, follow/,'living wall: indexable');
 assert(livingHtml.includes('name="viewport"'),'living wall: mobile viewport');
 for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(livingHtml.includes('href="assets/'+css+'.css"'),'living wall: stylesheet '+css);
 for(const key of ['og:title','og:url','twitter:card'])assert(livingHtml.includes(key),'living wall: social '+key);
-const livingSchema=JSON.parse(livingHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+const livingSchema=JSON.parse(livingHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
 for(const type of ['Article','WebPage'])assert(livingSchema['@graph'].some(item=>item['@type']===type),'living wall: schema '+type);
 assert(livingSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-18'),'living wall: date');
 assert(locations.includes(livingUrl),'living wall: sitemap');
 assert(fs.readFileSync('green-roof-architectural-rendering-accuracy-review.html','utf8').includes('href="'+livingWall+'"'),'living wall: incoming link');
 for(const [,href] of livingHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){
  if(/^(?:https?:|mailto:)/.test(href))continue;
- assert(fs.existsSync(href.replace(/^\\//,'')),'living wall: missing local link '+href);
+ assert(fs.existsSync(href.replace(/^\//,'')),'living wall: missing local link '+href);
 }
 console.log('Living-wall guide SEO, schema, links, responsive viewport and sitemap checks passed.');
