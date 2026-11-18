@@ -72,3 +72,22 @@ assert(locations.includes(lightningUrl),'lightning: sitemap');
 assert(fs.readFileSync('photovoltaic-roof-array-architectural-rendering-review.html','utf8').includes('href="'+lightningFile+'"'),'lightning: incoming link');
 for(const [,href] of lightningHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'lightning: broken link '+href);}
 console.log('Lightning protection guide SEO, schema, incoming links and sitemap checks passed.');
+
+
+const escapeStairFile='external-escape-stair-architectural-rendering-review.html';
+const escapeStairHtml=fs.readFileSync(escapeStairFile,'utf8');
+const escapeStairUrl=origin+'/'+escapeStairFile;
+assert.match(escapeStairHtml,/<html lang="en">/,'escape stair: language');
+assert.equal((escapeStairHtml.match(/<h1[\\s>]/g)||[]).length,1,'escape stair: one H1');
+assert(escapeStairHtml.includes('<link rel="canonical" href="'+escapeStairUrl+'">'),'escape stair: canonical');
+assert.match(escapeStairHtml,/<meta name="robots" content="index, follow/,'escape stair: indexable');
+assert(escapeStairHtml.includes('name="viewport"'),'escape stair: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(escapeStairHtml.includes('href="assets/'+css+'.css"'),'escape stair: CSS '+css);
+for(const key of ['og:title','og:url','og:description','twitter:card','twitter:title'])assert(escapeStairHtml.includes(key),'escape stair: social '+key);
+const escapeStairSchema=JSON.parse(escapeStairHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(escapeStairSchema['@graph'].some(item=>item['@type']===type),'escape stair: schema '+type);
+assert(escapeStairSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-18'&&item.mainEntityOfPage['@id']===escapeStairUrl+'#webpage'),'escape stair: schema date and URL');
+assert(locations.includes(escapeStairUrl),'escape stair: sitemap');
+assert(fs.readFileSync('external-stair-drainage-slip-resistant-nosing-rendering-review.html','utf8').includes('href="'+escapeStairFile+'"'),'escape stair: incoming link');
+for(const [,href] of escapeStairHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\\//,'')),'escape stair: missing link '+href);}
+console.log('External escape stair guide metadata, schema, links, viewport and sitemap checks passed.');
