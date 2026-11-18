@@ -54,20 +54,21 @@ for(const [,href] of livingHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"
 }
 console.log('Living-wall guide SEO, schema, links, responsive viewport and sitemap checks passed.');
 
+
 const lightningFile='lightning-protection-roof-architectural-rendering-review.html';
 const lightningHtml=fs.readFileSync(lightningFile,'utf8');
 const lightningUrl=origin+'/'+lightningFile;
 assert.match(lightningHtml,/<html lang="en">/);
-assert.equal((lightningHtml.match(/<h1[\\s>]/g)||[]).length,1,'lightning: one H1');
+assert.equal((lightningHtml.match(/<h1[\s>]/g)||[]).length,1,'lightning: one H1');
 assert(lightningHtml.includes('<link rel="canonical" href="'+lightningUrl+'">'),'lightning: canonical');
 assert.match(lightningHtml,/<meta name="robots" content="index, follow/);
 assert(lightningHtml.includes('name="viewport"'),'lightning: mobile viewport');
 for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(lightningHtml.includes('href="assets/'+css+'.css"'),'lightning: stylesheet '+css);
 for(const key of ['og:title','og:url','twitter:card'])assert(lightningHtml.includes(key),'lightning: social '+key);
-const lightningSchema=JSON.parse(lightningHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+const lightningSchema=JSON.parse(lightningHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
 for(const type of ['Article','WebPage'])assert(lightningSchema['@graph'].some(item=>item['@type']===type),'lightning: schema '+type);
 assert(lightningSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-18'),'lightning: date');
 assert(locations.includes(lightningUrl),'lightning: sitemap');
 assert(fs.readFileSync('photovoltaic-roof-array-architectural-rendering-review.html','utf8').includes('href="'+lightningFile+'"'),'lightning: incoming link');
-for(const [,href] of lightningHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\\/,'' ).replace(/^\//,'')),'lightning: broken link '+href);}
+for(const [,href] of lightningHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'lightning: broken link '+href);}
 console.log('Lightning protection guide SEO, schema, incoming links and sitemap checks passed.');
