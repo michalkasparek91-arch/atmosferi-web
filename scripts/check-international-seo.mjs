@@ -110,3 +110,21 @@ assert(locations.includes(solarCarportUrl),'solar carport: sitemap');
 assert(fs.readFileSync('photovoltaic-roof-array-architectural-rendering-review.html','utf8').includes('href="'+solarCarportFile+'"'),'solar carport: incoming link');
 for(const [,href] of solarCarportHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'solar carport: missing link '+href);}
 console.log('Solar carport guide metadata, schema, links, viewport and sitemap checks passed.');
+
+const substationFile='electrical-substation-enclosure-architectural-rendering-review.html';
+const substationHtml=fs.readFileSync(substationFile,'utf8');
+const substationUrl=origin+'/'+substationFile;
+assert.match(substationHtml,/<html lang="en">/,'substation: language');
+assert.equal((substationHtml.match(/<h1[\\s>]/g)||[]).length,1,'substation: one H1');
+assert(substationHtml.includes('<link rel="canonical" href="'+substationUrl+'">'),'substation: canonical');
+assert.match(substationHtml,/<meta name="robots" content="index, follow/,'substation: indexable');
+assert(substationHtml.includes('name="viewport"'),'substation: responsive viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(substationHtml.includes('href="assets/'+css+'.css"'),'substation: CSS '+css);
+for(const key of ['og:title','og:url','og:description','twitter:card','twitter:title'])assert(substationHtml.includes(key),'substation: social '+key);
+const substationSchema=JSON.parse(substationHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(substationSchema['@graph'].some(item=>item['@type']===type),'substation: schema '+type);
+assert(substationSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-19'&&item.mainEntityOfPage['@id']===substationUrl+'#webpage'),'substation: schema date and URL');
+assert(locations.includes(substationUrl),'substation: sitemap');
+assert(fs.readFileSync('air-source-heat-pump-outdoor-unit-architectural-rendering-review.html','utf8').includes('href="'+substationFile+'"'),'substation: incoming link');
+for(const [,href] of substationHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\\//,'')),'substation: missing link '+href);}
+console.log('Substation guide metadata, schema, links, viewport and sitemap checks passed.');
