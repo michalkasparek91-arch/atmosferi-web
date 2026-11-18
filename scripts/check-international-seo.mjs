@@ -108,5 +108,5 @@ for(const type of ['Article','WebPage'])assert(solarCarportSchema['@graph'].some
 assert(solarCarportSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-18'&&item.mainEntityOfPage['@id']===solarCarportUrl+'#webpage'),'solar carport: schema date and URL');
 assert(locations.includes(solarCarportUrl),'solar carport: sitemap');
 assert(fs.readFileSync('photovoltaic-roof-array-architectural-rendering-review.html','utf8').includes('href="'+solarCarportFile+'"'),'solar carport: incoming link');
-for(const [,href] of solarCarportHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\/,'')),'solar carport: missing link '+href);}
+for(const [,href] of solarCarportHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'solar carport: missing link '+href);}
 console.log('Solar carport guide metadata, schema, links, viewport and sitemap checks passed.');
