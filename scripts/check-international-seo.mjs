@@ -23,7 +23,7 @@ const sitemap=fs.readFileSync('sitemap.xml','utf8');
 const locations=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
 assert.equal(new Set(locations).size,locations.length);
 for(const file of pages.values())assert(locations.includes(`${origin}/${file}`));
-for(const url of locations){assert(url.startsWith(origin+'/'));assert(fs.existsSync(url.slice(origin.length+1)||'index.html'));}
+for(const url of locations){assert(url.startsWith(origin+'/'));const path=url.slice(origin.length+1)||'index.html';assert(fs.existsSync(path)||fs.existsSync(path+'.html'),`${url}: no file`);}
 assert(fs.readFileSync('robots.txt','utf8').includes(`${origin}/sitemap.xml`));
 for(const file of ['index.html','work.html','services.html','pricing.html','studio.html','contact.html']){
  const h=fs.readFileSync(file,'utf8');

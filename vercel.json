@@ -11,9 +11,23 @@
       "source": "/sluzby/",
       "destination": "https://www.atmosferi.com/",
       "permanent": true
+    },
+    {
+      "source": "/for-agencies.html",
+      "destination": "/for-agencies",
+      "permanent": true
+    },
+    {
+      "source": "/for-agencies/",
+      "destination": "/for-agencies",
+      "permanent": true
     }
   ],
   "rewrites": [
+    {
+      "source": "/for-agencies",
+      "destination": "/for-agencies.html"
+    },
     {
       "source": "/admin/(.*)",
       "destination": "/admin/index.html"
