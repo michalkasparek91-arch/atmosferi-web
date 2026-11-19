@@ -82,3 +82,90 @@
   font-weight: 500 !important;
   letter-spacing: -.02em;
 }
+
+/* ---------- Typography of the homepage, applied to the older components ----------
+   The previous system set small meta text in Geist Mono capitals with wide
+   tracking. The homepage uses Geist in sentence case, so every such selector
+   (collected from site.css, redesign.css and the page styles) follows it. */
+:root { --canvas: #f6f6f4; }
+body { background: #f6f6f4; }
+.audience__num,
+.blk__name,
+.blk__val,
+.browser__live,
+.browser__url,
+.cap__num,
+.contact-portrait__role,
+.devices__cap span,
+.eyebrow,
+.field > label,
+.founder__fact span,
+.founder__sign,
+.founder__tag,
+.frail__count,
+.gantt__foot span,
+.gantt__phase small,
+.gantt__scale span,
+.hero__film-cap,
+.hero__updated,
+.herofilm__cap,
+.how__n,
+.index-row__cat,
+.index-row__id,
+.index-row__year,
+.mod__body .mod__desc,
+.mod__incl,
+.mod__price,
+.mono,
+.principle__num,
+.process__meta,
+.process__n,
+.process__num,
+.proof__lab,
+.recog__label,
+.recog__y,
+.seg__hint,
+.stack-foot .lab,
+.stack-foot .meta-line,
+.stack-legend span,
+.stat__label,
+.svc__num,
+.tier__for,
+.tier__from,
+.tier__num,
+.toggle__label,
+.vf-meta,
+.workcard__cat,
+.workcard__live,
+.workgroup__note,
+.workgroup__title .n {
+  font-family: "Geist", "Helvetica Neue", Arial, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+.spec-list li,
+.svc__deliver li,
+.tier__list {
+  font-family: "Geist", "Helvetica Neue", Arial, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 15px !important;
+}
+.arrow-link,
+.btn,
+.choice,
+.form-status,
+.seg button {
+  font-family: "Geist", "Helvetica Neue", Arial, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 14px !important;
+  font-weight: 500;
+}
+/* Pricing: module name and description on separate lines. */
+.mod__body .mod__name, .mod__body .mod__desc { display: block; }
+/* Large figures and names at the homepage weight. */
+.tier__name, .stat__fig { font-family: "Outfit", "Geist", sans-serif !important; font-weight: 400 !important; letter-spacing: -.028em !important; }
+.tier__fig, .stack-total, .contact-portrait__name { font-family: "Outfit", "Geist", sans-serif !important; font-weight: 500 !important; letter-spacing: -.02em !important; }

@@ -8,7 +8,8 @@
 <link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/redesign.css?v=20261101-clean-lines">
 <link rel="stylesheet" href="assets/brand-header.css?v=20261101-aligned">
-<link rel="stylesheet" href="assets/site-atmosphere.css?v=20261119-1">
+<link rel="stylesheet" href="assets/site-atmosphere.css?v=20261119-2">
+<link rel="stylesheet" href="assets/site-chrome.css?v=20261119-1">
 <style>
   /* ============================ PRICING ============================ */
   /* Three engagements as columns bounded by rules (no fill, no radius). */
@@ -173,40 +174,29 @@
 </head>
 <body>
 
-<nav class="nav">
-  <div class="wrap nav__inner">
-    <a href="index.html" class="wordmark">atmosferi<sup>°</sup><span class="nav__place">Prague, Czechia</span></a>
-    <div class="nav__links">
-      <a href="work.html" class="navlink">Work</a>
-      <a href="services.html" class="navlink">Services</a>
-      <a href="pricing.html" class="navlink">Pricing</a>
-      <a href="studio.html" class="navlink">Studio</a>
-      <a href="contact.html" class="navlink">Contact</a>
-    </div>
-    <div class="nav__switch">
-      <div class="swx" aria-label="Switch between Atmosferi sites">
-        <span class="swx__knob"></span>
-        <a class="swx__seg is-on" aria-current="page" href="websites.html">Websites</a>
-        <a class="swx__seg" href="demos/atmosferi-viz/index.html">Visuals</a>
-      </div>
-    </div>
-    <button class="nav__burger" aria-label="Menu" aria-expanded="false">
+<header class="un-header" id="siteHeader">
+  <div class="container un-header__inner nav__in">
+    <a href="index.html" class="un-brand" aria-label="Atmosferi home">atmosferi<sup>°</sup></a>
+    <nav class="un-nav" aria-label="Main navigation">
+        <a href="work.html">Work</a>
+        <a href="services.html">Services</a>
+        <a href="pricing.html" aria-current="page">Pricing</a>
+        <a href="studio.html">Studio</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+    <div class="un-lang"><span class="swx" hidden aria-hidden="true"></span></div>
+    <button class="un-menu-btn" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
       <span></span><span></span><span></span>
     </button>
   </div>
-  <div class="nav__mobile">
-    <a href="work.html" class="navlink">Work</a>
-    <a href="services.html" class="navlink">Services</a>
-    <a href="pricing.html" class="navlink">Pricing</a>
-    <a href="studio.html" class="navlink">Studio</a>
-    <a href="contact.html" class="navlink">Contact</a>
-    <div class="swx" aria-label="Switch between Atmosferi sites">
-      <span class="swx__knob"></span>
-      <a class="swx__seg is-on" aria-current="page" href="websites.html">Websites</a>
-      <a class="swx__seg" href="demos/atmosferi-viz/index.html">Visuals</a>
-    </div>
-  </div>
-</nav>
+  <nav class="un-mobile" id="mobileNav" aria-label="Mobile navigation">
+        <a href="work.html">Work</a>
+        <a href="services.html">Services</a>
+        <a href="pricing.html" aria-current="page">Pricing</a>
+        <a href="studio.html">Studio</a>
+        <a href="contact.html">Contact</a>
+  </nav>
+</header>
 
 <!-- ============================ PAGE HEAD ============================ -->
 <header class="pagehead wrap" data-screen-label="Pricing / Header">
@@ -391,42 +381,35 @@
   <a href="contact.html" class="btn">Start a project <span class="arrow">→</span></a>
 </section>
 
-<footer class="footer">
-  <div class="wrap footer__inner">
-    <div class="footer__top">
-      <a href="index.html" class="wordmark" style="font-size:40px">atmosferi<sup>°</sup></a>
-      <div class="footer__cols">
-        <div class="footer__col">
-          <span class="eyebrow">Studio</span>
-          <span class="mono">Prague · Remote</span>
-          <a href="mailto:info@atmosferi.com" class="mono">info@atmosferi.com</a>
-        </div>
-        <div class="footer__col">
-          <span class="eyebrow">Index</span>
-          <a href="work.html" class="mono muted">Work</a>
-          <a href="services.html" class="mono muted">Services</a>
-          <a href="pricing.html" class="mono muted">Pricing</a>
-          <a href="studio.html" class="mono muted">Studio</a>
-          <a href="contact.html" class="mono muted">Contact</a>
-        </div>
-        <div class="footer__col">
-          <span class="eyebrow">Elsewhere</span>
-          <a href="#" class="mono muted">Instagram</a>
-          <a href="#" class="mono muted">LinkedIn</a>
-        </div>
-      </div>
-    </div>
-    <div class="footer__bottom">
-      <span class="eyebrow">© MMXXVI Atmosferi°</span>
-      <span class="eyebrow">N 50°05′ E 14°25′ · Prague</span>
+<footer class="un-sitefoot">
+  <div class="container">
+    <div class="un-footer__mark" aria-hidden="true"><span>atmosferi°</span></div>
+    <div class="un-footer">
+      <nav class="un-footer__links" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="work.html">Work</a>
+        <a href="services.html">Services</a>
+        <a href="websites.html">Websites</a>
+        <a href="demos/atmosferi-viz/index.html">Visualisation</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="contact.html">Contact</a>
+        <a href="/for-agencies" hreflang="cs" lang="cs">Pro agentury</a>
+      </nav>
+      <div class="un-footer__legal"><span>© 2026 Atmosferi° · Architecture &amp; digital presentation</span><a href="mailto:info@atmosferi.com">info@atmosferi.com</a></div>
+      <nav class="un-footer__local" aria-label="Architecture websites by language">
+        <span>Websites for architects</span>
+        <a href="websites-for-architects.html" hreflang="en" lang="en">English</a>
+        <a href="weby-pro-architekty.html" hreflang="cs" lang="cs">Česky</a>
+        <a href="webdesign-fuer-architekten.html" hreflang="de" lang="de">Deutsch</a>
+        <a href="nettsider-for-arkitekter.html" hreflang="nb" lang="nb">Norsk</a>
+      </nav>
     </div>
   </div>
-<nav class="international-links" aria-label="Website design for architects by language"><span>Websites for architects</span><a href="websites-for-architects.html" hreflang="en" lang="en">English</a><a href="weby-pro-architekty.html" hreflang="cs" lang="cs">Česky</a><a href="webdesign-fuer-architekten.html" hreflang="de" lang="de">Deutsch</a><a href="nettsider-for-arkitekter.html" hreflang="nb" lang="nb">Norsk</a></nav>
 </footer>
 
 <script src="assets/site.js?v=20261101-header"></script>
 <script src="assets/pricing.js"></script>
-<script src="assets/site-atmosphere.js?v=20261119-1"></script>
+<script src="assets/site-atmosphere.js?v=20261119-2"></script>
 <script src="assets/i18n-dict.js"></script>
 <script src="assets/i18n.js"></script>
 </body>

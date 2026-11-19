@@ -25,6 +25,8 @@
   var pagehead = document.querySelector(".pagehead");
   if (pagehead) everything.push(pagehead);
   titles.forEach(function (t) { if (!pagehead || !pagehead.contains(t)) everything.push(t); });
+  var mark = document.querySelector(".un-footer__mark");
+  if (mark) everything.push(mark);
   document.querySelectorAll(".reveal").forEach(function (el, i) {
     el.style.setProperty("--i", String(i % 3));
     everything.push(el);
@@ -33,11 +35,10 @@
   if (reduced) {
     everything.forEach(show);
     if (pagehead && pagehead.querySelector(".pagehead__title")) show(pagehead.querySelector(".pagehead__title"));
-    return;
   }
 
   // 2. Page head plays once on load; everything else on entering view.
-  if (pagehead) {
+  if (pagehead && !reduced) {
     var headTitle = pagehead.querySelector(".pagehead__title");
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
@@ -53,11 +54,27 @@
       io.unobserve(entry.target);
     });
   }, { threshold: 0.08, rootMargin: "0px 0px -4% 0px" });
-  everything.forEach(function (el) { if (el !== pagehead) io.observe(el); });
+  if (!reduced) everything.forEach(function (el) { if (el !== pagehead) io.observe(el); });
 
-  // 3. Navigation tucks away on scroll down, returns on scroll up.
-  var nav = document.querySelector(".nav");
-  if (nav) {
+  // 3. Homepage header: mobile menu, and it steps aside on scroll down.
+  var header = document.getElementById("siteHeader");
+  var burger = document.getElementById("menuToggle");
+  var mobile = document.getElementById("mobileNav");
+  function closeMenu() {
+    if (!header || !burger) return;
+    header.classList.remove("menu-open");
+    burger.setAttribute("aria-expanded", "false");
+  }
+  if (header && burger && mobile) {
+    burger.addEventListener("click", function () {
+      var open = header.classList.toggle("menu-open");
+      burger.setAttribute("aria-expanded", String(open));
+    });
+    mobile.addEventListener("click", function (e) { if (e.target.closest("a")) closeMenu(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenu(); });
+    window.addEventListener("resize", function () { if (window.innerWidth > 760) closeMenu(); }, { passive: true });
+  }
+  if (header && !reduced) {
     var lastY = window.scrollY;
     var busy = false;
     window.addEventListener("scroll", function () {
@@ -66,12 +83,12 @@
       requestAnimationFrame(function () {
         var y = window.scrollY;
         var delta = y - lastY;
-        if (y < 140 || delta < -6) nav.classList.remove("is-tucked");
-        else if (delta > 6 && !nav.classList.contains("is-open")) nav.classList.add("is-tucked");
+        if (y < 140 || delta < -6) header.classList.remove("is-tucked");
+        else if (delta > 6 && !header.classList.contains("menu-open")) header.classList.add("is-tucked");
         if (Math.abs(delta) > 6) lastY = y;
         busy = false;
       });
     }, { passive: true });
-    nav.addEventListener("focusin", function () { nav.classList.remove("is-tucked"); });
+    header.addEventListener("focusin", function () { header.classList.remove("is-tucked"); });
   }
 })();
