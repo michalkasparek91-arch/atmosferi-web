@@ -72,7 +72,7 @@ function renderImports(data, exports) {
   const opened = new Set([...container.querySelectorAll('details[open]')].map((entry) => entry.dataset.batch));
   container.innerHTML = data.recent.map((batch) => `<details data-batch="${escape(batch.name)}" ${opened.has(batch.name) ? 'open' : ''}>
     <summary>${escape(stamp(batch.at))} · ${amount(batch.count)} kontaktů ${chip(batch.status, batch.status === 'pending' ? 'Čeká na import' : 'Zpracováno')}</summary>
-    <ul class="items">${batch.companies.map((entry) => `<li>${escape(entry.company)}<small>${escape([entry.city, entry.website].filter(Boolean).join(' · '))}</small></li>`).join('')}</ul>
+    <ul class="items">${batch.companies.map((entry) => `<li>${escape(entry.company)}<small>${escape([entry.category, entry.specialty, entry.city, entry.website].filter(Boolean).join(' · '))}</small></li>`).join('')}</ul>
     </details>`).join('') || '<p>Fronta je prázdná.</p>';
   select('exports').innerHTML = exports.map((name) => `<li><a href="/download/${encodeURIComponent(name)}" download>${escape(name)}</a></li>`).join('') || '<li>Zatím bez exportů.</li>';
 }

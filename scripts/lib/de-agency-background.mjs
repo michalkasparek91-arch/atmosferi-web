@@ -1,6 +1,7 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { claimJobs, control, finishJobs, openPlan, visitedWebsite, workDir } from './de-agency-plan.mjs';
+import { openAdminImporter } from './business-lead-admin.mjs';
 
 const pending = join(workDir, 'pending');
 const imported = join(workDir, 'imported');
@@ -49,7 +50,7 @@ export async function openBackgroundRun() {
   };
 }
 
-async function nextBatch() {
+async function readNextBatch() {
   await mkdir(pending, { recursive: true });
   const batch = (await readdir(pending)).filter((name) => batchPattern.test(name)).sort()[0];
   if (!batch) return null;
@@ -58,6 +59,18 @@ async function nextBatch() {
       rows.some((row) => !/^pc-lead:[a-f0-9]{32}$/.test(row.source_id) || !row.email || !row.website || !row.company_name)) {
     throw new Error(`Neplatná dávka ${batch}.`);
   }
+  return { batch, rows };
+}
+
+async function acknowledgeBatch(batch) {
+  await mkdir(imported, { recursive: true });
+  await rename(join(pending, batch), join(imported, batch));
+}
+
+async function nextBatch() {
+  const next = await readNextBatch();
+  if (!next) return null;
+  const { batch, rows } = next;
   const encoded = Buffer.from(JSON.stringify(rows), 'utf8').toString('base64');
   const query = `
 with incoming as (
@@ -83,14 +96,33 @@ select (select count(*) from incoming)::int as received, count(*)::int as insert
   return { batch, expected: rows.length, query };
 }
 
+export async function drainDirectQueue(maxBatches = 12, { next = readNextBatch, acknowledge = acknowledgeBatch, connect = openAdminImporter } = {}) {
+  let insert;
+  let batches = 0;
+  let received = 0;
+  let inserted = 0;
+  while (batches < maxBatches) {
+    const item = await next();
+    if (!item) break;
+    insert ??= await connect();
+    inserted += await insert(item.rows);
+    await acknowledge(item.batch);
+    received += item.rows.length;
+    batches++;
+  }
+  return { batches, received, inserted };
+}
+
 if (import.meta.main) {
   try {
     const [command, name] = process.argv.slice(2);
     if (command === '--next') console.log(JSON.stringify(await nextBatch()));
-    else if (command === '--ack' && batchPattern.test(name ?? '')) {
-      await mkdir(imported, { recursive: true });
-      await rename(join(pending, name), join(imported, name));
-    } else throw new Error('Použijte --next nebo --ack s ID dávky.');
+    else if (command === '--ack' && batchPattern.test(name ?? '')) await acknowledgeBatch(name);
+    else if (command === '--direct') console.log(JSON.stringify(await drainDirectQueue()));
+    else if (command === '--check-direct') {
+      await openAdminImporter();
+      console.log('Přihlášení správce a přístup k evidenci jsou v pořádku.');
+    } else throw new Error('Použijte --direct, --check-direct, --next nebo --ack s ID dávky.');
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;

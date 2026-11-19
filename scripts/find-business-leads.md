@@ -29,6 +29,17 @@ try {
 
 Přihlášení používá stávající účet správce a veřejný klíč adminu. Pro účet s MFA lze předat platný přístupový token v `LEAD_ADMIN_ACCESS_TOKEN`. CSV s e-maily lze také nahrát přes **Import CSV k prověření** v adminu.
 
+Obor určuje obor vyhledávacího dotazu. Firma se do sběru zařadí, když její vlastní web uvádí odpovídající činnost. Specializace se zapíše, když ji web potvrzuje. U cíleného dotazu bez potvrzené specializace zůstane poznámka **Specializace k ověření**. CSV a poznámka v adminu obsahují hledaný výraz. V Německu lze jednotlivý výraz ověřit například příkazem `node scripts/find-business-leads.mjs --countries DE --cities Berlin --types architect --term Innenarchitektur`.
+
+Přímé zpracování už připravené fronty používá stejné přihlášení správce a stejné ukládání do **K prověření**. Před přepnutím ověřte přístup příkazem `--check-direct` se stejnými přihlašovacími proměnnými jako u `--write-admin`.
+
+```powershell
+node scripts/lib/de-agency-background.mjs --check-direct
+node scripts/lib/de-agency-background.mjs --direct
+```
+
+Pro budoucí běh zcela bez Codexu lze druhý příkaz spouštět z Plánovače Windows s bezpečně poskytnutým přihlášením a po ověření přímého běhu vypnout dosavadní importní automatizaci. Dávka opustí frontu až po potvrzení zápisu Supabase.
+
 ## Zdroj vyhledávání
 
 Výchozí volba používá [Seznam](https://o-seznam.cz/napoveda/vyhledavani/prubeh-vyhledavani/). Po nastavení `SERPER_API_KEY` používá [Serper](https://serper.dev/) s parametrem země a jazyka. Zdroj lze zvolit ručně přes `--engine seznam`, `--engine serper` nebo `--engine bing`. Bing se čte přes RSS a při testu v Česku měl slabší relevanci.

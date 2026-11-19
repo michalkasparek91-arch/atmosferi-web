@@ -3,13 +3,9 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { termsByKind } from './business-lead-taxonomy.mjs';
 
 export const workDir = fileURLToPath(new URL('../../artifacts/private/lead-finder/de-agencies/', import.meta.url));
-export const termsByKind = {
-  marketing: ['Marketingagentur', 'Online-Marketing-Agentur', 'Werbeagentur', 'Digitalagentur', 'SEO Agentur', 'Social Media Agentur', 'Kommunikationsagentur'],
-  architect: ['Architekturbüro', 'Architekten', 'Architektur Studio'],
-  developer: ['Immobilien Projektentwickler', 'Bauträger', 'Immobilienentwickler'],
-};
 export const states = ['Schleswig-Holstein', 'Hamburg', 'Niedersachsen', 'Bremen', 'Nordrhein-Westfalen', 'Hessen', 'Rheinland-Pfalz',
   'Baden-Württemberg', 'Bayern', 'Saarland', 'Berlin', 'Brandenburg', 'Mecklenburg-Vorpommern', 'Sachsen', 'Sachsen-Anhalt', 'Thüringen'];
 const kindNames = Object.keys(termsByKind);
@@ -48,6 +44,12 @@ export function openPlan(filename = join(workDir, 'plan.sqlite')) {
     CREATE INDEX IF NOT EXISTS municipality_name ON municipalities(name);
     INSERT OR IGNORE INTO settings VALUES ('paused', 'false'), ('kinds', '["marketing"]');
   `);
+  const taxonomy = JSON.stringify(termsByKind);
+  if (readSetting(db, 'taxonomy') !== taxonomy) changes(db, () => {
+    const addTerm = db.prepare('insert or ignore into jobs (ags,kind,term) select ags,?,? from municipalities where active=1');
+    for (const [kind, terms] of Object.entries(termsByKind)) for (const term of terms) addTerm.run(kind, term);
+    writeSetting(db, 'taxonomy', taxonomy);
+  });
   return db;
 }
 

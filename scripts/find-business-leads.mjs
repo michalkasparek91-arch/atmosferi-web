@@ -1,13 +1,14 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { bingResults, findSiteContact, hostKey, seznamNextPage, seznamResults, websiteUrl } from './lib/business-lead-web.mjs';
 import { openBackgroundRun } from './lib/de-agency-background.mjs';
+import { openAdminImporter } from './lib/business-lead-admin.mjs';
+import { leadKinds as types, termsByKind } from './lib/business-lead-taxonomy.mjs';
 
-const types = { marketing: 'Marketingová agentura', architect: 'Architektonické studio', developer: 'Realitní developer' };
 const markets = {
   CZ: ['cs', 'Česko', ['Praha', 'Brno', 'Ostrava', 'Plzeň'], ['marketingová agentura', 'architektonické studio', 'realitní developer'], ['/kontakt', '/kontakty']],
   SK: ['sk', 'Slovensko', ['Bratislava', 'Košice', 'Žilina'], ['marketingová agentúra', 'architektonické štúdio', 'realitný developer'], ['/kontakt', '/kontakty']],
@@ -28,6 +29,7 @@ node scripts/find-business-leads.mjs [volby]
   --countries CZ,SK        Země (výchozí CZ). Dostupné: ${Object.keys(markets).join(', ')}
   --cities Praha,Brno       Vlastní města, vždy pro jednu zemi
   --types marketing,architect,developer
+  --term Innenarchitektur   Konkrétní německý výraz pro jeden obor
   --pages 1                 Stránky na dotaz (1–5)
   --limit 50                Nejvýše tolik různých webů za běh (1–1000)
   --engine auto             Seznam bez klíče, případně seznam, bing nebo serper
@@ -98,6 +100,9 @@ function sourceId(lead) {
 
 function notes(lead) {
   return [lead.phone && `Telefon: ${lead.phone.value}`, `Obor: ${types[lead.type]}`,
+    lead.category?.specialties.length && `Specializace: ${lead.category.specialties.join(', ')}`,
+    lead.category?.term && `Hledaný výraz: ${lead.category.term}`,
+    lead.category?.needsReview && 'Zařazení: Specializace k ověření',
     `Cílová země: ${lead.countryName} (${lead.country})`,
     !lead.city && `Hledáno pro město: ${lead.targetCity}`,
     lead.email && `Zdroj e-mailu: ${lead.email.source}`,
@@ -123,74 +128,18 @@ async function saveCsv(leads, engine) {
   await mkdir(folder, { recursive: true });
   const output = join(folder, `leads-${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}.csv`);
   const rows = [
-    ['id', 'firma', 'email', 'telefon', 'web', 'mesto', 'zeme', 'obor', 'zdroj', 'zdroj_emailu', 'zdroj_telefonu', 'kontaktovat_poznamka'],
+    ['id', 'firma', 'email', 'telefon', 'web', 'mesto', 'zeme', 'obor', 'specializace', 'hledany_vyraz', 'zdroj', 'zdroj_emailu', 'zdroj_telefonu', 'kontaktovat_poznamka'],
     ...leads.map((lead) => [sourceId(lead), lead.company, lead.email?.value, lead.phone?.value, lead.website,
-      lead.city, lead.country, types[lead.type], `pc-lead-finder:${engine}`, lead.email?.source, lead.phone?.source, notes(lead)]),
+      lead.city, lead.country, types[lead.type], lead.category?.specialties.join(', '), lead.category?.term,
+      `pc-lead-finder:${engine}`, lead.email?.source, lead.phone?.source, notes(lead)]),
   ];
   await writeFile(output, '\uFEFF' + rows.map((row) => row.map(csvCell).join(';')).join('\r\n') + '\r\n', { flag: 'wx' });
   return output;
 }
 
 export async function saveToAdmin(leads, engine) {
-  const client = await readFile(new URL('../admin/src/integrations/supabase/client.ts', import.meta.url), 'utf8');
-  const url = client.match(/const SUPABASE_URL\s*=\s*["'](https:\/\/[^"']+)["']/)?.[1];
-  const apiKey = client.match(/const SUPABASE_PUBLISHABLE_KEY\s*=\s*["']([^"']+)["']/)?.[1];
-  if (!url || !apiKey) throw new Error('V konfiguraci adminu chybí URL nebo veřejný klíč Supabase.');
-
-  let token = process.env.LEAD_ADMIN_ACCESS_TOKEN;
-  async function call(path, options = {}) {
-    const response = await fetch(new URL(path, url), {
-      method: options.body === undefined ? 'GET' : 'POST',
-      redirect: 'error', signal: AbortSignal.timeout(15000),
-      headers: { apikey: apiKey, ...(token && { Authorization: `Bearer ${token}` }),
-        ...(options.body !== undefined && { 'Content-Type': 'application/json' }), ...options.headers },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-    });
-    if (!response.ok) throw new Error(`Supabase HTTP ${response.status} při volání ${path.split('?')[0]}.`);
-    return response.json();
-  }
-  if (!token) {
-    if (!process.env.LEAD_ADMIN_EMAIL || !process.env.LEAD_ADMIN_PASSWORD) {
-      throw new Error('Pro přímý zápis nastavte LEAD_ADMIN_EMAIL a LEAD_ADMIN_PASSWORD nebo LEAD_ADMIN_ACCESS_TOKEN.');
-    }
-    ({ access_token: token } = await call('/auth/v1/token?grant_type=password', {
-      body: { email: process.env.LEAD_ADMIN_EMAIL, password: process.env.LEAD_ADMIN_PASSWORD },
-    }));
-  }
-  const user = await call('/auth/v1/user');
-  if (!(await call('/rest/v1/rpc/is_admin', { body: { _user_id: user.id } }))) throw new Error('Je vyžadován účet administrátora Atmosferi.');
-
-  const table = '/rest/v1/agency_outreach_leads';
-  const existingEmails = new Set();
-  const existingSites = new Set();
-  const batchSize = 250;
-  for (let offset = 0; ; offset += batchSize) {
-    const existing = await call(`${table}?select=email,website&order=id&limit=${batchSize}&offset=${offset}`);
-    for (const row of existing) {
-      existingEmails.add(row.email?.trim().toLowerCase());
-      const site = websiteUrl(row.website) || (row.website && websiteUrl(`https://${row.website}`));
-      if (site) existingSites.add(hostKey(site));
-    }
-    if (existing.length < batchSize) break;
-  }
-  let inserted = 0;
-  const rows = [];
-  for (const lead of leads) {
-    if (!lead.email) continue;
-    const email = lead.email.value;
-    const host = hostKey(new URL(lead.website));
-    if (existingEmails.has(email) || existingSites.has(host)) continue;
-    existingEmails.add(email);
-    existingSites.add(host);
-    rows.push({ ...adminRow(lead, engine), review_state: 'review', priority: 'REVIEW', outreach_status: 'new' });
-  }
-  for (let index = 0; index < rows.length; index += 50) {
-    const saved = await call(`${table}?on_conflict=source_id&select=id`, {
-      headers: { Prefer: 'resolution=ignore-duplicates,return=representation' }, body: rows.slice(index, index + 50),
-    });
-    inserted += saved.length;
-  }
-  return inserted;
+  const insert = await openAdminImporter();
+  return insert(leads.filter((lead) => lead.email).map((lead) => adminRow(lead, engine)));
 }
 
 async function main() {
@@ -200,6 +149,7 @@ async function main() {
     pages: { type: 'string', default: '1' }, limit: { type: 'string', default: '50' },
     engine: { type: 'string', default: 'auto' }, 'write-admin': { type: 'boolean' }, help: { type: 'boolean' },
     'background-de-agencies': { type: 'boolean' },
+    term: { type: 'string' },
   } });
   if (values.help) { console.log(help); return; }
   const background = values['background-de-agencies'] ? await openBackgroundRun() : null;
@@ -215,6 +165,8 @@ async function main() {
   const limit = integer(values.limit, '--limit', 1000);
   if (!countries.length || countries.some((country) => !Object.hasOwn(markets, country))) throw new Error('Neznámá země. Použijte --help.');
   if (!selectedTypes.length || selectedTypes.some((type) => !Object.hasOwn(types, type))) throw new Error('Neznámý obor. Použijte --help.');
+  if (values.term && (background || countries.join() !== 'DE' || selectedTypes.length !== 1 ||
+      !termsByKind[selectedTypes[0]].includes(values.term))) throw new Error('--term vyžaduje Německo a výraz z vybraného oboru.');
   if (cities && (!cities.length || countries.length !== 1)) throw new Error('--cities vyžaduje jedno nebo více měst v jediné zemi.');
   if (!['seznam', 'bing', 'serper'].includes(engine)) throw new Error('--engine musí být auto, seznam, bing nebo serper.');
   if (engine === 'serper' && !process.env.SERPER_API_KEY) throw new Error('Pro Serper nastavte SERPER_API_KEY.');
@@ -224,13 +176,14 @@ async function main() {
     const searchLocation = locality.map((name) => `"${name.replaceAll('"', '')}"`).join(' ');
     return {
       country: 'DE', countryName: 'Německo', language: 'de', targetCity: job.name, type: job.kind,
-      contactPaths: markets.DE[4], job, query: `${job.term} ${searchLocation}`,
+      contactPaths: markets.DE[4], job, searchTerm: job.term, query: `${job.term} ${searchLocation}`,
     };
   }) : countries.flatMap((country) => {
     const [language, countryName, defaultCities, terms, contactPaths] = markets[country];
     return (cities || defaultCities).flatMap((city) => selectedTypes.map((type) => ({
       country, countryName, language, targetCity: city, type, contactPaths,
-      query: `${terms[Object.keys(types).indexOf(type)]} ${city}`,
+      searchTerm: values.term || terms[Object.keys(types).indexOf(type)],
+      query: `${values.term || terms[Object.keys(types).indexOf(type)]} ${city}`,
     })));
   });
   const searchResults = queries.map(() => []);

@@ -110,6 +110,14 @@ function LeadPhone({ notes }: { notes: string }) {
  if (!phone) return null;
  return <a className="block w-fit text-xs text-muted-foreground hover:underline" href={`tel:${phone.replace(/[^+\d]/g, "")}`}>{phone}</a>;
 }
+const LEAD_CATEGORIES = ["Marketingová agentura", "Architektonické studio", "Realitní developer"];
+function LeadCategory({ notes }: { notes: string }) {
+ const category = notes?.match(/^Obor: ([^\r\n]+)/m)?.[1];
+ if (!category) return null;
+ const specialty = notes.match(/^Specializace: ([^\r\n]+)/m)?.[1];
+ const needsReview = notes.includes("Zařazení: Specializace k ověření");
+ return <div className="text-xs text-muted-foreground">{[category, specialty, needsReview ? "Specializace k ověření" : null].filter(Boolean).join(" · ")}</div>;
+}
 function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
  return <div className="rounded-2xl bg-neutral-100 px-4 py-3">
   <div className="text-xs text-muted-foreground">{label}</div>
@@ -125,6 +133,7 @@ export default function AdminAgencyOutreach({ embedded = false }: { embedded?: b
  const [search, setSearch] = useState("");
  const [tab, setTab] = useState("ready");
  const [priority, setPriority] = useState("all");
+ const [leadCategory, setLeadCategory] = useState("");
  const [status, setStatus] = useState("all");
  const [loading, setLoading] = useState(false);
  const [importing, setImporting] = useState(false);
@@ -141,18 +150,19 @@ export default function AdminAgencyOutreach({ embedded = false }: { embedded?: b
   setLoading(true);
   try {
    let q = db.from("agency_outreach_leads").select("*", { count: "exact" }).eq("review_state", tab);
+   if (leadCategory) q = q.ilike("notes", `%Obor: ${leadCategory}%`);
    if (priority !== "all" && tab === "ready") q = q.eq("priority", priority);
    if (status !== "all") q = status === "new" ? q.in("outreach_status", ["new", "queued"]) : q.eq("outreach_status", status);
    if (search.trim()) {
     const safe = search.trim().replace(/[%_,()]/g, " ").slice(0, 100);
-    q = q.or(`company_name.ilike.%${safe}%,email.ilike.%${safe}%,city.ilike.%${safe}%`);
+    q = q.or(`company_name.ilike.%${safe}%,email.ilike.%${safe}%,city.ilike.%${safe}%,notes.ilike.%${safe}%`);
    }
    const { data, count, error } = await q.order("priority", { ascending: true }).order("company_name").range(page * 50, page * 50 + 49);
    if (error) throw error;
    setLeads(data || []); setTotal(count || 0);
   } catch (e: any) { toast.error(e.message || "Nelze načíst agentury"); }
   finally { setLoading(false); }
- }, [page, search, tab, priority, status]);
+ }, [page, search, tab, priority, status, leadCategory]);
 
  const loadOverview = useCallback(async () => {
   const keys = ["new", "queued", "sent", "opened", "replied", "meeting", "won", "not_interested", "do_not_contact"];
@@ -329,7 +339,8 @@ export default function AdminAgencyOutreach({ embedded = false }: { embedded?: b
       <div className="ml-auto flex gap-2">{csvUpload(false)}{csvUpload(true)}</div>
      </div>
      <div className="flex flex-wrap gap-2">
-      <div className="relative flex-1 min-w-48"><Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" /><Input className="pl-9" placeholder="Firma, e-mail nebo město" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></div>
+      <div className="relative flex-1 min-w-48"><Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" /><Input className="pl-9" placeholder="Firma, e-mail, město nebo specializace" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></div>
+      <select aria-label="Obor kontaktu" className="rounded-md border bg-background px-3 text-sm" value={leadCategory} onChange={e => { setLeadCategory(e.target.value); setPage(0); }}><option value="">Všechny obory</option>{LEAD_CATEGORIES.map(category => <option key={category}>{category}</option>)}</select>
       {tab === "ready" && <select className="rounded-md border bg-background px-3 text-sm" value={priority} onChange={e => { setPriority(e.target.value); setPage(0); }}><option value="all">Všechny priority</option><option value="A">Priorita A</option><option value="B">Priorita B</option></select>}
       <select className="rounded-md border bg-background px-3 text-sm" value={status} onChange={e => { setStatus(e.target.value); setPage(0); }}><option value="all">Všechny stavy</option>{STATUS_SELECT.map(v => <option key={v} value={v}>{STATUS[v].label}</option>)}</select>
      </div>
@@ -339,6 +350,7 @@ export default function AdminAgencyOutreach({ embedded = false }: { embedded?: b
        <td className="p-2"><div className="font-medium flex items-center gap-1.5">{l.company_name}{l.website && <a href={l.website} target="_blank" rel="noopener noreferrer" title="Web firmy" className="text-muted-foreground hover:text-foreground"><ExternalLink className="h-3.5 w-3.5" /></a>}</div>
         <div className="text-xs text-muted-foreground">{l.email}</div>
         <LeadPhone notes={l.notes} />
+        <LeadCategory notes={l.notes} />
         {l.last_error && <div className="text-[11px] text-red-600">{l.last_error}</div>}</td>
        <td className="p-2 text-muted-foreground">{l.city || "–"}</td>
        <td className="p-2">{l.priority}</td>
