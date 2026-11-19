@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { TEST_EMAIL } from "@/lib/testEmail";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,7 +157,7 @@ export default function EmailTemplatesTab() {
   const testSendMutation = useMutation({
     mutationFn: async ({ slug, overrideData, jobId, targetEmail }: { slug: string; overrideData?: Partial<EmailTemplate>; jobId?: string; targetEmail?: string }) => {
       const { data, error } = await supabase.functions.invoke("send-template-test", {
-        body: { slug, overrideData, jobId, targetEmail },
+        body: { slug, overrideData, jobId, targetEmail: targetEmail || TEST_EMAIL },
       });
       if (error) throw error;
       return data;
@@ -878,6 +879,11 @@ function TemplateRow({
         {(t.language === "cz" || !t.language) && onLocalize && (
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted text-primary" onClick={onLocalize} title="Lokalizovat do všech zemí (AI)" disabled={isLocalizing}>
             {isLocalizing ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <Globe className="h-4.5 w-4.5" />}
+          </Button>
+        )}
+        {onTestSend && t.slug && (
+          <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[11px] font-bold gap-1.5" onClick={onTestSend} disabled={isSending} title={`Poslat test na ${TEST_EMAIL}`}>
+            {isSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}Test
           </Button>
         )}
         {onDuplicate && (

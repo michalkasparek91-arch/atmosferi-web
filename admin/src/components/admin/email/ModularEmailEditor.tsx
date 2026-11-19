@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { TEST_EMAIL } from "@/lib/testEmail";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -1471,20 +1472,12 @@ export function ModularEmailEditorDialogInner({
               </Button>
             )}
 
-            {form.slug && onTestSend && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => {
-                  try {
-                    const email = window.prompt("Zadejte e-mail pro testovací zprávu:", "michal.kasparek91@gmail.com");
-                    if (email) {
-                      onTestSend(form.slug!, form, selectedJobId || null, email);
-                    }
-                  } catch (err: any) {
-                    window.alert("Chyba tlačítka: " + err?.message);
-                  }
-                }} 
+            {onTestSend && (
+              <Button
+                variant="outline"
+                size="sm"
+                title={`Pošle aktuální (i neuložený) e-mail na ${TEST_EMAIL}`}
+                onClick={() => onTestSend(form.slug || "custom", form, selectedJobId || undefined, TEST_EMAIL)}
                 disabled={isSendingTest} 
                 className="h-8 px-2 sm:px-3 text-[11px] font-bold gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-primary/10 hover:text-primary hover:border-primary/40 cursor-pointer shrink-0"
               >

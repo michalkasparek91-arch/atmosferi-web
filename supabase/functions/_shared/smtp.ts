@@ -31,6 +31,7 @@ export async function checkSmtpConnection() {
 
 export async function sendViaSmtp(payload: {
   from: string; to: string; subject: string; html: string; bcc?: string;
+  text?: string; headers?: Record<string, string>;
 }) {
   const host = Deno.env.get("SMTP_HOST");
   const user = Deno.env.get("SMTP_USER") || Deno.env.get("SMTP_USERNAME");
@@ -52,7 +53,10 @@ export async function sendViaSmtp(payload: {
     const result = await transport.sendMail({
       ...payload,
       // FORPSI requires a sender belonging to the authenticated mailbox.
-      from: Deno.env.get("SMTP_FROM") || (user.includes("@") ? user : payload.from),
+      // A display name is kept when the requested sender is that same mailbox.
+      from: Deno.env.get("SMTP_FROM")
+        || (payload.from.toLowerCase().includes("<" + user.toLowerCase() + ">") ? payload.from
+        : user.includes("@") ? user : payload.from),
       replyTo: payload.from,
     });
     if (!result.accepted?.includes(payload.to)) {
