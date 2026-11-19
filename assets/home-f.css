@@ -157,3 +157,19 @@
 .h-more [aria-expanded="true"] .h-more__hide { display: inline; }
 /* Service cards: titles sit on bright skies, so darken the top more. */
 .h-service::before { background: linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.08) 32%, transparent 52%, rgba(0,0,0,.7)); }
+
+/* Rail: only ever scrolls sideways. Revealed cards fade in place (no lift),
+   otherwise the lift made the rail scroll vertically inside itself. */
+.h-rail { overflow-y: hidden; overscroll-behavior-x: contain; }
+.js .h-rail [data-reveal] { transform: none; }
+
+/* Edge zones: hover near the right (or left) edge and the rail glides. */
+.h-railwrap { position: relative; }
+.h-edge { position: absolute; top: 0; bottom: 4px; z-index: 3; display: flex; align-items: center; width: clamp(80px, 9vw, 160px); padding: 0; border: 0; background: none; cursor: e-resize; opacity: 0; transition: opacity .35s ease; }
+.h-edge--next { right: 0; justify-content: flex-end; padding-right: var(--pad); background: linear-gradient(90deg, rgba(244,244,244,0), rgba(244,244,244,.85)); }
+.h-edge--prev { left: 0; justify-content: flex-start; padding-left: var(--pad); background: linear-gradient(270deg, rgba(244,244,244,0), rgba(244,244,244,.85)); cursor: w-resize; }
+.h-edge span { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--ink); color: #fff; font: 500 20px/1 "Geist", sans-serif; transition: transform .5s var(--out); }
+.h-railwrap.can-next .h-edge--next, .h-railwrap.can-prev .h-edge--prev { opacity: 1; }
+.h-railwrap:not(.can-next) .h-edge--next, .h-railwrap:not(.can-prev) .h-edge--prev { pointer-events: none; }
+.h-edge.is-gliding span { transform: scale(1.1); }
+@media (hover: none), (max-width: 700px) { .h-edge { display: none; } }
