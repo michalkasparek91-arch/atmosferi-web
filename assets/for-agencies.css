@@ -714,3 +714,19 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
 .f-caps li { justify-content: flex-start; }
 .f-cap__ic { margin-bottom: 0; }
 .f-caps li strong { margin-top: clamp(28px, 3vw, 48px); }
+
+/* Atmosferi° logo (2026-11): dotless ı, an open ring on the baseline after
+   the word. Same proportions at every size; colour follows currentColor. */
+.lg { display: inline-flex; align-items: baseline; white-space: nowrap; font-family: "Geist", "Inter", "Helvetica Neue", Arial, sans-serif; letter-spacing: -.04em; }
+.lg-o { display: inline-block; flex: none; box-sizing: border-box; width: .2em; height: .2em; margin-left: .045em; border: .068em solid currentColor; border-radius: 50%; font-style: normal; }
+.lg-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.wordmark .lg, .un-brand .lg, .wm .lg, .f-logo .lg, .f-brand .lg { font-weight: 600; }
+/* Hero wordmark: the ring sits on the baseline after the letters. */
+.f-hero__mark { align-items: baseline; }
+.f-hero__mark > .lg-o { align-self: baseline; margin-left: .03em; }
+.js .f-hero:not(.is-loaded) .f-hero__mark > .lg-o { opacity: 0; transform: translateY(.2em) scale(.6); }
+.f-hero__mark > .lg-o { transition: opacity .9s var(--out) .55s, transform 1.1s var(--ease) .55s; }
+.f-footer__mark .lg { letter-spacing: -.07em; }
+.f-footer__mark .lg-o { margin-left: .04em; }
+@media (prefers-reduced-motion: reduce) { .js .f-hero:not(.is-loaded) .f-hero__mark > .lg-o { opacity: 1; transform: none; } }
+.f-footer__mark .lg { display: inline-flex; margin: 0; padding: 0; font-size: 1em; }

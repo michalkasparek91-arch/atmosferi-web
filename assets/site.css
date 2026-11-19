@@ -868,3 +868,10 @@ button { font-family: inherit; }
   }
   .scroller:hover img { transform: none; }
 }
+
+/* Atmosferi° logo (2026-11): dotless ı, an open ring on the baseline after
+   the word. Same proportions at every size; colour follows currentColor. */
+.lg { display: inline-flex; align-items: baseline; white-space: nowrap; font-family: "Geist", "Inter", "Helvetica Neue", Arial, sans-serif; letter-spacing: -.04em; }
+.lg-o { display: inline-block; flex: none; box-sizing: border-box; width: .2em; height: .2em; margin-left: .045em; border: .068em solid currentColor; border-radius: 50%; font-style: normal; }
+.lg-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.wordmark .lg, .un-brand .lg, .wm .lg, .f-logo .lg, .f-brand .lg { font-weight: 600; }

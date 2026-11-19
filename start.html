@@ -13,6 +13,8 @@
 <link rel="stylesheet" href="colors_and_type.css">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
+.lg{display:inline-flex;align-items:baseline;white-space:nowrap;font-family:"Geist","Inter",Arial,sans-serif;letter-spacing:-.04em;font-weight:600}.lg-o{display:inline-block;flex:none;box-sizing:border-box;width:.2em;height:.2em;margin-left:.045em;border:.068em solid currentColor;border-radius:50%;font-style:normal}.lg-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
   *,*::before,*::after{box-sizing:border-box;}
   body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
   a{color:inherit;text-decoration:none;}
@@ -250,12 +252,13 @@
   .pv[data-layout="image"] .pv__sub{display:none;}
   .pv[data-layout="image"] .pv__cta{flex:none;}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header class="top">
   <div class="top__in">
-    <a href="index.html" class="wm">atmosferi<sup>°</sup></a>
+    <a href="index.html" class="wm"><span class="lg"><span class="lg-t" aria-hidden="true">atmosferı</span><i class="lg-o" aria-hidden="true"></i><span class="lg-sr">Atmosferi</span></span></a>
     <div class="swx" id="swx" role="tablist" aria-label="What are you starting?">
       <span class="swx__knob" id="swxKnob"></span>
       <button class="swx__seg is-on" data-mode="web" role="tab" aria-selected="true">Website</button>
