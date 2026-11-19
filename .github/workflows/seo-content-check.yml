@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['architektonicka-vizualizace-bez-3d-modelu.html', 'cs', 'bim-cad-handover-architectural-visualisation.html', '2026-11-19'],
             ['external-stair-drainage-slip-resistant-nosing-rendering-review.html', 'en', 'staircase-tread-riser-geometry-rendering-review.html', '2026-11-17'],
             ['parking-garage-headroom-clearance-signage-rendering-review.html', 'en', 'underground-parking-ramp-architectural-rendering-review.html', '2026-11-17'],
             ['protective-bollards-architectural-rendering-review.html', 'en', 'fire-appliance-access-architectural-rendering-review.html', '2026-11-17'],
@@ -432,6 +433,22 @@ jobs:
               assert(h.includes('sprinkler-head-ceiling-architectural-rendering-review.html'), path + ': related article');
               const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
               assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
+            }
+            if (path === 'architektonicka-vizualizace-bez-3d-modelu.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive article layout');
+              assert(h.includes('assets/seo-guides.css'), path + ': shared responsive stylesheet');
+              assert((h.match(/<section id="/g) || []).length >= 11, path + ': substantive sections');
+              assert((h.match(/<h1[\s>]/g) || []).length === 1, path + ': single H1');
+              assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': readable tables');
+              const sections = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const menu = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(menu.length >= 11 && menu.every(id => sections.has(id)), path + ': contents anchors');
+              assert(h.includes('Fiktivní vzor') && h.includes('Ilustrační materiálová tabulka'), path + ': examples labelled');
+              assert(h.includes('bim-cad-handover-architectural-visualisation.html'), path + ': related BIM guide');
+              const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
+              assert(css.includes('max-width:850px') && css.includes('max-width:520px'), path + ': mobile breakpoints');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
