@@ -2,6 +2,9 @@
 (function(){
   window.I18N_DICT=window.I18N_DICT || {de:{},cs:{}};
   Object.assign(window.I18N_DICT.de, {
+  "Show all images": "Alle Bilder anzeigen",
+  "Show fewer images": "Weniger Bilder anzeigen",
+  "Skip to content": "Zum Inhalt springen",
   "Architecture,": "Architektur,",
   "beautifully presented.": "hochwertig präsentiert.",
   "Architectural visualisations, films and websites. Made by an architect, with an eye for how projects should look and feel.": "Architekturvisualisierungen, Filme und Websites. Von einem Architekten gestaltet – mit einem Gespür dafür, wie Projekte wirken sollen.",
@@ -54,6 +57,9 @@
   "Atmosferi home": "Atmosferi Startseite"
 });
   Object.assign(window.I18N_DICT.cs, {
+  "Show all images": "Zobrazit všechny obrázky",
+  "Show fewer images": "Zobrazit méně obrázků",
+  "Skip to content": "Přeskočit na obsah",
   "Architecture,": "Architektura,",
   "beautifully presented.": "představená v tom nejlepším světle.",
   "Architectural visualisations, films and websites. Made by an architect, with an eye for how projects should look and feel.": "Architektonické vizualizace, filmy a weby. Od architekta, který rozumí návrhu i tomu, jak ho správně představit.",

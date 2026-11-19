@@ -27,3 +27,112 @@
 .seo-footer>span{font-size:13px;color:var(--muted);}
 .seo-header-contact{font-size:13px;border-bottom:1px solid;padding-bottom:5px;white-space:nowrap;}
 @media(max-width:800px){.seo-cards,.seo-split{grid-template-columns:1fr;gap:36px;}.seo-author{margin-bottom:48px;}.seo-header-contact{display:none;}.seo-languages{gap:14px;}.seo-footer{align-items:flex-start;flex-direction:column;}}
+
+/* ==========================================================================
+   Fabrica layer (2026-11): guides and international service pages share the
+   look of the homepage and /for-agencies — light grey canvas, white rounded
+   cards, an inset dark hero panel with grain, Geist in two weights, pill
+   buttons. Scoped to body.seo-service so nothing else on the site changes.
+   ========================================================================== */
+body.seo-service {
+  --fb-bg: #f4f4f4; --fb-card: #fff; --fb-ink: #0b0b0b; --fb-mute: #6f6f6f;
+  --fb-line: rgba(11, 11, 11, .1); --fb-r: 22px; --fb-pad: clamp(16px, 2.35vw, 45px);
+  --fb-out: cubic-bezier(.16, 1, .3, 1);
+  background: var(--fb-bg); color: var(--fb-ink);
+  font-family: "Geist", "Inter", "Helvetica Neue", Arial, sans-serif; font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+}
+body.seo-service .wrap { max-width: none; padding-inline: var(--fb-pad); }
+
+/* Header */
+body.seo-service .nav { position: sticky; top: 0; z-index: 100; background: var(--fb-bg); backdrop-filter: none; border: 0; }
+body.seo-service .nav__inner { min-height: 72px; padding-block: 0; display: flex; align-items: center; gap: 24px; }
+body.seo-service .wordmark { font: 600 24px/1 "Geist", sans-serif; letter-spacing: -.04em; color: var(--fb-ink); }
+body.seo-service .wordmark sup { color: inherit; font-size: .55em; }
+body.seo-service .nav__links { position: static; transform: none; margin: 0 auto; gap: clamp(18px, 3vw, 56px); padding: 0; border: 0; background: none; box-shadow: none; }
+body.seo-service .nav__links .navlink { padding: 0; border-radius: 0; background: none !important; color: var(--fb-ink) !important; font: 500 17px/1 "Geist", sans-serif; letter-spacing: -.01em; }
+body.seo-service .nav__links .navlink:hover { color: var(--fb-mute) !important; }
+body.seo-service .seo-header-contact { display: inline-flex; align-items: center; min-height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--fb-ink); color: #fff; font: 600 14px/1 "Geist", sans-serif; }
+body.seo-service .nav__mobile { background: var(--fb-bg); }
+body.seo-service .nav__mobile .navlink { font: 600 26px/1.3 "Geist", sans-serif; letter-spacing: -.04em; color: var(--fb-ink); }
+
+/* Eyebrows become the "+ label" mark used across the site */
+body.seo-service .eyebrow { display: inline-flex; align-items: center; gap: 10px; font: 500 14px/1.3 "Geist", sans-serif; letter-spacing: -.005em; text-transform: none; color: inherit; }
+body.seo-service .eyebrow::before { content: "+"; display: grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%; background: currentColor; color: var(--fb-bg); font: 600 15px/1 "Geist", sans-serif; }
+body.seo-service .seo-hero .eyebrow { color: #fff; }
+body.seo-service .seo-hero .eyebrow::before { color: #0b0b0b; }
+
+/* Hero: inset dark panel with grain */
+body.seo-service .seo-hero { position: relative; isolation: isolate; overflow: hidden; margin: 0 8px; border-radius: 24px; background: #0b0b0b; padding-block: clamp(64px, 8vw, 140px) clamp(48px, 5vw, 90px); }
+body.seo-service .seo-hero::after { content: ""; position: absolute; inset: -50%; z-index: -1; pointer-events: none; opacity: .12; mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+body.seo-service .seo-hero .wrap { padding-inline: calc(var(--fb-pad) - 8px); }
+body.seo-service .seo-hero h1 { margin: clamp(28px, 3vw, 48px) 0 clamp(22px, 2.4vw, 36px); max-width: 16ch; font: 700 clamp(44px, 6.4vw, 118px)/.92 "Geist", sans-serif; letter-spacing: -.06em; color: #fff; }
+body.seo-service .seo-intro { max-width: 46ch; font-size: clamp(18px, 1.6vw, 26px); line-height: 1.32; font-weight: 500; letter-spacing: -.02em; color: rgba(255,255,255,.6); }
+body.seo-service .guide-hero__meta { margin-top: clamp(28px, 3vw, 48px); gap: 8px; font-size: 14px; color: #fff; }
+body.seo-service .guide-hero__meta span { padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.1); }
+
+/* Pills */
+body.seo-service .arrow-link { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--fb-ink); color: #fff; font: 600 15px/1 "Geist", sans-serif; text-transform: none; letter-spacing: -.01em; transition: transform .5s var(--fb-out); }
+body.seo-service .arrow-link:hover { transform: scale(1.04); background: var(--fb-ink); color: #fff; }
+body.seo-service .seo-hero .arrow-link, body.seo-service .seo-cta .arrow-link { background: #fff; color: var(--fb-ink); }
+
+/* Guides: index card + article card */
+body.seo-service .guide-main { gap: 6px; padding-block: 6px 0; grid-template-columns: minmax(220px, .3fr) minmax(0, 1fr); }
+body.seo-service .guide-index { top: 84px; padding: 26px 24px; border-radius: var(--fb-r); background: var(--fb-card); }
+body.seo-service .guide-index .eyebrow { margin-bottom: 16px; color: var(--fb-ink); }
+body.seo-service .guide-index a { padding: 10px 0; border-top: 1px solid var(--fb-line); font-size: 15px; font-weight: 500; color: var(--fb-mute); transition: color .25s ease; }
+body.seo-service .guide-index a:hover { color: var(--fb-ink); }
+body.seo-service .guide-article { max-width: none; padding: clamp(28px, 4vw, 80px) clamp(22px, 4.5vw, 90px); border-radius: var(--fb-r); background: var(--fb-card); }
+body.seo-service .guide-article > section { max-width: 760px; border-bottom-color: var(--fb-line); }
+body.seo-service .guide-article h2 { font: 600 clamp(28px, 2.8vw, 46px)/1.06 "Geist", sans-serif; letter-spacing: -.045em; color: var(--fb-ink); }
+body.seo-service .guide-article h3 { font: 600 clamp(19px, 1.5vw, 24px)/1.2 "Geist", sans-serif; letter-spacing: -.025em; }
+body.seo-service .guide-article p, body.seo-service .guide-article li { font-weight: 400; color: #3d3d3d; }
+body.seo-service .guide-example { padding: 24px 26px; border: 0; border-radius: 16px; background: var(--fb-bg); }
+body.seo-service .guide-example .eyebrow { color: var(--fb-ink); }
+body.seo-service .guide-sample { padding: 20px 22px; border: 0; border-radius: 14px; background: var(--fb-bg); }
+body.seo-service .guide-checklist li { border-top-color: var(--fb-line); }
+body.seo-service .guide-checklist li::before { border-radius: 5px; border-color: var(--fb-ink); }
+body.seo-service .guide-table th { font-family: "Geist", sans-serif; font-size: 12px; letter-spacing: .04em; color: var(--fb-mute); }
+body.seo-service .guide-related a { padding: 20px 22px; border: 0; border-radius: 16px; background: var(--fb-bg); font-weight: 600; letter-spacing: -.02em; }
+body.seo-service .guide-related a span { font-family: "Geist", sans-serif; font-weight: 500; letter-spacing: .02em; }
+
+/* International service pages */
+body.seo-service .seo-languages { gap: 6px; }
+body.seo-service .seo-languages a { padding: 8px 14px; border-radius: 999px; background: var(--fb-card); text-decoration: none; }
+body.seo-service .seo-languages a[aria-current] { background: var(--fb-ink); color: #fff; }
+body.seo-service .seo-author { font-size: clamp(22px, 2.2vw, 40px); line-height: 1.17; font-weight: 500; letter-spacing: -.035em; max-width: 30ch; }
+body.seo-service:not(.guide) h2 { font: 700 clamp(36px, 4.2vw, 80px)/1.02 "Geist", sans-serif; letter-spacing: -.055em; }
+body.seo-service .seo-cards { gap: 6px; }
+body.seo-service .seo-cards article { padding: clamp(24px, 2vw, 38px); border: 0; border-radius: var(--fb-r); background: var(--fb-card); }
+body.seo-service .seo-cards h3 { font: 600 clamp(20px, 1.5vw, 25px)/1.15 "Geist", sans-serif; letter-spacing: -.03em; }
+body.seo-service .seo-cards p, body.seo-service .seo-split p, body.seo-service .seo-proof p, body.seo-service .seo-faq p { font-weight: 400; color: #3d3d3d; }
+body.seo-service .seo-service .section, body.seo-service .section { border-bottom: 0; }
+body.seo-service .seo-faq details { border-top-color: var(--fb-line); }
+body.seo-service .seo-faq summary { font: 500 clamp(18px, 1.3vw, 22px)/1.3 "Geist", sans-serif; letter-spacing: -.02em; }
+body.seo-service .seo-cta { position: relative; overflow: hidden; margin: 0 8px; border-radius: 24px; background: #0b0b0b; padding: clamp(60px, 7vw, 130px) 0; }
+body.seo-service .seo-cta h2 { color: #fff; }
+body.seo-service .seo-cta p { color: rgba(255,255,255,.6); }
+
+/* Footer */
+body.seo-service .seo-footer { padding-block: clamp(48px, 5vw, 90px) 32px; color: var(--fb-ink); }
+body.seo-service .seo-footer .wordmark { font-size: 22px; }
+body.seo-service .seo-footer a { font-weight: 500; }
+
+@media (max-width: 850px) {
+  body.seo-service .guide-main { grid-template-columns: 1fr; }
+  body.seo-service .guide-index { position: static; }
+}
+@media (max-width: 1080px) {
+  body.seo-service .seo-header-contact { display: none; }
+}
+@media (max-width: 700px) {
+  body.seo-service .seo-hero { border-radius: 18px; }
+  body.seo-service .guide-article { padding: 24px 20px; }
+  body.seo-service .seo-cta { border-radius: 18px; }
+}
+body.seo-service .eyebrow::before { opacity: 1; background: var(--fb-ink); color: #fff; box-shadow: none; transform: none; }
+body.seo-service .seo-hero .eyebrow::before { background: #fff; color: var(--fb-ink); }
+body.seo-service h2, body.seo-service h3 { font-family: "Geist", sans-serif; }
+body.seo-service.guide main > :not(.guide-main) h2, body.seo-service .seo-cta h2 { font-weight: 700; font-size: clamp(32px, 3.6vw, 66px); line-height: 1.02; letter-spacing: -.055em; }
+body.seo-service .seo-links a, body.seo-service .seo-related a { font-family: "Geist", sans-serif; }
