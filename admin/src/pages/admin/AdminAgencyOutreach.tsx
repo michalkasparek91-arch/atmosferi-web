@@ -105,6 +105,11 @@ function Pill({ status }: { status: string }) {
  const s = STATUS[status] || { label: status, cls: "bg-muted" };
  return <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${s.cls}`}>{s.label}</span>;
 }
+function LeadPhone({ notes }: { notes: string }) {
+ const phone = notes?.match(/^Telefon: (\+?[\d(). -]{8,30})$/m)?.[1];
+ if (!phone) return null;
+ return <a className="block w-fit text-xs text-muted-foreground hover:underline" href={`tel:${phone.replace(/[^+\d]/g, "")}`}>{phone}</a>;
+}
 function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
  return <div className="rounded-2xl bg-neutral-100 px-4 py-3">
   <div className="text-xs text-muted-foreground">{label}</div>
@@ -333,6 +338,7 @@ export default function AdminAgencyOutreach({ embedded = false }: { embedded?: b
       <tbody>{leads.map(l => <tr key={l.id} className="border-b align-middle hover:bg-muted/40">
        <td className="p-2"><div className="font-medium flex items-center gap-1.5">{l.company_name}{l.website && <a href={l.website} target="_blank" rel="noopener noreferrer" title="Web firmy" className="text-muted-foreground hover:text-foreground"><ExternalLink className="h-3.5 w-3.5" /></a>}</div>
         <div className="text-xs text-muted-foreground">{l.email}</div>
+        <LeadPhone notes={l.notes} />
         {l.last_error && <div className="text-[11px] text-red-600">{l.last_error}</div>}</td>
        <td className="p-2 text-muted-foreground">{l.city || "–"}</td>
        <td className="p-2">{l.priority}</td>
