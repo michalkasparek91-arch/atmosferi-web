@@ -136,3 +136,10 @@ body.seo-service .seo-hero .eyebrow::before { background: #fff; color: var(--fb-
 body.seo-service h2, body.seo-service h3 { font-family: "Geist", sans-serif; }
 body.seo-service.guide main > :not(.guide-main) h2, body.seo-service .seo-cta h2 { font-weight: 700; font-size: clamp(32px, 3.6vw, 66px); line-height: 1.02; letter-spacing: -.055em; }
 body.seo-service .seo-links a, body.seo-service .seo-related a { font-family: "Geist", sans-serif; }
+
+/* Architecture part: tighter corners, same scale as the homepage (12 / 10 / 8 / 4). */
+body.seo-service { --fb-r: 10px; }
+body.seo-service .seo-hero, body.seo-service .seo-cta { border-radius: 12px; }
+body.seo-service .guide-example, body.seo-service .guide-related a, body.seo-service .guide-sample { border-radius: 8px; }
+body.seo-service .guide-checklist li::before { border-radius: 3px; }
+@media (max-width: 760px) { body.seo-service .seo-hero, body.seo-service .seo-cta { border-radius: 10px; } }
