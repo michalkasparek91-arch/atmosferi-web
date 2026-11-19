@@ -659,3 +659,5 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
   .f-num__fig { font-size: clamp(40px, 12vw, 56px); }
   .f-num__lab { font-size: 15px; }
 }
+/* AI block now opens its own section (process steps removed). */
+.f-sec > .f-ai:first-child { margin-top: 0; }
