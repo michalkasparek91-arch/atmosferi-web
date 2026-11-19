@@ -52,7 +52,7 @@
   if (reduced) document.querySelectorAll("video[autoplay]").forEach(function (v) { v.removeAttribute("autoplay"); v.pause(); });
 
   // Reveal on scroll, small cascade inside grids
-  ["f-projs", "f-stats", "f-steps", "f-bento", "f-ai__cards", "f-screens", "f-caps", "f-zscreens", "f-nums"].forEach(function (cls) {
+  ["f-projs", "f-stats", "f-steps", "f-bento", "f-ai__cards", "f-caps", "f-nums"].forEach(function (cls) {
     var g = document.querySelector("." + cls);
     if (g) Array.prototype.forEach.call(g.querySelectorAll("[data-reveal]"), function (el, i) { el.style.setProperty("--d", String(i)); });
   });
@@ -132,6 +132,50 @@
         entries.forEach(function (en) { visible = en.isIntersecting; if (visible) start(); else stop(); });
       }, { threshold: 0.35 }).observe(adm);
     }
+  }
+
+  // Zrobee interface slider: one preview at a time, arrows, keys and swipe.
+  var gal = document.querySelector(".f-gal");
+  if (gal) {
+    var slides = Array.prototype.slice.call(gal.querySelectorAll(".f-gal__slide"));
+    var gTitle = gal.querySelector(".f-gal__title");
+    var gDesc = gal.querySelector(".f-gal__desc");
+    var gCount = gal.querySelector(".f-gal__count");
+    var stage = gal.querySelector(".f-gal__stage");
+    var gi = 0;
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    var go = function (d) {
+      var prev = slides[gi];
+      gi = (gi + d + slides.length) % slides.length;
+      var next = slides[gi];
+      prev.classList.remove("is-on"); prev.classList.add("is-out"); prev.setAttribute("aria-hidden", "true");
+      setTimeout(function () { prev.classList.remove("is-out"); }, 650);
+      next.classList.add("is-on"); next.removeAttribute("aria-hidden");
+      gTitle.textContent = next.getAttribute("data-title");
+      gDesc.textContent = next.getAttribute("data-desc");
+      gCount.textContent = pad(gi + 1) + " / " + pad(slides.length);
+      var v = next.querySelector(".f-screen__view");
+      if (v) v.style.setProperty("--view-h", v.clientHeight + "px");
+    };
+    gal.querySelectorAll(".f-gal__btn").forEach(function (b) {
+      b.addEventListener("click", function () { go(Number(b.getAttribute("data-dir"))); });
+    });
+    stage.setAttribute("tabindex", "0");
+    stage.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") { e.preventDefault(); go(1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); }
+    });
+    var x0 = null;
+    stage.addEventListener("pointerdown", function (e) { x0 = e.clientX; });
+    stage.addEventListener("pointerup", function (e) {
+      if (x0 === null) return;
+      var dx = e.clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+    });
+    var sizeGal = function () {
+      slides.forEach(function (s) { var v = s.querySelector(".f-screen__view"); if (v && v.clientHeight) v.style.setProperty("--view-h", v.clientHeight + "px"); });
+    };
+    sizeGal(); window.addEventListener("resize", sizeGal, { passive: true });
   }
 
   // Enquiry form

@@ -661,3 +661,56 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
 }
 /* AI block now opens its own section (process steps removed). */
 .f-sec > .f-ai:first-child { margin-top: 0; }
+
+/* ---------- Zrobee interface: one preview at a time ----------
+   Left: label, intro, arrows and the current title. Right: one stage that
+   crossfades between desktop pages (scroll on hover) and phone screens. */
+.f-gal { align-items: stretch; margin-top: clamp(80px, 8vw, 150px); }
+.f-gal__side { grid-column: 1; display: flex; flex-direction: column; gap: 18px; padding-right: 24px; }
+.f-gal__intro { font-size: clamp(20px, 1.6vw, 28px); line-height: 1.22; font-weight: 500; letter-spacing: -.025em; }
+.f-gal__ctrl { margin-top: auto; display: flex; flex-direction: column; gap: 26px; padding-bottom: 6px; }
+.f-gal__nav { display: flex; gap: 6px; }
+.f-gal__btn { display: grid; place-items: center; width: 56px; height: 56px; border: 0; border-radius: 50%; background: var(--card); color: var(--ink); font: 500 20px/1 "Geist", sans-serif; cursor: pointer; transition: background .3s ease, color .3s ease, transform .5s var(--out); }
+.f-gal__btn:hover { background: var(--ink); color: #fff; }
+.f-gal__btn:active { transform: scale(.94); }
+.f-gal__meta { display: flex; flex-direction: column; gap: 6px; min-height: 8.5em; }
+.f-gal__count { font-size: 14px; color: var(--mute); font-variant-numeric: tabular-nums; }
+.f-gal__title { font-size: clamp(22px, 1.7vw, 30px); font-weight: 600; letter-spacing: -.035em; line-height: 1.1; }
+.f-gal__desc { font-size: 16px; line-height: 1.45; color: var(--mute); }
+.f-gal__stage { grid-column: 2 / 5; position: relative; overflow: hidden; aspect-ratio: 16 / 10; padding: 8px; touch-action: pan-y; }
+.f-gal__slide { position: absolute; inset: 8px; margin: 0; display: flex; flex-direction: column; opacity: 0; visibility: hidden; transform: translateX(24px); transition: opacity .6s ease, transform .9s var(--out), visibility 0s .6s; }
+.f-gal__slide.is-on { opacity: 1; visibility: visible; transform: none; transition: opacity .6s ease, transform .9s var(--out), visibility 0s; }
+.f-gal__slide.is-out { transform: translateX(-24px); }
+.f-gal__slide--desk .f-bar { flex: none; border-radius: 14px 14px 0 0; }
+.f-gal__slide--desk .f-screen__view { flex: 1; aspect-ratio: auto; margin: 0; border-radius: 0 0 14px 14px; }
+.f-gal__slide--desk:hover .f-screen__view img { transform: translateY(calc(-100% + var(--view-h, 400px))); transition: transform 8s cubic-bezier(.45, 0, .55, 1); }
+.f-gal__slide--phone { align-items: center; justify-content: center; border-radius: 14px; background: radial-gradient(120% 90% at 30% 0%, #b9e08a 0%, #a3d16f 45%, #87bb52 100%); }
+.f-gal__phone { display: block; height: 88%; aspect-ratio: 390 / 844; overflow: hidden; border: 7px solid #0b0b0b; border-radius: 34px; background: #0b0b0b; box-shadow: 0 34px 70px -24px rgba(10, 14, 6, .55); }
+.f-gal__phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 27px; }
+
+/* ---------- Capability cards: line icons instead of numbers ---------- */
+.f-cap__ic { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: auto; border-radius: 14px; background: var(--bg); color: var(--ink); }
+.f-cap__ic svg { width: 24px; height: 24px; }
+.f-caps li { gap: 10px; }
+.f-caps li strong { margin-top: 36px; }
+.f-caps li:hover .f-cap__ic { background: var(--ink); color: #fff; transition: background .35s ease, color .35s ease; }
+
+@media (max-width: 1100px) {
+  .f-gal__side { grid-column: 1 / -1; padding: 0 0 22px; }
+  .f-gal__ctrl { flex-direction: row-reverse; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
+  .f-gal__meta { min-height: 0; }
+  .f-gal__stage { grid-column: 1 / -1; }
+}
+@media (max-width: 700px) {
+  .f-gal__stage { aspect-ratio: 4 / 5; }
+  .f-gal__ctrl { flex-direction: column-reverse; align-items: flex-start; gap: 16px; }
+  .f-gal__slide--desk .f-screen__view img { transform: none !important; }
+  .f-caps li strong { margin-top: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f-gal__slide, .f-gal__slide.is-on { transition: none; transform: none; }
+}
+/* Icons sit top-left, titles line up across the row. */
+.f-caps li { justify-content: flex-start; }
+.f-cap__ic { margin-bottom: 0; }
+.f-caps li strong { margin-top: clamp(28px, 3vw, 48px); }
