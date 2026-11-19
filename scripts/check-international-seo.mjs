@@ -153,16 +153,16 @@ const uncertaintyFile='architectural-visualisation-uncertainty-register.html';
 const uncertaintyHtml=fs.readFileSync(uncertaintyFile,'utf8');
 const uncertaintyUrl=origin+'/'+uncertaintyFile;
 assert.match(uncertaintyHtml,/<html lang="en">/,'uncertainty: language');
-assert.equal((uncertaintyHtml.match(/<h1[\\s>]/g)||[]).length,1,'uncertainty: one H1');
+assert.equal((uncertaintyHtml.match(/<h1[\s>]/g)||[]).length,1,'uncertainty: one H1');
 assert(uncertaintyHtml.includes('<link rel="canonical" href="'+uncertaintyUrl+'">'),'uncertainty: canonical');
 assert.match(uncertaintyHtml,/<meta name="robots" content="index, follow/,'uncertainty: indexable');
 assert(uncertaintyHtml.includes('name="viewport"'),'uncertainty: mobile viewport');
 for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(uncertaintyHtml.includes('href="assets/'+css+'.css"'),'uncertainty: CSS '+css);
 for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title'])assert(uncertaintyHtml.includes(key),'uncertainty: social '+key);
-const uncertaintySchema=JSON.parse(uncertaintyHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+const uncertaintySchema=JSON.parse(uncertaintyHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
 for(const type of ['Article','WebPage'])assert(uncertaintySchema['@graph'].some(item=>item['@type']===type),'uncertainty: schema '+type);
 assert(uncertaintySchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-19'&&item.mainEntityOfPage['@id']===uncertaintyUrl+'#webpage'),'uncertainty: schema date and URL');
 assert(locations.includes(uncertaintyUrl),'uncertainty: sitemap');
 assert(fs.readFileSync('architectural-design-options-rendering-comparison.html','utf8').includes('href="'+uncertaintyFile+'"'),'uncertainty: incoming link');
-for(const [,href] of uncertaintyHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\\/,'')),'uncertainty: missing local link '+href);}
+for(const [,href] of uncertaintyHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\/,'')),'uncertainty: missing local link '+href);}
 console.log('Uncertainty register guide SEO, schema, links, viewport and sitemap checks passed.');
