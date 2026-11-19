@@ -192,3 +192,24 @@
 .un-lightbox__image { align-self: center; justify-self: center; width: auto; height: auto; max-width: 100%; max-height: 100%; min-width: 0; min-height: 0; object-fit: contain; }
 .un-lightbox__caption { padding: 14px 0 22px; }
 @media (max-height: 600px) { .un-lightbox__caption p { display: none; } }
+
+/* ---------- Architecture part: tighter corners (body.h = homepage, films, websites) ----------
+   Scale: panels 12 · cards 10 · inner frames 8 · images in frames 6 · small 4. Pills and circles stay round. */
+.h { --r: 10px; }
+.h .f-panel, .h .f-hero { border-radius: 12px; }
+.h .f-card, .h .f-case, .h .f-why__photo, .h .v-tour, .h .v-reel__item { border-radius: 10px; }
+.h .f-person__photo, .h .f-person__info, .h .f-team__card { border-radius: 10px; }
+.h .f-person__photo img { border-radius: 6px; }
+.h .h-rail .un-work-card__caption { border-radius: 10px 10px 6px 6px; }
+.h .h-rail .un-work-card__media { border-radius: 6px 6px 10px 10px; }
+.h .h-rail .un-work-card__media img { border-radius: 4px 4px 8px 8px; }
+.h .un-viz-item { border-radius: 10px; }
+.h .un-viz-item:hover, .h .un-viz-item:focus-visible { border-radius: 4px; }
+.h .un-lightbox__image { border-radius: 6px; }
+.h .f-gal__slide--desk .f-bar { border-radius: 6px 6px 0 0; }
+.h .f-gal__slide--desk .f-screen__view { border-radius: 0 0 6px 6px; }
+.h .v-reel__item img, .h .f-svc__thumbs img { border-radius: 6px; }
+.h .v-tour .tour__info { border-radius: 8px; }
+.h .v-tour .rcell, .h .v-tour .rcell img { border-radius: 4px; }
+.h .f .i18nsw__menu, .h .i18nsw__menu { border-radius: 8px; }
+.h .f-form input, .h .f-form textarea { border-radius: 6px; }
