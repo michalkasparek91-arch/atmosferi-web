@@ -13,7 +13,11 @@
   var DICT = window.I18N_DICT || { de: {}, cs: {} };
   var SKIP = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, CODE: 1, PRE: 1 };
   var items = [];
-  var current = "en";
+  // Pages written in another language declare it: <html data-i18n-source="cs">.
+  // That language is then the untranslated original; the others come from the dictionary.
+  var SOURCE = (document.documentElement.getAttribute("data-i18n-source") || "en").toLowerCase();
+  if (LANGS.indexOf(SOURCE) < 0) SOURCE = "en";
+  var current = SOURCE;
 
   function norm(s) { return s.replace(/\s+/g, " ").trim(); }
   function isTranslatable(k) { return k && !/^[\d\s\W]+$/.test(k); }
@@ -38,7 +42,7 @@
   }
 
   function apply(it, lang) {
-    var tr = lang === "en" ? undefined : (DICT[lang] && DICT[lang][it.norm]);
+    var tr = lang === SOURCE ? undefined : (DICT[lang] && DICT[lang][it.norm]);
     if (it.t === "text") {
       if (tr === undefined) { it.node.nodeValue = it.orig; return; }
       var lead = (it.orig.match(/^\s*/) || [""])[0];
@@ -121,14 +125,16 @@
     });
   }
 
-  function setLang(lang) {
-    if (LANGS.indexOf(lang) < 0) lang = "en";
+  // Only an explicit choice is remembered; opening a page never overwrites it,
+  // so each page falls back to its own language until the visitor picks one.
+  function setLang(lang, remember) {
+    if (LANGS.indexOf(lang) < 0) lang = SOURCE;
     current = lang;
-    try { localStorage.setItem(KEY, lang); } catch (e) {}
+    if (remember) { try { localStorage.setItem(KEY, lang); } catch (e) {} }
     applyAll(lang);
     updateSwitchers();
   }
-  window.atmosferiSetLang = setLang;
+  window.atmosferiSetLang = function (lang) { setLang(lang, true); };
 
   document.addEventListener("click", function (e) {
     var trigger = e.target.closest && e.target.closest(".i18nsw__btn");
@@ -144,7 +150,7 @@
     var b = e.target.closest && e.target.closest(".i18nsw__menu button");
     if (b) {
       e.preventDefault();
-      setLang(b.getAttribute("data-lang"));
+      setLang(b.getAttribute("data-lang"), true);
     }
     document.querySelectorAll(".i18nsw.open").forEach(function (o) {
       o.classList.remove("open");
@@ -156,8 +162,8 @@
   function boot() {
     collect(document.body);
     injectSwitchers();
-    var saved = "en";
-    try { saved = localStorage.getItem(KEY) || "en"; } catch (e) {}
+    var saved = SOURCE;
+    try { saved = localStorage.getItem(KEY) || SOURCE; } catch (e) {}
     // URL ?lang= / #lang= overrides stored choice (for language-specific shared links)
     var urlLang = null;
     try {
@@ -181,7 +187,7 @@
           }
         }
       });
-      if (current !== "en") for (var j = start; j < items.length; j++) apply(items[j], current);
+      if (current !== SOURCE) for (var j = start; j < items.length; j++) apply(items[j], current);
     });
     mo.observe(document.body, { childList: true, subtree: true });
   }

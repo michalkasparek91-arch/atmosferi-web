@@ -4,6 +4,8 @@
   var doc = document.documentElement;
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   doc.classList.add("js");
+  // Strings set from script follow the language picked in the switcher.
+  function tr(t) { var l = doc.lang; return (window.I18N_DICT && I18N_DICT[l] && I18N_DICT[l][t]) || t; }
 
   // Mobile menu
   var header = document.getElementById("siteHeader");
@@ -12,7 +14,7 @@
   function setMenu(open) {
     header.classList.toggle("menu-open", open);
     burger.setAttribute("aria-expanded", String(open));
-    burger.setAttribute("aria-label", open ? "Zavřít menu" : "Otevřít menu");
+    burger.setAttribute("aria-label", tr(open ? "Zavřít menu" : "Otevřít menu"));
   }
   if (header && burger && mobile) {
     burger.addEventListener("click", function () { setMenu(!header.classList.contains("menu-open")); });
@@ -187,7 +189,7 @@
   form.querySelectorAll(".ag-choice").forEach(function (b) {
     b.addEventListener("click", function () { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); });
   });
-  function say(t, kind) { status.textContent = t; status.className = "ag-form__status" + (kind ? " is-" + kind : ""); }
+  function say(t, kind) { status.textContent = tr(t); status.className = "ag-form__status" + (kind ? " is-" + kind : ""); }
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
     if (busy) return;
@@ -207,7 +209,7 @@
         message: (needs.length ? "Zájem: " + needs.join(", ") + "\n\n" : "") + message,
         project_type: needs.join(", ").slice(0, 100),
         website: String(data.get("website") || ""), started_at: startedAt,
-        details: { page: "for-agencies", needs: needs, language: "cs" }
+        details: { page: "for-agencies", needs: needs, language: doc.lang || "cs" }
       });
       say("Děkuji, zpráva odešla. Ozvu se vám do dvou pracovních dnů.", "ok");
       form.reset();
