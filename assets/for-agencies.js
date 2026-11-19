@@ -52,7 +52,7 @@
   if (reduced) document.querySelectorAll("video[autoplay]").forEach(function (v) { v.removeAttribute("autoplay"); v.pause(); });
 
   // Reveal on scroll, small cascade inside grids
-  ["f-projs", "f-stats", "f-steps", "f-bento"].forEach(function (cls) {
+  ["f-projs", "f-stats", "f-steps", "f-bento", "f-ai__cards", "f-screens", "f-mk", "f-caps", "f-zscreens"].forEach(function (cls) {
     var g = document.querySelector("." + cls);
     if (g) Array.prototype.forEach.call(g.querySelectorAll("[data-reveal]"), function (el, i) { el.style.setProperty("--d", String(i)); });
   });
@@ -64,6 +64,74 @@
       entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("is-in"); io.unobserve(en.target); } });
     }, { threshold: 0.1, rootMargin: "0px 0px -5% 0px" });
     targets.forEach(function (el) { io.observe(el); });
+  }
+
+  // Zrobee screens: hovering a frame scrolls the whole page inside it.
+  var views = document.querySelectorAll(".f-screen__view");
+  var sizeViews = function () { views.forEach(function (v) { v.style.setProperty("--view-h", v.clientHeight + "px"); }); };
+  if (views.length) { sizeViews(); window.addEventListener("resize", sizeViews, { passive: true }); }
+
+  // Search results count up once when visible.
+  var counters = document.querySelectorAll("[data-count]");
+  var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
+  if (counters.length && !reduced && "IntersectionObserver" in window) {
+    var cio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        cio.unobserve(en.target);
+        var el = en.target, end = Number(el.getAttribute("data-count")), t0 = null;
+        var step = function (t) {
+          if (t0 === null) t0 = t;
+          var k = Math.min(1, (t - t0) / 1600);
+          el.textContent = fmt(end * (1 - Math.pow(1 - k, 3)));
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    }, { threshold: 0.6 });
+    counters.forEach(function (el) { cio.observe(el); });
+  }
+
+  // Zrobee admin viewer: tabs, crossfade, auto-rotation until the visitor picks one.
+  var adm = document.querySelector(".f-adm");
+  if (adm) {
+    var tabs = Array.prototype.slice.call(adm.querySelectorAll('[role="tab"]'));
+    var shots = adm.querySelectorAll(".f-adm__stack img");
+    var url = adm.querySelector(".f-adm__url");
+    var panel = adm.querySelector('[role="tabpanel"]');
+    var at = 0, timer = null, manual = false, visible = false, dur = 6000;
+    var show = function (i, focus) {
+      at = (i + tabs.length) % tabs.length;
+      tabs.forEach(function (t, k) { t.setAttribute("aria-selected", k === at ? "true" : "false"); t.tabIndex = k === at ? 0 : -1; });
+      shots.forEach(function (s, k) { s.classList.toggle("is-on", k === at); });
+      if (url) url.textContent = tabs[at].getAttribute("data-url");
+      if (panel) panel.setAttribute("aria-labelledby", tabs[at].id);
+      if (focus) tabs[at].focus();
+      adm.classList.remove("is-auto"); void adm.offsetWidth;
+      if (!manual && !reduced && visible) adm.classList.add("is-auto");
+    };
+    var stop = function () { clearInterval(timer); timer = null; adm.classList.remove("is-auto"); };
+    var start = function () {
+      if (reduced || manual || timer) return;
+      adm.style.setProperty("--adm-dur", dur / 1000 + "s");
+      adm.classList.add("is-auto");
+      timer = setInterval(function () { show(at + 1); }, dur);
+    };
+    tabs.forEach(function (t, k) {
+      t.addEventListener("click", function () { manual = true; stop(); show(k); });
+      t.addEventListener("keydown", function (e) {
+        var d = (e.key === "ArrowDown" || e.key === "ArrowRight") ? 1 : (e.key === "ArrowUp" || e.key === "ArrowLeft") ? -1 : 0;
+        if (!d) return;
+        e.preventDefault(); manual = true; stop(); show(at + d, true);
+      });
+    });
+    adm.addEventListener("mouseenter", stop);
+    adm.addEventListener("mouseleave", function () { if (visible) start(); });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { visible = en.isIntersecting; if (visible) start(); else stop(); });
+      }, { threshold: 0.35 }).observe(adm);
+    }
   }
 
   // Enquiry form
