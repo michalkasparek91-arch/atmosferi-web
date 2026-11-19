@@ -41,108 +41,7 @@
 
   // Reveal on entering the viewport, with a short cascade inside lists.
   var targets = document.querySelectorAll("[data-ag-reveal]");
-  // Zrobee stage: the posting-flow video plays only while the stage is on screen
-  // and never for people who asked for reduced motion.
-  var flow = document.querySelector(".ag-z__video");
-  var stage = document.querySelector(".ag-z__stage");
-  if (flow && stage && !reduced && "IntersectionObserver" in window) {
-    new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          if (flow.preload === "none") { flow.preload = "auto"; }
-          var playing = flow.play();
-          if (playing && playing.catch) playing.catch(function () {});
-        } else {
-          flow.pause();
-        }
-      });
-    }, { threshold: 0.25 }).observe(stage);
-  }
-
-  // Zrobee admin viewer: accessible tabs, crossfade, gentle auto-rotation that
-  // stops for good once the visitor picks a screen themselves.
-  var adm = document.querySelector(".ag-adm");
-  if (adm) {
-    var admTabs = Array.prototype.slice.call(adm.querySelectorAll('[role="tab"]'));
-    var admImgs = adm.querySelectorAll(".ag-adm__stack img");
-    var admUrl = adm.querySelector(".ag-adm__url");
-    var admPanel = adm.querySelector('[role="tabpanel"]');
-    var admCur = 0, admTimer = null, admDur = 6000, admVisible = false, admManual = false;
-    var admShow = function (i, focus) {
-      admCur = (i + admTabs.length) % admTabs.length;
-      admTabs.forEach(function (t, k) {
-        var on = k === admCur;
-        t.setAttribute("aria-selected", on ? "true" : "false");
-        t.tabIndex = on ? 0 : -1;
-      });
-      admImgs.forEach(function (img, k) { img.classList.toggle("is-on", k === admCur); });
-      if (admUrl) admUrl.textContent = admTabs[admCur].getAttribute("data-url");
-      if (admPanel) admPanel.setAttribute("aria-labelledby", admTabs[admCur].id);
-      if (focus) admTabs[admCur].focus();
-      // Restart the progress bar animation.
-      adm.classList.remove("is-auto"); void adm.offsetWidth;
-      if (!admManual && !reduced && admVisible) adm.classList.add("is-auto");
-    };
-    var admStop = function () { clearInterval(admTimer); admTimer = null; adm.classList.remove("is-auto"); };
-    var admStart = function () {
-      if (reduced || admManual || admTimer) return;
-      adm.style.setProperty("--adm-dur", admDur / 1000 + "s");
-      adm.classList.add("is-auto");
-      admTimer = setInterval(function () { admShow(admCur + 1); }, admDur);
-    };
-    admTabs.forEach(function (t, k) {
-      t.addEventListener("click", function () { admManual = true; admStop(); admShow(k); });
-      t.addEventListener("keydown", function (e) {
-        var d = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0;
-        if (!d) return;
-        e.preventDefault(); admManual = true; admStop(); admShow(admCur + d, true);
-      });
-    });
-    adm.addEventListener("mouseenter", admStop);
-    adm.addEventListener("mouseleave", function () { if (admVisible) admStart(); });
-    if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          admVisible = entry.isIntersecting;
-          if (admVisible) admStart(); else admStop();
-        });
-      }, { threshold: 0.35 }).observe(adm);
-    }
-  }
-
-  // Result numbers count up once when they come into view.
-  var counters = document.querySelectorAll("[data-count]");
-  var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
-  if (counters.length && !reduced && "IntersectionObserver" in window) {
-    var countIo = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        countIo.unobserve(entry.target);
-        var el = entry.target, end = Number(el.getAttribute("data-count")), t0 = null;
-        var step = function (t) {
-          if (t0 === null) t0 = t;
-          var k = Math.min(1, (t - t0) / 1600);
-          el.textContent = fmt(end * (1 - Math.pow(1 - k, 3)));
-          if (k < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      });
-    }, { threshold: 0.6 });
-    counters.forEach(function (el) { countIo.observe(el); });
-  }
-
-  // Zrobee screens: hovering a frame scrolls the full page inside it, so the
-  // image needs to know how tall its window is.
-  var views = document.querySelectorAll(".ag-z__view");
-  var sizeViews = function () {
-    views.forEach(function (v) { v.style.setProperty("--z-view-h", v.clientHeight + "px"); });
-  };
-  if (views.length) {
-    sizeViews();
-    window.addEventListener("resize", sizeViews, { passive: true });
-  }
-
-  document.querySelectorAll(".ag-rows, .ag-reasons, .ag-more, .ag-stack, .ag-z__screens, .ag-z__phones, .ag-z__markets, .ag-z__caps").forEach(function (group) {
+  document.querySelectorAll(".ag-rows, .ag-reasons, .ag-more").forEach(function (group) {
     Array.prototype.forEach.call(group.querySelectorAll("[data-ag-reveal]"), function (el, i) {
       el.style.setProperty("--d", String(i));
     });
@@ -160,6 +59,22 @@
     targets.forEach(function (el) { io.observe(el); });
   }
 
+
+  // Hero film: one real website at a time, slow crossfade (like Fabrica's video).
+  var frames = document.querySelectorAll(".ag-reel img");
+  if (frames.length) {
+    var current = 0;
+    frames[0].classList.add("is-on");
+    if (!reduced && frames.length > 1) {
+      setInterval(function () {
+        if (document.hidden) return;
+        frames[current].classList.remove("is-on");
+        current = (current + 1) % frames.length;
+        frames[current].classList.add("is-on");
+      }, 5200);
+    }
+  }
+
   // Hero depth: the reel drifts slower than the page, the wordmark lifts away.
   var hero = document.getElementById("home");
   var reel = document.querySelector(".ag-reel");
@@ -168,7 +83,7 @@
     var ticking = false;
     var paint = function () {
       var y = Math.min(window.scrollY, hero.offsetHeight);
-      reel.style.transform = "rotate(-5deg) translate3d(0," + (y * 0.28).toFixed(1) + "px,0)";
+      reel.style.transform = "translate3d(0," + (y * 0.3).toFixed(1) + "px,0)";
       mark.style.transform = "translate3d(0," + (y * -0.12).toFixed(1) + "px,0)";
       mark.style.opacity = String(Math.max(0, 1 - y / (hero.offsetHeight * 0.7)));
       ticking = false;
