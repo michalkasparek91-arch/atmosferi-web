@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/unified-home.css?v=20261109-sonido-cinematic">
   <link rel="stylesheet" href="assets/home-atmosphere.css?v=20261119-1">
-  <link rel="stylesheet" href="assets/for-agencies.css?v=20261119-1">
+  <link rel="stylesheet" href="assets/for-agencies.css?v=20261119-2">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Atmosferi°">
   <meta property="og:locale" content="cs_CZ">
@@ -78,10 +78,10 @@
     <div class="container un-header__inner nav__in">
       <a href="/" class="un-brand" aria-label="Atmosferi, hlavní stránka">atmosferi<sup>°</sup></a>
       <nav class="un-nav" aria-label="Hlavní navigace">
-        <a href="#sluzby">Služby</a>
-        <a href="#prace">Práce</a>
-        <a href="#spoluprace">Spolupráce</a>
-        <a href="#kontakt">Kontakt</a>
+        <a href="#sluzby"><span class="roll" data-roll>Služby</span></a>
+        <a href="#prace"><span class="roll" data-roll>Práce</span></a>
+        <a href="#spoluprace"><span class="roll" data-roll>Spolupráce</span></a>
+        <a href="#kontakt"><span class="roll" data-roll>Kontakt</span></a>
       </nav>
       <button class="un-menu-btn" id="menuToggle" type="button" aria-label="Otevřít menu" aria-expanded="false" aria-controls="mobileNav">
         <span></span><span></span><span></span>
@@ -96,139 +96,128 @@
   </header>
 
   <main id="main">
-    <!-- 1. Hero: what, for whom, how to start. Readable in one glance. -->
-    <section class="un-hero un-hero--video ag-hero" id="home" aria-labelledby="agTitle">
-      <div class="ag-hero__lines" aria-hidden="true"></div>
-      <div class="container un-hero__content">
-        <ul class="un-hero__disciplines">
-          <li>Weby a landing pages</li>
-          <li>Webové aplikace</li>
-          <li>AI a automatizace</li>
-        </ul>
-        <p class="ag-hero__for">Atmosferi° pro agentury</p>
-        <h1 id="agTitle"><span class="ln"><span>Vývoj pro agentury,</span></span><span class="ln"><span>pod vaší značkou.</span></span></h1>
-        <div class="un-hero__intro">
-          <div class="un-hero__copy">
-            <p class="un-hero__lead">Navrhuji a programuji weby, webové aplikace a automatizace pro reklamní a digitální agentury. Jako subdodavatel na jeden projekt, nebo jako vaše stálá externí kapacita.</p>
-            <a class="un-text-link un-hero__link" href="#prace">Ukázky práce <span aria-hidden="true">↓</span></a>
+    <!-- Hero: the Fabrica composition. Wordmark across the width, a reel of
+         real website builds behind, services top right, person bottom right. -->
+    <section class="ag-hero" id="home" aria-labelledby="agTitle">
+      <div class="ag-reel" aria-hidden="true"><div class="ag-reel__col ag-reel__col--0"><div class="ag-reel__track"><img src="img/agencies/reel-volum.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-zrobee.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-quay.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-volum.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-zrobee.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-quay.webp" width="800" height="500" alt="" decoding="async"></div></div><div class="ag-reel__col ag-reel__col--1"><div class="ag-reel__track"><img src="img/agencies/reel-proud.webp" width="800" height="500" alt="" decoding="async" fetchpriority="high"><img src="img/agencies/reel-meridian.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-voss.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-proud.webp" width="800" height="500" alt="" decoding="async" fetchpriority="high"><img src="img/agencies/reel-meridian.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-voss.webp" width="800" height="500" alt="" decoding="async"></div></div><div class="ag-reel__col ag-reel__col--2"><div class="ag-reel__track"><img src="img/agencies/reel-objekt.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-quay.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-volum.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-objekt.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-quay.webp" width="800" height="500" alt="" decoding="async"><img src="img/agencies/reel-volum.webp" width="800" height="500" alt="" decoding="async"></div></div></div>
+      <div class="ag-hero__shade" aria-hidden="true"></div>
+      <div class="container ag-hero__inner">
+        <div class="ag-hero__top">
+          <p class="ag-hero__mark" aria-hidden="true"><span class="ag-hero__word">atmosferi</span><span class="ag-hero__deg">°</span><span class="ag-hero__sub">pro<br>agentury</span></p>
+          <ul class="ag-hero__services">
+            <li>Weby a landing pages</li>
+            <li>Webové aplikace</li>
+            <li>AI a automatizace</li>
+          </ul>
+        </div>
+        <div class="ag-hero__bottom">
+          <div class="ag-hero__copy">
+            <h1 id="agTitle"><span class="ln"><span>Vývoj pro agentury,</span></span><span class="ln"><span>pod vaší značkou.</span></span></h1>
+            <p class="ag-hero__lead">Navrhuji a programuji weby, webové aplikace a automatizace pro reklamní a digitální agentury. Na jeden projekt, nebo jako vaše stálá externí kapacita.</p>
+            <p class="ag-hero__copyright">© 2026 Atmosferi°</p>
           </div>
-          <a class="un-hero__card" href="#kontakt">
+          <a class="ag-person" href="#kontakt">
             <img src="img/michal-card.jpg" alt="" width="88" height="104" decoding="async">
-            <span class="un-hero__who"><strong>Michal Kašpárek</strong><span>Vývoj a design</span></span>
-            <span class="un-hero__talk">Probereme projekt <span class="un-plus" aria-hidden="true"></span></span>
+            <span class="ag-person__who"><span>Vývoj a design</span><strong>Michal Kašpárek</strong></span>
+            <span class="ag-btn"><span class="roll" data-roll>Probereme projekt</span><span class="ag-plus" aria-hidden="true"></span></span>
           </a>
         </div>
       </div>
     </section>
 
-    <!-- 2. Services: three areas, expandable like Fabrica's service list. -->
-    <section class="un-section ag-services" id="sluzby" aria-labelledby="servicesTitle">
+    <div class="ag-ticker" aria-hidden="true"><div class="ag-ticker__track"><span>Weby</span><i aria-hidden="true">°</i><span>Landing pages</span><i aria-hidden="true">°</i><span>Webové aplikace</span><i aria-hidden="true">°</i><span>Administrace</span><i aria-hidden="true">°</i><span>Integrace</span><i aria-hidden="true">°</i><span>Automatizace</span><i aria-hidden="true">°</i><span>AI asistenti</span><i aria-hidden="true">°</i><span>White-label</span><i aria-hidden="true">°</i><span>Weby</span><i aria-hidden="true">°</i><span>Landing pages</span><i aria-hidden="true">°</i><span>Webové aplikace</span><i aria-hidden="true">°</i><span>Administrace</span><i aria-hidden="true">°</i><span>Integrace</span><i aria-hidden="true">°</i><span>Automatizace</span><i aria-hidden="true">°</i><span>AI asistenti</span><i aria-hidden="true">°</i><span>White-label</span><i aria-hidden="true">°</i></div></div>
+
+    <section class="ag-section ag-services" id="sluzby" aria-labelledby="servicesTitle">
       <div class="container">
-        <div class="un-work__header ag-head" data-reveal>
-          <div>
-          <h2 class="un-h2" id="servicesTitle"><span class="ln"><span>Co pro vás udělám.</span></span></h2>
-          <p class="un-section__intro">Převezmu technickou část zakázky, kterou nechcete nebo nestíháte dělat interně. Od jedné kampaňové landing page po aplikaci s administrací.</p>
+        <div class="ag-sechead" data-ag-reveal>
+          <p class="ag-sechead__label">Co dělám</p>
+          <h2 class="ag-sechead__title" id="servicesTitle"><span class="ln"><span>Služby.</span></span><sup>(3)</sup></h2>
+          <span class="ag-sechead__year">©2026</span>
         </div>
+        <p class="ag-intro" data-ag-reveal>Převezmu technickou část zakázky, kterou nechcete nebo nestíháte dělat interně. Od jedné kampaňové landing page po aplikaci s administrací.</p>
+        <div class="ag-rows">
+          <article class="ag-row" data-ag-reveal>
+            <span class="ag-row__idx">(001)</span>
+            <div class="ag-row__thumbs" aria-hidden="true"><img src="img/agencies/thumb-volum.webp" width="140" height="140" alt="" loading="lazy" decoding="async"><img src="img/agencies/thumb-quay.webp" width="140" height="140" alt="" loading="lazy" decoding="async"><img src="img/agencies/thumb-proud.webp" width="140" height="140" alt="" loading="lazy" decoding="async"></div>
+            <h3 class="ag-row__name">Weby a landing pages</h3>
+            <p class="ag-row__desc">Firemní weby, kampaňové landing pages a microsity. Postavím je přesně podle podkladů z Figmy, nebo navrhnu i vizuál. Rychlé, responzivní, s animacemi tam, kde dávají smysl.</p>
+            <div class="ag-row__cats"><span>Co to zahrnuje</span><ul><li>Kódování podle Figmy</li><li>Responzivní vývoj</li><li>Animace a interakce</li><li>Technické SEO</li><li>Redakční systém</li><li>Výkon a přístupnost</li></ul></div>
+            <span class="ag-row__count">6</span>
+          </article>
+          <article class="ag-row" data-ag-reveal>
+            <span class="ag-row__idx">(002)</span>
+            <div class="ag-row__thumbs" aria-hidden="true"><img src="img/agencies/thumb-zrobee.webp" width="140" height="140" alt="" loading="lazy" decoding="async"><img src="img/agencies/thumb-portal.webp" width="140" height="140" alt="" loading="lazy" decoding="async"><img src="img/agencies/thumb-chart.webp" width="140" height="140" alt="" loading="lazy" decoding="async"></div>
+            <h3 class="ag-row__name">Webové aplikace</h3>
+            <p class="ag-row__desc">Když klient potřebuje víc než web: zákaznický portál, interní nástroj, rezervace nebo administrace nad vlastní databází. Včetně přihlašování a napojení na systémy, které už používá.</p>
+            <div class="ag-row__cats"><span>Co to zahrnuje</span><ul><li>Zákaznické portály</li><li>Interní nástroje</li><li>Databáze</li><li>Administrace</li><li>Přihlašování a role</li><li>API integrace</li></ul></div>
+            <span class="ag-row__count">6</span>
+          </article>
+          <article class="ag-row" data-ag-reveal>
+            <span class="ag-row__idx">(003)</span>
+            <div class="ag-row__thumbs" aria-hidden="true"><img src="img/agencies/thumb-flow.webp" width="140" height="140" alt="" loading="lazy" decoding="async"><img src="img/agencies/thumb-chat.webp" width="140" height="140" alt="" loading="lazy" decoding="async"><img src="img/agencies/thumb-chart.webp" width="140" height="140" alt="" loading="lazy" decoding="async"></div>
+            <h3 class="ag-row__name">AI a automatizace</h3>
+            <p class="ag-row__desc">Úkoly, které se dnes dělají ručně: přepisování dat mezi systémy, třídění poptávek, reporty, rozesílky nebo příprava obsahu. Propojím nástroje a tam, kde to pomáhá, nasadím AI.</p>
+            <div class="ag-row__cats"><span>Co to zahrnuje</span><ul><li>Propojení systémů</li><li>AI asistenti</li><li>E-maily a notifikace</li><li>Zpracování dat</li><li>Obsahové workflow</li><li>Automatické reporty</li></ul></div>
+            <span class="ag-row__count">6</span>
+          </article>
         </div>
-        <div class="ag-svc" data-reveal>
-          <details class="ag-svc__item" open>
-            <summary>
-              <span class="ag-svc__name">Weby a landing pages</span>
-              <span class="ag-svc__short">Podle vašeho designu, nebo včetně návrhu.</span>
-              <span class="un-plus" aria-hidden="true"></span>
-            </summary>
-            <div class="ag-svc__body">
-              <p>Firemní weby, kampaňové landing pages a microsity. Postavím je přesně podle podkladů z Figmy, nebo navrhnu i vizuál. Rychlé, responzivní, s animacemi tam, kde dávají smysl.</p>
-              <ul class="ag-tags">
-                <li>Kódování podle Figmy</li><li>Responzivní vývoj</li><li>Animace a interakce</li><li>Technické SEO</li><li>Redakční systém</li><li>Výkon a přístupnost</li>
-              </ul>
-            </div>
-          </details>
-          <details class="ag-svc__item">
-            <summary>
-              <span class="ag-svc__name">Webové aplikace</span>
-              <span class="ag-svc__short">Když klient potřebuje víc než web.</span>
-              <span class="un-plus" aria-hidden="true"></span>
-            </summary>
-            <div class="ag-svc__body">
-              <p>Zákaznické portály, interní nástroje, rezervace, kalkulačky nebo administrace nad vlastní databází. Včetně přihlašování uživatelů a napojení na systémy, které klient už používá.</p>
-              <ul class="ag-tags">
-                <li>Zákaznické portály</li><li>Interní nástroje</li><li>Databáze</li><li>Administrace</li><li>Přihlašování a role</li><li>API integrace</li>
-              </ul>
-            </div>
-          </details>
-          <details class="ag-svc__item">
-            <summary>
-              <span class="ag-svc__name">AI a automatizace</span>
-              <span class="ag-svc__short">Méně ruční práce pro vás i pro klienty.</span>
-              <span class="un-plus" aria-hidden="true"></span>
-            </summary>
-            <div class="ag-svc__body">
-              <p>Úkoly, které se dnes dělají ručně: přepisování dat mezi systémy, třídění poptávek, reporty, rozesílky nebo příprava obsahu. Propojím nástroje a tam, kde to pomáhá, nasadím AI.</p>
-              <ul class="ag-tags">
-                <li>Propojení systémů</li><li>AI asistenti</li><li>E-maily a notifikace</li><li>Zpracování dat</li><li>Obsahové workflow</li><li>Automatické reporty</li>
-              </ul>
-            </div>
-          </details>
+        <div class="ag-cta-line" data-ag-reveal>
+          <p>Nevíte, do které kategorie zakázka patří? To nevadí.</p>
+          <a class="ag-btn" href="#kontakt"><span class="roll" data-roll>Napište mi</span><span class="ag-plus" aria-hidden="true"></span></a>
         </div>
       </div>
     </section>
 
-    <!-- 3. Selected work: Zrobee leads, then a client site and an internal system. -->
-    <section class="ag-work" id="prace" aria-labelledby="workTitle">
+    <section class="ag-section ag-work" id="prace" aria-labelledby="workTitle">
       <div class="container">
-        <div class="un-work__header ag-head ag-head--dark" data-reveal>
-          <div>
-            <h2 class="un-h2" id="workTitle"><span class="ln"><span>Vybraná práce.</span></span></h2>
-            <p class="un-section__intro">Projekty, které ukazují, že umím produkt postavit, spustit a dál ho provozovat.</p>
-          </div>
+        <div class="ag-sechead ag-sechead--dark" data-ag-reveal>
+          <p class="ag-sechead__label">Vybraná práce</p>
+          <h2 class="ag-sechead__title" id="workTitle"><span class="ln"><span>Práce.</span></span><sup>(3)</sup></h2>
+          <span class="ag-sechead__year">©2026</span>
         </div>
-
         <article class="ag-case" aria-labelledby="zrobeeTitle">
-          <div class="ag-case__media" data-reveal>
+          <div class="ag-case__media" data-ag-reveal>
             <img src="img/agencies/zrobee-brand.webp" width="1200" height="630" alt="Kampaňový vizuál Zrobee: telefon s logem Zrobee obklopený profesionály z různých oborů" loading="lazy" decoding="async">
+            <span class="ag-case__badge">Vlastní produkt · spoluzakladatel</span>
           </div>
           <div class="ag-case__grid">
-            <div class="ag-case__intro" data-reveal>
-              <p class="ag-case__role">Vlastní produkt · spoluzakladatel</p>
-              <h3 class="ag-case__title" id="zrobeeTitle">Zrobee</h3>
+            <div class="ag-case__intro" data-ag-reveal>
+              <h3 class="ag-case__title" id="zrobeeTitle">Zrobee.</h3>
               <p class="ag-case__lead">České tržiště služeb. Zákazník zadá poptávku a profesionálové z okolí mu pošlou nabídky s cenou. Od řemesel a úklidu po hlídání dětí, doučování nebo grafiku.</p>
-              <a class="un-text-link" href="https://www.zrobee.cz/" target="_blank" rel="noopener">zrobee.cz <span aria-hidden="true">↗</span></a>
+              <a class="ag-btn ag-btn--light" href="https://www.zrobee.cz/" target="_blank" rel="noopener"><span class="roll" data-roll>Živý web</span><span class="ag-arrow" aria-hidden="true">↗</span></a>
             </div>
-            <dl class="ag-case__facts" data-reveal>
+            <dl class="ag-case__facts" data-ag-reveal>
               <div><dt>Dvě strany trhu</dt><dd>Oddělené cesty pro zákazníky a profíky: poptávky, nabídky, zprávy a profily.</dd></div>
               <div><dt>Kreditový systém</dt><dd>Zákazník neplatí nic. Profík platí kredity jen za nabídku na zakázku, kterou si sám vybere.</dd></div>
               <div><dt>Ověřování profilů</dt><dd>U profilu je vidět, co bylo ověřeno: doklad totožnosti, telefon, živnost v registru ARES a pojištění.</dd></div>
               <div><dt>Obsah pro vyhledávače</dt><dd>Stránky jednotlivých služeb, oborů a průvodci, kteří přivádějí zákazníky i profíky z vyhledávání.</dd></div>
             </dl>
           </div>
-          <p class="ag-case__why" data-reveal>Na Zrobee každý den řeším totéž, co potřebují náročnější klientské projekty: uživatelské účty, kredity, databázi, administraci, e-maily a provoz, který nesmí vypadnout.</p>
+          <div class="ag-case__quote" data-ag-reveal><p>Na Zrobee každý den řeším totéž, co potřebují náročnější klientské projekty: uživatelské účty, kredity, databázi, administraci, e-maily a provoz, který nesmí vypadnout.</p></div>
+          <div class="ag-case__ticker" aria-hidden="true"><div class="ag-case__track"><span>Hodinový manžel</span><span>Rekonstrukce koupelny</span><span>Úklidové služby</span><span>Hlídání dětí</span><span>Péče o seniory</span><span>Hlídání psů a koček</span><span>Doučování</span><span>Grafický design</span><span>Tvorba webu</span><span class="ag-dup">Hodinový manžel</span><span class="ag-dup">Rekonstrukce koupelny</span><span class="ag-dup">Úklidové služby</span><span class="ag-dup">Hlídání dětí</span><span class="ag-dup">Péče o seniory</span><span class="ag-dup">Hlídání psů a koček</span><span class="ag-dup">Doučování</span><span class="ag-dup">Grafický design</span><span class="ag-dup">Tvorba webu</span></div></div>
         </article>
 
         <div class="ag-more">
-          <article class="ag-project" data-reveal>
+          <article class="ag-project" data-ag-reveal>
             <a class="ag-project__media" href="https://autoskolaproud.cz/" target="_blank" rel="noopener" aria-label="Otevřít web Autoškola PROUD v nové kartě">
               <img class="ag-project__desk" src="img/agencies/proud-desktop.webp" width="1600" height="1000" alt="Úvodní stránka webu Autoškola PROUD na počítači" loading="lazy" decoding="async">
               <img class="ag-project__phone" src="img/agencies/proud-mobile.webp" width="780" height="1688" alt="" loading="lazy" decoding="async">
+              <span class="ag-project__open">Otevřít web ↗</span>
             </a>
             <div class="ag-project__text">
-              <p class="ag-project__kind">Web pro klienta</p>
-              <h3>Autoškola PROUD</h3>
+              <p class="ag-project__kind">Web pro klienta <span>/ 2026</span></p>
+              <h3>Autoškola PROUD.</h3>
               <p>Web elektromobilní autoškoly z Ostravy. Stránky kurzů, online přihláška s předvolbou kurzu, online testy a studijní materiály. Průběžně ho upravuji podle termínů a kapacit kurzů.</p>
-              <a class="un-text-link" href="https://autoskolaproud.cz/" target="_blank" rel="noopener">autoskolaproud.cz <span aria-hidden="true">↗</span></a>
             </div>
           </article>
-
-          <article class="ag-project ag-project--system" data-reveal>
+          <article class="ag-project ag-project--system" data-ag-reveal>
             <div class="ag-project__media ag-system" aria-hidden="true">
               <ul class="ag-system__nav"><li>Přehled</li><li>Faktury</li><li>Kontakty</li><li>Vizualizace</li><li>Kampaně</li><li>Statistiky</li></ul>
-              <div class="ag-system__flow">
-                <span>Nový kontakt</span><span>AI kvalifikace</span><span>Doplnění dat</span><span>Kampaň</span><span>Odpověď</span>
-              </div>
+              <div class="ag-system__flow"><span>Nový kontakt</span><span>AI kvalifikace</span><span>Doplnění dat</span><span>Kampaň</span><span>Odpověď</span></div>
             </div>
             <div class="ag-project__text">
-              <p class="ag-project__kind">Interní nástroj</p>
-              <h3>Provozní systém Atmosferi°</h3>
+              <p class="ag-project__kind">Interní nástroj <span>/ 2026</span></p>
+              <h3>Provozní systém Atmosferi°.</h3>
               <p>Vlastní administrace postavená v Reactu nad Supabase: faktury, kontakty, e-mailové kampaně, statistiky a správa portfolia. Automatizace na pozadí třídí nové kontakty pomocí AI, doplňují k nim data a zpracovávají doručení a odpovědi na e-maily.</p>
             </div>
           </article>
@@ -236,23 +225,29 @@
       </div>
     </section>
 
-    <!-- 4. Why work with me + 5. how it runs (a real sequence, so numbered). -->
-    <section class="un-section ag-why" id="spoluprace" aria-labelledby="whyTitle">
+    <section class="ag-section ag-why" id="spoluprace" aria-labelledby="whyTitle">
       <div class="container">
-        <div class="un-work__header ag-head" data-reveal>
-          <div>
-          <h2 class="un-h2" id="whyTitle"><span class="ln"><span>Proč se mnou.</span></span></h2>
-          <p class="un-section__intro">Pro agenturu nejsem další dodavatel, kterého je potřeba hlídat. Jsem člověk, který zakázku převezme a dotáhne.</p>
+        <div class="ag-sechead" data-ag-reveal>
+          <p class="ag-sechead__label">Proč se mnou</p>
+          <h2 class="ag-sechead__title" id="whyTitle"><span class="ln"><span>Spolupráce.</span></span><sup>(4)</sup></h2>
+          <span class="ag-sechead__year">©2026</span>
         </div>
+        <div class="ag-why__grid">
+          <div class="ag-why__lead" data-ag-reveal>
+            <p class="ag-why__statement">Jeden člověk, design i kód. Pro agenturu nejsem další dodavatel, kterého je potřeba hlídat.</p>
+            <a class="ag-talk" href="#kontakt">
+              <span class="ag-talk__text">Každá spolupráce začíná krátkým hovorem. Bez závazků.</span>
+              <span class="ag-btn ag-btn--light"><span class="roll" data-roll>Domluvit hovor</span><span class="ag-plus" aria-hidden="true"></span></span>
+            </a>
+          </div>
+          <ol class="ag-reasons">
+            <li data-ag-reveal><span class="ag-reason__n">01</span><img src="img/michal-card.jpg" width="77" height="77" alt="" loading="lazy" decoding="async"><div><h3>Mluvíte přímo s tím, kdo to dělá</h3><p>Žádný account manažer mezi námi. Otázky k zadání řešíte se mnou a odpověď dostanete od člověka, který ví, jak je projekt postavený.</p></div></li>
+            <li data-ag-reveal><span class="ag-reason__n">02</span><img src="img/agencies/thumb-voss.webp" width="77" height="77" alt="" loading="lazy" decoding="async"><div><h3>Design i kód v jedné hlavě</h3><p>Vystudoval jsem architekturu a vizuální stránce rozumím. Váš návrh nepřevedu do kódu „přibližně“, ale tak, jak ho grafik myslel.</p></div></li>
+            <li data-ag-reveal><span class="ag-reason__n">03</span><img src="img/agencies/thumb-portal.webp" width="77" height="77" alt="" loading="lazy" decoding="async"><div><h3>Pod vaší značkou</h3><p>Pracuji jako white-label subdodavatel. Klient komunikuje s vámi, já zůstávám v pozadí. Mlčenlivost je samozřejmost.</p></div></li>
+            <li data-ag-reveal><span class="ag-reason__n">04</span><img src="img/agencies/thumb-chart.webp" width="77" height="77" alt="" loading="lazy" decoding="async"><div><h3>Kapacita podle potřeby</h3><p>Jednorázová zakázka, výpomoc ve špičce, nebo pravidelné hodiny každý měsíc. Spolupráci nastavíme podle toho, jak vám chodí práce.</p></div></li>
+          </ol>
         </div>
-        <ul class="ag-reasons">
-          <li data-reveal><h3>Mluvíte přímo s tím, kdo to dělá</h3><p>Žádný account manažer mezi námi. Otázky k zadání řešíte se mnou a odpověď dostanete od člověka, který ví, jak je projekt postavený.</p></li>
-          <li data-reveal><h3>Design i kód v jedné hlavě</h3><p>Vystudoval jsem architekturu a vizuální stránce rozumím. Váš návrh nepřevedu do kódu „přibližně“, ale tak, jak ho grafik myslel.</p></li>
-          <li data-reveal><h3>Pod vaší značkou</h3><p>Pracuji jako white-label subdodavatel. Klient komunikuje s vámi, já zůstávám v pozadí. Mlčenlivost je samozřejmost.</p></li>
-          <li data-reveal><h3>Kapacita podle potřeby</h3><p>Jednorázová zakázka, výpomoc ve špičce, nebo pravidelné hodiny každý měsíc. Spolupráci nastavíme podle toho, jak vám chodí práce.</p></li>
-        </ul>
-
-        <div class="ag-process" data-reveal>
+        <div class="ag-process" data-ag-reveal>
           <h3 class="ag-process__title">Jak spolupráce probíhá</h3>
           <ol>
             <li><strong>Zadání</strong><span>Pošlete brief, design nebo jen popis problému.</span></li>
@@ -264,44 +259,53 @@
       </div>
     </section>
 
-    <!-- 6. About -->
-    <section class="un-section ag-about" aria-labelledby="aboutTitle">
-      <div class="container un-studio">
-        <div class="un-studio__frame" data-reveal><img class="un-studio__photo" src="img/agencies/michal.webp" width="900" height="972" alt="Portrét Michala Kašpárka" loading="lazy" decoding="async"></div>
-        <div class="un-studio__copy" data-reveal>
-          <h2 class="un-h2" id="aboutTitle"><span class="ln"><span>Michal Kašpárek.</span></span></h2>
+    <section class="ag-section ag-about" aria-labelledby="aboutTitle">
+      <div class="container ag-about__grid">
+        <figure class="ag-about__card" data-ag-reveal>
+          <div class="ag-about__photo"><img src="img/agencies/michal.webp" width="900" height="972" alt="Portrét Michala Kašpárka" loading="lazy" decoding="async"></div>
+          <figcaption><span>Zakladatel Atmosferi°</span><strong>Michal Kašpárek</strong></figcaption>
+        </figure>
+        <div class="ag-about__copy" data-ag-reveal>
+          <h2 class="ag-about__title" id="aboutTitle"><span class="ln"><span>Kdo za tím stojí.</span></span></h2>
           <p>Jsem architekt, který se dostal k vývoji přes vizualizace a weby pro architekty. Pod značkou Atmosferi° dělám architektonické vizualizace a weby, jako spoluzakladatel stavím tržiště služeb Zrobee.</p>
           <p>Agenturám nabízím to, co se špatně hledá: člověka, který rozumí designu, zvládne frontend i backend a nebojí se ani automatizací a AI.</p>
-          <a class="un-text-link" href="/">Atmosferi° pro architekty <span aria-hidden="true">↗</span></a>
+          <a class="ag-link" href="/"><span class="roll" data-roll>Atmosferi° pro architekty</span> <span aria-hidden="true">↗</span></a>
         </div>
       </div>
     </section>
 
-    <!-- FAQ: the questions an agency PM asks before the first call. -->
-    <section class="un-section ag-faq" aria-labelledby="faqTitle">
-      <div class="container ag-faq__grid">
-        <div class="ag-head ag-faq__head" data-reveal>
-          <h2 class="un-h2" id="faqTitle"><span class="ln"><span>Časté otázky.</span></span></h2>
+    <section class="ag-section ag-faq" aria-labelledby="faqTitle">
+      <div class="container">
+        <div class="ag-sechead" data-ag-reveal>
+          <p class="ag-sechead__label">Než se ozvete</p>
+          <h2 class="ag-sechead__title" id="faqTitle"><span class="ln"><span>FAQ.</span></span><sup>(4)</sup></h2>
+          <span class="ag-sechead__year">©2026</span>
         </div>
-        <div class="ag-faq__list" data-reveal>
-          <details><summary>Můžete pracovat pod naší značkou? <span class="un-plus" aria-hidden="true"></span></summary><p>Ano. Klient o mně nemusí vědět a veškerá komunikace může jít přes vás. Pokud je potřeba, podepíšu smlouvu o mlčenlivosti.</p></details>
-          <details><summary>Postavíte web podle našeho designu? <span class="un-plus" aria-hidden="true"></span></summary><p>Ano, to je nejčastější forma spolupráce. Pošlete návrh z Figmy a já ho převedu do funkčního webu včetně mobilní verze a animací.</p></details>
-          <details><summary>Jak se počítá cena? <span class="un-plus" aria-hidden="true"></span></summary><p>Podle rozsahu. Po zadání pošlu odhad ceny a termínu. U průběžné spolupráce se můžeme domluvit na měsíční kapacitě.</p></details>
-          <details><summary>Kdo se postará o web po spuštění? <span class="un-plus" aria-hidden="true"></span></summary><p>Jak se dohodneme. Web předám i s přístupy a dokumentací, nebo ho dál spravuji a upravuji podle potřeb vás i klienta.</p></details>
+        <div class="ag-faq__grid">
+          <p class="ag-faq__intro" data-ag-reveal>Otázky, které agentury řeší před první zakázkou. Na cokoli dalšího se zeptejte rovnou.</p>
+          <div class="ag-faq__list" data-ag-reveal><details><summary>Můžete pracovat pod naší značkou? <span class="ag-plus" aria-hidden="true"></span></summary><p>Ano. Klient o mně nemusí vědět a veškerá komunikace může jít přes vás. Pokud je potřeba, podepíšu smlouvu o mlčenlivosti.</p></details><details><summary>Postavíte web podle našeho designu? <span class="ag-plus" aria-hidden="true"></span></summary><p>Ano, to je nejčastější forma spolupráce. Pošlete návrh z Figmy a já ho převedu do funkčního webu včetně mobilní verze a animací.</p></details><details><summary>Jak se počítá cena? <span class="ag-plus" aria-hidden="true"></span></summary><p>Podle rozsahu. Po zadání pošlu odhad ceny a termínu. U průběžné spolupráce se můžeme domluvit na měsíční kapacitě.</p></details><details><summary>Kdo se postará o web po spuštění? <span class="ag-plus" aria-hidden="true"></span></summary><p>Jak se dohodneme. Web předám i s přístupy a dokumentací, nebo ho dál spravuji a upravuji podle potřeb vás i klienta.</p></details></div>
         </div>
       </div>
     </section>
 
-    <!-- 7. Contact: existing Atmosferi enquiry backend. -->
-    <section class="un-contact ag-contact" id="kontakt" aria-labelledby="contactTitle">
+    <section class="ag-contact" id="kontakt" aria-labelledby="contactTitle">
       <div class="container">
         <div class="ag-contact__grid">
-          <div class="ag-contact__intro" data-reveal>
-            <h2 class="un-h2" id="contactTitle"><span class="ln"><span>Pojďme na to</span></span><span class="ln"><span>spolu.</span></span></h2>
+          <div class="ag-contact__intro" data-ag-reveal>
+            <h2 class="ag-contact__title" id="contactTitle"><span class="ln"><span>Pojďme</span></span><span class="ln"><span>to probrat.</span></span></h2>
             <p>Napište, co právě řešíte. Může to být konkrétní zakázka, nebo jen zjištění, jestli si sedneme.</p>
-            <a class="un-contact__email" href="mailto:info@atmosferi.com">info@atmosferi.com</a>
+            <ul class="ag-promises">
+              <li><strong>Rychlá odpověď.</strong><span>Ozvu se do dvou pracovních dnů.</span></li>
+              <li><strong>Jasný další krok.</strong><span>Po hovoru pošlu rozsah, cenu a termín.</span></li>
+            </ul>
+            <a class="ag-person ag-person--dark" href="mailto:info@atmosferi.com">
+              <img src="img/michal-card.jpg" alt="" width="88" height="104" loading="lazy" decoding="async">
+              <span class="ag-person__who"><span>info@atmosferi.com</span><strong>Michal Kašpárek</strong></span>
+              <span class="ag-btn ag-btn--light"><span class="roll" data-roll>Napsat přímo</span><span class="ag-arrow" aria-hidden="true">↗</span></span>
+            </a>
           </div>
-          <form class="ag-form" id="agencyForm" novalidate data-reveal>
+          <form class="ag-form" id="agencyForm" novalidate data-ag-reveal>
+            <p class="ag-form__title">Máte projekt?</p>
             <fieldset class="ag-form__choices">
               <legend>S čím potřebujete pomoct</legend>
               <button type="button" class="ag-choice" aria-pressed="false" data-value="Web nebo landing page">Web nebo landing page</button>
@@ -317,29 +321,27 @@
             <label class="ag-field"><span>Zpráva *</span><textarea name="message" rows="4" required minlength="10" placeholder="Pár vět o projektu, termínu nebo o tom, jakou výpomoc hledáte."></textarea></label>
             <label class="ag-hp" aria-hidden="true">Web <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
             <div class="ag-form__foot">
-              <button class="un-action un-action--light" type="submit">Odeslat zprávu <span class="un-action__arrow" aria-hidden="true">↗</span></button>
+              <button class="ag-btn ag-btn--dark" type="submit"><span class="roll" data-roll>Odeslat zprávu</span><span class="ag-arrow" aria-hidden="true">↗</span></button>
               <p class="ag-form__status" id="agencyStatus" role="status" aria-live="polite"></p>
             </div>
           </form>
         </div>
 
-        <footer class="un-footer">
-          <div class="un-footer__mark" aria-hidden="true" data-reveal><span>atmosferi°</span></div>
-          <nav class="un-footer__links" aria-label="Odkazy v patičce">
-            <a href="#sluzby">Služby</a>
-            <a href="#prace">Práce</a>
-            <a href="#spoluprace">Spolupráce</a>
-            <a href="/">Atmosferi° pro architekty</a>
-            <a href="https://www.zrobee.cz/" target="_blank" rel="noopener">Zrobee</a>
-          </nav>
-          <div class="un-footer__legal"><span>© 2026 Atmosferi° · Ing. arch. Michal Kašpárek</span><a href="mailto:info@atmosferi.com">info@atmosferi.com</a></div>
+        <footer class="ag-footer">
+          <div class="ag-footer__cols">
+            <div><p>Navigace</p><a href="#sluzby"><span class="roll" data-roll>Služby</span></a><a href="#prace"><span class="roll" data-roll>Práce</span></a><a href="#spoluprace"><span class="roll" data-roll>Spolupráce</span></a><a href="#kontakt"><span class="roll" data-roll>Kontakt</span></a></div>
+            <div><p>Kontakt</p><a href="mailto:info@atmosferi.com"><span class="roll" data-roll>info@atmosferi.com</span></a></div>
+            <div><p>Dále</p><a href="/"><span class="roll" data-roll>Atmosferi° pro architekty</span></a><a href="https://www.zrobee.cz/" target="_blank" rel="noopener"><span class="roll" data-roll>Zrobee</span></a></div>
+          </div>
+          <div class="un-footer__mark ag-footer__mark" aria-hidden="true" data-reveal><span>atmosferi°</span></div>
+          <div class="ag-footer__legal"><span>© 2026 Atmosferi° · Ing. arch. Michal Kašpárek</span><span>Pro agentury</span></div>
         </footer>
       </div>
     </section>
   </main>
 
   <script src="assets/inquiry.js?v=20261119-headers-fix"></script>
-  <script src="assets/for-agencies.js?v=20261119-1"></script>
+  <script src="assets/for-agencies.js?v=20261119-2"></script>
   <script src="assets/unified-home.js?v=20261119-gallery-controls"></script>
   <script src="assets/home-atmosphere.js?v=20261119-1"></script>
 </body>
