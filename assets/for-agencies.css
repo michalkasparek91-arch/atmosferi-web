@@ -772,3 +772,10 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
   .f-header--lang .h-lang { grid-column: 2; }
   .f-header--lang .f-burger { grid-column: 3; }
 }
+
+/* Hero: portrait in colour; on phones the wordmark and its ring stay on one line. */
+.f-hero .f-person__photo img { filter: none; }
+.f-hero__word { flex: none; }
+@media (max-width: 700px) {
+  .f-hero__mark { font-size: min(calc((100vw - 48px) / 4.62), 13svh, 120px); }
+}

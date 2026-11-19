@@ -1,0 +1,43 @@
+/* Atmosferi° websites page on the shared Fabrica system (for-agencies.css + home-f.css). */
+.w-top { padding-top: clamp(40px, 5vw, 90px); }
+.w-head { align-items: end; margin-bottom: clamp(36px, 4vw, 72px); }
+.w-head .f-label { grid-column: 1; align-self: start; padding-top: .6em; }
+.w-head .f-title { grid-column: 2 / 4; }
+.w-head__side { grid-column: 4; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+.w-head__side .f-side { margin: 0; }
+
+/* Examples: the f-gal slider, a little taller here because the sites are the point. */
+.w-gal { margin-top: 0; }
+.w-stage { aspect-ratio: 16 / 10.4; }
+.w-open { margin-top: 12px; align-self: flex-start; }
+.f-gal__meta .w-open { min-height: 42px; padding: 0 18px; font-size: 15px; }
+.w-stage .f-gal__slide { cursor: ns-resize; }
+
+/* What I do */
+.w-do { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); margin: clamp(48px, 5vw, 90px) 0 0; padding: 0 var(--pad); list-style: none; }
+.w-do li { display: flex; flex-direction: column; gap: 12px; min-height: 280px; padding: clamp(24px, 2vw, 36px); }
+.w-do__ic { width: 30px; height: 30px; margin-bottom: auto; fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.w-do strong { margin-top: 36px; font-size: clamp(22px, 1.6vw, 27px); font-weight: 600; letter-spacing: -.03em; line-height: 1.15; }
+.w-do p { font-size: 16px; line-height: 1.45; color: var(--mute); max-width: 36ch; }
+.w-do__more { margin-top: 6px; font-size: 15px; font-weight: 500; color: var(--ink); text-decoration: none; }
+.w-do__more:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Founder card: portrait in colour. */
+#founder .f-team__card img { filter: none; }
+#founder .f-team__role { font-size: 15px; }
+
+@media (max-width: 1100px) {
+  .w-head .f-label, .w-head .f-title, .w-head__side { grid-column: 1 / -1; }
+  .w-head__side { margin-top: 24px; }
+  .w-do { grid-template-columns: 1fr 1fr; }
+  .w-do li:last-child { grid-column: 1 / -1; min-height: 0; }
+}
+@media (max-width: 700px) {
+  .w-do { grid-template-columns: 1fr; }
+  .w-do li { min-height: 0; }
+  .w-do strong { margin-top: 22px; }
+  .w-stage { aspect-ratio: 3 / 4; }
+  /* On phones the page scrolls itself inside the window (no hover there). */
+  .w-stage .f-gal__slide--desk .f-screen__view { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .w-stage .f-gal__slide--desk .f-screen__view img { position: static; }
+}
