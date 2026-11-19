@@ -875,3 +875,5 @@ button { font-family: inherit; }
 .lg-o { display: inline-block; flex: none; box-sizing: border-box; width: .2em; height: .2em; margin-left: .045em; border: .068em solid currentColor; border-radius: 50%; font-style: normal; }
 .lg-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .wordmark .lg, .un-brand .lg, .wm .lg, .f-logo .lg, .f-brand .lg { font-weight: 600; }
+/* Big footer wordmarks are decorative and must not block the links. */
+.un-footer__mark, .f-footer__mark { pointer-events: none; user-select: none; }

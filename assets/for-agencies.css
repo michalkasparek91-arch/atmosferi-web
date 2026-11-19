@@ -730,3 +730,30 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
 .f-footer__mark .lg-o { margin-left: .04em; }
 @media (prefers-reduced-motion: reduce) { .js .f-hero:not(.is-loaded) .f-hero__mark > .lg-o { opacity: 1; transform: none; } }
 .f-footer__mark .lg { display: inline-flex; margin: 0; padding: 0; font-size: 1em; }
+
+/* Footer wordmark is decoration: it must never sit on top of the links.
+   Its glyphs overflow the tight line box, so keep it out of hit-testing
+   and give it a little extra room above. */
+.f-footer__cols { position: relative; z-index: 1; }
+.f-footer__mark { position: relative; z-index: 0; pointer-events: none; padding-top: .1em; user-select: none; }
+@media (max-width: 700px) {
+  .f-footer__cols { row-gap: 36px; }
+  .f-footer__mark { margin-top: 48px; padding-inline: var(--pad); font-size: 21.5vw; text-align: left; }
+  .f-footer__mark .lg { letter-spacing: -.065em; }
+  .f-footer__legal { flex-direction: column; gap: 6px; margin-top: 24px; }
+}
+
+/* Interface slider and admin viewer always fit one screen. */
+.f-gal__stage { max-height: calc(100svh - 72px - 40px); }
+.f-adm__stack { max-height: calc(100svh - 72px - 30px - 80px); }
+.f-adm__stack img { object-position: top left; }
+@media (max-width: 1100px) {
+  .f-gal__stage { max-height: calc(100svh - 72px - 24px); }
+}
+@media (max-width: 700px) {
+  .f-gal__stage { aspect-ratio: 1 / 1; }
+  .f-gal__side { gap: 12px; padding-bottom: 16px; }
+  .f-gal__intro { font-size: 19px; }
+  .f-gal__ctrl { gap: 12px; }
+}
+@media (max-width: 700px) { .f-footer__mark { margin-top: 84px; } }
