@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { bingResults, findSiteContact, hostKey, seznamResults, websiteUrl } from './lib/business-lead-web.mjs';
+import { bingResults, findSiteContact, hostKey, seznamNextPage, seznamResults, websiteUrl } from './lib/business-lead-web.mjs';
 import { openBackgroundRun } from './lib/de-agency-background.mjs';
 
 const types = { marketing: 'Marketingová agentura', architect: 'Architektonické studio', developer: 'Realitní developer' };
@@ -48,14 +48,27 @@ function integer(value, name, max) {
   return Number(value);
 }
 
-async function search(query, country, language, page, engine) {
+async function search(query, country, language, engine, cursor, pageable) {
   if (engine === 'seznam') {
-    const url = new URL('https://search.seznam.cz/');
-    url.search = new URLSearchParams({ q: query, count: '20', from: String((page - 1) * 20 + 1) });
+    const url = new URL(cursor ?? 'https://search.seznam.cz/');
+    if (!cursor) url.search = new URLSearchParams(pageable ? { q: query } : { q: query, count: '20' });
+    if (url.origin !== 'https://search.seznam.cz' || url.pathname !== '/' || url.username || url.password || url.searchParams.get('q') !== query) {
+      throw new Error('Neplatný odkaz na stránku Seznamu.');
+    }
     const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Seznam HTTP ${response.status}`);
-    return seznamResults(await response.text());
+    const current = new URL(response.url);
+    if (current.origin !== url.origin || (cursor && current.searchParams.get('from') !== url.searchParams.get('from'))) {
+      throw new Error('Seznam přesměroval odkaz na další stránku.');
+    }
+    const html = await response.text();
+    const results = seznamResults(html);
+    if (!results.length && /<title[^>]*>[^<]*(?:ochrana vyhledávání|ověření|captcha)/i.test(html)) {
+      throw new Error('Seznam HTTP 429 (ověření přístupu)');
+    }
+    return { results, nextCursor: seznamNextPage(html, current) };
   }
+  const page = Number(cursor ?? 1);
   if (engine === 'serper') {
     const response = await fetch('https://google.serper.dev/search', {
       method: 'POST', redirect: 'error', signal: AbortSignal.timeout(12000),
@@ -64,7 +77,8 @@ async function search(query, country, language, page, engine) {
     });
     if (!response.ok) throw new Error(`Serper HTTP ${response.status}`);
     const { organic = [] } = await response.json();
-    return organic.map(({ title, link, snippet }) => ({ title, url: link, snippet }));
+    return { results: organic.map(({ title, link, snippet }) => ({ title, url: link, snippet })),
+      nextCursor: organic.length ? String(page + 1) : null };
   }
   const url = new URL('https://www.bing.com/search');
   url.search = new URLSearchParams({ q: query, cc: country.toLowerCase(), setlang: language, format: 'rss' });
@@ -73,7 +87,8 @@ async function search(query, country, language, page, engine) {
   if (!response.ok) throw new Error(`Bing HTTP ${response.status}`);
   const xml = await response.text();
   if (!/<rss\b/i.test(xml)) throw new Error('Bing místo RSS vrátil jinou stránku.');
-  return bingResults(xml);
+  const results = bingResults(xml);
+  return { results, nextCursor: results.length ? String(page + 1) : null };
 }
 
 function sourceId(lead) {
@@ -219,35 +234,54 @@ async function main() {
     })));
   });
   const searchResults = queries.map(() => []);
-  const uniqueResults = queries.map(() => new Set());
+  const positions = queries.map(({ job, query }) => {
+    let cursor = job?.previous_engine === engine ? job.previous_cursor : null;
+    if (cursor && engine === 'seznam' && new URL(cursor).searchParams.get('q') !== query) cursor = null;
+    return { cursor, number: cursor ? job.previous_pages + 1 : 1,
+      hosts: new Set(cursor ? JSON.parse(job.previous_hosts) : []) };
+  });
   const exhausted = new Set();
   console.log(`Vyhledávač: ${engine}.`);
   let failures = 0;
   searches: for (let page = 1; page <= pages; page++) {
     for (const [index, query] of queries.entries()) {
       if (exhausted.has(index)) continue;
+      const position = positions[index];
       try {
-        const results = await search(query.query, query.country, query.language, page, engine);
-        const previous = uniqueResults[index].size;
+        const { results, nextCursor } = await search(query.query, query.country, query.language, engine,
+          position.cursor, Boolean(background) || pages > 1);
+        if (query.job && !position.cursor) {
+          query.job.fetched = 0;
+          query.job.contacts = 0;
+        }
+        const previous = position.hosts.size;
         for (const result of results) {
           const url = websiteUrl(result.url);
           if (!url || /\.(?:pdf|docx?|xlsx?|jpe?g|png|zip)$/i.test(url.pathname)) continue;
           const host = hostKey(url);
-          if (uniqueResults[index].has(host)) continue;
-          uniqueResults[index].add(host);
+          if (position.hosts.has(host)) continue;
+          position.hosts.add(host);
           searchResults[index].push({ ...result, url });
         }
-        if (query.job) query.job.matches = uniqueResults[index];
-        const count = uniqueResults[index].size - previous;
-        if (!count) exhausted.add(index);
-        console.log(`[${query.country}] ${query.query} · ${page}: ${count} nových webů`);
+        const count = position.hosts.size - previous;
+        const continuation = engine === 'seznam' || (count && position.number < 100) ? nextCursor : null;
+        if (query.job) {
+          query.job.matches = position.hosts;
+          query.job.paging = { engine, cursor: continuation, number: position.number };
+          query.job.error = null;
+        }
+        console.log(`[${query.country}] ${query.query} · strana ${position.number}: ${count} nových webů${continuation ? ' · další strana' : ' · konec výsledků'}`);
+        if (!continuation) exhausted.add(index);
+        position.cursor = continuation;
+        position.number++;
       } catch (error) {
         failures++;
         if (query.job) query.job.error = error.message;
-        console.warn(`[${query.country}] ${query.query} · ${page}: ${error.message}`);
+        exhausted.add(index);
+        console.warn(`[${query.country}] ${query.query} · strana ${position.number}: ${error.message}`);
         if (/HTTP (403|429)\b/.test(error.message)) {
           for (const remaining of background?.jobs ?? []) {
-            if (!remaining.matches) remaining.error ||= 'Vyhledávač omezil požadavky.';
+            if (!remaining.paging) remaining.error ||= 'Vyhledávač omezil požadavky.';
           }
           break searches;
         }

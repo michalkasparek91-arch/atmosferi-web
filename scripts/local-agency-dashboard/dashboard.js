@@ -60,13 +60,14 @@ function renderPlan(data) {
   select('page').textContent = `${page + 1} / ${Math.max(1, Math.ceil(matched / 25))}`;
   select('previous').disabled = page === 0;
   select('next').disabled = (page + 1) * 25 >= matched;
-  select('activity').innerHTML = data.activity.map((job) => `<li><strong>${escape(job.name)}</strong> · ${escape(job.term)} ${chip(job.status)}
-    <small>${escape(stamp(job.started))} · ${amount(job.matches)} webů ve výsledcích · ${amount(job.fetched)} načtených · ${amount(job.contacts)} kontaktů</small>
+  select('activity').innerHTML = data.activity.map((job) => `<li><strong>${escape(job.name)}</strong> · ${escape(job.term)} ${chip(job.status, job.status === 'pending' && job.more_pages ? 'Čeká na další stranu' : undefined)}
+    <small>${escape(stamp(job.started))} · ${amount(job.pages)} stran výsledků · ${amount(job.matches)} webů ve výsledcích · ${amount(job.fetched)} načtených · ${amount(job.contacts)} kontaktů</small>
     ${job.error ? `<small>${escape(job.error)}</small>` : ''}</li>`).join('') || '<li>Zatím žádné dotazy.</li>';
 }
 
 function renderImports(data, exports) {
   select('waiting').textContent = amount(data.pending);
+  select('processed').textContent = `Zpracovaných dávek: ${amount(data.imported)}`;
   const container = select('imports');
   const opened = new Set([...container.querySelectorAll('details[open]')].map((entry) => entry.dataset.batch));
   container.innerHTML = data.recent.map((batch) => `<details data-batch="${escape(batch.name)}" ${opened.has(batch.name) ? 'open' : ''}>
