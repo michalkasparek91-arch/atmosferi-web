@@ -118,7 +118,7 @@ Deno.serve(async (req: Request) => {
   if (isCron && action !== "run") return json({ error: "Forbidden" }, 403);
 
   const { data: settings, error: sErr } = await db.from("agency_outreach_settings").select("*").eq("id", 1).single();
-  if (sErr || !settings) return json({ error: "Chybí agency_outreach_settings (spusť migraci)." }, 500);
+  if (sErr || !settings) return json({ error: "Nelze načíst agency_outreach_settings: " + (sErr?.message || "řádek chybí") }, 500);
   const s = settings as Settings;
   const { data: tpls } = await db.from("agency_outreach_templates").select("slug,subject,body")
     .in("slug", ["agency-intro-cs", "agency-followup-cs"]);
