@@ -59,6 +59,57 @@
     }, { threshold: 0.25 }).observe(stage);
   }
 
+  // Zrobee admin viewer: accessible tabs, crossfade, gentle auto-rotation that
+  // stops for good once the visitor picks a screen themselves.
+  var adm = document.querySelector(".ag-adm");
+  if (adm) {
+    var admTabs = Array.prototype.slice.call(adm.querySelectorAll('[role="tab"]'));
+    var admImgs = adm.querySelectorAll(".ag-adm__stack img");
+    var admUrl = adm.querySelector(".ag-adm__url");
+    var admPanel = adm.querySelector('[role="tabpanel"]');
+    var admCur = 0, admTimer = null, admDur = 6000, admVisible = false, admManual = false;
+    var admShow = function (i, focus) {
+      admCur = (i + admTabs.length) % admTabs.length;
+      admTabs.forEach(function (t, k) {
+        var on = k === admCur;
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+      });
+      admImgs.forEach(function (img, k) { img.classList.toggle("is-on", k === admCur); });
+      if (admUrl) admUrl.textContent = admTabs[admCur].getAttribute("data-url");
+      if (admPanel) admPanel.setAttribute("aria-labelledby", admTabs[admCur].id);
+      if (focus) admTabs[admCur].focus();
+      // Restart the progress bar animation.
+      adm.classList.remove("is-auto"); void adm.offsetWidth;
+      if (!admManual && !reduced && admVisible) adm.classList.add("is-auto");
+    };
+    var admStop = function () { clearInterval(admTimer); admTimer = null; adm.classList.remove("is-auto"); };
+    var admStart = function () {
+      if (reduced || admManual || admTimer) return;
+      adm.style.setProperty("--adm-dur", admDur / 1000 + "s");
+      adm.classList.add("is-auto");
+      admTimer = setInterval(function () { admShow(admCur + 1); }, admDur);
+    };
+    admTabs.forEach(function (t, k) {
+      t.addEventListener("click", function () { admManual = true; admStop(); admShow(k); });
+      t.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0;
+        if (!d) return;
+        e.preventDefault(); admManual = true; admStop(); admShow(admCur + d, true);
+      });
+    });
+    adm.addEventListener("mouseenter", admStop);
+    adm.addEventListener("mouseleave", function () { if (admVisible) admStart(); });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          admVisible = entry.isIntersecting;
+          if (admVisible) admStart(); else admStop();
+        });
+      }, { threshold: 0.35 }).observe(adm);
+    }
+  }
+
   // Result numbers count up once when they come into view.
   var counters = document.querySelectorAll("[data-count]");
   var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
