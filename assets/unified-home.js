@@ -133,6 +133,9 @@
     }
 
     function openImage(imageButton) {
+      // The admin can hide or reorder images after load (home-gallery-controls.js),
+      // so the lightbox always navigates what is on the page right now.
+      gallery = Array.from(document.querySelectorAll(".un-viz-item"));
       opener = imageButton;
       var groupName = imageButton.getAttribute("data-project");
       var group = groupName ? gallery.filter(function (entry) {

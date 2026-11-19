@@ -1,0 +1,84 @@
+/* Atmosferi° main subpages: the same atmosphere as the homepage layer.
+   Loaded last on work, services, pricing, studio, contact and websites.
+   Brings the brand rules back where the older system drifted:
+   zero radii, no shadows, Atmosferi curve, masked headings, image wipes. */
+:root {
+  --r-card: 0px;
+  --r-pill: 0px;
+  --curve: cubic-bezier(.76, 0, .24, 1);
+  --curve-out: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Flat, sharp chrome. */
+.nav__links,
+.nav__switch .swx,
+.founder__tag,
+.footer { box-shadow: none !important; }
+.swx, .swx__knob, .swx__seg, .recog__row { border-radius: 0 !important; }
+
+/* Navigation: steps aside on scroll down, returns on scroll up. */
+.nav { transition: transform .7s var(--curve), background .35s ease; }
+.nav.is-tucked:not(.is-open) { transform: translateY(-100%); }
+
+/* Masked heading reveal (wrapper added by site-atmosphere.js). */
+.ln { display: block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; }
+.ln > span { display: block; }
+.atm-js .ln > span { transform: translate3d(0, 108%, 0); transition: transform 1.15s var(--curve); }
+.atm-js .is-in > .ln > span { transform: none; }
+.atm-js .pagehead__title.is-in > .ln > span { transition-delay: .12s; }
+.atm-js .pagehead__lead,
+.atm-js .pagehead__meta { transition: opacity 1s var(--curve-out) .45s, transform 1.2s var(--curve) .45s; }
+.atm-js .pagehead:not(.is-in) .pagehead__lead,
+.atm-js .pagehead:not(.is-in) .pagehead__meta { opacity: 0; transform: translateY(18px); }
+
+/* Image bands and cards: wipe up from the bottom edge, settle the scale.
+   The observed element is the link; the clip sits on the image inside. */
+.atm-js .reveal img {
+  clip-path: inset(100% 0 0 0);
+  transform: scale(1.14);
+  transition: clip-path 1.25s var(--curve), transform 1.6s var(--curve);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+.atm-js .reveal.is-in img { clip-path: inset(0); transform: none; }
+.reveal.is-in:hover img { transform: scale(1.03); transition: transform 1s var(--curve-out); transition-delay: 0s; }
+
+/* Section titles written without a .section__head wrapper: the note's
+   negative top margin pulled it into a two-line title. */
+.section > .section__title + .section__note { margin-top: clamp(18px, 2vw, 28px); }
+
+/* Links and buttons, same language as the homepage. */
+.arrow-link,
+.btn { position: relative; overflow: hidden; isolation: isolate; }
+.btn::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: #3a3a37; transform: translateY(101%);
+  transition: transform .7s var(--curve);
+}
+.btn:hover::before { transform: none; }
+.btn .arrow { transition: transform .6s var(--curve); }
+.btn:hover .arrow { transform: translateX(4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav.is-tucked { transform: none; }
+  .atm-js .ln > span,
+  .atm-js .pagehead:not(.is-in) .pagehead__lead,
+  .atm-js .pagehead:not(.is-in) .pagehead__meta { opacity: 1; transform: none; }
+  .atm-js .reveal img { clip-path: none; transform: none; }
+}
+
+/* Display type matches the homepage: Outfit at regular weight, tight tracking. */
+.pagehead__title,
+.section__title,
+.cta__title,
+.founder__title,
+.heroover__title,
+.footer__cta-link {
+  font-weight: 400 !important;
+  letter-spacing: -.028em !important;
+}
+.pagehead__title { line-height: 1.01; }
+/* Smaller titles sit at the homepage's card-title weight. */
+.cap__title, .svc__title, .principle__title, .process__title, .index-row__title {
+  font-weight: 500 !important;
+  letter-spacing: -.02em;
+}

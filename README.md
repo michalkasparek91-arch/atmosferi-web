@@ -10,6 +10,8 @@
 - `work.html`, `services.html`, `pricing.html`, `studio.html`, `contact.html`, `start.html` — retained deeper pages and enquiry journeys.
 - `assets/unified-home.css`, `assets/unified-home.js`, `assets/unified-home-i18n.js` — homepage styles, behaviour and EN/DE/CS translations.
 - Original Atmosferi typographic hierarchy is maintained: **Outfit** for headlines and wordmark; **Geist** for body/UI text. Keep the sharp geometry and shared content edges.
+- Homepage motion and alignment layer: `assets/home-atmosphere.css` + `assets/home-atmosphere.js` (loaded after the unified-home files). Fabrica-inspired pacing only: masked line reveals, bottom-up image wipes on the Atmosferi curve, grain and grey-to-colour hero film, tucking header, one 12-column alignment for section headers, sticky services column, full-width footer wordmark. Fonts, palette and radii are unchanged. Remove the two tags in `index.html` to switch it off; the hero/heading markup still renders correctly without it.
+- Main subpages (`work`, `services`, `pricing`, `studio`, `contact`, `websites`) load `assets/site-atmosphere.css` + `assets/site-atmosphere.js`: zero radii and no shadows (brand rules), Outfit display headings at the homepage weight, masked heading reveals, image wipes and a tucking nav. `site-atmosphere.js` must load before `i18n.js`. SEO guide pages are not affected.
 
 Do not split the root homepage back into a Websites/Visuals switcher. The separate service pages are for deeper explanations, targeted traffic and SEO. The website previews are working **concept demos**, not client-commissioned sites; describe them accordingly. Preserve the root canonical URL and the four static-language architecture-website landing pages.
 

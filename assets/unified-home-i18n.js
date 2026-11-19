@@ -202,4 +202,6 @@
   "Next websites": "Další weby",
   "carousel": "karusel"
 });
+  Object.assign(window.I18N_DICT.de, { "Architect & founder": "Architekt & Gründer" });
+  Object.assign(window.I18N_DICT.cs, { "Architect & founder": "Architekt a zakladatel" });
 })();
