@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Architectural films &amp; 360° tours | Atmosferi°</title>
+  <meta name="description" content="Architectural films and interactive 360° tours: walk through a building before it is built, on a website, a phone or a VR headset. By architect Michal Kašpárek, Atmosferi°.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#f4f4f4">
+  <link rel="canonical" href="https://www.atmosferi.com/films.html">
+  <link rel="icon" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/for-agencies.css?v=20261119-16">
+  <link rel="stylesheet" href="assets/home-f.css?v=20261119-5">
+  <link rel="stylesheet" href="assets/films-f.css?v=20261119-1">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Atmosferi°">
+  <meta property="og:title" content="Architectural films &amp; 360° tours | Atmosferi°">
+  <meta property="og:description" content="Walk through a building before it is built: films and interactive 360° tours.">
+  <meta property="og:url" content="https://www.atmosferi.com/films.html">
+  <meta property="og:image" content="https://www.atmosferi.com/demos/atmosferi-viz/img/mountain-retreat-poster.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">{
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Architectural films and 360° tours",
+    "provider": { "@type": "ProfessionalService", "name": "Atmosferi°", "url": "https://www.atmosferi.com/" },
+    "areaServed": "Worldwide",
+    "url": "https://www.atmosferi.com/films.html"
+  }</script>
+</head>
+<body class="f h">
+  <a class="f-skip" href="#main">Skip to content</a>
+  <header class="f-header f-header--lang" id="siteHeader">
+    <a class="f-logo" href="index.html" aria-label="Atmosferi home"><span class="lg"><span class="lg-t" aria-hidden="true">atmosferı</span><i class="lg-o" aria-hidden="true"></i><span class="lg-sr">Atmosferi</span></span></a>
+    <nav class="f-nav" aria-label="Main navigation"><a href="#film">Films</a><a href="#tour360">360° tours</a><a href="index.html#visuals">Visualisations</a><a href="#contact">Contact</a></nav>
+    <div class="h-lang"><span class="swx" hidden aria-hidden="true"></span></div>
+    <button class="f-burger" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav"><span></span><span></span></button>
+    <nav class="f-mobile" id="mobileNav" aria-label="Mobile navigation"><a href="#film">Films</a><a href="#tour360">360° tours</a><a href="index.html#visuals">Visualisations</a><a href="#contact">Contact</a></nav>
+  </header>
+
+  <main id="main">
+    <!-- Film player: one large stage that always fits the window. -->
+    <section class="v-film" id="film" aria-labelledby="filmTitle">
+      <div class="f-grid v-head">
+        <p class="f-label"><span class="f-ic" aria-hidden="true"></span>Films</p>
+        <h1 class="f-title h-title" id="filmTitle">Films &amp; 360° tours.</h1>
+        <p class="f-side">Architecture in motion: light, season and the way through a building, told in a short film or a tour you can walk yourself.</p>
+      </div>
+
+      <div class="f-panel v-player" id="player" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Architectural films">
+        <video class="v-player__video" id="playerVideo" muted loop playsinline preload="metadata" poster="img/films/mountain-retreat.webp">
+          <source src="demos/atmosferi-viz/media/mountain-retreat.mp4" type="video/mp4">
+        </video>
+        <div class="v-player__shade" aria-hidden="true"></div>
+        <div class="v-player__top">
+          <span class="v-chip" id="playerIndex">01 / 03</span>
+          <button type="button" class="v-chip v-chip--btn" id="playerSound" aria-pressed="false" aria-label="Sound on"><span class="v-snd-off">Sound off</span><span class="v-snd-on">Sound on</span></button>
+        </div>
+        <button type="button" class="v-player__play" id="playerPlay" aria-label="Play or pause the film"><span class="v-ico-play" aria-hidden="true"></span><span class="v-ico-pause" aria-hidden="true"></span></button>
+        <div class="v-player__bottom">
+          <div class="v-player__meta"><strong id="playerName">Mountain retreat</strong><span id="playerDesc">A house on the slope above the lake, from first light to evening.</span></div>
+          <span class="v-player__tc"><span id="playerTime">00:00</span> / <span id="playerDur">00:00</span></span>
+        </div>
+        <div class="v-player__bar" id="playerBar" role="slider" aria-label="Film position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><i id="playerProg"></i></div>
+      </div>
+
+      <ul class="v-reel" aria-label="Choose a film">
+        <li><button type="button" class="v-reel__item is-on" aria-pressed="true" data-src="demos/atmosferi-viz/media/mountain-retreat.mp4" data-poster="img/films/mountain-retreat.webp" data-title="Mountain retreat" data-desc="A house on the slope above the lake, from first light to evening."><img src="img/films/mountain-retreat.webp" width="1600" height="900" alt="" loading="lazy" decoding="async"><span><strong>Mountain retreat</strong><em>Exterior film · 0:39</em></span></button></li>
+        <li><button type="button" class="v-reel__item" aria-pressed="false" data-src="demos/atmosferi-viz/media/interior-01.mp4" data-poster="img/films/interior-study.webp" data-title="Interior study" data-desc="Fire, timber and the view: a slow walk through a mountain interior."><img src="img/films/interior-study.webp" width="1600" height="900" alt="" loading="lazy" decoding="async"><span><strong>Interior study</strong><em>Interior film · 0:40</em></span></button></li>
+        <li><button type="button" class="v-reel__item" aria-pressed="false" data-src="demos/atmosferi-viz/media/hero-loop.mp4" data-poster="img/films/forest-cabin.webp" data-title="Forest cabin" data-desc="A short loop for a website header: morning mist over a cabin in the trees."><img src="img/films/forest-cabin.webp" width="1600" height="900" alt="" loading="lazy" decoding="async"><span><strong>Forest cabin</strong><em>Website loop · 0:06</em></span></button></li>
+      </ul>
+    </section>
+
+    <!-- 360° tour: the working three.js tour from pano-f.js. -->
+    <section class="f-sec v-360" id="tour360" aria-labelledby="tourTitle">
+      <div class="f-grid v-360__layout">
+        <div class="v-360__side">
+          <p class="f-label"><span class="f-ic" aria-hidden="true"></span>360° tours</p>
+          <h2 class="v-360__title" id="tourTitle">Step inside before it's built.</h2>
+          <p class="v-360__lead">Look around, walk from room to room and open the details. The tour runs in the browser, on a phone and in a VR headset, with no app to install.</p>
+          <div class="v-360__actions">
+            <button type="button" class="f-pill f-pill--dark tour__start" id="tourStart" aria-controls="tourCanvas">Explore in 360°</button>
+            <a class="f-pill f-pill--light h-pill-line" href="demos/atmosferi-viz/tour.html">Open the VR tour ↗</a>
+          </div>
+          <ul class="v-360__points">
+            <li><strong>Drag</strong>to look around</li>
+            <li><strong>Pinch or ⌘ + scroll</strong>to zoom</li>
+            <li><strong>Dots</strong>move between rooms</li>
+          </ul>
+        </div>
+
+        <div class="tour v-tour" id="tour">
+          <canvas class="tour__canvas" id="tourCanvas"></canvas>
+          <div class="tour__gate" id="tourGate"><span class="tour__start-icon" aria-hidden="true">360°</span></div>
+          <div class="tour__vig"></div>
+          <div class="tour__markers" id="tourMarkers"></div>
+          <div class="tour__fade" id="tourFade"></div>
+          <div class="tour__info" id="tourInfo"><h4 id="tourInfoT"></h4><p id="tourInfoP"></p></div>
+          <div class="tour__top">
+            <span class="tour__badge"><span class="ring">360°</span><span id="tourName">Dining</span></span>
+            <div class="tour__tools">
+              <button class="tour__exit" id="tourExit" type="button" hidden>Exit tour ×</button>
+              <button class="tour__tool on" id="tourAuto" aria-label="Auto-rotate" title="Auto-rotate">
+                <svg class="ico-play" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-8 8"/><path d="M4 4v5h5"/></svg>
+                <svg class="ico-pause" viewBox="0 0 24 24"><line x1="9" y1="5" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/></svg>
+              </button>
+              <button class="tour__tool tour__fs" id="tourFs" aria-label="Fullscreen" title="Fullscreen">
+                <svg class="ico-enter" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                <svg class="ico-exit" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="tour__bottom">
+            <div class="tour__compass"><div class="strip" id="tourStrip"></div></div>
+            <div class="tour__hint" id="tourHint"><span class="ar">←</span><span>Drag to look around</span><span class="ar">→</span></div>
+          </div>
+          <div class="tour__rail" id="tourRail" role="group" aria-label="Rooms"></div>
+          <div class="tour__scrollhint"><span>Hold ⌘ / Ctrl to zoom</span></div>
+          <div class="tour__load" id="tourLoad"><span class="sp"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- What a client gets -->
+    <section class="f-sec" aria-labelledby="usesTitle">
+      <div class="f-grid" data-reveal>
+        <p class="f-label"><span class="f-ic" aria-hidden="true"></span>Where it works</p>
+        <h2 class="f-statement" id="usesTitle">One model, <span class="f-mute">many ways to show it.</span></h2>
+      </div>
+      <ul class="v-uses">
+        <li class="f-card" data-reveal><strong>Competitions and planning</strong><p>A short film that explains the idea, the site and the light in under a minute.</p></li>
+        <li class="f-card" data-reveal><strong>Sales and marketing</strong><p>Loops for the website header and social media, tours for buyers who cannot visit yet.</p></li>
+        <li class="f-card" data-reveal><strong>Client presentations</strong><p>Walk through the rooms together on screen or in a headset before decisions are fixed.</p></li>
+        <li class="f-card" data-reveal><strong>Your website</strong><p>Films and tours embedded straight into the project page, fast on any phone.</p></li>
+      </ul>
+    </section>
+
+    <section class="f-contact h-contact" id="contact" aria-labelledby="contactTitle">
+      <div class="f-panel f-talk h-talk" data-reveal>
+        <h2 class="f-talk__title" id="contactTitle"><span>Have a project</span> <span>in mind?</span></h2>
+        <a class="h-talk__mail" href="mailto:info@atmosferi.com">info@atmosferi.com</a>
+        <a class="f-pill f-pill--light h-talk__cta" href="start.html?from=viz">Tell me about it</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="f-footer">
+    <div class="f-grid f-footer__cols">
+      <div><p class="f-brand"><span class="lg"><span class="lg-t" aria-hidden="true">atmosferı</span><i class="lg-o" aria-hidden="true"></i><span class="lg-sr">Atmosferi</span></span></p><a class="f-footer__mail" href="mailto:info@atmosferi.com">info@atmosferi.com</a></div>
+      <nav aria-label="Footer navigation"><p class="f-footer__h">Studio</p><a href="index.html#work">Work</a><a href="index.html#services">Services</a><a href="websites.html">Websites</a><a href="index.html#visuals">Visualisation</a><a href="films.html">Films &amp; 360° tours</a><a href="pricing.html">Pricing</a><a href="contact.html">Contact</a><a href="/for-agencies" hreflang="cs" lang="cs">Pro agentury</a></nav>
+      <nav aria-label="Architecture websites by language"><p class="f-footer__h">Websites</p><a href="websites-for-architects.html">English</a><a href="weby-pro-architekty.html">Česky</a><a href="webdesign-fuer-architekten.html">Deutsch</a><a href="nettsider-for-arkitekter.html">Norsk</a></nav>
+    </div>
+    <p class="f-footer__mark" aria-hidden="true"><span class="lg" aria-hidden="true">atmosferı<i class="lg-o"></i></span></p>
+    <div class="f-footer__legal"><span>© 2026 Atmosferi° · Architecture &amp; digital presentation</span><span>Designed and built with care.</span></div>
+  </footer>
+
+  <script src="assets/i18n-dict.js?v=20261108"></script>
+  <script src="assets/unified-home-i18n.js?v=20261108-square-rail"></script>
+  <script src="demos/atmosferi-viz/viz-i18n.js"></script>
+  <script src="assets/films-i18n.js?v=20261119-1"></script>
+  <script src="assets/i18n.js?v=20261119-src"></script>
+  <script src="assets/films-f.js?v=20261119-1"></script>
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
+  <script src="assets/pano-f.js?v=20261119-1"></script>
+</body>
+</html>

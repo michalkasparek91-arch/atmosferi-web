@@ -115,7 +115,7 @@ for(const p of pages){
 <main><header class="seo-hero"><div class="wrap"><p class="eyebrow">${p.eyebrow}</p><h1>${p.heading}</h1><p class="seo-intro">${p.intro}</p><a class="arrow-link" href="mailto:info@atmosferi.com">${p.email} ↗</a></div></header>
 <div class="wrap">${languageLinks(p)}</div>
 <section class="wrap section seo-about"><p class="seo-author">${p.author}</p><h2>${p.audience}</h2><div class="seo-cards">${p.cards.map(([h,t])=>`<article><h3>${h}</h3><p>${t}</p></article>`).join('')}</div></section>
-<section class="wrap section seo-split"><h2>${p.deliver}</h2><div><p>${p.deliverText}</p><a class="arrow-link" href="demos/atmosferi-viz/index.html">${p.visuals} ↗</a></div></section>
+<section class="wrap section seo-split"><h2>${p.deliver}</h2><div><p>${p.deliverText}</p><a class="arrow-link" href="index.html#visuals">${p.visuals} ↗</a></div></section>
 <section class="wrap section"><h2>${p.process}</h2><div class="seo-cards">${p.steps.map(([h,t])=>`<article><h3>${h}</h3><p>${t}</p></article>`).join('')}</div></section>
 <section class="wrap section seo-split"><h2>${p.remote}</h2><p>${p.remoteText}</p></section>
 <section class="wrap section seo-proof"><h2>${p.proof}</h2><p>${p.proofText}</p><div class="seo-links"><a class="arrow-link" href="work.html${langSuffix}">${p.work} →</a><a class="arrow-link" href="pricing.html${langSuffix}">${p.pricing} →</a></div></section>
