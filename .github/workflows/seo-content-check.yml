@@ -438,7 +438,7 @@ jobs:
               assert(h.includes('class="wrap guide-main"'), path + ': responsive article layout');
               assert(h.includes('assets/seo-guides.css'), path + ': shared responsive stylesheet');
               assert((h.match(/<section id="/g) || []).length >= 11, path + ': substantive sections');
-              assert((h.match(/<h1[\\s>]/g) || []).length === 1, path + ': single H1');
+              assert((h.match(/<h1[\s>]/g) || []).length === 1, path + ': single H1');
               assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': readable tables');
               const sections = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
               const menu = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
