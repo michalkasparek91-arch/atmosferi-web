@@ -1,4 +1,7 @@
 import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
+import CampaignsOverview from "@/components/admin/email/CampaignsOverview";
+import EmailRepliesInbox from "@/components/admin/email/EmailRepliesInbox";
+import AdminAgencyOutreach from "@/pages/admin/AdminAgencyOutreach";
 import { useSearchParams, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -1365,32 +1368,29 @@ export default function AdminEmails() {
   };
 
   return (
-    <div className="flex flex-col h-full w-full relative">
+    <div className="flex flex-col w-full relative">
       <AdminPageHeader
         icon={Mail}
-        title="Email Marketing Studio"
-        subtitle="Zrobee.cz Hub • Verze 2.0"
-        className="mb-3"
-        actions={
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-background border border-border/50 rounded-2xl shadow-sm">
-             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-             <span className="text-[10px] font-black text-foreground">SYNC: LIVE</span>
-          </div>
-        }
+        title="Kampaně"
+        subtitle="Všechno, co posíláme: komu, co a kdy. Odesílá michal@atmosferi.com."
+        className="mb-5"
       />
 
       {/* Top Navigation */}
       <EmailTopNav />
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto pb-12 mt-6">
+      <div className="flex-1 pb-12 mt-5">
         <div className="w-full space-y-8">
 
           <Suspense fallback={<div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/20" /></div>}>
 
             <Routes>
               {/* Default Index: Fronta & Historie (#1 priority) */}
-              <Route index element={<Navigate to="fronta" replace />} />
+              <Route index element={<Navigate to="prehled" replace />} />
+              <Route path="prehled" element={<CampaignsOverview />} />
+              <Route path="agentury" element={<AdminAgencyOutreach embedded />} />
+              <Route path="odpovedi" element={<EmailRepliesInbox />} />
 
               {/* Tab 1: Fronta & Historie */}
               <Route path="fronta" element={
@@ -1456,9 +1456,8 @@ export default function AdminEmails() {
               <Route path="crm" element={<Navigate to="kontakty" replace />} />
               <Route path="outbox" element={<Navigate to="fronta" replace />} />
               <Route path="historie" element={<Navigate to="fronta" replace />} />
-              <Route path="prehled" element={<Navigate to="fronta" replace />} />
 
-              <Route path="*" element={<Navigate to="fronta" replace />} />
+              <Route path="*" element={<Navigate to="prehled" replace />} />
             </Routes>
           </Suspense>
         </div>

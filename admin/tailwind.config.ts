@@ -1,4 +1,12 @@
 import type { Config } from "tailwindcss";
+import twColors from "tailwindcss/colors";
+
+// Admin follows the public site: black, white and greys. Only red is kept, for errors.
+const mono = twColors.neutral;
+const monochrome = Object.fromEntries(
+  ["slate", "gray", "zinc", "stone", "emerald", "green", "lime", "teal", "cyan", "sky", "blue", "indigo",
+   "violet", "purple", "fuchsia", "pink", "orange", "amber", "yellow"].map(name => [name, mono]),
+);
 
 export default {
   darkMode: ["class"],
@@ -24,6 +32,8 @@ export default {
   			xs: '400px'
   		},
   		colors: {
+  			...monochrome,
+  			rose: twColors.red,
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			'input-fill': 'hsl(var(--input-fill))',

@@ -33,14 +33,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
 import { AdminCommandPalette } from "@/components/admin/AdminCommandPalette";
-import { DarkModeToggle } from "@/components/admin/DarkModeToggle";
 import { usePushNotificationPrompt } from "@/hooks/use-push-notification-prompt";
 
 const sidebarLinks = [
   { label: "Přehled", href: "/", icon: LayoutDashboard },
   { label: "Faktury", href: "/faktury", icon: ScrollText },
   { label: "Kontakty", href: "/kontakty", icon: Users },
-  { label: "Agentury", href: "/agentury", icon: Briefcase },
   { label: "Vizualizace", href: "/vizualizace", icon: FolderTree },
   { label: "Kampaně", href: "/emaily", icon: Mail },
   { label: "Statistiky", href: "/statistiky", icon: BarChart3 },
@@ -71,7 +69,7 @@ export function AdminLayout() {
   }, [navigate]);
 
   return (
-    <div className="h-[100dvh] flex bg-background overflow-hidden transition-colors duration-300">
+    <div className="h-[100dvh] flex bg-[#f4f4f4] overflow-hidden">
       <AdminCommandPalette />
       
       {/* Mobile sidebar overlay */}
@@ -84,19 +82,16 @@ export function AdminLayout() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed lg:static inset-y-0 right-0 lg:left-0 lg:right-auto z-50 w-full lg:w-64 bg-white dark:bg-zinc-950 border-l lg:border-r border-border transform transition-all duration-300 ease-in-out lg:translate-x-0 flex-shrink-0",
+        "fixed lg:static inset-y-0 right-0 lg:left-0 lg:right-auto z-50 w-full lg:w-60 bg-[#f4f4f4] transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex-shrink-0",
         sidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
       )}>
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="px-5 h-[100px] flex items-center mb-4 border-b border-border transition-all">
+          <div className="px-6 h-[88px] flex items-center">
             <div className="flex items-center justify-between w-full">
-              <Link 
-                to="/" 
-                className="flex flex-col items-start lg:items-end hover:opacity-80 transition-opacity translate-y-2 lg:-translate-x-2"
-              >
-                <span className="text-lg font-black tracking-widest text-foreground dark:text-white uppercase">Atmosferi</span>
-                <span className="text-[9px] font-black tracking-[0.2em] text-muted-foreground dark:text-zinc-400 leading-none mt-1 uppercase">Admin</span>
+              <Link to="/" className="flex items-baseline gap-2 hover:opacity-70 transition-opacity" aria-label="Atmosferi admin">
+                <span className="lg text-[26px] font-medium tracking-[-0.04em] text-foreground"><span className="lg-t" aria-hidden="true">atmosferı</span><i className="lg-o" aria-hidden="true" /></span>
+                <span className="text-[12px] text-muted-foreground">admin</span>
               </Link>
               <Button 
                 variant="ghost" 
@@ -110,25 +105,22 @@ export function AdminLayout() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 flex flex-col justify-between px-3 py-2 overflow-y-auto">
+          <nav className="flex-1 flex flex-col gap-1 px-3 py-2 overflow-y-auto">
             {sidebarLinks.map((link) => {
-              const isActive = location.pathname === link.href;
+              const isActive = link.href === "/" ? location.pathname === "/" : location.pathname.startsWith(link.href) || (link.href === "/emaily" && location.pathname.startsWith("/agentury"));
               return (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all text-xs font-semibold group",
-                    isActive 
-                      ? "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-900 dark:text-white shadow-sm font-bold" 
-                      : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white"
+                    "flex items-center gap-3 px-4 py-2.5 rounded-full transition-colors text-[15px] font-medium",
+                    isActive
+                      ? "bg-foreground text-white"
+                      : "text-foreground/70 hover:bg-white hover:text-foreground"
                   )}
                 >
-                  <link.icon className={cn(
-                    "h-4 w-4 flex-shrink-0 transition-transform group-hover:scale-110",
-                    isActive ? "text-zinc-900 dark:text-white" : "text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-white"
-                  )} />
+                  <link.icon className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
                   <span className="leading-snug">{link.label}</span>
                 </Link>
               );
@@ -136,13 +128,12 @@ export function AdminLayout() {
           </nav>
 
           {/* Footer */}
-          <div className="p-3 border-t border-border flex-shrink-0">
-            <div className="flex items-center justify-between mb-2 px-1">
-              <DarkModeToggle />
+          <div className="p-3 flex-shrink-0">
+            <div className="flex items-center justify-between mb-1 px-1">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1.5"
+                className="text-muted-foreground hover:text-foreground"
                 onClick={() => {
                   const event = new KeyboardEvent("keydown", { key: "k", metaKey: true });
                   document.dispatchEvent(event);
@@ -156,14 +147,14 @@ export function AdminLayout() {
             </div>
             <Link
               to="/"
-              className="flex items-center gap-3 px-3 py-1.5 rounded-full text-muted-foreground/60 hover:bg-muted hover:text-muted-foreground transition-colors text-[12px] font-medium mb-1"
+              className="flex items-center gap-3 px-4 py-2 rounded-full text-muted-foreground hover:bg-white hover:text-foreground transition-colors text-[13px]"
             >
               <Home className="h-4 w-4" />
               Zpět na web
             </Link>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-red-500/70 hover:bg-red-500/10 hover:text-red-500 transition-colors text-[12px] font-medium"
+              className="w-full flex items-center gap-3 px-4 py-2 rounded-full text-muted-foreground hover:bg-white hover:text-foreground transition-colors text-[13px]"
             >
               <LogOut className="h-4 w-4" />
               Odhlásit se
@@ -173,14 +164,11 @@ export function AdminLayout() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-background">
+      <div className="flex-1 flex flex-col h-full min-w-0 bg-[#f4f4f4]">
         {/* Mobile header */}
-        <header className="lg:hidden flex-shrink-0 bg-background border-b border-border p-4">
+        <header className="lg:hidden flex-shrink-0 bg-[#f4f4f4] px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex flex-col items-start translate-y-1">
-              <span className="text-sm font-black tracking-widest text-foreground dark:text-white uppercase">Atmosferi</span>
-              <span className="text-[8px] font-medium tracking-wider text-muted-foreground dark:text-zinc-400 leading-none mt-0.5">ADMIN</span>
-            </div>
+            <span className="lg text-[22px] font-medium tracking-[-0.04em]"><span className="lg-t" aria-hidden="true">atmosferı</span><i className="lg-o" aria-hidden="true" /><span className="sr-only">Atmosferi admin</span></span>
             <Button 
               variant="ghost" 
               size="icon"
@@ -193,7 +181,7 @@ export function AdminLayout() {
         </header>
 
         {/* Page content - scrollable area */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] admin-chic-theme">
+        <main className="flex-1 p-4 md:p-6 lg:py-8 lg:pl-4 lg:pr-8 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] admin-chic-theme">
           <Outlet />
         </main>
       </div>

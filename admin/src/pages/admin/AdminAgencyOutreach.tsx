@@ -27,16 +27,17 @@ type LogRow = { id: string; kind: string; email: string; subject: string; status
 
 const db = supabase as any;
 const INTRO = "agency-intro-cs", FOLLOW = "agency-followup-cs";
+// Monochrome: the further in the pipeline, the darker the pill.
 const STATUS: Record<string, { label: string; cls: string }> = {
- new: { label: "Ve frontě", cls: "bg-muted text-muted-foreground" },
- queued: { label: "Ve frontě", cls: "bg-muted text-muted-foreground" },
- sent: { label: "Osloven", cls: "bg-blue-500/10 text-blue-600" },
- opened: { label: "Otevřel", cls: "bg-sky-500/10 text-sky-600" },
- replied: { label: "Odpověděl", cls: "bg-emerald-500/10 text-emerald-600" },
- meeting: { label: "Schůzka", cls: "bg-violet-500/10 text-violet-600" },
- won: { label: "Spolupráce", cls: "bg-emerald-600 text-white" },
- not_interested: { label: "Nemá zájem", cls: "bg-orange-500/10 text-orange-600" },
- do_not_contact: { label: "Neoslovovat", cls: "bg-red-500/10 text-red-600" },
+ new: { label: "Ve frontě", cls: "bg-neutral-100 text-neutral-500" },
+ queued: { label: "Ve frontě", cls: "bg-neutral-100 text-neutral-500" },
+ sent: { label: "Osloven", cls: "bg-neutral-200 text-neutral-800" },
+ opened: { label: "Otevřel", cls: "bg-neutral-200 text-neutral-800" },
+ replied: { label: "Odpověděl", cls: "bg-neutral-800 text-white" },
+ meeting: { label: "Schůzka", cls: "bg-black text-white" },
+ won: { label: "Spolupráce", cls: "bg-black text-white" },
+ not_interested: { label: "Nemá zájem", cls: "border border-neutral-300 text-neutral-500" },
+ do_not_contact: { label: "Neoslovovat", cls: "border border-red-200 text-red-600" },
 };
 const STATUS_SELECT = ["new", "sent", "opened", "replied", "meeting", "won", "not_interested", "do_not_contact"];
 
@@ -105,14 +106,14 @@ function Pill({ status }: { status: string }) {
  return <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${s.cls}`}>{s.label}</span>;
 }
 function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
- return <div className="rounded-lg border bg-background px-3 py-2.5">
-  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
-  <div className="text-xl font-semibold tabular-nums">{value}</div>
+ return <div className="rounded-2xl bg-neutral-100 px-4 py-3">
+  <div className="text-xs text-muted-foreground">{label}</div>
+  <div className="text-2xl font-medium tracking-tight tabular-nums mt-1">{value}</div>
   {hint && <div className="text-[11px] text-muted-foreground">{hint}</div>}
  </div>;
 }
 
-export default function AdminAgencyOutreach() {
+export default function AdminAgencyOutreach({ embedded = false }: { embedded?: boolean }) {
  const [leads, setLeads] = useState<Lead[]>([]);
  const [total, setTotal] = useState(0);
  const [page, setPage] = useState(0);
@@ -253,18 +254,18 @@ export default function AdminAgencyOutreach() {
  };
 
  return <div className="space-y-5">
-  <AdminPageHeader icon={BriefcaseBusiness} title="Agentury · akvizice"
+  {!embedded && <AdminPageHeader icon={BriefcaseBusiness} title="Agentury"
    subtitle={settings ? `Odesílá ${settings.sender_name} <${settings.sender_email}>` : "Oslovení digitálních agentur"}
-   actions={<Button variant="outline" size="sm" onClick={refresh}><RefreshCw className="h-4 w-4 mr-2" />Obnovit</Button>} />
+   actions={<Button variant="outline" size="sm" onClick={refresh}><RefreshCw className="h-4 w-4 mr-2" />Obnovit</Button>} />}
 
   {/* Automation */}
-  {settings && <Card className={settings.enabled ? "border-emerald-500/40" : ""}><CardContent className="p-5">
+  {settings && <Card><CardContent className="p-5">
    <div className="grid gap-5 lg:grid-cols-[1.1fr_1fr]">
     <div className="space-y-4">
      <div className="flex items-center gap-3">
       <Switch checked={settings.enabled} onCheckedChange={v => void saveSettings({ enabled: v })} aria-label="Automatické odesílání" />
       <div>
-       <div className="font-semibold flex items-center gap-2"><Zap className="h-4 w-4" />Automatické odesílání {settings.enabled ? "zapnuto" : "vypnuto"}</div>
+       <div className="font-medium text-base flex items-center gap-2">Automatické odesílání {settings.enabled ? "zapnuto" : "vypnuto"}</div>
        <div className="text-xs text-muted-foreground">Po–Pá 8–17 h, rozložené do celého dne, nejdřív priorita A. Odpověď nebo „ne“ sekvenci zastaví.</div>
       </div>
      </div>
@@ -292,6 +293,7 @@ export default function AdminAgencyOutreach() {
      </div>
      <div className="text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
       <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Poslední běh: {fmtDate(settings.last_run_at)}</span>
+      {embedded && <button className="underline underline-offset-2 hover:text-foreground" onClick={refresh}>Obnovit</button>}
       {settings.last_error && <span className="inline-flex items-center gap-1 text-red-600"><AlertTriangle className="h-3.5 w-3.5" />{settings.last_error}</span>}
      </div>
     </div>
@@ -371,7 +373,7 @@ export default function AdminAgencyOutreach() {
         <td className="p-2">{r.kind === "intro" ? "Oslovení" : r.kind === "followup" ? "Připomenutí" : "Test"}</td>
         <td className="p-2">{r.email}</td>
         <td className="p-2 max-w-72 truncate" title={r.subject}>{r.subject}</td>
-        <td className="p-2">{r.status === "sent" ? <span className="text-emerald-600">Odesláno</span> : <span className="text-red-600" title={r.error || ""}>Chyba{r.error ? `: ${r.error}` : ""}</span>}</td>
+        <td className="p-2">{r.status === "sent" ? <span>Odesláno</span> : <span className="text-red-600" title={r.error || ""}>Chyba{r.error ? `: ${r.error}` : ""}</span>}</td>
        </tr>)}</tbody>
       </table></div>}
     </CardContent></Card>

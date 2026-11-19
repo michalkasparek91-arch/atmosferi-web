@@ -22,61 +22,48 @@
 }
 
 @layer base {
+  /* Same palette as the public site: #f4f4f4 page, white panels, #0b0b0b ink. */
   :root, .dark {
-    --background: 46 22% 92%; /* #EFEDE6 */
-    --foreground: 43 19% 7%;  /* #16140F */
-    
-    --list-item-bg: 48 38% 97%;
-    --list-item-header: 45 25% 94%;
-    --list-header: 48 38% 97%;
-    --job-image-placeholder: 45 25% 94%;
-    --menu-inactive: 43 7% 47%;
-    --card: 48 38% 97%;       /* #FBFAF6 */
-    --card-foreground: 43 19% 7%;
-
-    --popover: 48 38% 97%;
-    --popover-foreground: 43 19% 7%;
-
-    --primary: 15 64% 60%;    /* #D97757 */
-    --primary-foreground: 48 38% 97%;
-    --primary-hover: 15 64% 50%;
-    
-    --highlight: 45 25% 94%;
-    
-    --dark-green: 154 63% 33%; /* #1F8A5B */
-    
-    --sidebar-active-bg: 45 25% 94%;
-    --sidebar-active-text: 43 19% 7%;
-
-    --secondary: 45 25% 94%;  /* #F4F2EC */
-    --secondary-foreground: 43 19% 7%;
-
-    --muted: 45 25% 94%;
-    --muted-foreground: 43 7% 47%; /* #807C72 */
-
-    --accent: 15 64% 60%;
-    --accent-foreground: 48 38% 97%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 43 19% 88%; /* approx for 12% opacity ink */
-    --input: 43 19% 88%;
-    --ring: 15 64% 60%;
-    
-    --input-fill: 48 38% 97%;
-    --input-fill-foreground: 43 19% 7%;
-
-    --radius: 0.375rem; /* 6px */
-
-    --sidebar-background: 46 22% 92%;
-    --sidebar-foreground: 43 19% 7%;
-    --sidebar-primary: 15 64% 60%;
-    --sidebar-primary-foreground: 48 38% 97%;
-    --sidebar-accent: 45 25% 94%;
-    --sidebar-accent-foreground: 43 19% 7%;
-    --sidebar-border: 43 19% 88%;
-    --sidebar-ring: 15 64% 60%;
+    --background: 0 0% 96%;
+    --foreground: 0 0% 4%;
+    --list-item-bg: 0 0% 100%;
+    --list-item-header: 0 0% 97%;
+    --list-header: 0 0% 100%;
+    --job-image-placeholder: 0 0% 93%;
+    --menu-inactive: 0 0% 45%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 0 0% 4%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 0 0% 22%;
+    --highlight: 0 0% 93%;
+    --dark-green: 0 0% 4%;
+    --sidebar-active-bg: 0 0% 100%;
+    --sidebar-active-text: 0 0% 4%;
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 4%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 0 0% 94%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 89%;
+    --input: 0 0% 87%;
+    --ring: 0 0% 4%;
+    --input-fill: 0 0% 100%;
+    --input-fill-foreground: 0 0% 4%;
+    --radius: 0.875rem;
+    --sidebar-background: 0 0% 96%;
+    --sidebar-foreground: 0 0% 4%;
+    --sidebar-primary: 0 0% 4%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 89%;
+    --sidebar-ring: 0 0% 4%;
   }
 }
 
@@ -149,7 +136,8 @@ body[data-conversation-open="true"] .route-fade-enter {
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Geist', system-ui, -apple-system, sans-serif;
-    font-weight: 900;
+    font-weight: 500;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -227,7 +215,7 @@ body[data-conversation-open="true"] .route-fade-enter {
   }
 
   .font-extrablack {
-    font-weight: 900;
+    font-weight: 600;
   }
 
   .offer-btn-fixed {
@@ -263,187 +251,103 @@ body[data-conversation-open="true"] .route-fade-enter {
 }
 
 /* -------------------------------------------------------------------------- */
-/* ADMIN CHIC THEME OVERRIDES                                                 */
-/* Globally applies a delicate, no-fill, compact aesthetic to the Admin UI    */
+/* ADMIN · ATMOSFERI LOOK                                                     */
+/* One calm system for every admin page: black, white, grey; one type scale;  */
+/* pill buttons; white panels on a light grey page, like the public site.     */
 /* -------------------------------------------------------------------------- */
 
-/* Ghost/outline buttons — transparent bg, thin border */
-.admin-chic-theme button[variant="ghost"],
-.admin-chic-theme button[variant="outline"] {
-  background-color: transparent !important;
-  border: 1px solid hsl(var(--border) / 1) !important;
-  border-radius: var(--radius) !important;
+.admin-mode { background: hsl(var(--background)); color: hsl(var(--foreground)); }
+
+/* Type: fewer weights, nothing smaller than 11px. */
+.admin-mode .font-black,
+.admin-mode .font-extrabold,
+.admin-mode .font-extrablack { font-weight: 600 !important; }
+.admin-mode .font-bold { font-weight: 600 !important; }
+.admin-mode .text-\[7px\], .admin-mode .text-\[8px\], .admin-mode .text-\[9px\],
+.admin-mode .text-\[10px\] { font-size: 11px !important; line-height: 1.4 !important; }
+.admin-mode .text-\[11px\] { font-size: 11.5px !important; }
+.admin-mode .tracking-widest, .admin-mode .tracking-\[0\.2em\], .admin-mode .tracking-\[0\.15em\] { letter-spacing: 0.06em !important; }
+.admin-mode .italic { font-style: normal !important; }
+.admin-mode .opacity-60.text-muted-foreground { opacity: 1 !important; }
+
+/* Surfaces */
+.admin-chic-theme .bg-background { background-color: #fff !important; }
+.admin-mode .bg-card {
+  background-color: #fff !important;
+  border-color: transparent !important;
+  border-radius: 20px !important;
   box-shadow: none !important;
 }
+/* A panel inside a panel needs a hairline to separate it. */
+.admin-mode .bg-card .bg-card,
+.admin-mode .bg-card .rounded-lg.border,
+.admin-mode .bg-card .rounded-xl.border,
+.admin-mode .bg-card .rounded-2xl.border { border-color: hsl(var(--border)) !important; border-radius: 14px !important; }
+.admin-mode .bg-muted { background-color: hsl(var(--muted)) !important; }
+.admin-mode .shadow-sm, .admin-mode .shadow, .admin-mode .shadow-md, .admin-mode .shadow-lg { box-shadow: none !important; }
+.admin-mode [role="dialog"], .admin-mode [data-radix-popper-content-wrapper] > * { box-shadow: 0 24px 60px -20px rgba(0,0,0,.25) !important; }
+.admin-mode [role="dialog"] { border-radius: 22px !important; border-color: transparent !important; }
 
-/* Unified Background Mapping */
-.admin-chic-theme .bg-background,
-.admin-mode .bg-background {
-  background-color: white !important;
-}
-.dark .admin-chic-theme .bg-background,
-.dark .admin-mode .bg-background {
-  background-color: hsl(var(--background)) !important;
-}
-
-/* Inputs & Selects — high-contrast outline style + Unified Small Font */
-.admin-chic-theme input,
-.admin-chic-theme select,
-.admin-chic-theme textarea,
-.admin-chic-theme .select-trigger,
-.admin-chic-theme [role="combobox"],
-.admin-chic-theme [role="textbox"],
-.admin-chic-theme [role="searchbox"],
-.admin-mode input,
+/* Form fields */
+.admin-mode input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
 .admin-mode select,
 .admin-mode textarea,
 .admin-mode .select-trigger,
-.admin-mode [role="combobox"],
-.admin-mode [role="textbox"],
-.admin-mode [role="searchbox"] {
-  background-color: white !important;
-  border: 1px solid #e2e8f0 !important; /* slate-200 */
-  border-radius: 0.375rem !important; /* 6px radius */
+.admin-mode button[role="combobox"] {
+  background-color: #fff !important;
+  border: 1px solid hsl(var(--input)) !important;
+  border-radius: 12px !important;
   box-shadow: none !important;
   font-family: 'Geist', sans-serif !important;
-  font-size: 0.8125rem !important;
-  font-weight: 350 !important;
-  letter-spacing: -0.01em !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: hsl(var(--foreground));
+}
+.admin-mode .bg-card input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.admin-mode .bg-card select,
+.admin-mode .bg-card textarea,
+.admin-mode .bg-card button[role="combobox"] { background-color: #f6f6f6 !important; border-color: transparent !important; }
+.admin-mode input::placeholder, .admin-mode textarea::placeholder { color: hsl(var(--muted-foreground)); opacity: .8; font-weight: 400 !important; }
+.admin-mode input:focus-visible, .admin-mode select:focus-visible, .admin-mode textarea:focus-visible {
+  outline: none !important; border-color: hsl(var(--foreground)) !important; box-shadow: none !important;
 }
 
-.dark .admin-chic-theme input,
-.dark .admin-chic-theme select,
-.dark .admin-chic-theme textarea,
-.dark .admin-chic-theme .select-trigger,
-.dark .admin-chic-theme [role="combobox"],
-.dark .admin-mode input,
-.dark .admin-mode select,
-.dark .admin-mode textarea,
-.dark .admin-mode .select-trigger,
-.dark .admin-mode [role="combobox"] {
-  background-color: hsl(var(--background)) !important;
-  border-color: hsl(var(--border)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-.admin-chic-theme input::placeholder,
-.admin-chic-theme textarea::placeholder,
-.admin-mode input::placeholder,
-.admin-mode textarea::placeholder {
-  font-weight: 300 !important;
-  opacity: 0.6;
-}
-
-.dark .admin-chic-theme input::placeholder,
-.dark .admin-mode input::placeholder {
-  color: hsl(var(--muted-foreground)) !important;
-}
-
-/* Primary buttons — solid green fill */
-.admin-chic-theme button.bg-primary,
-.admin-chic-theme .bg-primary:is(button),
-.admin-mode button.bg-primary,
-.admin-mode .bg-primary:is(button) {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  border-color: #cbd5e1 !important;
-  border-width: 1px !important;
-  border-radius: 9999px !important; /* Circular buttons remain circular */
-}
-.admin-chic-theme button.bg-primary:hover,
-.admin-mode button.bg-primary:hover {
-  background-color: hsl(var(--primary-hover)) !important;
-}
-
-/* Active/selected states — tabs, toggles only */
-.admin-chic-theme button[data-state=active],
-.admin-chic-theme button[data-state=on],
-.admin-chic-theme [role=tab][data-state=active],
-.admin-mode button[data-state=active],
-.admin-mode button[data-state=on],
-.admin-mode [role=tab][data-state=active] {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  border-color: hsl(var(--primary)) !important;
-  border-width: 1px !important;
-}
-
-/* Destructive buttons */
-.admin-chic-theme button.bg-destructive,
-.admin-chic-theme button.text-destructive,
-.admin-mode button.bg-destructive,
-.admin-mode button.text-destructive {
-  color: hsl(var(--destructive)) !important;
-  border-color: hsl(var(--destructive) / 0.5) !important;
-}
-.admin-chic-theme button.bg-destructive:hover,
-.admin-chic-theme button.text-destructive:hover,
-.admin-mode button.bg-destructive:hover,
-.admin-mode button.text-destructive:hover {
-  background-color: hsl(var(--destructive) / 0.05) !important;
-}
-
-/* Toggles (Switches) */
-.admin-chic-theme [role="switch"],
-.admin-mode [role="switch"] {
-  background-color: transparent !important;
-  border: 1px solid #cbd5e1 !important;
-}
-.admin-chic-theme [role="switch"][data-state="checked"],
-.admin-mode [role="switch"][data-state="checked"] {
-  background-color: hsl(var(--primary)) !important;
-  border-color: #cbd5e1 !important;
-}
-.admin-chic-theme [role="switch"][data-state="checked"] > span,
-.admin-mode [role="switch"][data-state="checked"] > span {
-  background-color: #cbd5e1 !important;
-}
-.admin-chic-theme [role="switch"][data-state="unchecked"] > span,
-.admin-mode [role="switch"][data-state="unchecked"] > span {
-  background-color: #cbd5e1 !important;
-  opacity: 0.5;
-}
-
-/* Cards — clean, no shadow */
-.admin-chic-theme .bg-card,
-.admin-mode .bg-card {
-  background-color: hsl(var(--card)) !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 0.75rem !important;
+/* Buttons: one shape, one weight, three sizes (see components/ui/button.tsx). */
+.admin-mode [data-ui="button"] {
+  border-radius: 999px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
   box-shadow: none !important;
 }
+.admin-mode [data-ui="button"][data-size="sm"] { font-size: 13px !important; }
+.admin-mode [data-ui="button"][data-size="default"], .admin-mode [data-ui="button"][data-size="lg"] { font-size: 14px !important; }
 
-.dark .admin-chic-theme .bg-card,
-.dark .admin-mode .bg-card {
-  border-color: hsl(var(--border)) !important;
+/* Tabs and segmented controls: active = black pill. */
+.admin-mode [role="tablist"] { background: #fff !important; border-radius: 999px !important; padding: 4px !important; border: 0 !important; height: auto !important; }
+.admin-mode [role="tab"] { border-radius: 999px !important; font-weight: 500 !important; font-size: 14px !important; padding: 7px 14px !important; }
+.admin-mode [role="tab"][data-state="active"],
+.admin-mode button[data-state="on"] {
+  background-color: hsl(var(--foreground)) !important;
+  color: #fff !important;
+  border-color: hsl(var(--foreground)) !important;
 }
 
-.admin-chic-theme .bg-muted,
-.admin-chic-theme .bg-muted\/50,
-.admin-chic-theme .bg-muted\/30,
-.admin-chic-theme .bg-slate-50,
-.admin-mode .bg-muted {
-  background-color: hsl(var(--muted) / 0.15) !important;
-  border: 1px solid #e2e8f0 !important;
-}
+/* Switches */
+.admin-mode [role="switch"] { background-color: #d6d6d6 !important; border: 0 !important; }
+.admin-mode [role="switch"][data-state="checked"] { background-color: hsl(var(--foreground)) !important; }
+.admin-mode [role="switch"] > span { background-color: #fff !important; opacity: 1 !important; box-shadow: none !important; }
 
-.dark .admin-chic-theme .bg-muted,
-.dark .admin-chic-theme .bg-muted\/50,
-.dark .admin-chic-theme .bg-muted\/30,
-.dark .admin-chic-theme .bg-slate-50,
-.dark .admin-mode .bg-muted {
-  background-color: hsl(var(--muted) / 0.1) !important;
-  border-color: hsl(var(--border)) !important;
-}
+/* Badges */
+.admin-mode [data-ui="badge"] { font-weight: 500 !important; font-size: 11.5px !important; border-radius: 999px !important; }
 
-/* Focus states */
-.admin-chic-theme input:focus-visible,
-.admin-chic-theme select:focus-visible,
-.admin-chic-theme textarea:focus-visible,
-.admin-mode input:focus-visible,
-.admin-mode select:focus-visible,
-.admin-mode textarea:focus-visible {
-  border-color: hsl(var(--primary)) !important;
-  outline: none !important;
-}
+/* Tables */
+.admin-mode table thead th { font-size: 12px; font-weight: 500; color: hsl(var(--muted-foreground)); }
+.admin-mode table tbody tr { border-color: hsl(0 0% 93%); }
 
+/* Destructive */
+.admin-mode button.text-destructive:hover { background-color: hsl(var(--destructive) / 0.06) !important; }
+
+/* Atmosferi wordmark (same as the public site): dotless ı + ring at the baseline. */
+.lg { display: inline-flex; align-items: baseline; white-space: nowrap; line-height: 1; }
+.lg-o { display: inline-block; width: .2em; height: .2em; margin-left: .045em; border: .068em solid currentColor; border-radius: 50%; box-sizing: border-box; }

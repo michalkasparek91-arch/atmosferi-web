@@ -436,7 +436,7 @@ export const AdminOutbox = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 font-sans w-full pb-24">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Email Marketing Studio</h2>
+        <h2 className="text-xl font-medium tracking-tight">Akvizice · fronta odesílání</h2>
         <Button 
           variant="outline" 
           size="sm" 
@@ -458,11 +458,7 @@ export const AdminOutbox = () => {
           Ruční kampaň z prohlížeče je pryč. Server i prohlížeč si sahaly
           na stejný zámek a ruční pokus končil hláškou "Jiné rozesílání
           právě běží". Odesílatel je teď jen jeden. */}
-      <div className={`rounded-2xl border p-5 ${
-        automationUnavailable ? "bg-muted/30 border-border"
-        : automation?.safety_paused ? "bg-amber-500/10 border-amber-500/30"
-        : automation?.enabled ? "bg-emerald-500/10 border-emerald-500/30"
-        : "bg-muted/30 border-border"}`}>
+      <div className={`rounded-[20px] bg-white p-5 ${automation?.safety_paused ? "ring-1 ring-red-200" : ""}`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-3 min-w-0">
             <div className={`p-2.5 rounded-xl shrink-0 ${
@@ -518,7 +514,7 @@ export const AdminOutbox = () => {
       {/* Filters (Sablony style) */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">        <button 
           onClick={() => setFilterType("general")}
-          className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${filterType === "general" ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20" : "bg-card text-card-foreground border-border hover:border-primary/30 shadow-sm"}`}
+          className={`flex-1 min-w-[100px] p-2.5 rounded-md border transition-all text-left ${filterType === "general" ? "bg-white text-foreground border-transparent" : "bg-white/60 text-card-foreground border-transparent hover:bg-white"}`}
         >
           <div className="flex items-center justify-between mb-0.5">
             <p className={`text-[9px] font-bold uppercase tracking-wider ${filterType === "general" ? "font-black" : "text-muted-foreground"}`}>Dostupné publikum pro šablony</p>
@@ -558,7 +554,7 @@ export const AdminOutbox = () => {
             <>
               {/* Odesílací kanál je společný pro všechny skupiny — patří nad seznam,
                   ne do každé karty zvlášť (dřív se opakoval u každé šablony). */}
-              <div className="flex items-center justify-between gap-3 flex-wrap px-4 py-2.5 rounded-xl border border-border/40 bg-muted/20">
+              <div className="flex items-center justify-between gap-3 flex-wrap px-4 py-2.5 rounded-2xl bg-white">
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] text-muted-foreground font-medium">Odesílat přes:</span>
                   {([
