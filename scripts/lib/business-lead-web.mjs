@@ -16,6 +16,8 @@ const ignoredDomains = new Set([
   'wikipedia.org', 'firmy.cz', 'mapy.cz', 'mapy.com', 'clutch.co', 'goodfirms.co', 'designrush.com',
   'archdaily.com', 'archiweb.cz', 'zivefirmy.cz', 'najisto.centrum.cz', 'idatabaze.cz', 'azet.sk',
   'developerske-projekty.cz', 'developerske-projekty-praha.cz', 'rightmove.co.uk',
+  'agenturtipp.de', 'omr.com', 'influencermarketinghub.com', 'werkenntdenbesten.de', '11880.com', 'gelbeseiten.de',
+  'dastelefonbuch.de', 'agenturmatching.de', 'agentur.de', 'agentur-matching.de',
 ]);
 
 export function websiteUrl(value, base) {
@@ -176,6 +178,7 @@ const fieldPattern = {
   architect: /architekt|architect|arkitekt|epitesz|urbanism|urbanist/i,
   developer: /develop(?:er|ment|mento)|dewelop|projektentwickl|bautrager|promot(?:eur|ion) immobilier|ingatlanfejleszt|rezidencni projekt|residential projects/i,
 };
+const germanMarketing = /(?:marketing|werbe|digital|performance|seo|kreativ|kommunikations|branding|social.media|advertising|creative|pr)[ -]*(?:agentur|agency)|(?:agentur|agency).{0,40}(?:marketing|werbung|webdesign|kommunikation|branding|seo)/i;
 const cityAliases = {
   Praha: ['Praze', 'Prague'], Plzeň: ['Plzni', 'Pilsen'], Bratislava: ['Bratislave'], Košice: ['Košiciach'],
   Wien: ['Vienna', 'Vídeň'], München: ['Munich'], Zürich: ['Zurich'], Warszawa: ['Warsaw'],
@@ -183,7 +186,7 @@ const cityAliases = {
 const folded = (text) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
 function cleanPhone(raw) {
-  const candidate = raw.trim().replace(/^00/, '+');
+  const candidate = raw.trim().replace(/^00/, '+').replace(/^(\+\d{1,3}[ .-]*)\(0\)/, '$1');
   if (!/^\+?[\d().\s-]+$/.test(candidate)) return '';
   const digits = candidate.replace(/\D/g, '');
   if (digits.length < 8 || digits.length > 15 || /^(\d)\1+$/.test(digits)) return '';
@@ -233,6 +236,10 @@ export function readContact(html, url) {
 }
 
 export async function findSiteContact(candidate) {
+  const aliases = Object.hasOwn(cityAliases, candidate.targetCity)
+    ? [candidate.targetCity, ...cityAliases[candidate.targetCity]] : [candidate.targetCity];
+  const locality = aliases.map((alias) => folded(alias).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const cityMatch = new RegExp(`\\b(?:${locality})(?![a-z])`);
   const robots = new Map();
   const start = await readPage(candidate.url, robots);
   const home = new URL('/', start?.url ?? candidate.url);
@@ -262,19 +269,20 @@ export async function findSiteContact(candidate) {
     targets.set(url.href, url);
   }
   for (const url of [...targets.values()].filter((link) => !pages.has(link.href)).slice(0, 4)) {
-    if (email?.score >= 12 && phone) break;
+    if (email?.score >= 12 && phone && (!candidate.job || cityMatch.test(evidence))) break;
     const page = await readPage(url, robots);
     if (page?.body) inspect(page);
   }
   if (!email && !phone) return null;
   const official = [...pages.values()][0]?.url ?? home;
-  if (!fieldPattern[candidate.type].test(`${folded(`${candidate.title} ${candidate.snippet ?? ''}`)} ${evidence}`)) return null;
-  const aliases = Object.hasOwn(cityAliases, candidate.targetCity)
-    ? [candidate.targetCity, ...cityAliases[candidate.targetCity]] : [candidate.targetCity];
-  const city = aliases.some((alias) => {
-    const pattern = folded(alias).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`\\b${pattern}\\b`).test(evidence);
-  }) ? candidate.targetCity : '';
-  if (!city && !hostKey(official).endsWith(`.${candidate.country.toLowerCase()}`)) return null;
+  const germanAgency = candidate.country === 'DE' && candidate.type === 'marketing';
+  const industry = germanAgency ? germanMarketing : fieldPattern[candidate.type];
+  if (!industry.test(`${folded(`${candidate.title} ${candidate.snippet ?? ''}`)} ${evidence}`)) return null;
+  const city = cityMatch.test(evidence) ? candidate.targetCity : '';
+  const localDomain = hostKey(official).endsWith(`.${candidate.country.toLowerCase()}`);
+  if (!city && (candidate.job || !localDomain)) return null;
+  if (germanAgency && !localDomain && !phone?.value.startsWith('+49') &&
+      !new RegExp(`\\b\\d{5}\\s+(?:${locality})(?![a-z])`).test(evidence)) return null;
+  if (germanAgency && phone?.value.startsWith('0')) phone.value = `+49${phone.value.replace(/\D/g, '').slice(1)}`;
   return { ...candidate, city, website: official.origin, company: name || candidate.title.slice(0, 160) || hostKey(official), email, phone };
 }

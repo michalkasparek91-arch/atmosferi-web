@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { bingResults, findSiteContact, hostKey, seznamResults, websiteUrl } from './lib/business-lead-web.mjs';
+import { openBackgroundRun } from './lib/de-agency-background.mjs';
 
 const types = { marketing: 'Marketingová agentura', architect: 'Architektonické studio', developer: 'Realitní developer' };
 const markets = {
@@ -31,6 +32,7 @@ node scripts/find-business-leads.mjs [volby]
   --limit 50                Nejvýše tolik různých webů za běh (1–1000)
   --engine auto             Seznam bez klíče, případně seznam, bing nebo serper
   --write-admin             Uložit do Agentury · akvizice → K prověření
+  --background-de-agencies  Další dávka německých marketingových agentur pro plánovač
   --help                    Zobrazit nápovědu
 
 CSV se ukládá do artifacts/private/lead-finder/.
@@ -86,6 +88,13 @@ function notes(lead) {
     lead.email && `Zdroj e-mailu: ${lead.email.source}`,
     lead.phone && `Zdroj telefonu: ${lead.phone.source}`,
   ].filter(Boolean).join('\n');
+}
+
+function adminRow(lead, engine) {
+  return {
+    source_id: sourceId(lead), company_name: lead.company, email: lead.email.value, website: lead.website,
+    city: lead.city || null, source_name: `pc-lead-finder:${engine}`, notes: notes(lead),
+  };
 }
 
 function csvCell(value) {
@@ -158,11 +167,7 @@ export async function saveToAdmin(leads, engine) {
     if (existingEmails.has(email) || existingSites.has(host)) continue;
     existingEmails.add(email);
     existingSites.add(host);
-    rows.push({
-      source_id: sourceId(lead), company_name: lead.company, email, website: lead.website, city: lead.city,
-      review_state: 'review', priority: 'REVIEW', outreach_status: 'new',
-      source_name: `pc-lead-finder:${engine}`, notes: notes(lead),
-    });
+    rows.push({ ...adminRow(lead, engine), review_state: 'review', priority: 'REVIEW', outreach_status: 'new' });
   }
   for (let index = 0; index < rows.length; index += 50) {
     const saved = await call(`${table}?on_conflict=source_id&select=id`, {
@@ -179,8 +184,14 @@ async function main() {
     types: { type: 'string', default: Object.keys(types).join(',') },
     pages: { type: 'string', default: '1' }, limit: { type: 'string', default: '50' },
     engine: { type: 'string', default: 'auto' }, 'write-admin': { type: 'boolean' }, help: { type: 'boolean' },
+    'background-de-agencies': { type: 'boolean' },
   } });
   if (values.help) { console.log(help); return; }
+  const background = values['background-de-agencies'] ? await openBackgroundRun() : null;
+  if (background?.waiting) return;
+  if (background) {
+    Object.assign(values, { countries: 'DE', cities: undefined, pages: '1', limit: '120' });
+  }
   const countries = list(values.countries, (value) => value.toUpperCase());
   const selectedTypes = list(values.types, (value) => value.toLowerCase());
   const cities = values.cities === undefined ? null : list(values.cities);
@@ -193,7 +204,14 @@ async function main() {
   if (!['seznam', 'bing', 'serper'].includes(engine)) throw new Error('--engine musí být auto, seznam, bing nebo serper.');
   if (engine === 'serper' && !process.env.SERPER_API_KEY) throw new Error('Pro Serper nastavte SERPER_API_KEY.');
 
-  const queries = countries.flatMap((country) => {
+  const queries = background ? background.jobs.map((job) => {
+    const locality = job.ambiguous && job.district && job.district !== job.name ? [job.name, job.district] : [job.name];
+    const searchLocation = locality.map((name) => `"${name.replaceAll('"', '')}"`).join(' ');
+    return {
+      country: 'DE', countryName: 'Německo', language: 'de', targetCity: job.name, type: job.kind,
+      contactPaths: markets.DE[4], job, query: `${job.term} ${searchLocation}`,
+    };
+  }) : countries.flatMap((country) => {
     const [language, countryName, defaultCities, terms, contactPaths] = markets[country];
     return (cities || defaultCities).flatMap((city) => selectedTypes.map((type) => ({
       country, countryName, language, targetCity: city, type, contactPaths,
@@ -201,17 +219,38 @@ async function main() {
     })));
   });
   const searchResults = queries.map(() => []);
+  const uniqueResults = queries.map(() => new Set());
+  const exhausted = new Set();
   console.log(`Vyhledávač: ${engine}.`);
   let failures = 0;
-  for (let page = 1; page <= pages; page++) {
+  searches: for (let page = 1; page <= pages; page++) {
     for (const [index, query] of queries.entries()) {
+      if (exhausted.has(index)) continue;
       try {
         const results = await search(query.query, query.country, query.language, page, engine);
-        searchResults[index].push(...results);
-        console.log(`[${query.country}] ${query.query} · ${page}: ${results.length} výsledků`);
+        const previous = uniqueResults[index].size;
+        for (const result of results) {
+          const url = websiteUrl(result.url);
+          if (!url || /\.(?:pdf|docx?|xlsx?|jpe?g|png|zip)$/i.test(url.pathname)) continue;
+          const host = hostKey(url);
+          if (uniqueResults[index].has(host)) continue;
+          uniqueResults[index].add(host);
+          searchResults[index].push({ ...result, url });
+        }
+        if (query.job) query.job.matches = uniqueResults[index];
+        const count = uniqueResults[index].size - previous;
+        if (!count) exhausted.add(index);
+        console.log(`[${query.country}] ${query.query} · ${page}: ${count} nových webů`);
       } catch (error) {
         failures++;
+        if (query.job) query.job.error = error.message;
         console.warn(`[${query.country}] ${query.query} · ${page}: ${error.message}`);
+        if (/HTTP (403|429)\b/.test(error.message)) {
+          for (const remaining of background?.jobs ?? []) {
+            if (!remaining.matches) remaining.error ||= 'Vyhledávač omezil požadavky.';
+          }
+          break searches;
+        }
       }
       await sleep(400);
     }
@@ -221,23 +260,35 @@ async function main() {
   for (let index = 0; index < resultCount && candidates.size < limit; index++) {
     for (const [queryIndex, results] of searchResults.entries()) {
       const result = results[index];
-      const url = result && websiteUrl(result.url);
-      if (!url || /\.(?:pdf|docx?|xlsx?|jpe?g|png|zip)$/i.test(url.pathname)) continue;
+      const url = result?.url;
+      if (!url) continue;
       const host = hostKey(url);
-      if (!candidates.has(host)) candidates.set(host, {
-        ...queries[queryIndex], url, title: result.title || '', snippet: result.snippet || '',
+      const query = queries[queryIndex];
+      if (background?.visited(query.job, host)) continue;
+      const key = background ? `${query.job.ags}:${query.type}:${host}` : host;
+      if (!candidates.has(key)) candidates.set(key, {
+        ...query, url, title: result.title || '', snippet: result.snippet || '',
       });
       if (candidates.size >= limit) break;
     }
   }
-  if (!candidates.size) throw new Error('Vyhledávání nevrátilo použitelné weby. Zkuste jinou lokalitu nebo zdroj.');
+  if (!background && !candidates.size) throw new Error('Vyhledávání nevrátilo použitelné weby.');
   console.log(`Kontroluji ${candidates.size} nalezených webů.`);
   const leads = new Map();
   const emails = new Set();
   const sites = [...candidates.values()];
-  for (let index = 0; index < sites.length; index += 4) {
-    const batch = await Promise.all(sites.slice(index, index + 4).map(findSiteContact));
-    for (const lead of batch.filter(Boolean)) {
+  const inFlight = new Map();
+  let next = 0;
+  async function crawl() {
+    while (next < sites.length) {
+      const site = sites[next++];
+      const host = hostKey(site.url);
+      const pending = (inFlight.get(host) ?? Promise.resolve()).then(() => findSiteContact(site));
+      inFlight.set(host, pending);
+      const lead = await pending;
+      if (inFlight.get(host) === pending) inFlight.delete(host);
+      background?.visit(site.job, host, lead);
+      if (!lead) continue;
       const id = sourceId(lead);
       if (lead.email && emails.has(lead.email.value)) continue;
       if (leads.has(id) && leads.get(id).email) continue;
@@ -245,12 +296,17 @@ async function main() {
       leads.set(id, lead);
     }
   }
+  await Promise.all(Array.from({ length: Math.min(background ? 8 : 4, sites.length) }, crawl));
   const contacts = [...leads.values()];
-  const output = await saveCsv(contacts, engine);
+  const output = (!background || contacts.length) ? await saveCsv(contacts, engine) : null;
   const withEmail = contacts.filter((lead) => lead.email).length;
   const withPhone = contacts.filter((lead) => lead.phone).length;
-  console.log(`CSV: ${output}\nKontaktů: ${contacts.length}, s e-mailem: ${withEmail}, s telefonem: ${withPhone}.`);
+  if (output) console.log(`CSV: ${output}`);
+  console.log(`Kontaktů: ${contacts.length}, s e-mailem: ${withEmail}, s telefonem: ${withPhone}.`);
   if (failures) console.warn(`Částečný výsledek. Selhalo ${failures} z ${queries.length * pages} vyhledávání.`);
+  if (background) {
+    await background.save(contacts.filter((lead) => lead.email).map((lead) => adminRow(lead, engine)));
+  }
   if (values['write-admin'] && withEmail) {
     const inserted = await saveToAdmin(contacts, engine);
     console.log(`Agentury · akvizice → K prověření: ${inserted} nových kontaktů, ${withEmail - inserted} duplicit.`);

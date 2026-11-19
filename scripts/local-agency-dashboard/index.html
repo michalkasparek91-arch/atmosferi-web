@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sběr kontaktů · Atmosferi</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <script src="/dashboard.js" type="module"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/">Atmosferi°</a>
+      <a class="button secondary" href="https://www.atmosferi.com/admin/emaily/agentury" target="_blank" rel="noopener noreferrer">Přejít do adminu <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+  <main class="shell">
+    <div class="heading">
+      <div><h1>Sběr kontaktů</h1><p id="registry">Načítám registr německých obcí…</p></div>
+      <button id="pause" class="button" type="button" disabled>Pozastavit sběr</button>
+    </div>
+    <p id="notice" role="status" hidden></p>
+    <div class="metrics" aria-label="Přehled sběru">
+      <div><span>Pokryté obce</span><strong id="covered">—</strong></div>
+      <div><span>Dokončené dotazy</span><strong id="queries">—</strong></div>
+      <div><span>Právě zpracovávané obce</span><strong id="running">—</strong></div>
+      <div><span>Dávky čekající na import</span><strong id="waiting">—</strong></div>
+    </div>
+    <section class="panel scope">
+      <div><h2>Obory ve sběru</h2><p>Změna se projeví v další dávce.</p></div>
+      <fieldset id="kinds" aria-label="Obory ve sběru" disabled>
+        <label><input type="checkbox" value="marketing"> Marketingové agentury</label>
+        <label><input type="checkbox" value="architect"> Architekti</label>
+        <label><input type="checkbox" value="developer"> Realitní developeři</label>
+      </fieldset>
+    </section>
+    <section class="panel" aria-labelledby="plan-title">
+      <div class="panel-heading"><h2 id="plan-title">Plán obcí v Německu</h2><span id="matched" class="muted"></span></div>
+      <div class="filters">
+        <label>Obec, okres nebo AGS <input id="query" type="search" placeholder="Např. Leipzig"></label>
+        <label>Spolková země <select id="land"><option value="">Všechny země</option></select></label>
+        <label>Stav <select id="status"><option value="">Všechny stavy</option><option value="pending">Čeká</option><option value="running">Probíhá</option><option value="done">Prohledáno</option><option value="retry">Zkusí se znovu</option><option value="disabled">Pozastaveno</option></select></label>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Obec</th><th>Stav</th><th>Dotazy</th><th>Kontakty</th><th>Poslední kontrola</th><th>Správa</th></tr></thead>
+        <tbody id="municipalities"></tbody>
+      </table></div>
+      <div class="pager"><button id="previous" class="button secondary" type="button">Předchozí</button><span id="page" class="muted"></span><button id="next" class="button secondary" type="button">Další</button></div>
+    </section>
+    <div class="details">
+      <section class="panel"><div class="panel-heading"><h2>Poslední dotazy</h2></div><ul id="activity" class="items"></ul></section>
+      <section class="panel"><div class="panel-heading"><h2>Import a export</h2></div><div id="imports"></div><details><summary>Stáhnout CSV</summary><ul id="exports" class="items"></ul></details></section>
+    </div>
+  </main>
+</body>
+</html>
