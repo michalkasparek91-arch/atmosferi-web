@@ -41,7 +41,18 @@
 
   // Reveal on entering the viewport, with a short cascade inside lists.
   var targets = document.querySelectorAll("[data-ag-reveal]");
-  document.querySelectorAll(".ag-rows, .ag-reasons, .ag-more").forEach(function (group) {
+  // Zrobee screens: hovering a frame scrolls the full page inside it, so the
+  // image needs to know how tall its window is.
+  var views = document.querySelectorAll(".ag-z__view");
+  var sizeViews = function () {
+    views.forEach(function (v) { v.style.setProperty("--z-view-h", v.clientHeight + "px"); });
+  };
+  if (views.length) {
+    sizeViews();
+    window.addEventListener("resize", sizeViews, { passive: true });
+  }
+
+  document.querySelectorAll(".ag-rows, .ag-reasons, .ag-more, .ag-stack, .ag-z__screens, .ag-z__phones, .ag-z__markets, .ag-z__caps").forEach(function (group) {
     Array.prototype.forEach.call(group.querySelectorAll("[data-ag-reveal]"), function (el, i) {
       el.style.setProperty("--d", String(i));
     });
