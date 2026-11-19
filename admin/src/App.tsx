@@ -16,6 +16,7 @@ const ProtectedAdminRoute = React.lazy(() => import("./components/ProtectedAdmin
 const AdminDashboard = React.lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminInvoices = React.lazy(() => import("./pages/admin/AdminInvoices"));
 const AdminContacts = React.lazy(() => import("./pages/admin/AdminContacts"));
+const AdminAgencyOutreach = React.lazy(() => import("./pages/admin/AdminAgencyOutreach"));
 const AdminEmails = React.lazy(() => import("./pages/admin/AdminEmails"));
 const AdminAnalytics = React.lazy(() => import("./pages/admin/AdminAnalytics"));
 const AdminVisualizations = React.lazy(() => import("./pages/admin/AdminVisualizations"));
@@ -85,6 +86,7 @@ const App = () => {
                           <Route path="/" element={<AdminDashboard />} />
                           <Route path="/faktury" element={<AdminInvoices />} />
                           <Route path="/kontakty" element={<AdminContacts />} />
+                          <Route path="/agentury" element={<AdminAgencyOutreach />} />
                           <Route path="/emaily/*" element={<AdminEmails />} />
                           <Route path="/statistiky" element={<AdminAnalytics />} />
                           <Route path="/vizualizace" element={<AdminVisualizations />} />
