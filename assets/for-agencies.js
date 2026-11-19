@@ -41,6 +41,45 @@
 
   // Reveal on entering the viewport, with a short cascade inside lists.
   var targets = document.querySelectorAll("[data-ag-reveal]");
+  // Zrobee stage: the posting-flow video plays only while the stage is on screen
+  // and never for people who asked for reduced motion.
+  var flow = document.querySelector(".ag-z__video");
+  var stage = document.querySelector(".ag-z__stage");
+  if (flow && stage && !reduced && "IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          if (flow.preload === "none") { flow.preload = "auto"; }
+          var playing = flow.play();
+          if (playing && playing.catch) playing.catch(function () {});
+        } else {
+          flow.pause();
+        }
+      });
+    }, { threshold: 0.25 }).observe(stage);
+  }
+
+  // Result numbers count up once when they come into view.
+  var counters = document.querySelectorAll("[data-count]");
+  var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
+  if (counters.length && !reduced && "IntersectionObserver" in window) {
+    var countIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        countIo.unobserve(entry.target);
+        var el = entry.target, end = Number(el.getAttribute("data-count")), t0 = null;
+        var step = function (t) {
+          if (t0 === null) t0 = t;
+          var k = Math.min(1, (t - t0) / 1600);
+          el.textContent = fmt(end * (1 - Math.pow(1 - k, 3)));
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    }, { threshold: 0.6 });
+    counters.forEach(function (el) { countIo.observe(el); });
+  }
+
   // Zrobee screens: hovering a frame scrolls the full page inside it, so the
   // image needs to know how tall its window is.
   var views = document.querySelectorAll(".ag-z__view");
