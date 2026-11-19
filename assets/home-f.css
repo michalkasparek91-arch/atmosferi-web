@@ -173,3 +173,16 @@
 .h-railwrap:not(.can-next) .h-edge--next, .h-railwrap:not(.can-prev) .h-edge--prev { pointer-events: none; }
 .h-edge.is-gliding span { transform: scale(1.1); }
 @media (hover: none), (max-width: 700px) { .h-edge { display: none; } }
+
+/* Visualisations on the light canvas (no dark panel), whole archive shown.
+   Hover: the corner radius eases in a little, like a frame tightening. */
+.h-visuals { margin-top: 0; }
+.h-visuals .f-head { padding-inline: var(--pad); }
+.h-visuals__intro { margin-top: calc(-1 * clamp(20px, 3vw, 60px)); padding-inline: var(--pad); }
+.h-visuals__lead { color: var(--mute); }
+.h-visuals__intro .f-pill--light { box-shadow: inset 0 0 0 1px var(--line); }
+.h-visuals .un-viz-grid { padding-inline: var(--pad); }
+.un-viz-item { background: #e9e9e9; border-radius: var(--r); transition: border-radius .6s var(--out); }
+.un-viz-item:hover, .un-viz-item:focus-visible { border-radius: 10px; }
+.un-viz-grid:hover .un-viz-item:not(:hover) img { filter: none; }
+.un-viz-item:focus-visible { outline-color: var(--ink); }
