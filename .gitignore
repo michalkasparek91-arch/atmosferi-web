@@ -13,3 +13,7 @@ admin/dist
 .DS_Store
 *.log
 artifacts/private/
+
+# delivery bundles
+atmosferi-*.zip
+*.patch
