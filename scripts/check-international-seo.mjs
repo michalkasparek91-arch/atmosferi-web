@@ -164,5 +164,5 @@ for(const type of ['Article','WebPage'])assert(uncertaintySchema['@graph'].some(
 assert(uncertaintySchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-19'&&item.mainEntityOfPage['@id']===uncertaintyUrl+'#webpage'),'uncertainty: schema date and URL');
 assert(locations.includes(uncertaintyUrl),'uncertainty: sitemap');
 assert(fs.readFileSync('architectural-design-options-rendering-comparison.html','utf8').includes('href="'+uncertaintyFile+'"'),'uncertainty: incoming link');
-for(const [,href] of uncertaintyHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\/,'')),'uncertainty: missing local link '+href);}
+for(const [,href] of uncertaintyHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'uncertainty: missing local link '+href);}
 console.log('Uncertainty register guide SEO, schema, links, viewport and sitemap checks passed.');
