@@ -128,3 +128,22 @@ assert(locations.includes(substationUrl),'substation: sitemap');
 assert(fs.readFileSync('air-source-heat-pump-outdoor-unit-architectural-rendering-review.html','utf8').includes('href="'+substationFile+'"'),'substation: incoming link');
 for(const [,href] of substationHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'substation: missing link '+href);}
 console.log('Substation guide metadata, schema, links, viewport and sitemap checks passed.');
+
+
+const atriumFile='atrium-smoke-curtain-architectural-rendering-review.html';
+const atriumHtml=fs.readFileSync(atriumFile,'utf8');
+const atriumUrl=origin+'/'+atriumFile;
+assert.match(atriumHtml,/<html lang="en">/,'atrium: language');
+assert.equal((atriumHtml.match(/<h1[\\s>]/g)||[]).length,1,'atrium: one H1');
+assert(atriumHtml.includes('<link rel="canonical" href="'+atriumUrl+'">'),'atrium: canonical');
+assert.match(atriumHtml,/<meta name="robots" content="index, follow/,'atrium: indexable');
+assert(atriumHtml.includes('name="viewport"'),'atrium: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(atriumHtml.includes('href="assets/'+css+'.css"'),'atrium: CSS '+css);
+for(const key of ['og:title','og:url','og:description','twitter:card','twitter:title'])assert(atriumHtml.includes(key),'atrium: social '+key);
+const atriumSchema=JSON.parse(atriumHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(atriumSchema['@graph'].some(item=>item['@type']===type),'atrium: schema '+type);
+assert(atriumSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-19'&&item.mainEntityOfPage['@id']===atriumUrl+'#webpage'),'atrium: schema date and URL');
+assert(locations.includes(atriumUrl),'atrium: sitemap');
+assert(fs.readFileSync('fire-door-closer-hold-open-interior-rendering-review.html','utf8').includes('href="'+atriumFile+'"'),'atrium: incoming link');
+for(const [,href] of atriumHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\\//,'')),'atrium: missing link '+href);}
+console.log('Atrium smoke curtain guide metadata, schema, links, viewport and sitemap checks passed.');
