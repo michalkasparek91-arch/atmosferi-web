@@ -52,7 +52,7 @@
   if (reduced) document.querySelectorAll("video[autoplay]").forEach(function (v) { v.removeAttribute("autoplay"); v.pause(); });
 
   // Reveal on scroll, small cascade inside grids
-  ["f-projs", "f-stats", "f-steps", "f-bento", "f-ai__cards", "f-screens", "f-mk", "f-caps", "f-zscreens"].forEach(function (cls) {
+  ["f-projs", "f-stats", "f-steps", "f-bento", "f-ai__cards", "f-screens", "f-caps", "f-zscreens", "f-nums"].forEach(function (cls) {
     var g = document.querySelector("." + cls);
     if (g) Array.prototype.forEach.call(g.querySelectorAll("[data-reveal]"), function (el, i) { el.style.setProperty("--d", String(i)); });
   });
