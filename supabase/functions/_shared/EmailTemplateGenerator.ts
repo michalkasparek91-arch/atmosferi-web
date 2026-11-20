@@ -27,11 +27,18 @@ export interface EmailTemplateData {
   ctaButtonEnabled?: boolean;
   ctaText?: string;
   ctaUrl?: string;
+  greeting?: string;
+  language?: string;
 }
 
 export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
+  // Greeting line ("Hello Anna,") is stored separately from the body; render it first.
+  const greeting = (data.greeting || "").trim();
+  const showGreeting = greeting !== "" && greeting.toLowerCase() !== "none"
+    && !startsWithSameWord(data.body, greeting);
   // Convert markdown-like syntax to HTML for body
-  const parsedBody = parseBodyText(data.body);
+  const parsedBody = (showGreeting ? `<p style="margin: 0 0 16px 0;">${greeting}</p>\n` : "") + parseBodyText(data.body);
+  const t = copyFor(data.language);
 
   const topBannerHtml = `
     <div style="background-color: #16140F; padding: 16px 24px; color: #EFEDE6;">
@@ -41,7 +48,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
             <span style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; letter-spacing: -0.02em;">Atmosferi<sup style="color: #D97757; font-size: 0.6em;">&deg;</sup></span>
           </td>
           <td style="vertical-align: middle; border-left: 1px solid rgba(244,242,236,0.3); padding-left: 14px;">
-            <span style="font-family: monospace; font-size: 9px; letter-spacing: 0.18em; opacity: 0.6; text-transform: uppercase;">${data.heroTagline ?? "WEB A VIZUALIZACE"}</span>
+            <span style="font-family: monospace; font-size: 9px; letter-spacing: 0.18em; opacity: 0.6; text-transform: uppercase;">${data.heroTagline ?? t.tagline}</span>
           </td>
         </tr>
       </table>
@@ -52,7 +59,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
     <div>
       <img src="${data.heroImageUrl}" alt="Hero" width="100%" style="display: block; max-width: 100%; height: auto;" />
       <div style="background-color: #16140F; padding: 12px 24px; color: #A8A398; font-family: monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;">
-        ${data.heroCaption ?? "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°"}
+        ${data.heroCaption || t.caption}
       </div>
     </div>
   ` : '';
@@ -137,7 +144,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
 
   return `
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="${t.lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -172,6 +179,20 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
 </body>
 </html>
   `.trim();
+}
+
+// Default labels in the recipient's language (templates can still override them).
+function copyFor(language?: string) {
+  const l = (language || "cz").toLowerCase();
+  if (l === "cz" || l === "cs" || l === "sk") return { lang: "cs", tagline: "WEB A VIZUALIZACE", caption: "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°" };
+  if (l === "de" || l === "at" || l === "ch") return { lang: "de", tagline: "WEB UND VISUALISIERUNG", caption: "UNSERE VISUALISIERUNG — ATMOSFERI°" };
+  return { lang: "en", tagline: "WEB & VISUALISATION", caption: "OUR VISUALISATION — ATMOSFERI°" };
+}
+
+// True when the body already opens with the greeting (older templates kept it inside the body).
+function startsWithSameWord(body: string, greeting: string): boolean {
+  const first = (s: string) => (s || "").trim().split(/[\s,!]+/)[0]?.toLowerCase() || "";
+  return first(body) !== "" && first(body) === first(greeting);
 }
 
 function parseBodyText(text: string): string {

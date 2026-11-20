@@ -15,6 +15,7 @@ export interface EmailPayload {
   ctaText?: string;
   ctaUrl?: string;
   greeting?: string;
+  language?: string;
   secondaryText?: string;
   emoji?: string;
   layoutType?: "standard" | "magazine" | "sniper" | "sniper_recruitment" | "atmosferi_studio" | "plain";
@@ -56,6 +57,23 @@ export interface EmailPayload {
   heroTagline?: string;
   provider?: 'brevo' | 'ses' | 'smtp';
   bcc?: string;
+}
+
+export function htmlToText(html: string): string {
+  return html
+    .replace(/<(head|style|script)[\s\S]*?<\/\1>/gi, "")
+    .replace(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (_m, href, label) => {
+      const l = label.replace(/<[^>]+>/g, "").trim();
+      return href.startsWith("mailto:") || l === href ? l : `${l} (${href})`;
+    })
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|tr|h[1-6]|li|table)>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&deg;/g, "°").replace(/&mdash;/g, "—")
+    .replace(/&middot;/g, "·").replace(/&rarr;/g, "→")
+    .replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string; messageId?: string; html?: string; recipientRejected?: boolean }> {
@@ -155,6 +173,8 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         ctaText: payload.ctaText,
         ctaUrl: payload.ctaUrl,
         isPlainText: payload.segmentFilters?.is_plain_text,
+        greeting: payload.greeting,
+        language: payload.language,
       };
       html = generateAtmosferiEmailHtml(emailData);
     } else if (payload.layoutType === "plain") {
@@ -179,6 +199,9 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       }));
     }
 
+    // Plain-text alternative: HTML-only mail scores worse with spam filters.
+    const text = htmlToText(html);
+
     let senderName = "Atmosferi";
     let senderEmail = "michal@atmosferi.com";
     if (payload.from) {
@@ -194,7 +217,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
     if (payload.provider === 'smtp') {
       const result = await sendViaSmtp({
         from: payload.from || `${senderName} <${senderEmail}>`,
-        to: payload.to, subject: payload.subject, html,
+        to: payload.to, subject: payload.subject, html, text,
         ...(payload.bcc ? { bcc: payload.bcc } : {}),
       });
       return { ...result, html };
@@ -209,6 +232,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         ...(payload.bcc ? { bcc: payload.bcc } : {}),
         subject: payload.subject,
         html: html,
+        text,
       });
       return { success: sesResult.success, error: sesResult.error, messageId: sesResult.messageId, html: html };
     }
@@ -226,6 +250,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         ...(payload.bcc ? { bcc: [{ email: payload.bcc }] } : {}),
         subject: payload.subject,
         htmlContent: html,
+        textContent: text,
       }),
     });
 

@@ -366,9 +366,14 @@ Deno.serve(async (req) => {
         to: email,
         subject: `[TEST] ${replaceVars(template.subject || template.name)}`,
         title: replaceVars(template.heading || template.title || template.name),
-        body: replaceVars(template.body || ""),
+        body: (() => {
+          const b = replaceVars(template.body || "");
+          const englishLike = !["cz", "cs", "sk", "de", "at", "ch"].includes(String(template.language || "cz").toLowerCase());
+          return (greeting === "none" || englishLike) ? b.charAt(0).toUpperCase() + b.slice(1) : b;
+        })(),
         emoji: template.emoji || "",
         greeting,
+        language: template.language || "cz",
         ctaText: replaceVars(template.cta_text || template.ctaText || "Zobrazit"),
         ctaUrl: ctaUrl,
         secondaryText: template.secondary_text ? replaceVars(template.secondary_text) : undefined,
