@@ -166,3 +166,100 @@ assert(locations.includes(uncertaintyUrl),'uncertainty: sitemap');
 assert(fs.readFileSync('architectural-design-options-rendering-comparison.html','utf8').includes('href="'+uncertaintyFile+'"'),'uncertainty: incoming link');
 for(const [,href] of uncertaintyHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'uncertainty: missing local link '+href);}
 console.log('Uncertainty register guide SEO, schema, links, viewport and sitemap checks passed.');
+
+
+// Property availability editorial guide: release metadata and discoverability.
+const availabilityFile='property-development-website-unit-availability-sync.html';
+const availabilityHtml=fs.readFileSync(availabilityFile,'utf8');
+const availabilityUrl=origin+'/'+availabilityFile;
+assert.match(availabilityHtml,/<html lang="en">/);
+assert.equal((availabilityHtml.match(/<h1[\s>]/g)||[]).length,1,'availability: one H1');
+assert(availabilityHtml.includes('<link rel="canonical" href="'+availabilityUrl+'">'),'availability: canonical');
+assert.match(availabilityHtml,/<meta name="robots" content="index, follow/);
+assert(availabilityHtml.includes('name="viewport"'),'availability: responsive viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(availabilityHtml.includes('href="assets/'+css+'.css"'),'availability: CSS '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title'])assert(availabilityHtml.includes(key),'availability: social '+key);
+const availabilitySchema=JSON.parse(availabilityHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(availabilitySchema['@graph'].some(item=>item['@type']===type),'availability: schema '+type);
+assert(availabilitySchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'&&item.mainEntityOfPage['@id']===availabilityUrl+'#webpage'),'availability: schema date and URL');
+assert(locations.includes(availabilityUrl),'availability: sitemap');
+assert(fs.readFileSync('interactive-floor-plans-property-development-website.html','utf8').includes('href="'+availabilityFile+'"'),'availability: incoming link');
+for(const [,href] of availabilityHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'availability: missing link '+href);}
+console.log('Apartment availability guide SEO, schema, links, viewport and sitemap checks passed.');
+
+
+const enquiryFile='property-development-website-enquiry-handoff.html';
+const enquiryHtml=fs.readFileSync(enquiryFile,'utf8');
+const enquiryUrl=origin+'/'+enquiryFile;
+assert.match(enquiryHtml,/<html lang="en">/,'enquiry: language');
+assert.equal((enquiryHtml.match(/<h1[\s>]/g)||[]).length,1,'enquiry: one H1');
+assert(enquiryHtml.includes('<link rel="canonical" href="'+enquiryUrl+'">'),'enquiry: canonical');
+assert.match(enquiryHtml,/<meta name="robots" content="index, follow/,'enquiry: indexable');
+assert(enquiryHtml.includes('name="viewport"'),'enquiry: viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(enquiryHtml.includes('href="assets/'+css+'.css"'),'enquiry: CSS '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title'])assert(enquiryHtml.includes(key),'enquiry: social '+key);
+const enquirySchema=JSON.parse(enquiryHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(enquirySchema['@graph'].some(item=>item['@type']===type),'enquiry: schema '+type);
+assert(enquirySchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'&&item.mainEntityOfPage['@id']===enquiryUrl+'#webpage'),'enquiry: schema date');
+assert(locations.includes(enquiryUrl),'enquiry: sitemap');
+assert(fs.readFileSync('interactive-floor-plans-property-development-website.html','utf8').includes('href="'+enquiryFile+'"'),'enquiry: incoming link');
+for(const [,href] of enquiryHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'enquiry: broken link '+href);}
+console.log('Enquiry handoff guide SEO, schema, links, viewport and sitemap checks passed.');
+
+
+// Architecture portfolio taxonomy: standalone editorial guide, not a generated service page.
+const taxonomyFile='architecture-portfolio-project-filters-taxonomy.html';
+const taxonomyHtml=fs.readFileSync(taxonomyFile,'utf8');
+const taxonomyUrl=origin+'/'+taxonomyFile;
+assert.match(taxonomyHtml,/<html lang="en">/,'taxonomy: language');
+assert.equal((taxonomyHtml.match(/<h1[\s>]/g)||[]).length,1,'taxonomy: one H1');
+assert(taxonomyHtml.includes('<link rel="canonical" href="'+taxonomyUrl+'">'),'taxonomy: canonical');
+assert.match(taxonomyHtml,/<meta name="robots" content="index, follow/,'taxonomy: indexable');
+assert(taxonomyHtml.includes('name="viewport"'),'taxonomy: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(taxonomyHtml.includes('href="assets/'+css+'.css"'),'taxonomy: CSS '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title','twitter:description'])assert(taxonomyHtml.includes(key),'taxonomy: social '+key);
+const taxonomySchema=JSON.parse(taxonomyHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(taxonomySchema['@graph'].some(item=>item['@type']===type),'taxonomy: schema '+type);
+assert(taxonomySchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'&&item.mainEntityOfPage['@id']===taxonomyUrl+'#webpage'),'taxonomy: schema date and URL');
+assert(locations.includes(taxonomyUrl),'taxonomy: sitemap');
+assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+taxonomyFile+'"'),'taxonomy: incoming link');
+for(const [,href] of taxonomyHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'taxonomy: missing local link '+href);}
+console.log('Portfolio taxonomy guide SEO, schema, links, viewport and sitemap checks passed.');
+
+// General architecture studio contact form guide: verify editorial metadata and discoverability.
+{
+ const file='architecture-studio-contact-form-deliverability-qa.html', html=fs.readFileSync(file,'utf8'), url=origin+'/'+file;
+ assert.match(html,/<html lang="en">/);
+ assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,file+': one H1');
+ assert(html.includes('<link rel="canonical" href="'+url+'">'),file+': canonical');
+ assert.match(html,/<meta name="robots" content="index, follow/);
+ assert(html.includes('name="viewport"'),file+': mobile viewport');
+ for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(html.includes('href="assets/'+css+'.css"'),file+': CSS '+css);
+ for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title'])assert(html.includes(key),file+': social '+key);
+ const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+ for(const type of ['Article','WebPage'])assert(graph.some(x=>x['@type']===type),file+': schema '+type);
+ assert(graph.some(x=>x['@type']==='Article'&&x.datePublished==='2026-11-20'&&x.mainEntityOfPage['@id']===url+'#webpage'),file+': date and entity');
+ assert(locations.includes(url),file+': sitemap');
+ assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+file+'"'),file+': incoming link');
+ for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),file+': broken local link '+href);}
+ console.log('Architecture studio contact form QA guide checks passed.');
+}
+
+
+const careersFile='architecture-studio-careers-page-job-posting-checklist.html';
+const careersHtml=fs.readFileSync(careersFile,'utf8');
+const careersUrl=origin+'/'+careersFile;
+assert.match(careersHtml,/<html lang="en">/,'careers: language');
+assert.equal((careersHtml.match(/<h1[\s>]/g)||[]).length,1,'careers: one H1');
+assert(careersHtml.includes('<link rel="canonical" href="'+careersUrl+'">'),'careers: canonical');
+assert.match(careersHtml,/<meta name="robots" content="index, follow/,'careers: robots');
+assert(careersHtml.includes('name="viewport"'),'careers: responsive viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(careersHtml.includes('href="assets/'+css+'.css"'),'careers: CSS '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title'])assert(careersHtml.includes(key),'careers: social '+key);
+const careersSchema=JSON.parse(careersHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(careersSchema['@graph'].some(item=>item['@type']===type),'careers: schema '+type);
+assert(careersSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'&&item.mainEntityOfPage['@id']===careersUrl+'#webpage'),'careers: schema date and URL');
+assert(locations.includes(careersUrl),'careers: sitemap');
+assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+careersFile+'"'),'careers: incoming link');
+for(const [,href] of careersHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'careers: missing link '+href);}
+console.log('Architecture careers guide metadata, schema, links, viewport and sitemap checks passed.');

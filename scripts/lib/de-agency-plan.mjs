@@ -3,13 +3,9 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { termsByKind } from './business-lead-taxonomy.mjs';
 
 export const workDir = fileURLToPath(new URL('../../artifacts/private/lead-finder/de-agencies/', import.meta.url));
-export const termsByKind = {
-  marketing: ['Marketingagentur', 'Online-Marketing-Agentur', 'Werbeagentur', 'Digitalagentur', 'SEO Agentur', 'Social Media Agentur', 'Kommunikationsagentur'],
-  architect: ['Architekturbüro', 'Architekten', 'Architektur Studio'],
-  developer: ['Immobilien Projektentwickler', 'Bauträger', 'Immobilienentwickler'],
-};
 export const states = ['Schleswig-Holstein', 'Hamburg', 'Niedersachsen', 'Bremen', 'Nordrhein-Westfalen', 'Hessen', 'Rheinland-Pfalz',
   'Baden-Württemberg', 'Bayern', 'Saarland', 'Berlin', 'Brandenburg', 'Mecklenburg-Vorpommern', 'Sachsen', 'Sachsen-Anhalt', 'Thüringen'];
 const kindNames = Object.keys(termsByKind);
@@ -17,9 +13,9 @@ const hour = 3_600_000;
 const now = () => Date.now();
 const label = (value) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
-export function openPlan() {
-  mkdirSync(workDir, { recursive: true });
-  const db = new DatabaseSync(join(workDir, 'plan.sqlite'));
+export function openPlan(filename = join(workDir, 'plan.sqlite')) {
+  if (filename !== ':memory:') mkdirSync(workDir, { recursive: true });
+  const db = new DatabaseSync(filename);
   db.exec(`
     PRAGMA busy_timeout=5000;
     PRAGMA journal_mode=WAL;
@@ -39,10 +35,21 @@ export function openPlan() {
     CREATE TABLE IF NOT EXISTS visited (
       kind TEXT NOT NULL, host TEXT NOT NULL, until INTEGER NOT NULL, PRIMARY KEY (kind, host)
     );
+    CREATE TABLE IF NOT EXISTS search_progress (
+      ags TEXT NOT NULL, kind TEXT NOT NULL, term TEXT NOT NULL, engine TEXT NOT NULL,
+      cursor TEXT, pages INTEGER NOT NULL, seen TEXT NOT NULL, PRIMARY KEY (ags, kind, term),
+      FOREIGN KEY (ags, kind, term) REFERENCES jobs(ags, kind, term)
+    );
     CREATE INDEX IF NOT EXISTS jobs_schedule ON jobs(kind, status, due);
     CREATE INDEX IF NOT EXISTS municipality_name ON municipalities(name);
     INSERT OR IGNORE INTO settings VALUES ('paused', 'false'), ('kinds', '["marketing"]');
   `);
+  const taxonomy = JSON.stringify(termsByKind);
+  if (readSetting(db, 'taxonomy') !== taxonomy) changes(db, () => {
+    const addTerm = db.prepare('insert or ignore into jobs (ags,kind,term) select ags,?,? from municipalities where active=1');
+    for (const [kind, terms] of Object.entries(termsByKind)) for (const term of terms) addTerm.run(kind, term);
+    writeSetting(db, 'taxonomy', taxonomy);
+  });
   return db;
 }
 
@@ -88,6 +95,8 @@ export function updateMunicipality(db, ags, input) {
       typeof input.priority === 'boolean' ? Number(input.priority) : current.priority, ags,
     );
     if (input.rescan === true) {
+      db.prepare(`delete from search_progress where ags=? and exists (select 1 from jobs j
+        where j.ags=search_progress.ags and j.kind=search_progress.kind and j.term=search_progress.term and j.status<>'running')`).run(ags);
       db.prepare(`update jobs set status='pending', due=0, failures=0, error=null, force=1
         where ags=? and status<>'running'`).run(ags);
     }
@@ -124,9 +133,13 @@ export function claimJobs(db, limit) {
     const timestamp = now();
     db.prepare("update jobs set status='retry', due=?, error='Předchozí běh se přerušil' where status='running' and started<?")
       .run(timestamp, timestamp - hour);
+    db.exec(`update jobs set status='pending', due=0
+      where status='done' and not exists (select 1 from search_progress p
+        where p.ags=jobs.ags and p.kind=jobs.kind and p.term=jobs.term)`);
     const pending = db.prepare(`select j.*, m.name, m.district, m.land,
+      p.engine as previous_engine, p.cursor as previous_cursor, p.pages as previous_pages, p.seen as previous_hosts,
       exists(select 1 from municipalities d where d.name=m.name and d.active=1 and d.ags<>m.ags) as ambiguous
-      from jobs j join municipalities m using (ags)
+      from jobs j join municipalities m using (ags) left join search_progress p using (ags, kind, term)
       where m.active=1 and m.enabled=1 and j.status<>'running' and j.due<=? and j.kind in (${state.kinds.map(() => '?')})
       order by m.priority desc, (j.status='done'), (j.status='retry'), m.population desc, j.ags, j.rowid limit ?`)
       .all(timestamp, ...state.kinds, limit);
@@ -142,17 +155,23 @@ export function visitedWebsite(db, job, host) {
 }
 
 export function finishJobs(db, jobs, visits) {
-  const finish = db.prepare(`update jobs set status=?, due=?, finished=?, failures=?, matches=?, fetched=?, contacts=?, error=?, force=0
+  const finish = db.prepare(`update jobs set status=?, due=?, finished=?, failures=?, matches=?, fetched=?, contacts=?, error=?, force=?
     where ags=? and kind=? and term=?`);
   const visit = db.prepare('insert into visited values (?,?,?) on conflict(kind,host) do update set until=excluded.until');
+  const progress = db.prepare(`insert into search_progress values (?,?,?,?,?,?,?) on conflict(ags,kind,term) do update
+    set engine=excluded.engine, cursor=excluded.cursor, pages=excluded.pages, seen=excluded.seen`);
   changes(db, () => {
     const timestamp = now();
     for (const entry of jobs) {
       const fails = entry.error ? entry.failures + 1 : 0;
       const retry = Math.min(24, 2 ** Math.min(fails, 5)) * hour / 2;
-      finish.run(entry.error ? 'retry' : 'done', timestamp + (entry.error ? retry : 30 * 24 * hour), timestamp,
-        fails, entry.matches?.size ?? 0, entry.fetched ?? 0, entry.contacts ?? 0, entry.error || null,
-        entry.ags, entry.kind, entry.term);
+      const page = entry.paging;
+      if (page) progress.run(entry.ags, entry.kind, entry.term, page.engine, page.cursor, page.number,
+        JSON.stringify(page.cursor ? [...entry.matches] : []));
+      const status = entry.error ? 'retry' : page?.cursor ? 'pending' : 'done';
+      const due = status === 'pending' ? 0 : timestamp + (entry.error ? retry : 30 * 24 * hour);
+      finish.run(status, due, timestamp, fails, entry.matches?.size ?? entry.matches, entry.fetched, entry.contacts,
+        entry.error || null, status === 'done' ? 0 : entry.force, entry.ags, entry.kind, entry.term);
     }
     for (const [kind, host, contact] of visits) visit.run(kind, host, timestamp + (contact ? 14 : 2) * 24 * hour);
     db.prepare('delete from visited where until < ?').run(timestamp);
@@ -181,8 +200,9 @@ export function snapshot(db, options = {}) {
     where m.active=1 and instr(m.search_name,?) > 0 and (?='' or m.land=?) and ${where}
     order by m.priority desc, (s.running>0) desc, m.population desc, m.name limit 25 offset ?`)
     .all(...state.kinds, label(filter), land, land, page * 25);
-  const activity = db.prepare(`select m.name, m.land, j.kind, j.term, j.status, j.started, j.finished, j.matches, j.fetched, j.contacts, j.error
-    from jobs j join municipalities m using (ags) where j.started is not null
+  const activity = db.prepare(`select m.name, m.land, j.kind, j.term, j.status, j.started, j.finished, j.matches, j.fetched, j.contacts, j.error,
+    coalesce(p.pages, 0) as pages, p.cursor is not null as more_pages
+    from jobs j join municipalities m using (ags) left join search_progress p using (ags, kind, term) where j.started is not null
     order by (j.status='running') desc, j.started desc limit 15`).all();
   return { ...state, counts, rows, page, activity };
 }

@@ -28,7 +28,8 @@ async function importActivity() {
     try {
       const rows = JSON.parse(await readFile(join(folders[status], name), 'utf8'));
       return { name, status, at: Number(name.split('-')[1]), count: rows.length,
-        companies: rows.map(({ company_name, city, website }) => ({ company: company_name, city, website })) };
+        companies: rows.map(({ company_name, city, website, notes }) => ({ company: company_name, city, website,
+          category: notes?.match(/^Obor: ([^\r\n]+)/m)?.[1], specialty: notes?.match(/^Specializace: ([^\r\n]+)/m)?.[1] })) };
     } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
   }));
   return { pending: pending.length, imported: imported.length, recent: recent.filter(Boolean) };

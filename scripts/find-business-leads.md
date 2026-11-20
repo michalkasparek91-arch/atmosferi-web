@@ -29,13 +29,26 @@ try {
 
 Přihlášení používá stávající účet správce a veřejný klíč adminu. Pro účet s MFA lze předat platný přístupový token v `LEAD_ADMIN_ACCESS_TOKEN`. CSV s e-maily lze také nahrát přes **Import CSV k prověření** v adminu.
 
+Obor určuje obor vyhledávacího dotazu. Firma se do sběru zařadí, když její vlastní web uvádí odpovídající činnost. Specializace se zapíše, když ji web potvrzuje. U cíleného dotazu bez potvrzené specializace zůstane poznámka **Specializace k ověření**. CSV a poznámka v adminu obsahují hledaný výraz. V Německu lze jednotlivý výraz ověřit například příkazem `node scripts/find-business-leads.mjs --countries DE --cities Berlin --types architect --term Innenarchitektur`.
+
+Přímé zpracování už připravené fronty používá stejné přihlášení správce a stejné ukládání do **K prověření**. Před přepnutím ověřte přístup příkazem `--check-direct` se stejnými přihlašovacími proměnnými jako u `--write-admin`.
+
+```powershell
+node scripts/lib/de-agency-background.mjs --check-direct
+node scripts/lib/de-agency-background.mjs --direct
+```
+
+Pro budoucí běh zcela bez Codexu lze druhý příkaz spouštět z Plánovače Windows s bezpečně poskytnutým přihlášením a po ověření přímého běhu vypnout dosavadní importní automatizaci. Dávka opustí frontu až po potvrzení zápisu Supabase.
+
 ## Zdroj vyhledávání
 
 Výchozí volba používá [Seznam](https://o-seznam.cz/napoveda/vyhledavani/prubeh-vyhledavani/). Po nastavení `SERPER_API_KEY` používá [Serper](https://serper.dev/) s parametrem země a jazyka. Zdroj lze zvolit ručně přes `--engine seznam`, `--engine serper` nebo `--engine bing`. Bing se čte přes RSS a při testu v Česku měl slabší relevanci.
 
 ## Automatický sběr německých marketingových agentur
 
-Úloha **Atmosferi - DE Marketing Agencies** v Plánovači Windows běží při přihlášení a pak každých 15 minut. Vybírá až šest čekajících kombinací obec, obor a hledaný výraz. Kontroluje nejvýše 120 webů na dávku a současně čte až osm různých webů. Prochází všechny politicky samostatné obce z registru [Destatis GV100AD](https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html). Marketing má sedm různých dotazů na obec. Na začátku bere větší města, ručně lze obec posunout dopředu. Neúspěšný dotaz se zopakuje a dokončený se znovu naplánuje po 30 dnech. Počet nalezených firem závisí na veřejných výsledcích vyhledávače a obsahu firemních webů.
+Úloha **Atmosferi - DE Marketing Agencies** v Plánovači Windows běží při přihlášení a pak každých 15 minut. Vybírá až šest čekajících kombinací obec, obor a hledaný výraz. U každé zpracuje jednu stránku výsledků, takže přechodem na další stránky nepřekročí šest vyhledávacích požadavků za běh. Kontroluje nejvýše 120 webů na dávku a současně čte až osm různých webů. Prochází všechny politicky samostatné obce z registru [Destatis GV100AD](https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html). Marketing má sedm různých dotazů na obec. Na začátku bere větší města, ručně lze obec posunout dopředu.
+
+Seznam předává vlastní odkaz na další stránku. Skript ho uloží a v některém z dalších běhů na něj naváže. Dotaz označí jako dokončený, až zdroj další stránku nenabídne nebo vyčerpá podporovaný rozsah. Chyby se znovu zkusí na stejné stránce. Bing a Serper používají číslované stránky a končí při vyčerpání výsledků, opakování domén nebo po 100 stranách. Dokončený dotaz se po 30 dnech znovu zařadí do plánu. Počet nalezených firem závisí na dosahu vyhledávače a na veřejně dostupném obsahu firemních webů.
 
 Stav a nastavení jsou na [místním panelu](http://127.0.0.1:4317/). Lze měnit obory, pozastavit sběr, vyhledat obec, změnit její prioritu nebo ji zařadit k nové kontrole. Panel ukazuje aktivní a dokončené dotazy, frontu importu, nedávné dávky a exporty CSV.
 

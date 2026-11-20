@@ -3,6 +3,7 @@ import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { BlockList, isIP } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { classifyLeadTerm } from './business-lead-taxonomy.mjs';
 
 const agent = 'AtmosferiLeadFinder';
 const blocked = new BlockList();
@@ -18,6 +19,7 @@ const ignoredDomains = new Set([
   'developerske-projekty.cz', 'developerske-projekty-praha.cz', 'rightmove.co.uk',
   'agenturtipp.de', 'omr.com', 'influencermarketinghub.com', 'werkenntdenbesten.de', '11880.com', 'gelbeseiten.de',
   'dastelefonbuch.de', 'agenturmatching.de', 'agentur.de', 'agentur-matching.de',
+  'fiabci.de', 'fiabci.org',
 ]);
 
 export function websiteUrl(value, base) {
@@ -67,6 +69,23 @@ export function seznamResults(html) {
     results.push({ url: link.href, title: plain(label) });
   }
   return results;
+}
+
+export function seznamNextPage(html, currentUrl) {
+  const current = new URL(currentUrl);
+  const start = Number(current.searchParams.get('from') ?? 0);
+  for (const [tag] of html.matchAll(/<a\b[^>]*\bdata-e-a\s*=\s*["']next["'][^>]*>/gi)) {
+    const href = attrs(tag).href;
+    if (!href) continue;
+    let next;
+    try { next = new URL(href, current); } catch { continue; }
+    const offset = Number(next.searchParams.get('from'));
+    if (next.origin === 'https://search.seznam.cz' && next.pathname === '/' && !next.username && !next.password &&
+        next.searchParams.get('q') === current.searchParams.get('q') && Number.isInteger(offset) && offset > start && offset <= 1000) {
+      return next.href;
+    }
+  }
+  return null;
 }
 
 // Resolve and pin the address for each request, including redirects from unknown sites.
@@ -172,13 +191,9 @@ const emailPattern = /[a-z\d.!#$%&'*+/=?^_`{|}~-]+@[a-z\d-]+(?:\.[a-z\d-]+)*\.[a
 const roleEmail = /^(?:info|kontakt|contact|office|hello|ahoj|studio|team|recepce|reception|mail|enquiry|enquiries|sales|obchod|poptavky)(?:[.\d+_-]|@)/;
 const emailServices = /^(?:gmail\.com|seznam\.cz|email\.cz|outlook\.com|gmx\.(?:at|de|ch|net)|web\.de|icloud\.com|centrum\.(?:cz|sk)|post\.cz|azet\.sk|wp\.pl|onet\.pl)$/;
 const contactPage = /(?:kontakt|contact|impressum|about|o-nas|o_nas|kapcsolat|contatti|over-ons|nous-joindre)/i;
+const companyPage = /(?:^|\/)(?:leistungen|services|uber-uns|ueber-uns|unternehmen|profil|about(?:-us)?|agentur|studio)(?:\/|$)/i;
+const nonCompanyIdentity = /(?:internationaler|deutscher|europaischer) verband der|(?:international|european|german) (?:federation|association) of|\bbranchen(?:buch|verzeichnis)\b|\b(?:directory|Verzeichnis) (?:of|fur|der)\b/i;
 const phoneLabel = /(?:telefon|phone|téléphone|tel(?:\.|\s*:)|mobil(?:e|ní)?)[\s:]*((?:\+|00)?\d[\d().\-\s]{6,24}\d)/giu;
-const fieldPattern = {
-  marketing: /market(?:ing|eer)|reklam|werbeagentur|publicite|agenc.{0,14}digital|kommunikationsagentur|komunikacn.{0,5}agentur|ppc|seo/i,
-  architect: /architekt|architect|arkitekt|epitesz|urbanism|urbanist/i,
-  developer: /develop(?:er|ment|mento)|dewelop|projektentwickl|bautrager|promot(?:eur|ion) immobilier|ingatlanfejleszt|rezidencni projekt|residential projects/i,
-};
-const germanMarketing = /(?:marketing|werbe|digital|performance|seo|kreativ|kommunikations|branding|social.media|advertising|creative|pr)[ -]*(?:agentur|agency)|(?:agentur|agency).{0,40}(?:marketing|werbung|webdesign|kommunikation|branding|seo)/i;
 const cityAliases = {
   Praha: ['Praze', 'Prague'], Plzeň: ['Plzni', 'Pilsen'], Bratislava: ['Bratislave'], Košice: ['Košiciach'],
   Wien: ['Vienna', 'Vídeň'], München: ['Munich'], Zürich: ['Zurich'], Warszawa: ['Warsaw'],
@@ -213,6 +228,9 @@ export function readContact(html, url) {
     }
   }
   const text = plain(textHtml);
+  const headings = [...textHtml.matchAll(/<(title|h1|h2)\b[^>]*>([\s\S]*?)<\/\1>/gi)].map(([, , heading]) => plain(heading));
+  const descriptions = meta.filter((entry) => ['description', 'og:description', 'og:title', 'og:site_name'].includes(entry.name || entry.property))
+    .map((entry) => entry.content);
   collectEmails(text, false);
   const phones = [];
   for (const { href } of links) {
@@ -229,6 +247,8 @@ export function readContact(html, url) {
   return {
     name: plain(name).slice(0, 160),
     evidence: `${url.hostname} ${text.slice(0, 45_000)}`,
+    identity: [name, ...descriptions, ...headings.slice(0, 3)].filter(Boolean).join('\n'),
+    services: [...descriptions, ...headings, ...text.matchAll(/\b(?:wir sind|wir entwickeln|we are|we develop|jsme|entwickeln wir)\b[^.!?]{0,160}/gi)].map(String).join('\n'),
     email: [...emails].sort((a, b) => b[1] - a[1])[0] ?? ['', 0],
     phone: phones.map(cleanPhone).find(Boolean) ?? '',
     contactLinks,
@@ -251,9 +271,14 @@ export async function findSiteContact(candidate) {
   let name = '';
   let email, phone;
   let evidence = '';
+  let services = '';
+  let identity = '';
   function inspect(page) {
     const details = readContact(page.body, page.url);
     evidence += ` ${folded(details.evidence)}`;
+    if (page.url.href === homepage?.url.href || page.url.pathname === '/') identity = details.identity;
+    if (page.url.href === homepage?.url.href || page.url.pathname === '/' ||
+        contactPage.test(page.url.pathname) || companyPage.test(folded(page.url.pathname))) services += `\n${details.services}`;
     name ||= details.name;
     if (details.email[0] && (!email || details.email[1] > email.score)) {
       email = { value: details.email[0], score: details.email[1], source: page.url.href };
@@ -269,20 +294,22 @@ export async function findSiteContact(candidate) {
     targets.set(url.href, url);
   }
   for (const url of [...targets.values()].filter((link) => !pages.has(link.href)).slice(0, 4)) {
-    if (email?.score >= 12 && phone && (!candidate.job || cityMatch.test(evidence))) break;
+    if (email?.score >= 12 && phone && (!candidate.job || cityMatch.test(evidence)) &&
+        classifyLeadTerm(candidate.type, candidate.searchTerm, services)) break;
     const page = await readPage(url, robots);
     if (page?.body) inspect(page);
   }
   if (!email && !phone) return null;
+  if (nonCompanyIdentity.test(folded(identity))) return null;
   const official = [...pages.values()][0]?.url ?? home;
   const germanAgency = candidate.country === 'DE' && candidate.type === 'marketing';
-  const industry = germanAgency ? germanMarketing : fieldPattern[candidate.type];
-  if (!industry.test(`${folded(`${candidate.title} ${candidate.snippet ?? ''}`)} ${evidence}`)) return null;
+  const category = classifyLeadTerm(candidate.type, candidate.searchTerm, services);
+  if (!category) return null;
   const city = cityMatch.test(evidence) ? candidate.targetCity : '';
   const localDomain = hostKey(official).endsWith(`.${candidate.country.toLowerCase()}`);
   if (!city && (candidate.job || !localDomain)) return null;
   if (germanAgency && !localDomain && !phone?.value.startsWith('+49') &&
       !new RegExp(`\\b\\d{5}\\s+(?:${locality})(?![a-z])`).test(evidence)) return null;
   if (germanAgency && phone?.value.startsWith('0')) phone.value = `+49${phone.value.replace(/\D/g, '').slice(1)}`;
-  return { ...candidate, city, website: official.origin, company: name || candidate.title.slice(0, 160) || hostKey(official), email, phone };
+  return { ...candidate, city, category, website: official.origin, company: name || candidate.title.slice(0, 160) || hostKey(official), email, phone };
 }
