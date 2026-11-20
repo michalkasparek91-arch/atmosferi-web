@@ -44,3 +44,7 @@ scripts/update-seo-index.mjs maintains the language footer and sitemap. Review i
 
 Reference: https://developers.google.com/search/docs/specialty/international/localized-versions
 Reference: https://developers.google.com/search/docs/essentials/spam-policies#doorway-abuse
+
+## Homepage footer (new Fabrica design)
+
+The language switch lives only in the header (CZ / EN / DE, same page). The homepage footer must not show a list of language names (English / Česky / Deutsch / Norsk): visitors read it as a language switch and get taken away from the homepage. The crawlable links to the translated "websites for architects" pages stay in the footer column "Guides for architects", labelled with each page's own title (Websites for architects, Weby pro architekty, Webdesign für Architekten, Nettsider for arkitekter) and marked `data-no-i18n`.

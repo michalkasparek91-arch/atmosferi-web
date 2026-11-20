@@ -8,7 +8,9 @@
    =========================================================================== */
 (function () {
   "use strict";
-  var LANGS = ["en", "de", "cs"];
+  // Pages list the languages they are translated into: <html data-i18n-langs="en,de,cs,fr">.
+  var LANGS = (document.documentElement.getAttribute("data-i18n-langs") || "en,de,cs")
+    .toLowerCase().split(",").map(function (l) { return l.trim(); }).filter(Boolean);
   var KEY = "atmosferi-lang";
   var DICT = window.I18N_DICT || { de: {}, cs: {} };
   var SKIP = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, CODE: 1, PRE: 1 };
@@ -79,8 +81,8 @@
       "@media(max-width:720px){.i18nsw{margin-left:10px;}}";
     document.head.appendChild(s);
   }
-  var I18N_LABELS = { en: "EN", de: "DE", cs: "CZ" };
-  var I18N_FULL = { en: "English", de: "Deutsch", cs: "\u010ce\u0161tina" };
+  var I18N_LABELS = { en: "EN", de: "DE", cs: "CZ", fr: "FR" };
+  var I18N_FULL = { en: "English", de: "Deutsch", cs: "\u010ce\u0161tina", fr: "Fran\u00e7ais" };
   function makeSwitcher() {
     var el = document.createElement("div");
     el.className = "i18nsw";
@@ -169,7 +171,7 @@
     try {
       var qs = new URLSearchParams(window.location.search);
       urlLang = qs.get("lang");
-      if (!urlLang && /^#(en|de|cs)$/.test(window.location.hash)) urlLang = window.location.hash.slice(1);
+      if (!urlLang && /^#(en|de|cs|fr)$/.test(window.location.hash)) urlLang = window.location.hash.slice(1);
     } catch (e) {}
     if (urlLang && LANGS.indexOf(urlLang) >= 0) saved = urlLang;
     setLang(saved);
