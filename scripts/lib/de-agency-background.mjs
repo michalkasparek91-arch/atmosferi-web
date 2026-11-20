@@ -6,7 +6,7 @@ import { openAdminImporter } from './business-lead-admin.mjs';
 const pending = join(workDir, 'pending');
 const imported = join(workDir, 'imported');
 const importSize = 20;
-const searchBudget = 6;
+export const backgroundSearchBudget = 6;
 const batchPattern = /^batch-\d{13}-\d+-\d{2}\.json$/;
 
 async function writeJson(path, data) {
@@ -15,7 +15,7 @@ async function writeJson(path, data) {
   await rename(temporary, path);
 }
 
-export async function openBackgroundRun() {
+export async function openBackgroundRun(searchBudget = backgroundSearchBudget) {
   await mkdir(pending, { recursive: true });
   const db = openPlan();
   const settings = control(db);

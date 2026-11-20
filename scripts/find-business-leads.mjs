@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { bingResults, findSiteContact, hostKey, seznamNextPage, seznamResults, websiteUrl } from './lib/business-lead-web.mjs';
-import { drainDirectQueue, openBackgroundRun } from './lib/de-agency-background.mjs';
+import { backgroundSearchBudget, drainDirectQueue, openBackgroundRun } from './lib/de-agency-background.mjs';
 import { openAdminImporter } from './lib/business-lead-admin.mjs';
 import { leadKinds as types, termsByKind } from './lib/business-lead-taxonomy.mjs';
 
@@ -158,14 +158,23 @@ async function main() {
     term: { type: 'string' },
   } });
   if (values.help) { console.log(help); return; }
-  const background = values['background-de-agencies'] ? await openBackgroundRun() : null;
-  if (background?.waiting) {
-    await importAfterCollection();
-    return;
+  if (!values['background-de-agencies']) return collect(values);
+
+  let remainingSearches = backgroundSearchBudget;
+  let remainingSites = 120;
+  while (remainingSearches > 0 && remainingSites >= 20) {
+    const available = Math.min(remainingSearches, Math.floor(remainingSites / 20));
+    const background = await openBackgroundRun(available);
+    if (background.waiting) break;
+    const batch = await collect({ ...values, countries: 'DE', cities: undefined, limit: String(remainingSites) }, background);
+    remainingSearches -= batch.requests;
+    remainingSites -= batch.sites;
+    if (batch.unresolvedError || !batch.requests) break;
   }
-  if (background) {
-    Object.assign(values, { countries: 'DE', cities: undefined, limit: '120' });
-  }
+  await importAfterCollection();
+}
+
+async function collect(values, background = null) {
   const countries = list(values.countries, (value) => value.toUpperCase());
   const selectedTypes = list(values.types, (value) => value.toLowerCase());
   const cities = values.cities === undefined ? null : list(values.cities);
@@ -309,12 +318,12 @@ async function main() {
   if (failures) console.warn(`Selhalo ${failures} z ${requests} požadavků na vyhledávač.`);
   if (background) {
     await background.save(contacts.filter((lead) => lead.email).map((lead) => adminRow(lead, engine)));
-    await importAfterCollection();
   }
   if (values['write-admin'] && withEmail) {
     const inserted = await saveToAdmin(contacts, engine);
     console.log(`Agentury · akvizice → K prověření: ${inserted} nových kontaktů, ${withEmail - inserted} duplicit.`);
   }
+  return { requests, sites: sites.length, unresolvedError: Boolean(background?.jobs.some((job) => job.error)) };
 }
 
 async function importAfterCollection() {
