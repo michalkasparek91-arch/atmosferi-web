@@ -303,3 +303,22 @@ assert(locations.includes(embeddedMapUrl),'embedded map: sitemap');
 assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+embeddedMapFile+'"'),'embedded map: incoming link');
 for(const [,href] of embeddedMapHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'embedded map: missing local link '+href);}
 console.log('Embedded map guide metadata, schema, incoming links, mobile viewport and sitemap checks passed.');
+
+
+const projectSchemaFile='architecture-project-website-structured-data-qa.html';
+const projectSchemaHtml=fs.readFileSync(projectSchemaFile,'utf8');
+const projectSchemaUrl=origin+'/'+projectSchemaFile;
+assert.match(projectSchemaHtml,/<html lang="en">/,'project schema: language');
+assert.equal((projectSchemaHtml.match(/<h1[\\s>]/g)||[]).length,1,'project schema: one H1');
+assert(projectSchemaHtml.includes('<link rel="canonical" href="'+projectSchemaUrl+'">'),'project schema: canonical');
+assert.match(projectSchemaHtml,/<meta name="robots" content="index, follow/,'project schema: indexable');
+assert(projectSchemaHtml.includes('name="viewport"'),'project schema: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(projectSchemaHtml.includes('href="assets/'+css+'.css"'),'project schema: stylesheet '+css);
+for(const key of ['og:title','og:url','twitter:card'])assert(projectSchemaHtml.includes(key),'project schema: social '+key);
+const projectSchemaGraph=JSON.parse(projectSchemaHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1])['@graph'];
+for(const type of ['Article','WebPage'])assert(projectSchemaGraph.some(item=>item['@type']===type),'project schema: schema '+type);
+assert(projectSchemaGraph.some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-21'),'project schema: date');
+assert(locations.includes(projectSchemaUrl),'project schema: sitemap');
+assert(fs.readFileSync('prepare-architecture-projects-for-website.html','utf8').includes('href="'+projectSchemaFile+'"'),'project schema: incoming link');
+for(const [,href] of projectSchemaHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\\//,'')),'project schema: missing local link '+href);}
+console.log('Architecture project structured data guide SEO, schema, links, viewport and sitemap checks passed.');
