@@ -205,3 +205,23 @@ assert(locations.includes(enquiryUrl),'enquiry: sitemap');
 assert(fs.readFileSync('interactive-floor-plans-property-development-website.html','utf8').includes('href="'+enquiryFile+'"'),'enquiry: incoming link');
 for(const [,href] of enquiryHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'enquiry: broken link '+href);}
 console.log('Enquiry handoff guide SEO, schema, links, viewport and sitemap checks passed.');
+
+
+// Architecture portfolio taxonomy: standalone editorial guide, not a generated service page.
+const taxonomyFile='architecture-portfolio-project-filters-taxonomy.html';
+const taxonomyHtml=fs.readFileSync(taxonomyFile,'utf8');
+const taxonomyUrl=origin+'/'+taxonomyFile;
+assert.match(taxonomyHtml,/<html lang="en">/,'taxonomy: language');
+assert.equal((taxonomyHtml.match(/<h1[\s>]/g)||[]).length,1,'taxonomy: one H1');
+assert(taxonomyHtml.includes('<link rel="canonical" href="'+taxonomyUrl+'">'),'taxonomy: canonical');
+assert.match(taxonomyHtml,/<meta name="robots" content="index, follow/,'taxonomy: indexable');
+assert(taxonomyHtml.includes('name="viewport"'),'taxonomy: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(taxonomyHtml.includes('href="assets/'+css+'.css"'),'taxonomy: CSS '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title','twitter:description'])assert(taxonomyHtml.includes(key),'taxonomy: social '+key);
+const taxonomySchema=JSON.parse(taxonomyHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(taxonomySchema['@graph'].some(item=>item['@type']===type),'taxonomy: schema '+type);
+assert(taxonomySchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'&&item.mainEntityOfPage['@id']===taxonomyUrl+'#webpage'),'taxonomy: schema date and URL');
+assert(locations.includes(taxonomyUrl),'taxonomy: sitemap');
+assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+taxonomyFile+'"'),'taxonomy: incoming link');
+for(const [,href] of taxonomyHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'taxonomy: missing local link '+href);}
+console.log('Portfolio taxonomy guide SEO, schema, links, viewport and sitemap checks passed.');
