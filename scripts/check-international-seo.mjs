@@ -284,3 +284,22 @@ console.log('Architecture careers guide metadata, schema, links, viewport and si
  for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),file+': missing local link '+href);}
  console.log('Architectural film playback guide SEO, schema, links and sitemap checks passed.');
 }
+
+
+const embeddedMapFile='architecture-website-embedded-maps-privacy-consent.html';
+const embeddedMapHtml=fs.readFileSync(embeddedMapFile,'utf8');
+const embeddedMapUrl=origin+'/'+embeddedMapFile;
+assert.match(embeddedMapHtml,/<html lang="en">/,'embedded map: language');
+assert.equal((embeddedMapHtml.match(/<h1[\s>]/g)||[]).length,1,'embedded map: one H1');
+assert(embeddedMapHtml.includes('<link rel="canonical" href="'+embeddedMapUrl+'">'),'embedded map: canonical');
+assert.match(embeddedMapHtml,/<meta name="robots" content="index, follow/,'embedded map: robots');
+assert(embeddedMapHtml.includes('name="viewport"'),'embedded map: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(embeddedMapHtml.includes('href="assets/'+css+'.css"'),'embedded map: CSS '+css);
+for(const key of ['og:title','og:url','og:description','twitter:card','twitter:title'])assert(embeddedMapHtml.includes(key),'embedded map: social '+key);
+const embeddedMapSchema=JSON.parse(embeddedMapHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(embeddedMapSchema['@graph'].some(item=>item['@type']===type),'embedded map: schema '+type);
+assert(embeddedMapSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'),'embedded map: date');
+assert(locations.includes(embeddedMapUrl),'embedded map: sitemap');
+assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+embeddedMapFile+'"'),'embedded map: incoming link');
+for(const [,href] of embeddedMapHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'embedded map: missing local link '+href);}
+console.log('Embedded map guide metadata, schema, incoming links, mobile viewport and sitemap checks passed.');
