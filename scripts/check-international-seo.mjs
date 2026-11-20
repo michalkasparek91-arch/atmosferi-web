@@ -244,3 +244,22 @@ console.log('Portfolio taxonomy guide SEO, schema, links, viewport and sitemap c
  for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),file+': broken local link '+href);}
  console.log('Architecture studio contact form QA guide checks passed.');
 }
+
+
+const careersFile='architecture-studio-careers-page-job-posting-checklist.html';
+const careersHtml=fs.readFileSync(careersFile,'utf8');
+const careersUrl=origin+'/'+careersFile;
+assert.match(careersHtml,/<html lang="en">/,'careers: language');
+assert.equal((careersHtml.match(/<h1[\\s>]/g)||[]).length,1,'careers: one H1');
+assert(careersHtml.includes('<link rel="canonical" href="'+careersUrl+'">'),'careers: canonical');
+assert.match(careersHtml,/<meta name="robots" content="index, follow/,'careers: robots');
+assert(careersHtml.includes('name="viewport"'),'careers: responsive viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(careersHtml.includes('href="assets/'+css+'.css"'),'careers: CSS '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title'])assert(careersHtml.includes(key),'careers: social '+key);
+const careersSchema=JSON.parse(careersHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(careersSchema['@graph'].some(item=>item['@type']===type),'careers: schema '+type);
+assert(careersSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'&&item.mainEntityOfPage['@id']===careersUrl+'#webpage'),'careers: schema date and URL');
+assert(locations.includes(careersUrl),'careers: sitemap');
+assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+careersFile+'"'),'careers: incoming link');
+for(const [,href] of careersHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'careers: missing link '+href);}
+console.log('Architecture careers guide metadata, schema, links, viewport and sitemap checks passed.');
