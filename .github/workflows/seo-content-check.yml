@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['jak-merit-poptavky-z-webu-architektonickeho-atelieru.html', 'cs', 'struktura-webu-architektonickeho-atelieru.html', '2026-11-20'],
             ['architektonicka-vizualizace-bez-3d-modelu.html', 'cs', 'bim-cad-handover-architectural-visualisation.html', '2026-11-19'],
             ['external-stair-drainage-slip-resistant-nosing-rendering-review.html', 'en', 'staircase-tread-riser-geometry-rendering-review.html', '2026-11-17'],
             ['parking-garage-headroom-clearance-signage-rendering-review.html', 'en', 'underground-parking-ramp-architectural-rendering-review.html', '2026-11-17'],
@@ -447,6 +448,20 @@ jobs:
               assert(h.includes('bim-cad-handover-architectural-visualisation.html'), path + ': related BIM guide');
               const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
               assert(css.includes('max-width:850px') && css.includes('max-width:520px'), path + ': mobile breakpoints');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
+            }
+            if (path === 'jak-merit-poptavky-z-webu-architektonickeho-atelieru.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive article layout');
+              assert(h.includes('assets/seo-guides.css'), path + ': responsive guide stylesheet');
+              assert(h.split('<section id="').length - 1 === 10, path + ': 10 substantive sections');
+              assert(h.split('<a href="#').length - 1 === 10, path + ': table of contents');
+              assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': responsive accessible tables');
+              assert(h.includes('Fiktivní struktura evidence') && h.includes('zcela fiktivní ilustrace'), path + ': invented examples labelled');
+              assert(h.includes('support.google.com/analytics/answer/9267735'), path + ': source on GA4 events');
+              assert(h.includes('architecture-studio-contact-form-deliverability-qa.html'), path + ': related delivery article');
+              const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
+              assert(css.includes('max-width:850px') && css.includes('max-width:520px'), path + ': responsive CSS breakpoints');
               assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
               assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
             }
