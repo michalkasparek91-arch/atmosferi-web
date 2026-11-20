@@ -166,3 +166,23 @@ assert(locations.includes(uncertaintyUrl),'uncertainty: sitemap');
 assert(fs.readFileSync('architectural-design-options-rendering-comparison.html','utf8').includes('href="'+uncertaintyFile+'"'),'uncertainty: incoming link');
 for(const [,href] of uncertaintyHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'uncertainty: missing local link '+href);}
 console.log('Uncertainty register guide SEO, schema, links, viewport and sitemap checks passed.');
+
+
+// Property availability editorial guide: release metadata and discoverability.
+const availabilityFile='property-development-website-unit-availability-sync.html';
+const availabilityHtml=fs.readFileSync(availabilityFile,'utf8');
+const availabilityUrl=origin+'/'+availabilityFile;
+assert.match(availabilityHtml,/<html lang="en">/);
+assert.equal((availabilityHtml.match(/<h1[\s>]/g)||[]).length,1,'availability: one H1');
+assert(availabilityHtml.includes('<link rel="canonical" href="'+availabilityUrl+'">'),'availability: canonical');
+assert.match(availabilityHtml,/<meta name="robots" content="index, follow/);
+assert(availabilityHtml.includes('name="viewport"'),'availability: responsive viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(availabilityHtml.includes('href="assets/'+css+'.css"'),'availability: CSS '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title'])assert(availabilityHtml.includes(key),'availability: social '+key);
+const availabilitySchema=JSON.parse(availabilityHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(availabilitySchema['@graph'].some(item=>item['@type']===type),'availability: schema '+type);
+assert(availabilitySchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'&&item.mainEntityOfPage['@id']===availabilityUrl+'#webpage'),'availability: schema date and URL');
+assert(locations.includes(availabilityUrl),'availability: sitemap');
+assert(fs.readFileSync('interactive-floor-plans-property-development-website.html','utf8').includes('href="'+availabilityFile+'"'),'availability: incoming link');
+for(const [,href] of availabilityHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'availability: missing link '+href);}
+console.log('Apartment availability guide SEO, schema, links, viewport and sitemap checks passed.');
