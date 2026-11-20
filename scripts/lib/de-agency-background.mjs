@@ -1,11 +1,12 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { claimJobs, control, finishJobs, openPlan, visitedWebsite, workDir } from './de-agency-plan.mjs';
+import { claimJobs, control, currentMunicipality, finishJobs, openPlan, visitedWebsite, workDir } from './de-agency-plan.mjs';
 import { openAdminImporter } from './business-lead-admin.mjs';
 
 const pending = join(workDir, 'pending');
 const imported = join(workDir, 'imported');
 const importSize = 20;
+const searchBudget = 6;
 const batchPattern = /^batch-\d{13}-\d+-\d{2}\.json$/;
 
 async function writeJson(path, data) {
@@ -18,15 +19,22 @@ export async function openBackgroundRun() {
   await mkdir(pending, { recursive: true });
   const db = openPlan();
   const settings = control(db);
-  const jobs = claimJobs(db, 6);
+  const jobs = claimJobs(db, searchBudget);
   if (!jobs.length) {
+    const current = currentMunicipality(db, settings.kinds);
     db.close();
-    console.log(!settings.registry ? 'Čekám na načtení registru Destatis.' : settings.paused ? 'Sběr je pozastavený.' : 'Žádné splatné dotazy.');
+    if (!settings.registry) console.log('Čekám na načtení registru Destatis.');
+    else if (settings.paused) console.log('Sběr je pozastavený.');
+    else if (current?.running) console.log(`${current.name} · předchozí dávka stále běží.`);
+    else if (current?.retry_at && !current.ready) console.log(`${current.name} · čekám na opakování dotazu od ${new Date(current.retry_at).toISOString()}.`);
+    else console.log('Žádné splatné dotazy.');
     return { waiting: true };
   }
+  console.log(`Obec: ${jobs[0].name} (${jobs[0].ags}) · dotazů v dávce: ${jobs.length}.`);
   const visits = [];
   return {
     jobs,
+    searchBudget,
     visited: (job, host) => visitedWebsite(db, job, host),
     visit(job, host, lead) {
       job.fetched = (job.fetched ?? 0) + 1;

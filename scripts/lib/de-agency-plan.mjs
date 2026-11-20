@@ -78,6 +78,17 @@ export function control(db) {
   return { paused: readSetting(db, 'paused'), kinds: readSetting(db, 'kinds'), registry: readSetting(db, 'registry') };
 }
 
+export function currentMunicipality(db, kinds = control(db).kinds, timestamp = now()) {
+  const ags = readSetting(db, 'current_municipality');
+  if (!ags) return null;
+  return db.prepare(`select m.ags, m.name, count(*) as total, sum(j.status='done' and j.due>?) as done,
+    sum(j.status='running') as running, sum(j.status<>'running' and j.due<=?) as ready,
+    min(case when j.status='retry' then j.due end) as retry_at
+    from municipalities m join jobs j using (ags)
+    where m.ags=? and m.active=1 and m.enabled=1 and j.kind in (${kinds.map(() => '?')})
+    group by m.ags having total>done`).get(timestamp, timestamp, ags, ...kinds) ?? null;
+}
+
 export function updateControl(db, input) {
   if (typeof input.paused === 'boolean') writeSetting(db, 'paused', input.paused);
   if (Array.isArray(input.kinds) && input.kinds.length && input.kinds.every((kind) => kindNames.includes(kind))) {
@@ -127,25 +138,31 @@ export function saveRegistry(db, data) {
 }
 
 export function claimJobs(db, limit) {
-  const state = control(db);
-  if (!state.registry || state.paused) return [];
   return changes(db, () => {
+    const state = control(db);
+    if (!state.registry || state.paused) return [];
     const timestamp = now();
     db.prepare("update jobs set status='retry', due=?, error='Předchozí běh se přerušil' where status='running' and started<?")
       .run(timestamp, timestamp - hour);
+    if (db.prepare("select 1 from jobs where status='running' limit 1").get()) return [];
     db.exec(`update jobs set status='pending', due=0
       where status='done' and not exists (select 1 from search_progress p
-        where p.ags=jobs.ags and p.kind=jobs.kind and p.term=jobs.term)`);
+        where p.ags=jobs.ags and p.kind=jobs.kind and p.term=jobs.term and p.cursor is null)`);
+    const eligible = state.kinds.map(() => '?').join(',');
+    const current = currentMunicipality(db, state.kinds, timestamp);
+    const nextCity = current?.ags ?? db.prepare(`select m.ags from municipalities m join jobs j using (ags)
+      where m.active=1 and m.enabled=1 and j.due<=? and j.kind in (${eligible})
+      order by m.priority desc, j.force desc, (j.status='done'), m.population desc, m.ags limit 1`)
+      .get(timestamp, ...state.kinds)?.ags;
+    if (!nextCity) return [];
+    if (!current) writeSetting(db, 'current_municipality', nextCity);
     const pending = db.prepare(`select j.*, m.name, m.district, m.land,
       p.engine as previous_engine, p.cursor as previous_cursor, p.pages as previous_pages, p.seen as previous_hosts,
       exists(select 1 from municipalities d where d.name=m.name and d.active=1 and d.ags<>m.ags) as ambiguous
       from jobs j join municipalities m using (ags) left join search_progress p using (ags, kind, term)
-      where m.active=1 and m.enabled=1 and j.status<>'running' and j.due<=? and j.kind in (${state.kinds.map(() => '?')})
-      order by m.priority desc, j.force desc, (j.status='done'), (j.status='retry'),
-        cast(max(m.population,1) as real) /
-          ((1 + coalesce(p.pages,0)) * (1 + coalesce(p.pages,0))) desc,
-        m.population desc, j.ags, j.rowid limit ?`)
-      .all(timestamp, ...state.kinds, limit);
+      where j.ags=? and j.due<=? and j.kind in (${eligible})
+      order by j.force desc, (j.status='done'), (j.status='retry'), coalesce(p.pages,0), j.rowid limit ?`)
+      .all(nextCity, timestamp, ...state.kinds, limit);
     const mark = db.prepare("update jobs set status='running', started=? where ags=? and kind=? and term=?");
     for (const job of pending) mark.run(timestamp, job.ags, job.kind, job.term);
     return pending;
@@ -166,18 +183,22 @@ export function finishJobs(db, jobs, visits) {
   changes(db, () => {
     const timestamp = now();
     for (const entry of jobs) {
-      const fails = entry.error ? entry.failures + 1 : 0;
-      const retry = Math.min(24, 2 ** Math.min(fails, 5)) * hour / 2;
       const page = entry.paging;
+      const error = entry.error || (!page ? 'Chybí výsledek vyhledávání. Dotaz se zkusí znovu.' : null);
+      const fails = error ? entry.failures + 1 : 0;
+      const retry = Math.min(24, 2 ** Math.min(fails, 5)) * hour / 2;
       if (page) progress.run(entry.ags, entry.kind, entry.term, page.engine, page.cursor, page.number,
         JSON.stringify(page.cursor ? [...entry.matches] : []));
-      const status = entry.error ? 'retry' : page?.cursor ? 'pending' : 'done';
-      const due = status === 'pending' ? 0 : timestamp + (entry.error ? retry : 30 * 24 * hour);
+      const status = error ? 'retry' : page.cursor ? 'pending' : 'done';
+      const due = status === 'pending' ? 0 : timestamp + (error ? retry : 30 * 24 * hour);
       finish.run(status, due, timestamp, fails, entry.matches?.size ?? entry.matches, entry.fetched, entry.contacts,
-        entry.error || null, status === 'done' ? 0 : entry.force, entry.ags, entry.kind, entry.term);
+        error, status === 'done' ? 0 : entry.force, entry.ags, entry.kind, entry.term);
     }
     for (const [kind, host, contact] of visits) visit.run(kind, host, timestamp + (contact ? 14 : 2) * 24 * hour);
     db.prepare('delete from visited where until < ?').run(timestamp);
+    if (!currentMunicipality(db, control(db).kinds, timestamp)) {
+      db.prepare("delete from settings where key='current_municipality'").run();
+    }
   });
 }
 
@@ -207,7 +228,7 @@ export function snapshot(db, options = {}) {
     coalesce(p.pages, 0) as pages, p.cursor is not null as more_pages
     from jobs j join municipalities m using (ags) left join search_progress p using (ags, kind, term) where j.started is not null
     order by (j.status='running') desc, j.started desc limit 15`).all();
-  return { ...state, counts, rows, page, activity };
+  return { ...state, current: currentMunicipality(db, state.kinds), counts, rows, page, activity };
 }
 
 // GV100AD fixed-width records. Record 40 is a district, 60 is a municipality.

@@ -30,7 +30,7 @@ function notify(message, error = false) {
 
 function renderPlan(data) {
   plan = data;
-  const { counts, registry } = data;
+  const { counts, current, registry } = data;
   if (registry) {
     select('registry').innerHTML = `Německo · ${amount(registry.count)} obcí · <a href="https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html" target="_blank" rel="noopener noreferrer">Destatis</a> ${escape(registry.date)}`;
   } else select('registry').textContent = 'Čeká se na načtení registru obcí.';
@@ -40,7 +40,11 @@ function renderPlan(data) {
   for (const checkbox of select('kinds').querySelectorAll('input')) checkbox.checked = data.kinds.includes(checkbox.value);
   select('covered').textContent = `${amount(counts.done)} / ${amount(counts.municipalities)}`;
   select('queries').textContent = `${amount(counts.searches_done)} / ${amount(counts.queries)}`;
-  select('running').textContent = amount(counts.running);
+  select('current').textContent = current?.name ?? '—';
+  const waiting = current?.retry_at && !current.ready && !current.running;
+  select('current-detail').textContent = current
+    ? `${amount(current.done)} z ${amount(current.total)} dotazů hotovo${waiting ? ` · opakování od ${stamp(current.retry_at)}` : ''}`
+    : '';
   const countryFilter = select('land');
   if (countryFilter.options.length === 1) {
     for (const land of data.states) countryFilter.add(new Option(land, land));
@@ -111,7 +115,8 @@ select('municipalities').addEventListener('click', (event) => {
   const row = button.closest('[data-ags]');
   const action = button.dataset.action;
   const payload = { [action]: action === 'rescan' || button.getAttribute('aria-pressed') !== 'true' };
-  void change(`/api/municipalities/${row.dataset.ags}`, payload, 'Plán obce uložen.');
+  const message = action === 'priority' && payload.priority ? 'Obec má přednost při výběru po dokončení rozpracované obce.' : 'Plán obce uložen.';
+  void change(`/api/municipalities/${row.dataset.ags}`, payload, message);
 });
 select('query').addEventListener('input', () => { page = 0; clearTimeout(debounce); debounce = setTimeout(refresh, 180); });
 for (const id of ['land', 'status']) select(id).addEventListener('change', () => { page = 0; void refresh(); });

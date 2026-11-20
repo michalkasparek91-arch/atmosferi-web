@@ -5,6 +5,7 @@ import { openPlan, snapshot, states, updateControl, updateMunicipality, workDir 
 
 const port = 4317;
 const host = `127.0.0.1:${port}`;
+const adminOrigin = 'https://www.atmosferi.com';
 const db = openPlan();
 const csvName = /^leads-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z-\d+\.csv$/;
 const assets = {
@@ -60,6 +61,19 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${host}`);
   try {
     if (req.method === 'GET') {
+      if (url.pathname === '/api/summary') {
+        if (req.headers.origin && ![adminOrigin, `http://${host}`].includes(req.headers.origin)) {
+          return json({ error: 'Tento web nemá přístup ke stavu sběru.' }, 403);
+        }
+        res.setHeader('Vary', 'Origin');
+        if (req.headers.origin === adminOrigin) res.setHeader('Access-Control-Allow-Origin', adminOrigin);
+        const { paused, current, counts, activity } = snapshot(db);
+        const batches = await list(join(workDir, 'pending'), /^batch-\d{13}-\d+-\d{2}\.json$/);
+        const last = activity.find((job) => !current || job.name === current.name);
+        return json({ paused, current, counts, pending: batches.length, last: last ? {
+          name: last.name, term: last.term, pages: last.pages, status: last.status, at: last.finished ?? last.started,
+        } : null });
+      }
       if (Object.hasOwn(assets, url.pathname)) {
         const [file, contentType] = assets[url.pathname];
         const content = await readFile(new URL(`./local-agency-dashboard/${file}`, import.meta.url));
