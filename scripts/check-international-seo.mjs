@@ -186,3 +186,22 @@ assert(locations.includes(availabilityUrl),'availability: sitemap');
 assert(fs.readFileSync('interactive-floor-plans-property-development-website.html','utf8').includes('href="'+availabilityFile+'"'),'availability: incoming link');
 for(const [,href] of availabilityHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'availability: missing link '+href);}
 console.log('Apartment availability guide SEO, schema, links, viewport and sitemap checks passed.');
+
+
+const enquiryFile='property-development-website-enquiry-handoff.html';
+const enquiryHtml=fs.readFileSync(enquiryFile,'utf8');
+const enquiryUrl=origin+'/'+enquiryFile;
+assert.match(enquiryHtml,/<html lang="en">/,'enquiry: language');
+assert.equal((enquiryHtml.match(/<h1[\s>]/g)||[]).length,1,'enquiry: one H1');
+assert(enquiryHtml.includes('<link rel="canonical" href="'+enquiryUrl+'">'),'enquiry: canonical');
+assert.match(enquiryHtml,/<meta name="robots" content="index, follow/,'enquiry: indexable');
+assert(enquiryHtml.includes('name="viewport"'),'enquiry: viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(enquiryHtml.includes('href="assets/'+css+'.css"'),'enquiry: CSS '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title'])assert(enquiryHtml.includes(key),'enquiry: social '+key);
+const enquirySchema=JSON.parse(enquiryHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(enquirySchema['@graph'].some(item=>item['@type']===type),'enquiry: schema '+type);
+assert(enquirySchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'&&item.mainEntityOfPage['@id']===enquiryUrl+'#webpage'),'enquiry: schema date');
+assert(locations.includes(enquiryUrl),'enquiry: sitemap');
+assert(fs.readFileSync('interactive-floor-plans-property-development-website.html','utf8').includes('href="'+enquiryFile+'"'),'enquiry: incoming link');
+for(const [,href] of enquiryHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'enquiry: broken link '+href);}
+console.log('Enquiry handoff guide SEO, schema, links, viewport and sitemap checks passed.');
