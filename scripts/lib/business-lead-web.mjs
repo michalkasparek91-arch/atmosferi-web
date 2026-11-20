@@ -74,17 +74,20 @@ export function seznamResults(html) {
 export function seznamNextPage(html, currentUrl) {
   const current = new URL(currentUrl);
   const start = Number(current.searchParams.get('from') ?? 0);
+  let hasNext = false;
   for (const [tag] of html.matchAll(/<a\b[^>]*\bdata-e-a\s*=\s*["']next["'][^>]*>/gi)) {
+    hasNext = true;
     const href = attrs(tag).href;
     if (!href) continue;
     let next;
     try { next = new URL(href, current); } catch { continue; }
     const offset = Number(next.searchParams.get('from'));
     if (next.origin === 'https://search.seznam.cz' && next.pathname === '/' && !next.username && !next.password &&
-        next.searchParams.get('q') === current.searchParams.get('q') && Number.isInteger(offset) && offset > start && offset <= 1000) {
+        next.searchParams.get('q') === current.searchParams.get('q') && Number.isSafeInteger(offset) && offset > start) {
       return next.href;
     }
   }
+  if (hasNext) throw new Error('Seznam nabídl neplatný odkaz na další stránku.');
   return null;
 }
 

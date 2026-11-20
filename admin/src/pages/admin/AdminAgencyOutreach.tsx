@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
@@ -90,6 +90,73 @@ const cleanCompany = (name: string) => name.replace(/\s*\(.*?\)/g, "")
 const personalized = (input: string, lead: Lead | null) =>
  input.replace(/\{\{\s*firma\s*\}\}/g, lead ? cleanCompany(lead.company_name) : "vaší agenturou");
 const fmtDate = (iso: string | null) => iso ? new Date(iso).toLocaleString("cs-CZ", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) : "–";
+const LOCAL_COLLECTOR = "http://127.0.0.1:4317";
+
+type CollectorSummary = {
+ paused: boolean;
+ current: { name: string; done: number; total: number; running: number; ready: number; retry_at: number | null } | null;
+ counts: { municipalities: number; done: number; queries: number; searches_done: number };
+ pending: number;
+ last: { name: string; term: string; pages: number; at: number | null } | null;
+};
+
+function CollectorProgress() {
+ const [summary, setSummary] = useState<CollectorSummary | null>(null);
+ const [connected, setConnected] = useState(false);
+ const [loading, setLoading] = useState(false);
+ const [localError, setLocalError] = useState(false);
+ const inFlight = useRef(false);
+ const refreshLocal = useCallback(async () => {
+  if (inFlight.current) return;
+  inFlight.current = true;
+  setLoading(true);
+  try {
+   const options: RequestInit & { targetAddressSpace: "loopback" } = {
+    credentials: "omit", redirect: "error", signal: AbortSignal.timeout(30_000), targetAddressSpace: "loopback",
+   };
+   const response = await fetch(`${LOCAL_COLLECTOR}/api/summary`, options);
+   if (!response.ok) throw new Error("Stav sběru není dostupný.");
+   setSummary(await response.json());
+   setConnected(true);
+   setLocalError(false);
+  } catch {
+   setLocalError(true);
+  } finally {
+   inFlight.current = false;
+   setLoading(false);
+  }
+ }, []);
+ useEffect(() => {
+  if (!connected) return;
+  const timer = window.setInterval(() => { if (!document.hidden) void refreshLocal(); }, 20_000);
+  return () => window.clearInterval(timer);
+ }, [connected, refreshLocal]);
+
+ const current = summary?.current;
+ const last = summary?.last;
+ const fmtTime = (time: number | null) => fmtDate(time ? new Date(time).toISOString() : null);
+ return <Card><CardContent className="p-4 space-y-4">
+  <div className="flex flex-wrap items-center justify-between gap-3">
+   <div><h3 className="font-medium">Sběr firemních kontaktů</h3><p className="text-sm text-muted-foreground">Živý stav z počítače, na kterém běží sběr.</p></div>
+   <div className="flex flex-wrap gap-2">
+    <Button size="sm" variant="outline" onClick={() => void refreshLocal()} disabled={loading}>{loading ? "Načítám…" : connected ? "Obnovit stav" : "Připojit místní sběr"}</Button>
+    <Button size="sm" variant="outline" asChild><a href={`${LOCAL_COLLECTOR}/`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-1.5" />Správa sběru</a></Button>
+   </div>
+  </div>
+  {localError && <p role="status" className="text-sm text-muted-foreground">Spojení se sběrem se nepodařilo. Otevři tuto stránku na počítači se sběrem a povol přístup k místní síti, pokud o něj prohlížeč požádá.</p>}
+  {summary && <>
+   <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+    <Stat label="Rozpracovaná obec" value={current?.name ?? "–"} hint={current ? `${current.done} / ${current.total} dotazů hotovo` : undefined} />
+    <Stat label="Dokončené obce" value={`${summary.counts.done.toLocaleString("cs-CZ")} / ${summary.counts.municipalities.toLocaleString("cs-CZ")}`} />
+    <Stat label="Dokončené dotazy" value={`${summary.counts.searches_done.toLocaleString("cs-CZ")} / ${summary.counts.queries.toLocaleString("cs-CZ")}`} />
+    <Stat label="Dávky čekající na import" value={summary.pending} />
+   </div>
+   {summary.paused && <p className="text-sm text-muted-foreground">Sběr je pozastavený.</p>}
+   {current?.retry_at && !current.ready && !current.running && <p className="text-sm text-muted-foreground">Další pokus od {fmtTime(current.retry_at)}.</p>}
+   {last && <p className="text-sm text-muted-foreground">Poslední dotaz · {last.name} · {last.term} · stran {last.pages} · {fmtTime(last.at)}</p>}
+  </>}
+ </CardContent></Card>;
+}
 
 async function callSender(body: Record<string, unknown>) {
  const { data, error } = await supabase.functions.invoke("dispatch-agency-emails", { body });
@@ -326,10 +393,12 @@ export default function AdminAgencyOutreach({ embedded = false }: { embedded?: b
   <Tabs defaultValue="contacts">
    <TabsList>
     <TabsTrigger value="contacts">Kontakty</TabsTrigger>
+    <TabsTrigger value="collector">Sběr kontaktů</TabsTrigger>
     <TabsTrigger value="templates">Šablony</TabsTrigger>
     <TabsTrigger value="log">Historie</TabsTrigger>
    </TabsList>
 
+   <TabsContent value="collector"><CollectorProgress /></TabsContent>
    <TabsContent value="contacts">
     <Card><CardContent className="p-4 space-y-4">
      <div className="flex flex-wrap items-center gap-2">

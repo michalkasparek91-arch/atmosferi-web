@@ -38,7 +38,7 @@ node scripts/lib/de-agency-background.mjs --check-direct
 node scripts/lib/de-agency-background.mjs --direct
 ```
 
-Pro budoucí běh zcela bez Codexu lze druhý příkaz spouštět z Plánovače Windows s bezpečně poskytnutým přihlášením a po ověření přímého běhu vypnout dosavadní importní automatizaci. Dávka opustí frontu až po potvrzení zápisu Supabase.
+S `LEAD_ADMIN_DIRECT=1` v prostředí úlohy Windows se připravené dávky budou importovat po každém plánovaném běhu, i když se při něm nesbírají nové kontakty. Úloha musí dostat platné přihlášení popsané výše. Po ověření přímého importu lze vypnout dosavadní automatizaci v Codexu. Dávka opustí frontu až po potvrzení zápisu Supabase.
 
 ## Zdroj vyhledávání
 
@@ -46,11 +46,15 @@ Výchozí volba používá [Seznam](https://o-seznam.cz/napoveda/vyhledavani/pru
 
 ## Automatický sběr německých marketingových agentur
 
-Úloha **Atmosferi - DE Marketing Agencies** v Plánovači Windows běží při přihlášení a pak každých 15 minut. Vybírá až šest čekajících kombinací obec, obor a hledaný výraz. U každé zpracuje jednu stránku výsledků, takže přechodem na další stránky nepřekročí šest vyhledávacích požadavků za běh. Kontroluje nejvýše 120 webů na dávku a současně čte až osm různých webů. Prochází všechny politicky samostatné obce z registru [Destatis GV100AD](https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html). Marketing má sedm různých dotazů na obec. Na začátku bere větší města, ručně lze obec posunout dopředu.
+Úloha **Atmosferi - DE Marketing Agencies** v Plánovači Windows běží při přihlášení a pak každých 15 minut. Zpracuje až šest stránek výsledků na běh a střídá čekající dotazy téže obce. Když zbývá jediný dotaz, může v jednom běhu projít až šest jeho navazujících stránek. Kontroluje nejvýše 120 webů na dávku a současně čte až osm různých webů. Prochází všechny politicky samostatné obce z registru [Destatis GV100AD](https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html). Marketing má sedm různých dotazů na obec. Na začátku bere větší města, ručně lze obec posunout dopředu.
 
-Seznam předává vlastní odkaz na další stránku. Skript ho uloží a v některém z dalších běhů na něj naváže. Dotaz označí jako dokončený, až zdroj další stránku nenabídne nebo vyčerpá podporovaný rozsah. Chyby se znovu zkusí na stejné stránce. Bing a Serper používají číslované stránky a končí při vyčerpání výsledků, opakování domén nebo po 100 stranách. Dokončený dotaz se po 30 dnech znovu zařadí do plánu. Počet nalezených firem závisí na dosahu vyhledávače a na veřejně dostupném obsahu firemních webů.
+Seznam předává vlastní odkaz na další stránku. Skript si odkaz uloží a naváže na něj i mezi běhy. Dotaz označí jako dokončený, až zdroj další stránku nenabídne nebo vyčerpá podporovaný rozsah. Když vyprší čas požadavku a v dávce je volný požadavek, zkusí tutéž stránku jednou znovu. Jinak ji uloží k opakování v některé z dalších dávek. Bing a Serper používají číslované stránky a končí při vyčerpání výsledků, opakování domén nebo po 100 stranách. Dokončený dotaz se po 30 dnech znovu zařadí do plánu. Počet nalezených firem závisí na dosahu vyhledávače a na veřejně dostupném obsahu firemních webů.
 
-Stav a nastavení jsou na [místním panelu](http://127.0.0.1:4317/). Lze měnit obory, pozastavit sběr, vyhledat obec, změnit její prioritu nebo ji zařadit k nové kontrole. Panel ukazuje aktivní a dokončené dotazy, frontu importu, nedávné dávky a exporty CSV.
+Plánovač zpracovává vždy jednu obec. Rozpracovanou obec a pozici jednotlivých dotazů si pamatuje mezi běhy. I když všechny zbývající dotazy čekají na opakování po chybě, další obec vybere až po jejich dokončení. Ruční priorita se projeví při výběru další obce. Pokud obec v panelu pozastavíš, její dotazy zůstanou uložené a plánovač může přejít jinam. V automatickém běhu se velikost stránky Seznamu zvýší na 20 výsledků, jakmile se pokračování dostane na vhodný násobek 20. Počet požadavků na vyhledávač zůstává stejný a pozice se nepřeskakují.
+
+Stav a nastavení jsou na [místním panelu](http://127.0.0.1:4317/). Lze měnit obory, pozastavit sběr, vyhledat obec, změnit její prioritu nebo ji zařadit k nové kontrole. Panel ukazuje rozpracovanou obec, kolik dotazů je hotových a kdy se může opakovat dotaz po chybě. Zobrazuje také frontu importu, nedávné dávky a exporty CSV.
+
+V **E-maily → Agentury → Sběr kontaktů** lze na tomto PC připojit živý souhrn místního panelu. Prohlížeč může při prvním připojení požádat o povolení přístupu k místní síti.
 
 Každý běh vytváří CSV s nalezenými kontakty. Záznamy s e-mailem připravuje do `artifacts/private/lead-finder/de-agencies/pending`. Automatizace **Atmosferi – import německých agentur** v Codexu vyzvedává dávky každých 30 minut a zapisuje je do **K prověření** přes připojený Supabase. Když Codex není dostupný, sběr při přihlášeném Windows pokračuje a dávky zůstávají ve frontě. Úspěšně zpracované dávky se přesouvají do `imported`.
 

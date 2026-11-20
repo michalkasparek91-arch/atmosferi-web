@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { bingResults, findSiteContact, hostKey, seznamNextPage, seznamResults, websiteUrl } from './lib/business-lead-web.mjs';
-import { openBackgroundRun } from './lib/de-agency-background.mjs';
+import { drainDirectQueue, openBackgroundRun } from './lib/de-agency-background.mjs';
 import { openAdminImporter } from './lib/business-lead-admin.mjs';
 import { leadKinds as types, termsByKind } from './lib/business-lead-taxonomy.mjs';
 
@@ -50,18 +50,24 @@ function integer(value, name, max) {
   return Number(value);
 }
 
-async function search(query, country, language, engine, cursor, pageable) {
+export async function search(query, country, language, engine, cursor, { pageable, widen = false }) {
   if (engine === 'seznam') {
     const url = new URL(cursor ?? 'https://search.seznam.cz/');
     if (!cursor) url.search = new URLSearchParams(pageable ? { q: query } : { q: query, count: '20' });
     if (url.origin !== 'https://search.seznam.cz' || url.pathname !== '/' || url.username || url.password || url.searchParams.get('q') !== query) {
       throw new Error('Neplatný odkaz na stránku Seznamu.');
     }
+    const offset = Number(url.searchParams.get('from'));
+    // At an odd ten-result offset Seznam rounds the next twenty-result link up, skipping ten positions.
+    if (widen && offset > 0 && offset % 20 === 0 && url.searchParams.get('count') === '10') {
+      url.searchParams.set('count', '20');
+    }
     const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Seznam HTTP ${response.status}`);
     const current = new URL(response.url);
-    if (current.origin !== url.origin || (cursor && current.searchParams.get('from') !== url.searchParams.get('from'))) {
-      throw new Error('Seznam přesměroval odkaz na další stránku.');
+    if (current.origin !== url.origin || current.pathname !== url.pathname || current.searchParams.get('q') !== query ||
+        Number(current.searchParams.get('from')) !== offset) {
+      throw new Error('Seznam přesměroval dotaz na jinou stránku.');
     }
     const html = await response.text();
     const results = seznamResults(html);
@@ -153,15 +159,18 @@ async function main() {
   } });
   if (values.help) { console.log(help); return; }
   const background = values['background-de-agencies'] ? await openBackgroundRun() : null;
-  if (background?.waiting) return;
+  if (background?.waiting) {
+    await importAfterCollection();
+    return;
+  }
   if (background) {
-    Object.assign(values, { countries: 'DE', cities: undefined, pages: '1', limit: '120' });
+    Object.assign(values, { countries: 'DE', cities: undefined, limit: '120' });
   }
   const countries = list(values.countries, (value) => value.toUpperCase());
   const selectedTypes = list(values.types, (value) => value.toLowerCase());
   const cities = values.cities === undefined ? null : list(values.cities);
   const engine = values.engine === 'auto' ? (process.env.SERPER_API_KEY ? 'serper' : 'seznam') : values.engine;
-  const pages = integer(values.pages, '--pages', 5);
+  const pages = background?.searchBudget ?? integer(values.pages, '--pages', 5);
   const limit = integer(values.limit, '--limit', 1000);
   if (!countries.length || countries.some((country) => !Object.hasOwn(markets, country))) throw new Error('Neznámá země. Použijte --help.');
   if (!selectedTypes.length || selectedTypes.some((type) => !Object.hasOwn(types, type))) throw new Error('Neznámý obor. Použijte --help.');
@@ -194,15 +203,20 @@ async function main() {
       hosts: new Set(cursor ? JSON.parse(job.previous_hosts) : []) };
   });
   const exhausted = new Set();
+  const retried = new Set();
   console.log(`Vyhledávač: ${engine}.`);
+  let requests = 0;
   let failures = 0;
-  searches: for (let page = 1; page <= pages; page++) {
+  searches: for (let page = 1; page <= pages && exhausted.size < queries.length; page++) {
     for (const [index, query] of queries.entries()) {
       if (exhausted.has(index)) continue;
+      if (background && requests >= background.searchBudget) break searches;
+      requests++;
       const position = positions[index];
       try {
-        const { results, nextCursor } = await search(query.query, query.country, query.language, engine,
-          position.cursor, Boolean(background) || pages > 1);
+        const { results, nextCursor } = await search(query.query, query.country, query.language, engine, position.cursor, {
+          pageable: Boolean(background) || pages > 1, widen: Boolean(background),
+        });
         if (query.job && !position.cursor) {
           query.job.fetched = 0;
           query.job.contacts = 0;
@@ -230,7 +244,9 @@ async function main() {
       } catch (error) {
         failures++;
         if (query.job) query.job.error = error.message;
-        exhausted.add(index);
+        if (background && error.name === 'TimeoutError' && !retried.has(index) && requests < background.searchBudget) {
+          retried.add(index);
+        } else exhausted.add(index);
         console.warn(`[${query.country}] ${query.query} · strana ${position.number}: ${error.message}`);
         if (/HTTP (403|429)\b/.test(error.message)) {
           for (const remaining of background?.jobs ?? []) {
@@ -290,14 +306,21 @@ async function main() {
   const withPhone = contacts.filter((lead) => lead.phone).length;
   if (output) console.log(`CSV: ${output}`);
   console.log(`Kontaktů: ${contacts.length}, s e-mailem: ${withEmail}, s telefonem: ${withPhone}.`);
-  if (failures) console.warn(`Částečný výsledek. Selhalo ${failures} z ${queries.length * pages} vyhledávání.`);
+  if (failures) console.warn(`Selhalo ${failures} z ${requests} požadavků na vyhledávač.`);
   if (background) {
     await background.save(contacts.filter((lead) => lead.email).map((lead) => adminRow(lead, engine)));
+    await importAfterCollection();
   }
   if (values['write-admin'] && withEmail) {
     const inserted = await saveToAdmin(contacts, engine);
     console.log(`Agentury · akvizice → K prověření: ${inserted} nových kontaktů, ${withEmail - inserted} duplicit.`);
   }
+}
+
+async function importAfterCollection() {
+  if (process.env.LEAD_ADMIN_DIRECT !== '1') return;
+  const { batches, received, inserted } = await drainDirectQueue();
+  console.log(`Přímý import do adminu · ${batches} dávek · ${inserted} nových kontaktů z ${received}.`);
 }
 
 if (import.meta.main) {
