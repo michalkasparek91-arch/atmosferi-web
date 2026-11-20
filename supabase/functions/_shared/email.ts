@@ -1,7 +1,4 @@
 import { render } from "react-email";
-import { StandardAlert } from "./email-templates/StandardAlert.tsx";
-import { MagazineTemplate } from "./email-templates/MagazineTemplate.tsx";
-import { SniperTemplate } from "./email-templates/SniperTemplate.tsx";
 import { SniperRecruitmentEmail } from "./email-templates/SniperRecruitmentEmail.tsx";
 import { generateAtmosferiEmailHtml, EmailTemplateData } from "./EmailTemplateGenerator.ts";
 import { sendViaSes } from "./ses.ts";
@@ -84,24 +81,11 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
        return { success: false, error: 'Missing BREVO_API_KEY environment variable' };
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://uminqrrkflgldlfeaypn.supabase.co";
-    const unsubscribeUrl = `${supabaseUrl}/functions/v1/handle-unsubscribe?email=${encodeURIComponent(payload.to)}`;
 
+    // Every Atmosferi e-mail uses the same light letter. Only the job-recruitment
+    // layout (with a job card) keeps its own template.
     let html;
-    if (payload.layoutType === "magazine") {
-      html = render(MagazineTemplate({
-        subject: payload.subject,
-        heroImage: payload.heroImageUrl || "",
-        heroTitle: payload.title,
-        heroDescription: payload.body,
-        heroCtaText: payload.ctaText || "Zobrazit",
-        heroCtaUrl: payload.ctaUrl || "https://zrobee.cz",
-        bannerText: payload.secondaryText || "Hledáte řemeslníka?",
-        bannerCtaText: "Zadat poptávku",
-        bannerCtaUrl: "https://zrobee.cz/zadat-poptavku",
-        mainArticles: payload.magazineArticles || [],
-      }));
-    } else if (payload.layoutType === "sniper_recruitment" || payload.layoutType === "sniper") {
+    if (payload.layoutType === "sniper_recruitment" || payload.layoutType === "sniper") {
       html = render(SniperRecruitmentEmail({
         jobTitle: payload.title,
         jobCity: payload.jobCity,
@@ -135,68 +119,48 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
         secondaryTextBelowJob: payload.secondaryTextBelowJob,
         previewTheme: payload.previewTheme,
       }));
-    } else if (payload.layoutType === "atmosferi_studio" || payload.layoutType as string === "atmosferi_studio") {
-      const activeHeroUrl = (payload.heroImageUrl && payload.heroImageUrl !== "none" && payload.heroImageUrl.trim() !== "") 
-        ? payload.heroImageUrl 
-        : "https://atmosferi.com/demos/atmosferi-viz/img/02-ascension.webp";
-        
-      const activePortfolioImages = (payload.carouselImages && payload.carouselImages.length > 0)
-        ? payload.carouselImages
-        : [];
-
+    } else {
+      const lang = String(payload.language || "cz").toLowerCase();
+      const cs = ["cz", "cs", "sk"].includes(lang), de = ["de", "at", "ch"].includes(lang);
+      const sf = payload.segmentFilters || {};
+      const hero = (payload.heroImageUrl || "").trim();
+      const isOutreach = payload.layoutType === "atmosferi_studio" || !!payload.greeting;
       const emailData: EmailTemplateData = {
         subject: payload.subject,
         body: payload.body || "",
-        heroImageEnabled: true,
-        heroImageUrl: activeHeroUrl,
-        heroCaption: payload.segmentFilters?.hero_caption,
-        heroTagline: payload.heroTagline || payload.segmentFilters?.hero_tagline,
-        portfolioEnabled: activePortfolioImages.length > 0,
-        portfolioImages: activePortfolioImages,
+        // The image is a per-template choice: shown only when the template has one.
+        heroImageEnabled: !!hero && hero !== "none",
+        heroImageUrl: hero,
+        heroCaption: sf.hero_caption,
+        heroTagline: payload.heroTagline || sf.hero_tagline,
+        portfolioEnabled: (payload.carouselImages || []).length > 0,
+        portfolioImages: payload.carouselImages || [],
         icebreakerEnabled: false,
         icebreakerText: "",
         signatureEnabled: true,
-        signatureGreeting: payload.signatureGreeting ?? "S pozdravem",
+        signatureGreeting: payload.signatureGreeting ?? (cs ? "S pozdravem" : de ? "Mit freundlichen Grüßen" : "Best regards"),
         signatureName: payload.workerName ?? "Ing. arch. Michal Kašpárek",
-        signatureRole: payload.signatureRole ?? "web a vizualizace pro architekturu",
+        signatureRole: payload.signatureRole ?? (cs ? "web a vizualizace pro architekturu" : de ? "Web und Visualisierung für Architektur" : "web & visualisation for architecture"),
         signatureEmail: payload.signatureEmail ?? "michal@atmosferi.com",
-        signatureAvatarUrl: "",
-        psEnabled: payload.psFooterEnabled ?? true,
-        psText: payload.psFooterText ?? "Pokud nyní nemáte kapacitu, stačí odepsat \"Ne\" a už vás nebudeme kontaktovat.",
-        themeColor: "#D97757",
-        servicesWidgetEnabled: payload.segmentFilters?.services_widget_enabled ?? false,
-        servicesWidgetTitle: payload.segmentFilters?.services_widget_title,
-        service1Title: payload.segmentFilters?.service_1_title,
-        service2Title: payload.segmentFilters?.service_2_title,
-        service3Title: payload.segmentFilters?.service_3_title,
+        signatureAvatarUrl: sf.signature_avatar_url || "",
+        psEnabled: payload.psFooterEnabled ?? false,
+        psText: payload.psFooterText ?? "",
+        themeColor: "#0b0b0b",
+        servicesWidgetEnabled: sf.services_widget_enabled ?? false,
+        servicesWidgetTitle: sf.services_widget_title,
+        service1Title: sf.service_1_title,
+        service2Title: sf.service_2_title,
+        service3Title: sf.service_3_title,
         ctaButtonEnabled: payload.showCtaButton ?? true,
         ctaText: payload.ctaText,
         ctaUrl: payload.ctaUrl,
-        isPlainText: payload.segmentFilters?.is_plain_text,
+        isPlainText: sf.is_plain_text,
         greeting: payload.greeting,
         language: payload.language,
+        // System e-mails carry a title line; outreach letters read as plain letters.
+        heading: isOutreach ? "" : (payload.title && payload.title !== payload.subject ? payload.title : ""),
       };
       html = generateAtmosferiEmailHtml(emailData);
-    } else if (payload.layoutType === "plain") {
-      html = render(SniperTemplate({
-        subject: payload.subject,
-        title: payload.title,
-        body: payload.body,
-        ctaText: payload.ctaText,
-        ctaUrl: payload.ctaUrl,
-        emoji: payload.emoji,
-      }));
-    } else {
-      html = render(StandardAlert({
-        subject: payload.subject,
-        title: payload.title,
-        body: payload.body,
-        ctaText: payload.ctaText,
-        ctaUrl: payload.ctaUrl,
-        secondaryText: payload.secondaryText,
-        emoji: payload.emoji,
-        unsubscribeUrl,
-      }));
     }
 
     // Plain-text alternative: HTML-only mail scores worse with spam filters.
