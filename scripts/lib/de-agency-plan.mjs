@@ -41,7 +41,6 @@ export function openPlan(filename = join(workDir, 'plan.sqlite')) {
       FOREIGN KEY (ags, kind, term) REFERENCES jobs(ags, kind, term)
     );
     CREATE INDEX IF NOT EXISTS jobs_schedule ON jobs(kind, status, due);
-    CREATE INDEX IF NOT EXISTS jobs_activity ON jobs((status='running') DESC, started DESC) WHERE started IS NOT NULL;
     CREATE INDEX IF NOT EXISTS municipality_name ON municipalities(name);
     INSERT OR IGNORE INTO settings VALUES ('paused', 'false'), ('kinds', '["marketing"]');
   `);
@@ -203,7 +202,7 @@ export function finishJobs(db, jobs, visits) {
   });
 }
 
-export function snapshot(db, options = {}, { includeRows = true } = {}) {
+export function snapshot(db, options = {}) {
   const state = control(db);
   const kinds = state.kinds.map(() => '?').join(',');
   const grouped = `select ags, count(*) as total, sum(status='done') as done, sum(status='running') as running,
@@ -213,12 +212,6 @@ export function snapshot(db, options = {}, { includeRows = true } = {}) {
     sum(s.total=s.done) as done, sum(s.running>0) as running, sum(s.retry>0) as retry,
     sum(s.total) as queries, sum(s.done) as searches_done, sum(s.contacts) as contacts
     from municipalities m join (${grouped}) s using (ags) where m.active=1`).get(...state.kinds);
-  const activity = db.prepare(`select j.ags, m.name, m.land, j.kind, j.term, j.status, j.started, j.finished, j.matches, j.fetched, j.contacts, j.error,
-    coalesce(p.pages, 0) as pages, p.cursor is not null as more_pages
-    from jobs j join municipalities m using (ags) left join search_progress p using (ags, kind, term) where j.started is not null
-    order by (j.status='running') desc, j.started desc limit 15`).all();
-  const overview = { ...state, current: currentMunicipality(db, state.kinds), counts, activity };
-  if (!includeRows) return overview;
   const filter = String(options.query ?? '').slice(0, 100);
   const land = states.includes(options.land) ? options.land : '';
   const filters = {
@@ -231,7 +224,11 @@ export function snapshot(db, options = {}, { includeRows = true } = {}) {
     where m.active=1 and instr(m.search_name,?) > 0 and (?='' or m.land=?) and ${where}
     order by m.priority desc, (s.running>0) desc, m.population desc, m.name limit 25 offset ?`)
     .all(...state.kinds, label(filter), land, land, page * 25);
-  return { ...overview, rows, page };
+  const activity = db.prepare(`select m.name, m.land, j.kind, j.term, j.status, j.started, j.finished, j.matches, j.fetched, j.contacts, j.error,
+    coalesce(p.pages, 0) as pages, p.cursor is not null as more_pages
+    from jobs j join municipalities m using (ags) left join search_progress p using (ags, kind, term) where j.started is not null
+    order by (j.status='running') desc, j.started desc limit 15`).all();
+  return { ...state, current: currentMunicipality(db, state.kinds), counts, rows, page, activity };
 }
 
 // GV100AD fixed-width records. Record 40 is a district, 60 is a municipality.

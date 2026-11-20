@@ -67,9 +67,9 @@ const server = createServer(async (req, res) => {
         }
         res.setHeader('Vary', 'Origin');
         if (req.headers.origin === adminOrigin) res.setHeader('Access-Control-Allow-Origin', adminOrigin);
-        const { paused, current, counts, activity } = snapshot(db, {}, { includeRows: false });
+        const { paused, current, counts, activity } = snapshot(db);
         const batches = await list(join(workDir, 'pending'), /^batch-\d{13}-\d+-\d{2}\.json$/);
-        const last = activity.find((job) => !current || job.ags === current.ags);
+        const last = activity.find((job) => !current || job.name === current.name);
         return json({ paused, current, counts, pending: batches.length, last: last ? {
           name: last.name, term: last.term, pages: last.pages, status: last.status, at: last.finished ?? last.started,
         } : null });
