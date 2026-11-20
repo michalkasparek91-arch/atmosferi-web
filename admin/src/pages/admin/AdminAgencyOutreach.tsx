@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
@@ -105,11 +105,14 @@ function CollectorProgress() {
  const [connected, setConnected] = useState(false);
  const [loading, setLoading] = useState(false);
  const [localError, setLocalError] = useState(false);
+ const inFlight = useRef(false);
  const refreshLocal = useCallback(async () => {
+  if (inFlight.current) return;
+  inFlight.current = true;
   setLoading(true);
   try {
    const options: RequestInit & { targetAddressSpace: "loopback" } = {
-    credentials: "omit", redirect: "error", signal: AbortSignal.timeout(15_000), targetAddressSpace: "loopback",
+    credentials: "omit", redirect: "error", signal: AbortSignal.timeout(30_000), targetAddressSpace: "loopback",
    };
    const response = await fetch(`${LOCAL_COLLECTOR}/api/summary`, options);
    if (!response.ok) throw new Error("Stav sběru není dostupný.");
@@ -119,6 +122,7 @@ function CollectorProgress() {
   } catch {
    setLocalError(true);
   } finally {
+   inFlight.current = false;
    setLoading(false);
   }
  }, []);
