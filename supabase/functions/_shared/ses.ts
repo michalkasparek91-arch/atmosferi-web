@@ -9,6 +9,7 @@ export interface SesEmailPayload {
   bcc?: string;       // blind carbon copy email
   subject: string;
   html: string;       // raw HTML body — passed completely untouched
+  text?: string;      // plain-text alternative (spam filters penalise HTML-only mail)
   replyTo?: string;
 }
 
@@ -47,6 +48,7 @@ export async function sendViaSes(payload: SesEmailPayload): Promise<{ success: b
             Data: payload.html,
             Charset: "UTF-8",
           },
+          ...(payload.text ? { Text: { Data: payload.text, Charset: "UTF-8" } } : {}),
         },
       },
       ReplyToAddresses: payload.replyTo ? [payload.replyTo] : undefined,

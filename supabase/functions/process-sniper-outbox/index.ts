@@ -389,6 +389,22 @@ Deno.serve(async (req) => {
           return replaced;
         };
 
+        // Greeting line lives in template.greeting ("Hello {{osloveni}},") and must be
+        // rendered above the body, which starts mid-sentence ("my name is…").
+        // Without a known name we keep the plain greeting: "Hello,", "Dobrý den,".
+        const rawGreeting = String(template.greeting ?? "").trim();
+        const greetingLine = !rawGreeting ? ""
+          : (!personName && !companyName)
+            ? rawGreeting.replace(/,?\s*\{\{\s*(osloveni|jmeno)\s*\}\}/gi, "").trim()
+            : replaceVars(rawGreeting);
+        const renderedBody = (() => {
+          const b = replaceVars(bodyWithIcebreaker);
+          // No greeting above it: the first word must be capitalised.
+          // English also capitalises after "Hello Anna,"; Czech and German do not.
+          const englishLike = !["cz", "cs", "sk", "de", "at", "ch"].includes(String(template.language || "cz").toLowerCase());
+          return (!greetingLine || englishLike) ? b.charAt(0).toUpperCase() + b.slice(1) : b;
+        })();
+
         let success = false;
         let lastError = "";
         let currentProvider = provider || "brevo";
@@ -417,7 +433,9 @@ Deno.serve(async (req) => {
             to: recipientEmail,
             subject: replaceVars(template.subject || template.name),
             title: replaceVars(template.heading || template.title || template.name),
-            body: replaceVars(bodyWithIcebreaker),
+            body: renderedBody,
+            greeting: greetingLine,
+            language: template.language || "cz",
             emoji: template.emoji || "",
             ctaText: replaceVars(template.cta_text || template.ctaText || "Zobrazit"),
             ctaUrl: replaceVars(template.cta_url || "https://zrobee.cz"),
