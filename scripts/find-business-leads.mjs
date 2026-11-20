@@ -50,12 +50,17 @@ function integer(value, name, max) {
   return Number(value);
 }
 
-async function search(query, country, language, engine, cursor, pageable) {
+export async function search(query, country, language, engine, cursor, { pageable, widen = false }) {
   if (engine === 'seznam') {
     const url = new URL(cursor ?? 'https://search.seznam.cz/');
     if (!cursor) url.search = new URLSearchParams(pageable ? { q: query } : { q: query, count: '20' });
     if (url.origin !== 'https://search.seznam.cz' || url.pathname !== '/' || url.username || url.password || url.searchParams.get('q') !== query) {
       throw new Error('Neplatný odkaz na stránku Seznamu.');
+    }
+    const offset = Number(url.searchParams.get('from'));
+    // At an odd ten-result offset Seznam rounds the next twenty-result link up, skipping ten positions.
+    if (widen && offset > 0 && offset % 20 === 0 && url.searchParams.get('count') === '10') {
+      url.searchParams.set('count', '20');
     }
     const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Seznam HTTP ${response.status}`);
@@ -201,8 +206,9 @@ async function main() {
       if (exhausted.has(index)) continue;
       const position = positions[index];
       try {
-        const { results, nextCursor } = await search(query.query, query.country, query.language, engine,
-          position.cursor, Boolean(background) || pages > 1);
+        const { results, nextCursor } = await search(query.query, query.country, query.language, engine, position.cursor, {
+          pageable: Boolean(background) || pages > 1, widen: Boolean(background),
+        });
         if (query.job && !position.cursor) {
           query.job.fetched = 0;
           query.job.contacts = 0;

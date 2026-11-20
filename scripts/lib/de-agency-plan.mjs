@@ -141,7 +141,10 @@ export function claimJobs(db, limit) {
       exists(select 1 from municipalities d where d.name=m.name and d.active=1 and d.ags<>m.ags) as ambiguous
       from jobs j join municipalities m using (ags) left join search_progress p using (ags, kind, term)
       where m.active=1 and m.enabled=1 and j.status<>'running' and j.due<=? and j.kind in (${state.kinds.map(() => '?')})
-      order by m.priority desc, (j.status='done'), (j.status='retry'), m.population desc, j.ags, j.rowid limit ?`)
+      order by m.priority desc, j.force desc, (j.status='done'), (j.status='retry'),
+        cast(max(m.population,1) as real) /
+          ((1 + coalesce(p.pages,0)) * (1 + coalesce(p.pages,0))) desc,
+        m.population desc, j.ags, j.rowid limit ?`)
       .all(timestamp, ...state.kinds, limit);
     const mark = db.prepare("update jobs set status='running', started=? where ags=? and kind=? and term=?");
     for (const job of pending) mark.run(timestamp, job.ags, job.kind, job.term);

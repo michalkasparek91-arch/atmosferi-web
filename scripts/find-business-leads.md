@@ -50,6 +50,8 @@ Výchozí volba používá [Seznam](https://o-seznam.cz/napoveda/vyhledavani/pru
 
 Seznam předává vlastní odkaz na další stránku. Skript ho uloží a v některém z dalších běhů na něj naváže. Dotaz označí jako dokončený, až zdroj další stránku nenabídne nebo vyčerpá podporovaný rozsah. Chyby se znovu zkusí na stejné stránce. Bing a Serper používají číslované stránky a končí při vyčerpání výsledků, opakování domén nebo po 100 stranách. Dokončený dotaz se po 30 dnech znovu zařadí do plánu. Počet nalezených firem závisí na dosahu vyhledávače a na veřejně dostupném obsahu firemních webů.
 
+Plánovač dává přednost počátečním stránkám dalších velkých měst a k hlubším stránkám se vrací podle uložené pozice. Ručně nastavená priorita obce má přednost. V automatickém běhu se velikost stránky Seznamu zvýší na 20 výsledků, jakmile se pokračování dostane na vhodný násobek 20. Počet požadavků na vyhledávač zůstává stejný a pozice se nepřeskakují.
+
 Stav a nastavení jsou na [místním panelu](http://127.0.0.1:4317/). Lze měnit obory, pozastavit sběr, vyhledat obec, změnit její prioritu nebo ji zařadit k nové kontrole. Panel ukazuje aktivní a dokončené dotazy, frontu importu, nedávné dávky a exporty CSV.
 
 Každý běh vytváří CSV s nalezenými kontakty. Záznamy s e-mailem připravuje do `artifacts/private/lead-finder/de-agencies/pending`. Automatizace **Atmosferi – import německých agentur** v Codexu vyzvedává dávky každých 30 minut a zapisuje je do **K prověření** přes připojený Supabase. Když Codex není dostupný, sběr při přihlášeném Windows pokračuje a dávky zůstávají ve frontě. Úspěšně zpracované dávky se přesouvají do `imported`.
