@@ -38,7 +38,7 @@ jobs:
       github.event_name != 'pull_request' &&
       vars.GSC_WIF_PROVIDER != '' &&
       vars.GSC_SERVICE_ACCOUNT != '' &&
-      secrets.GSC_SUPABASE_SERVICE_ROLE_KEY != ''
+      vars.GSC_MONITOR_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
