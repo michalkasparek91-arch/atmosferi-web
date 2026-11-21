@@ -57,8 +57,8 @@ export function summarizeInspectionHistory(rows: readonly InspectionHistoryRow[]
   return {
     known: rows.length,
     indexed: rows.filter(r => r.verdict === "PASS").length,
-    nonIndexed: rows.filter(r => r.verdict !== "PASS" && r.verdict !== "ERROR").length,
-    unknown: rows.filter(r => r.verdict === "ERROR").length,
+    nonIndexed: rows.filter(r => r.verdict === "FAIL").length,
+    unknown: rows.filter(r => r.verdict !== "PASS" && r.verdict !== "FAIL").length,
     canonicalMismatches: rows.filter(r => r.canonical_mismatch).length,
     recentErrors: rows.filter(r => r.latest_attempt_error).length
   };
