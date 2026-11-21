@@ -66,3 +66,20 @@ Deno.test("replay order independent and newer final states win", () => {
   const newest = { checked_at: "2026-11-21T18:00:00Z", inspections: [result("https://www.atmosferi.com/a.html", "PASS")] };
   assertEquals(buildInspectionHistory([old, newest]), buildInspectionHistory([newest, old]));
 });
+
+Deno.test("Google NEUTRAL excluded URLs count as nonindexed, not unknown", () => {
+  const rows = buildInspectionHistory([{
+    checked_at: "2026-11-21T19:08:19Z",
+    inspections: [
+      { ...result("https://www.atmosferi.com/a.html", "NEUTRAL"), coverage_state: "URL is unknown to Google" },
+      { ...result("https://www.atmosferi.com/b.html", "PASS"), coverage_state: "Indexed" },
+      { ...result("https://www.atmosferi.com/c.html", "VERDICT_UNSPECIFIED"), coverage_state: "" }
+    ]
+  }]);
+  const summary = summarizeInspectionHistory(rows);
+  assertEquals(summary.known, 3);
+  assertEquals(summary.indexed, 1);
+  assertEquals(summary.nonIndexed, 1);
+  assertEquals(summary.unknown, 1);
+  assertEquals(isInspectionIssue(rows.find(row => row.verdict === "NEUTRAL")!), true);
+});
