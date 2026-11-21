@@ -171,7 +171,12 @@ jobs:
             const schema = JSON.parse(h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
             assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.inLanguage === lang));
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.inLanguage === lang));
-            assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === published), path + ': publication dates');
+            const updatedOn20261121 = new Set([
+              'interactive-floor-plans-property-development-website.html',
+              'residential-development-website-content-checklist.html'
+            ]);
+            const modified = updatedOn20261121.has(path) ? '2026-11-21' : published;
+            assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === modified), path + ': publication / modification dates');
             if (path === 'automatic-sliding-entrance-door-architectural-rendering-review.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
               assert((h.match(/<section id=/g) || []).length >= 12, path + ': substantive sections');
