@@ -32,4 +32,4 @@ jobs:
       - name: Deploy signed-token GSC ingestion
         run: |
           test "$PROJECT_ID" = "paryiowezqlnffanxtnt"
-          supabase functions deploy gsc-ingest --no-verify-jwt --project-ref "$PROJECT_ID"
+          supabase functions deploy gsc-ingest --no-verify-jwt --remote="$PROJECT_ID" --yes
