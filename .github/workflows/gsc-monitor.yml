@@ -41,7 +41,10 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check signed GitHub OIDC ingestion function
-        run: deno check supabase/functions/gsc-ingest/index.ts
+        working-directory: supabase/functions/gsc-ingest
+        run: |
+          deno install --allow-scripts
+          deno check index.ts
       - name: Assert keyless storage
         run: |
           node -e "const fs=require('fs');const s=fs.readFileSync('scripts/gsc/monitor.mjs','utf8');if(s.includes('GSC_SUPABASE_SERVICE_ROLE_KEY')||s.includes('rest/v1/gsc_reports'))process.exit(1)"
