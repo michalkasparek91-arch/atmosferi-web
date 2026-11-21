@@ -50,8 +50,8 @@ async function google(url,{method='GET',body}={}) {
   });
   if (!res.ok) {
     // This runs in a PUBLIC repository. Never print response bodies or GSC data.
-    const name=new URL(url).pathname.split('/').filter(Boolean).slice(-2).join('/');
-    throw new Error('Google API request '+name+' failed with HTTP '+res.status);
+    const host=new URL(url).hostname;
+    throw new Error('Google API request to '+host+' failed with HTTP '+res.status);
   }
   return await res.json();
 }
