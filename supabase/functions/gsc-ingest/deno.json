@@ -1,0 +1,6 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "jose": "npm:jose@5.10.0"
+  }
+}
