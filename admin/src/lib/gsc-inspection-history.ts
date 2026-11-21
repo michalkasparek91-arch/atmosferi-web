@@ -57,8 +57,10 @@ export function summarizeInspectionHistory(rows: readonly InspectionHistoryRow[]
   return {
     known: rows.length,
     indexed: rows.filter(r => r.verdict === "PASS").length,
-    nonIndexed: rows.filter(r => r.verdict === "FAIL").length,
-    unknown: rows.filter(r => r.verdict !== "PASS" && r.verdict !== "FAIL").length,
+    // Google's NEUTRAL index verdict means "Excluded", not an API error.
+    // Keep PARTIAL / VERDICT_UNSPECIFIED / UNKNOWN in the unknown category.
+    nonIndexed: rows.filter(r => r.verdict === "FAIL" || r.verdict === "NEUTRAL").length,
+    unknown: rows.filter(r => !["PASS", "FAIL", "NEUTRAL"].includes(r.verdict)).length,
     canonicalMismatches: rows.filter(r => r.canonical_mismatch).length,
     recentErrors: rows.filter(r => r.latest_attempt_error).length
   };
