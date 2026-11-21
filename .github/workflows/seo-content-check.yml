@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['stranka-o-nas-na-webu-architektonickeho-atelieru.html', 'cs', 'struktura-webu-architektonickeho-atelieru.html', '2026-11-21'],
             ['website-briefing-architekturbuero-angebot-checkliste.html', 'de', 'architekturbuero-website-relaunch-checkliste.html', '2026-11-21'],
             ['jak-merit-poptavky-z-webu-architektonickeho-atelieru.html', 'cs', 'struktura-webu-architektonickeho-atelieru.html', '2026-11-20'],
             ['architektonicka-vizualizace-bez-3d-modelu.html', 'cs', 'bim-cad-handover-architectural-visualisation.html', '2026-11-19'],
@@ -479,9 +480,30 @@ jobs:
               assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema WebPage URL');
               assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
             }
+            if (path === 'stranka-o-nas-na-webu-architektonickeho-atelieru.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': editorial responsive layout');
+              assert((h.match(/<section id="/g) || []).length === 10, path + ': 10 substantive sections');
+              assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': readable responsive tables');
+              assert(h.includes('Fiktivní ateliér') && h.includes('zcela fiktivní'), path + ': illustrative examples labelled');
+              const anchors = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              assert(anchors.length === 10 && anchors.every(id => ids.has(id)), path + ': working contents anchors');
+              const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
+              assert(css.includes('max-width:850px') && css.includes('max-width:520px'), path + ': mobile layout rules');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema WebPage');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relation');
+              const generatedHub = fs.readFileSync('guides.html', 'utf8');
+              assert(generatedHub.includes('href="' + path + '"'), path + ': visible in generated /guides');
+            }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
             for (const link of local) {
               if (/^(?:https?:|mailto:)/.test(link)) continue;
+              if (link === '/guides') {
+                const vercel = JSON.parse(fs.readFileSync('vercel.json','utf8'));
+                assert(vercel.rewrites.some(route => route.source === '/guides' && route.destination === '/guides.html'), path + ': guides rewrite missing');
+                assert(fs.existsSync('guides.html'), path + ': generated guides missing');
+                continue;
+              }
               assert(fs.existsSync(link.replace(/^\//, '')), path + ': broken local link ' + link);
             }
           }
