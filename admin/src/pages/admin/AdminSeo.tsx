@@ -9,18 +9,10 @@ import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { buildInspectionHistory, isInspectionIssue, summarizeInspectionHistory, type InspectionOutcome } from "@/lib/gsc-inspection-history";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type Inspection = {
-  url: string;
-  verdict: string;
-  coverage_state: string;
-  indexing_state: string;
-  last_crawl_time: string;
-  google_canonical: string;
-  user_canonical: string;
-  error: string;
-};
+type Inspection = InspectionOutcome;
 type PerformanceRow = {
   query?: string;
   url?: string;
@@ -58,6 +50,7 @@ const verdictLabel: Record<string, string> = {
 
 export default function AdminSeo() {
   const [filter, setFilter] = useState("");
+  const [onlyIssues, setOnlyIssues] = useState(false);
   const { data: reports = [], isLoading, error, refetch, isFetching } = useQuery<GscReport[]>({
     queryKey: ["atmosferi-gsc-admin-reports"],
     staleTime: 1000 * 60 * 5,
@@ -82,10 +75,14 @@ export default function AdminSeo() {
     date: dateTime(r.checked_at)
   })), [reports]);
 
-  const inspections = useMemo(() => (latest?.inspections || []).filter((item) =>
-    item.url.toLowerCase().includes(filter.trim().toLowerCase()) ||
-    (item.coverage_state || "").toLowerCase().includes(filter.trim().toLowerCase())
-  ), [latest, filter]);
+  const inspectionHistory = useMemo(() => buildInspectionHistory(reports), [reports]);
+  const inspectionSummary = useMemo(() => summarizeInspectionHistory(inspectionHistory), [inspectionHistory]);
+  const isSyncStale = Boolean(latest && Date.now() - new Date(latest.checked_at).getTime() > 12 * 60 * 60 * 1000);
+  const inspections = useMemo(() => inspectionHistory.filter((item) =>
+    (!onlyIssues || isInspectionIssue(item)) &&
+    (item.url.toLowerCase().includes(filter.trim().toLowerCase()) ||
+      (item.coverage_state || "").toLowerCase().includes(filter.trim().toLowerCase()))
+  ), [inspectionHistory, filter, onlyIssues]);
 
   const cards = latest ? [
     { name: "Kliknutí z Googlu", value: number.format(latest.clicks), description: "Organické vyhledávání · sledované období", Icon: Activity },
@@ -133,6 +130,7 @@ export default function AdminSeo() {
             <span className="inline-flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-600"/> Poslední synchronizace: <strong className="text-foreground">{dateTime(latest.checked_at)}</strong></span>
             <span>Data za období {latest.period_start} až {latest.period_end}</span>
             <span className="inline-flex gap-1 items-center"><ShieldCheck size={15}/> Soukromý report</span>
+            {isSyncStale && <span role="status" className="inline-flex gap-2 items-center text-amber-700"><AlertCircle size={15}/> Synchronizace je starší než 12 hodin. Ověř běh GitHub Actions.</span>}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {cards.map(({ name, value, description, Icon }) => (
@@ -164,23 +162,41 @@ export default function AdminSeo() {
               </CardContent>
             </Card>
             <Card className="rounded-2xl shadow-none">
-              <CardHeader><CardTitle className="text-xl font-semibold">Kontrolované URL</CardTitle><p className="text-xs text-muted-foreground">Jde o poslední kontrolovaný vzorek URL, nikoli úplný stav celého webu.</p></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">Poslední známý stav indexace</CardTitle>
+                <p className="text-xs text-muted-foreground">Sloučený výsledek až 90 synchronizací, nikoli jen poslední vzorek a nikoli úplný Google index.</p>
+              </CardHeader>
               <CardContent>
-                <div className="text-5xl font-semibold tracking-tight">{latest.indexed_urls}<span className="text-xl text-muted-foreground font-normal"> / {latest.inspected_urls}</span></div>
-                <p className="text-sm text-muted-foreground mt-2">URL s výsledkem „Indexed“ v Google URL Inspection</p>
-                {latest.inspection_errors > 0 && <p className="text-sm text-amber-700 mt-3">{latest.inspection_errors} kontrol skončilo chybou přístupu nebo API.</p>}
-                <div className="h-2 rounded-full bg-zinc-100 overflow-hidden mt-6">
-                  <div className="bg-zinc-900 h-full rounded-full" style={{ width: (latest.inspected_urls ? Math.min(100, latest.indexed_urls / latest.inspected_urls * 100) : 0) + "%" }}/>
+                <div className="text-5xl font-semibold tracking-tight">{inspectionSummary.indexed}<span className="text-xl text-muted-foreground font-normal"> / {inspectionSummary.known}</span></div>
+                <p className="text-sm text-muted-foreground mt-2">Indexované URL z těch, které už náš monitor kontroloval</p>
+                <div className="grid grid-cols-2 gap-3 mt-6 text-sm">
+                  <div className="border-t pt-3"><strong className="text-xl">{inspectionSummary.nonIndexed}</strong><p className="text-muted-foreground text-xs mt-1">Neindexované podle Googlu</p></div>
+                  <div className="border-t pt-3"><strong className="text-xl">{inspectionSummary.unknown}</strong><p className="text-muted-foreground text-xs mt-1">Neurčený stav / chyba</p></div>
+                  <div className="border-t pt-3"><strong className="text-xl">{inspectionSummary.canonicalMismatches}</strong><p className="text-muted-foreground text-xs mt-1">Odlišná Google canonical URL</p></div>
+                  <div className="border-t pt-3"><strong className="text-xl">{inspectionSummary.recentErrors}</strong><p className="text-muted-foreground text-xs mt-1">Poslední pokus skončil chybou</p></div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-4">URL Inspection ukazuje stav známý Googlu, ne živý test dostupnosti stránky.</p>
+                <div className="h-2 rounded-full bg-zinc-100 overflow-hidden mt-6">
+                  <div className="bg-zinc-900 h-full rounded-full" style={{ width: (inspectionSummary.known ? Math.min(100, inspectionSummary.indexed / inspectionSummary.known * 100) : 0) + "%" }}/>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4">Aktuální vzorek: {latest.inspected_urls} URL, z toho {latest.indexed_urls} indexovaných. Nikdy nevydáváme pokrytí monitoru za kompletní indexaci webu.</p>
               </CardContent>
             </Card>
           </div>
 
           <Card className="rounded-2xl shadow-none">
             <CardHeader>
-              <CardTitle className="text-xl font-semibold">Indexace článků</CardTitle>
-              <p className="text-sm text-muted-foreground">Poslední vzorek: nové články a rotační kontrola archivu.</p>
+              <CardTitle className="text-xl font-semibold">Historie indexace článků</CardTitle>
+              <p className="text-sm text-muted-foreground">Poslední známý výsledek každé dosud kontrolované URL napříč až 90 synchronizacemi. Chyba API sama o sobě neznamená odstranění stránky z indexu.</p>
+              <div className="flex flex-wrap items-center gap-2 pt-3">
+                <button type="button" onClick={() => setOnlyIssues(false)} aria-pressed={!onlyIssues}
+                  className={onlyIssues ? "rounded-full border px-4 py-2 text-xs hover:bg-zinc-50" : "rounded-full bg-zinc-900 text-white px-4 py-2 text-xs"}>
+                  Všechny kontrolované ({inspectionSummary.known})
+                </button>
+                <button type="button" onClick={() => setOnlyIssues(true)} aria-pressed={onlyIssues}
+                  className={onlyIssues ? "rounded-full bg-zinc-900 text-white px-4 py-2 text-xs" : "rounded-full border px-4 py-2 text-xs hover:bg-zinc-50"}>
+                  Jen problémy ({inspectionHistory.filter(isInspectionIssue).length})
+                </button>
+              </div>
               <div className="relative max-w-lg pt-3">
                 <Search className="absolute left-3 top-6 text-muted-foreground" size={18}/>
                 <input aria-label="Filtrovat URL podle adresy nebo problému" value={filter} onChange={e => setFilter(e.target.value)}
@@ -189,7 +205,7 @@ export default function AdminSeo() {
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead><tr className="border-b text-xs text-muted-foreground"><th scope="col" className="py-3 pr-4">Stránka</th><th scope="col" className="py-3 pr-4">Stav</th><th scope="col" className="py-3">Podrobnost</th></tr></thead>
+                <thead><tr className="border-b text-xs text-muted-foreground"><th scope="col" className="py-3 pr-4">Stránka</th><th scope="col" className="py-3 pr-4">Stav</th><th scope="col" className="py-3 pr-4">Podrobnost</th><th scope="col" className="py-3 whitespace-nowrap">Ověřeno</th></tr></thead>
                 <tbody>{inspections.map(row => (
                   <tr key={row.url} className="border-b last:border-none align-top">
                     <td className="py-3 pr-4 max-w-lg break-all"><a href={row.url} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">{row.url.replace("https://www.atmosferi.com/","/")} ↗</a></td>
@@ -198,11 +214,19 @@ export default function AdminSeo() {
                         {verdictLabel[row.verdict] || row.verdict}
                       </span>
                     </td>
-                    <td className="py-3 text-muted-foreground">{row.coverage_state || row.error || "Bez podrobnosti"}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">
+                      {row.coverage_state || row.error || "Bez podrobnosti"}
+                      {row.canonical_mismatch && <p className="text-amber-700 text-xs mt-1">Google vybral jinou canonical: {row.google_canonical}</p>}
+                      {row.latest_attempt_error && row.verdict !== "ERROR" && <p className="text-amber-700 text-xs mt-1">Poslední pokus selhal, zobrazen starší platný výsledek.</p>}
+                    </td>
+                    <td className="py-3 whitespace-nowrap text-xs text-muted-foreground">
+                      {dateTime(row.checked_at)}
+                      {Date.now() - new Date(row.checked_at).getTime() > 14 * 24 * 60 * 60 * 1000 && <p className="text-amber-700 mt-1">Starší než 14 dní</p>}
+                    </td>
                   </tr>
                 ))}</tbody>
               </table>
-              {!inspections.length && <p className="py-6 text-sm text-muted-foreground">Žádné odpovídající URL.</p>}
+              {!inspections.length && <p className="py-6 text-sm text-muted-foreground">Žádné odpovídající URL v uložených kontrolách.</p>}
             </CardContent>
           </Card>
 
