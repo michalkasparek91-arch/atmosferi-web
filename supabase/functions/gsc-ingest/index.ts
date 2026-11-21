@@ -7,7 +7,6 @@ const REPO = "michalkasparek91-arch/atmosferi-web";
 const REPO_ID = "1260597613";
 const REF = "refs/heads/main";
 const WORKFLOW_REF = REPO + "/.github/workflows/gsc-monitor.yml@" + REF;
-const ORIGIN = "https://www.atmosferi.com";
 const SITE = "sc-domain:atmosferi.com";
 const AUDIENCE = "https://paryiowezqlnffanxtnt.supabase.co/functions/v1/gsc-ingest";
 const ISSUER = "https://token.actions.githubusercontent.com";
@@ -37,7 +36,7 @@ function siteUrl(value: unknown): value is string {
   if (!string(value, 700)) return false;
   try {
     const parsed = new URL(value);
-    return parsed.protocol === "https:" && parsed.hostname === "www.atmosferi.com" && !parsed.username && !parsed.password &&
+    return parsed.protocol === "https:" && ["atmosferi.com","www.atmosferi.com"].includes(parsed.hostname) && !parsed.username && !parsed.password &&
       parsed.port === "" && !parsed.hash && !parsed.search;
   } catch {
     return false;
