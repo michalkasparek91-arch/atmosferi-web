@@ -9,6 +9,10 @@ on:
   pull_request:
     paths:
       - 'scripts/gsc/**'
+      - 'admin/src/pages/admin/AdminSeo.tsx'
+      - 'admin/src/App.tsx'
+      - 'admin/src/layouts/AdminLayout.tsx'
+      - 'supabase/migrations/*gsc*.sql'
       - '.github/workflows/gsc-monitor.yml'
 
 permissions:
@@ -31,6 +35,10 @@ jobs:
           node-version: '22'
       - name: Test canonical article inspection candidates
         run: node scripts/gsc/monitor.mjs --dry-run
+      - name: Compile Atmosferi admin with SEO dashboard
+        run: |
+          npm ci --prefix admin
+          npm run build --prefix admin
 
   monitor:
     name: Read Search Console into Atmosferi private admin
