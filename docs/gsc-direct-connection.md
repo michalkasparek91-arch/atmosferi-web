@@ -1,68 +1,68 @@
-# Atmosferi: Search Console přímo v adminu
+# Atmosferi: trvalá Search Console přímo v adminu
 
-**Stav: příprava dokončena, ale Google ještě není autorizovaný.** Bez jednorázového nastavení běh nezačne. Není potřeba Google Sheet, Windsor.ai ani otevřený prohlížeč.
+**Důležité:** GitHub → Google autorizace vyžaduje jednorázové nastavení vlastníkem. Bez něho běží pouze admin rozhraní, nikoliv synchronizace dat. Není potřeba Windsor.ai, Google Sheets, soukromý JSON klíč ani Supabase service_role klíč v GitHubu.
 
-## Jak systém funguje
+## Architektura
 
-- Zdroj: přímé Google Search Console API, property sc-domain:atmosferi.com.
-- Každých šest hodin běží GitHub Actions s krátkodobým Google OAuth tokenem přes Workload Identity Federation (OIDC), bez privátního Google JSON klíče.
-- Oprávnění vůči Search Console je jen read-only.
-- Výsledky se ukládají do privátní Supabase tabulky public.gsc_reports v projektu Atmosferi (paryiowezqlnffanxtnt).
-- Admin na https://www.atmosferi.com/admin/seo ukazuje poslední 28denní organický výkon, vyhledávací dotazy, stránky a indexaci rotujícího vzorku URL.
-- Databáze má RLS: číst smí pouze přihlášený administrátor podle public.is_admin(auth.uid()). Běžný uživatel, anonym a veřejná webová stránka data nevidí.
-- Přístupové tokeny a neveřejná data nikdy neukládat do veřejného repozitáře nebo logů.
+1. GitHub Actions každých 6 hodin přečte jen data property `sc-domain:atmosferi.com` přes Google Search Console API (scope `webmasters.readonly`).
+2. Google Workload Identity Federation dá GitHubu krátkodobý přístupový token bez dlouhodobého klíče.
+3. GitHub si od svého OIDC poskytovatele vyžádá další krátkodobý podepsaný token, tentokrát s publikem `https://paryiowezqlnffanxtnt.supabase.co/functions/v1/gsc-ingest`.
+4. Supabase Edge Function `gsc-ingest` ověří kryptografický podpis, issuer, audience, stáří tokenu, přesné GitHub repository ID `1260597613`, repository name, `main` branch, workflow a událost `schedule` nebo `workflow_dispatch`. Neověřený požadavek se odmítá.
+5. Teprve server Supabase bezpečně zapíše report do RLS-zabezpečené tabulky `gsc_reports`. Privilegovaný databázový klíč zůstává **jen uvnitř Supabase Edge runtime**.
+6. Admin `https://www.atmosferi.com/admin/seo` čte výsledky pouze pro přihlášeného administrátora (RLS `public.is_admin(auth.uid())`). Výpisy metrik a vyhledávacích dotazů nikdy nedáváme do veřejného GitHubu.
 
-## Krok 1 – vytvoř technický účet v Google
+Výstupy: kliknutí, zobrazení, CTR, pozice, 25 nejlepších vyhledávacích dotazů, 25 vstupních URL a rotační kontrola indexace článků. Vzorek URL Inspection není kompletní index Googlu.
 
-1. Jdi na https://console.cloud.google.com/iam-admin/serviceaccounts a vyber správný projekt Atmosferi.
-2. Create service account → název atmosferi-gsc-monitor → Create and continue → volitelné role přeskočit → Done.
-3. Zkopíruj adresu technického účtu ve tvaru atmosferi-gsc-monitor@PROJECT_ID.iam.gserviceaccount.com.
-4. **Nedělej žádný soukromý JSON key.**
-5. V projektu musí být povoleny Search Console API, IAM Service Account Credentials API a Security Token Service API. Google Sheets API nepotřebujeme.
+## Co musíš jednou udělat ty
 
-## Krok 2 – uděl mu přístup do Search Console
+### 1) Vytvořit servisní účet
 
-https://search.google.com/search-console?resource_id=sc-domain%3Aatmosferi.com
+- [Google Cloud – Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) a vybrat správný Cloud projekt.
+- `Create Service Account` → jméno `atmosferi-gsc-monitor`.
+- Projektové role přeskočit, potvrdit a zkopírovat servisní e-mail ve tvaru `atmosferi-gsc-monitor@PROJECT_ID.iam.gserviceaccount.com`.
+- Povolit `Search Console API`, `IAM Service Account Credentials API` a `Security Token Service API`. Google Sheets API není potřeba.
+- **Nikde nevytvářet ani nesdělovat JSON klíč.**
 
-Settings → Users and permissions → Add user → vlož e-mail servisního účtu → Full user. Nikoliv Owner.
+### 2) Pustit účet do Google Search Console
 
-## Krok 3 – bezpečně spoj GitHub a Google Cloud
+- [Search Console – Atmosferi](https://search.google.com/search-console?resource_id=sc-domain%3Aatmosferi.com).
+- `Settings → Users and permissions → Add user`: vložit servisní e-mail, oprávnění `Full user` (nikoliv Owner).
+- Property je přesně `sc-domain:atmosferi.com`.
 
-https://console.cloud.google.com/iam-admin/workload-identity-pools
+### 3) Nastavit Google Workload Identity Federation
 
-- Pool ID: atmosferi-github
-- Provider ID: github
-- Provider type: OpenID Connect, issuer URL: https://token.actions.githubusercontent.com
-- Attribute mapping: google.subject = assertion.sub
-- Attribute mapping: attribute.repository = assertion.repository
-- Provider condition: assertion.repository == 'michalkasparek91-arch/atmosferi-web' && assertion.ref == 'refs/heads/main'
-- Servisnímu účtu přidej roli Workload Identity User pro principalSet uvedeného poolu s hodnotou attribute.repository/michalkasparek91-arch/atmosferi-web.
+[Google Cloud → Workload Identity Federation](https://console.cloud.google.com/iam-admin/workload-identity-pools)
 
-Oficiální návod: https://docs.cloud.google.com/iam/docs/workload-identity-federation-with-deployment-pipelines
+- Pool ID například `atmosferi-github`.
+- Provider ID například `github`; typ OIDC; issuer `https://token.actions.githubusercontent.com`.
+- Mapování atributů: `google.subject = assertion.sub` a `attribute.repository = assertion.repository`.
+- Podmínka provideru:
+  `assertion.repository == 'michalkasparek91-arch/atmosferi-web' && assertion.ref == 'refs/heads/main'`.
+- Servisnímu účtu přidělit `Workload Identity User` pro daný pool a pouze identity s `attribute.repository/michalkasparek91-arch/atmosferi-web`.
+- Dokumentace: https://docs.cloud.google.com/iam/docs/workload-identity-federation-with-deployment-pipelines
 
-## Krok 4 – GitHub variables a jeden šifrovaný secret
+### 4) Nastavit pouze tři GitHub Actions **Variables**
 
-https://github.com/michalkasparek91-arch/atmosferi-web/settings/variables/actions
+[Atmosferi – Actions variables](https://github.com/michalkasparek91-arch/atmosferi-web/settings/variables/actions)
 
-Repository **Variables**:
-- GSC_WIF_PROVIDER: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID
-- GSC_SERVICE_ACCOUNT: e-mail Google servisního účtu
-- GSC_MONITOR_ENABLED: true (nastav až nakonec, po migraci databáze a všech oprávněních)
+- `GSC_WIF_PROVIDER` = `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID`.
+- `GSC_SERVICE_ACCOUNT` = e-mail Google servisního účtu z prvního kroku.
+- `GSC_MONITOR_ENABLED` = `true`, **až po dokončení předchozích bodů**.
 
-Repository **Secrets**:
-- GSC_SUPABASE_SERVICE_ROLE_KEY: skutečný secret service_role z Supabase Atmosferi projektu.
+Žádné další GitHub Secrets nejsou pro Search Console monitoring potřebné. Klíč `GSC_SUPABASE_SERVICE_ROLE_KEY` není potřeba vytvářet; pokud již existuje, po ověření nového mechanismu jej lze z GitHubu odstranit.
 
-Pozor: service_role je silný databázový klíč. Zadávej ho jen jako GitHub Actions Secret; nikdy do chatu, veřejné proměnné, URL, repozitáře ani logů. Pokud nebudeš chtít dát takový klíč GitHubu, nahradíme ho omezenou ingest Edge Function. Token ke Googlu má pouze krátkou platnost.
+### 5) Ověření
 
-## Krok 5 – nasazení a test
+1. Na `main` musí být nasazena `gsc-ingest` Edge Function s `verify_jwt=false`, protože si GitHub token ověřuje samotná funkce (nejde o anonymní zápis). Její nasazení lze ověřit v Supabase Edge Functions.
+2. Tabulka `public.gsc_reports` má zapnuté RLS a jedinečný `github_run_id` proti duplicitním reportům.
+3. Po aktivaci `GSC_MONITOR_ENABLED=true` otevřít GitHub Actions → `Direct Google Search Console monitoring` → `Run workflow` na větvi `main`.
+4. Úspěšný běh neobsahuje soukromá data v GitHub logu. V `/admin/seo` se zobrazí první skutečný záznam z Google Search Console.
+5. Automatika pak běží `02:17, 08:17, 14:17, 20:17 UTC` i bez otevřeného prohlížeče.
 
-1. Ověřit a sloučit PR #141, nasadit DB migraci 20261121172000_private_gsc_reports.sql do Atmosferi Supabase. **Samotné uložení souboru v GitHubu tabulku nevytvoří.**
-2. Zkontrolovat admin RLS: pouze admin může číst gsc_reports; běžný uživatel nemůže nic číst ani zapisovat.
-3. Nastavit GSC_MONITOR_ENABLED=true až po úspěšném nasazení a vytvoření GitHub Secret.
-4. Spustit GitHub Actions → Direct Google Search Console monitoring → Run workflow.
-5. Otevřít https://www.atmosferi.com/admin/seo a ověřit první skutečný report.
-6. Dále běží automaticky v 02:17, 08:17, 14:17 a 20:17 UTC bez otevřeného prohlížeče.
+## Omezení a bezpečnost
 
-## Omezení
-
-Search Console mívá zpoždění dat 2–3 dny. URL Inspection vrací stav známý indexu Googlu, není to živá HTTP kontrola a nedokáže vynutit indexaci. Vždy kontroluje omezený rotační vzorek článků, nikoli úplně všechny URL při každém běhu.
+- Search Analytics mívá zpoždění 2–3 dny.
+- URL Inspection ukazuje poslední známý stav Google indexu, nikoliv živé načtení webu a nenutí Google k indexaci.
+- Pokud token nepochází z přesné větve a workflow, endpoint vrací 401/403. Ani znalost veřejné URL neopravňuje k zápisu.
+- Při změně názvu GitHub repo nebo jeho ID je nutné znovu ověřit očekávané OIDC claims.
+- Prohlížeč ani zapnutý ChatGPT nejsou pro běh monitoringu potřeba.

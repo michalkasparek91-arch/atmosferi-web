@@ -1,0 +1,35 @@
+name: Deploy keyless GSC ingestion endpoint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/gsc-ingest/**'
+      - 'supabase/config.toml'
+      - '.github/workflows/gsc-ingest-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gsc-ingest-prod-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.repository == 'michalkasparek91-arch/atmosferi-web'
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Deploy signed-token GSC ingestion
+        run: |
+          test "$PROJECT_ID" = "paryiowezqlnffanxtnt"
+          supabase functions deploy gsc-ingest --no-verify-jwt --project-ref "$PROJECT_ID"
