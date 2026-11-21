@@ -341,3 +341,24 @@ assert(locations.includes(trickleUrl),'trickle vents: sitemap');
 assert(fs.readFileSync('operable-window-opening-architectural-rendering-review.html','utf8').includes('href="'+trickleFile+'"'),'trickle vents: incoming link');
 for(const [,href] of trickleHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'trickle vents: broken link '+href);}
 console.log('Trickle vent guide SEO, schema, incoming links, mobile viewport and sitemap checks passed.');
+
+ 
+// Brick weep opening guide: metadata, schema, discoverability and local assets.
+{
+ const file='brick-weep-holes-facade-rendering-review.html';
+ const html=fs.readFileSync(file,'utf8'), url=origin+'/'+file;
+ assert.match(html,/<html lang="en">/,file+': language');
+ assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,file+': one H1');
+ assert(html.includes('<link rel="canonical" href="'+url+'">'),file+': canonical');
+ assert.match(html,/<meta name="robots" content="index, follow/);
+ assert(html.includes('name="viewport"'),file+': mobile viewport');
+ for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(html.includes('href="assets/'+css+'.css"'),file+': CSS '+css);
+ for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title','twitter:description'])assert(html.includes(key),file+': social '+key);
+ const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+ for(const type of ['Article','WebPage'])assert(graph.some(x=>x['@type']===type),file+': schema '+type);
+ assert(graph.some(x=>x['@type']==='Article'&&x.datePublished==='2026-11-21'&&x.mainEntityOfPage['@id']===url+'#webpage'),file+': date and entity');
+ assert(locations.includes(url),file+': sitemap');
+ assert(fs.readFileSync('brick-bond-coursing-architectural-rendering-review.html','utf8').includes('href="'+file+'"'),file+': incoming link');
+ for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),file+': broken local link '+href);}
+ console.log('Brick weep opening guide SEO, schema, links, viewport and sitemap checks passed.');
+}
