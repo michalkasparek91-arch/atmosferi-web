@@ -35,13 +35,22 @@ jobs:
           node-version: '22'
       - name: Test canonical article inspection candidates
         run: node scripts/gsc/monitor.mjs --dry-run
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check signed GitHub OIDC ingestion function
+        run: deno check supabase/functions/gsc-ingest/index.ts
+      - name: Assert keyless storage
+        run: |
+          node -e "const fs=require('fs');const s=fs.readFileSync('scripts/gsc/monitor.mjs','utf8');if(s.includes('GSC_SUPABASE_SERVICE_ROLE_KEY')||s.includes('rest/v1/gsc_reports'))process.exit(1)"
+
       - name: Compile Atmosferi admin with SEO dashboard
         run: |
           npm ci --prefix admin
           npm run build --prefix admin
 
   monitor:
-    name: Read Search Console into Atmosferi private admin
+    name: Read Search Console into Atmosferi admin with keyless GitHub OIDC
     if: >-
       github.event_name != 'pull_request' &&
       vars.GSC_WIF_PROVIDER != '' &&
@@ -66,7 +75,6 @@ jobs:
       - name: Inspect Search Console and privately persist results
         env:
           GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
-          GSC_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GSC_SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/gsc/monitor.mjs
       - name: Monitoring result
         if: success()
