@@ -14,6 +14,11 @@ function normalizeToKnownCanonical(value, known) {
         parsed.username || parsed.password || parsed.port) return null;
     let pathname = parsed.pathname;
     if (pathname !== '/' && pathname.endsWith('/')) pathname = pathname.slice(0, -1);
+    // HTML aliases should resolve to the same published canonical, not take
+    // separate inspection slots when Google reports historic URLs.
+    const legacy = {'/index.html':'/', '/guides.html':'/guides',
+      '/for-agencies.html':'/for-agencies'};
+    pathname = legacy[pathname] || pathname;
     const candidate = ORIGIN + pathname;
     return known.has(candidate) ? candidate : null;
   } catch {
