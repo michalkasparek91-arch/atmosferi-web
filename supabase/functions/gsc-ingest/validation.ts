@@ -23,9 +23,9 @@ function urlForSite(value: unknown, inspection: boolean): boolean {
   if (!str(value, 2048)) return false;
   try {
     const parsed = new URL(value);
-    if (parsed.username || parsed.password || parsed.port || parsed.hash) return false;
+    if (parsed.username || parsed.password || parsed.port) return false;
     if (inspection) {
-      return parsed.protocol === "https:" && parsed.hostname === "www.atmosferi.com" && !parsed.search;
+      return parsed.protocol === "https:" && parsed.hostname === "www.atmosferi.com" && !parsed.search && !parsed.hash;
     }
     // GSC domain property includes all protocols and subdomains. The URL
     // query is essential for measuring canonical/duplicate page patterns.
