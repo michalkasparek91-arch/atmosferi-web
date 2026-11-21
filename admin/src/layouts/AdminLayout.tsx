@@ -42,6 +42,7 @@ const sidebarLinks = [
   { label: "Vizualizace", href: "/vizualizace", icon: FolderTree },
   { label: "Kampaně", href: "/emaily", icon: Mail },
   { label: "Statistiky", href: "/statistiky", icon: BarChart3 },
+  { label: "SEO & Google", href: "/seo", icon: Search },
 ];
 
 export function AdminLayout() {
