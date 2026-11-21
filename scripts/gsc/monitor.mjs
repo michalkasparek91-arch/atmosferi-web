@@ -59,6 +59,9 @@ function inspectablePublicUrls() {
     const expected=ORIGIN + '/' + (file === 'index.html' ? '' : (clean[file] || file));
     if (canonical === expected) known.add(canonical);
   }
+  // /guides is built on deployment from scripts/build-guides.mjs and is
+  // intentionally not committed as guides.html in the source repository.
+  if (fs.existsSync('scripts/build-guides.mjs')) known.add(ORIGIN+'/guides');
   return [...known].sort();
 }
 async function google(url,{method='GET',body}={}) {
