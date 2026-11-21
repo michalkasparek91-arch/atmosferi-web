@@ -263,3 +263,122 @@ assert(locations.includes(careersUrl),'careers: sitemap');
 assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+careersFile+'"'),'careers: incoming link');
 for(const [,href] of careersHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),'careers: missing link '+href);}
 console.log('Architecture careers guide metadata, schema, links, viewport and sitemap checks passed.');
+
+ 
+// Architectural film playback: standalone guide and one contextual incoming link.
+{
+ const file='architectural-film-website-playback-accessibility-qa.html';
+ const html=fs.readFileSync(file,'utf8'), url=origin+'/'+file;
+ assert.match(html,/<html lang="en">/,file+': language');
+ assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,file+': one H1');
+ assert(html.includes('<link rel="canonical" href="'+url+'">'),file+': canonical');
+ assert.match(html,/<meta name="robots" content="index, follow/);
+ assert(html.includes('name="viewport"'),file+': mobile viewport');
+ for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(html.includes('href="assets/'+css+'.css"'),file+': CSS '+css);
+ for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title','twitter:description'])assert(html.includes(key),file+': social '+key);
+ const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+ for(const type of ['Article','WebPage'])assert(graph.some(x=>x['@type']===type),file+': schema '+type);
+ assert(graph.some(x=>x['@type']==='Article'&&x.datePublished==='2026-11-20'&&x.mainEntityOfPage['@id']===url+'#webpage'),file+': date and entity');
+ assert(locations.includes(url),file+': sitemap');
+ assert(fs.readFileSync('architectural-animation-brief-shot-list-checklist.html','utf8').includes('href="'+file+'"'),file+': incoming link');
+ for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.startsWith('/')?href.slice(1):href),file+': missing local link '+href);}
+ console.log('Architectural film playback guide SEO, schema, links and sitemap checks passed.');
+}
+
+
+const embeddedMapFile='architecture-website-embedded-maps-privacy-consent.html';
+const embeddedMapHtml=fs.readFileSync(embeddedMapFile,'utf8');
+const embeddedMapUrl=origin+'/'+embeddedMapFile;
+assert.match(embeddedMapHtml,/<html lang="en">/,'embedded map: language');
+assert.equal((embeddedMapHtml.match(/<h1[\s>]/g)||[]).length,1,'embedded map: one H1');
+assert(embeddedMapHtml.includes('<link rel="canonical" href="'+embeddedMapUrl+'">'),'embedded map: canonical');
+assert.match(embeddedMapHtml,/<meta name="robots" content="index, follow/,'embedded map: robots');
+assert(embeddedMapHtml.includes('name="viewport"'),'embedded map: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(embeddedMapHtml.includes('href="assets/'+css+'.css"'),'embedded map: CSS '+css);
+for(const key of ['og:title','og:url','og:description','twitter:card','twitter:title'])assert(embeddedMapHtml.includes(key),'embedded map: social '+key);
+const embeddedMapSchema=JSON.parse(embeddedMapHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(embeddedMapSchema['@graph'].some(item=>item['@type']===type),'embedded map: schema '+type);
+assert(embeddedMapSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-20'),'embedded map: date');
+assert(locations.includes(embeddedMapUrl),'embedded map: sitemap');
+assert(fs.readFileSync('cms-for-architecture-portfolio-website.html','utf8').includes('href="'+embeddedMapFile+'"'),'embedded map: incoming link');
+for(const [,href] of embeddedMapHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'embedded map: missing local link '+href);}
+console.log('Embedded map guide metadata, schema, incoming links, mobile viewport and sitemap checks passed.');
+
+
+const projectSchemaFile='architecture-project-website-structured-data-qa.html';
+const projectSchemaHtml=fs.readFileSync(projectSchemaFile,'utf8');
+const projectSchemaUrl=origin+'/'+projectSchemaFile;
+assert.match(projectSchemaHtml,/<html lang="en">/,'project schema: language');
+assert.equal((projectSchemaHtml.match(/<h1[\s>]/g)||[]).length,1,'project schema: one H1');
+assert(projectSchemaHtml.includes('<link rel="canonical" href="'+projectSchemaUrl+'">'),'project schema: canonical');
+assert.match(projectSchemaHtml,/<meta name="robots" content="index, follow/,'project schema: indexable');
+assert(projectSchemaHtml.includes('name="viewport"'),'project schema: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(projectSchemaHtml.includes('href="assets/'+css+'.css"'),'project schema: stylesheet '+css);
+for(const key of ['og:title','og:url','twitter:card'])assert(projectSchemaHtml.includes(key),'project schema: social '+key);
+const projectSchemaGraph=JSON.parse(projectSchemaHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+for(const type of ['Article','WebPage'])assert(projectSchemaGraph.some(item=>item['@type']===type),'project schema: schema '+type);
+assert(projectSchemaGraph.some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-21'),'project schema: date');
+assert(locations.includes(projectSchemaUrl),'project schema: sitemap');
+assert(fs.readFileSync('prepare-architecture-projects-for-website.html','utf8').includes('href="'+projectSchemaFile+'"'),'project schema: incoming link');
+for(const [,href] of projectSchemaHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'project schema: missing local link '+href);}
+console.log('Architecture project structured data guide SEO, schema, links, viewport and sitemap checks passed.');
+
+
+const trickleFile='window-trickle-vent-facade-rendering-review.html';
+const trickleHtml=fs.readFileSync(trickleFile,'utf8');
+const trickleUrl=origin+'/'+trickleFile;
+assert.match(trickleHtml,/<html lang="en">/,'trickle vents: language');
+assert.equal((trickleHtml.match(/<h1[\s>]/g)||[]).length,1,'trickle vents: one H1');
+assert(trickleHtml.includes('<link rel="canonical" href="'+trickleUrl+'">'),'trickle vents: canonical');
+assert.match(trickleHtml,/<meta name="robots" content="index, follow/,'trickle vents: indexable');
+assert(trickleHtml.includes('name="viewport"'),'trickle vents: mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(trickleHtml.includes('href="assets/'+css+'.css"'),'trickle vents: stylesheet '+css);
+for(const key of ['og:title','og:url','twitter:card','twitter:image'])assert(trickleHtml.includes(key),'trickle vents: social '+key);
+const trickleSchema=JSON.parse(trickleHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+for(const type of ['Article','WebPage'])assert(trickleSchema['@graph'].some(item=>item['@type']===type),'trickle vents: schema '+type);
+assert(trickleSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-21'),'trickle vents: publication date');
+assert(locations.includes(trickleUrl),'trickle vents: sitemap');
+assert(fs.readFileSync('operable-window-opening-architectural-rendering-review.html','utf8').includes('href="'+trickleFile+'"'),'trickle vents: incoming link');
+for(const [,href] of trickleHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'trickle vents: broken link '+href);}
+console.log('Trickle vent guide SEO, schema, incoming links, mobile viewport and sitemap checks passed.');
+
+ 
+// Brick weep opening guide: metadata, schema, discoverability and local assets.
+{
+ const file='brick-weep-holes-facade-rendering-review.html';
+ const html=fs.readFileSync(file,'utf8'), url=origin+'/'+file;
+ assert.match(html,/<html lang="en">/,file+': language');
+ assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,file+': one H1');
+ assert(html.includes('<link rel="canonical" href="'+url+'">'),file+': canonical');
+ assert.match(html,/<meta name="robots" content="index, follow/);
+ assert(html.includes('name="viewport"'),file+': mobile viewport');
+ for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(html.includes('href="assets/'+css+'.css"'),file+': CSS '+css);
+ for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title','twitter:description'])assert(html.includes(key),file+': social '+key);
+ const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+ for(const type of ['Article','WebPage'])assert(graph.some(x=>x['@type']===type),file+': schema '+type);
+ assert(graph.some(x=>x['@type']==='Article'&&x.datePublished==='2026-11-21'&&x.mainEntityOfPage['@id']===url+'#webpage'),file+': date and entity');
+ assert(locations.includes(url),file+': sitemap');
+ assert(fs.readFileSync('brick-bond-coursing-architectural-rendering-review.html','utf8').includes('href="'+file+'"'),file+': incoming link');
+ for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),file+': broken local link '+href);}
+ console.log('Brick weep opening guide SEO, schema, links, viewport and sitemap checks passed.');
+}
+
+
+// Curtain wall spandrel article: indexability, metadata, source-led schema and incoming link.
+{
+ const file='curtain-wall-spandrel-panel-rendering-review.html', html=fs.readFileSync(file,'utf8'), url=origin+'/'+file;
+ assert.match(html,/<html lang="en">/);
+ assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,'spandrel: one H1');
+ assert(html.includes('<link rel="canonical" href="'+url+'">'),'spandrel: canonical');
+ assert.match(html,/<meta name="robots" content="index, follow/);
+ assert(html.includes('name="viewport"'),'spandrel: mobile viewport');
+ for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(html.includes('href="assets/'+css+'.css"'),'spandrel: CSS '+css);
+ for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title','twitter:description'])assert(html.includes(key),'spandrel: social '+key);
+ const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+ for(const type of ['Article','WebPage'])assert(graph.some(x=>x['@type']===type),'spandrel: schema '+type);
+ assert(graph.some(x=>x['@type']==='Article'&&x.datePublished==='2026-11-21'&&x.mainEntityOfPage['@id']===url+'#webpage'),'spandrel: schema date and entity');
+ assert(locations.includes(url),'spandrel: sitemap');
+ assert(fs.readFileSync('architectural-rendering-glazing-reflection-transparency-review.html','utf8').includes('href="'+file+'"'),'spandrel: incoming link');
+ for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;if(href==='/guides')continue;assert(fs.existsSync(href.replace(/^\//,'')),'spandrel: broken local link '+href);}
+ console.log('Curtain wall spandrel guide SEO, schema, incoming links, viewport and sitemap checks passed.');
+}

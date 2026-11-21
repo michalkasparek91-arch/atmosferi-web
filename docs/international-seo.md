@@ -40,7 +40,17 @@ Edit language content in scripts/build-international-seo.mjs, then run:
     node scripts/build-international-seo.mjs
     node scripts/check-international-seo.mjs
 
-scripts/update-seo-index.mjs maintains the language footer and sitemap. Review its output before use after adding new routes. It must not remove editorial language links in page content.
+scripts/update-seo-index.mjs is a compatibility helper that regenerates language service pages, the editorial `/guides` directory and sitemap **without altering footers or homepage content**. The regular `prebuild` is the primary release path. Future updates must preserve the visible category-directory link and all contextual editorial links.
 
 Reference: https://developers.google.com/search/docs/specialty/international/localized-versions
 Reference: https://developers.google.com/search/docs/essentials/spam-policies#doorway-abuse
+
+## Homepage footer (new Fabrica design)
+
+The language switch lives only in the header (CZ / EN / DE / FR on the homepage). The homepage footer must not show a list of language names (English / Česky / Deutsch / Norsk): visitors read it as a language switch and get taken away from the homepage. The crawlable links to the translated "websites for architects" pages remain in the footer column "Insights & Guides", labelled with each page's own title (Websites for architects, Weby pro architekty, Webdesign für Architekten, Nettsider for arkitekter) and marked `data-no-i18n`. The same column has one prominent `All guides` link to `/guides`. Never paste every article into the footer.
+
+## Editorial guides directory
+
+The canonical directory `https://www.atmosferi.com/guides` is a generated `CollectionPage`. `scripts/build-guides.mjs` scans root `.html` files, reads real indexable `Article` JSON-LD and self-canonicals, and writes `guides.html` as a fully crawlable HTML list of every editorial article. Four automatic topics (Web Design & Digital, Architectural Visualisation, Property Development, Technical Guides) link to all original articles. The client-side search in `assets/guides-index.js` is only progressive enhancement; articles remain visible without JavaScript.
+
+`npm run prebuild` generates language service pages, then `guides.html`, then sitemap and checks. `npm run seo:check` also runs `scripts/check-guides.mjs` for completeness, internal links, canonical `/guides`, Vercel rewrite, CSS and language page discoverability. `vercel.json` rewrites `/guides` to the generated HTML and redirects `/guides.html` to the clean URL. When hourly SEO automation adds a valid Article page and production builds from `main`, it appears automatically in the next directory and sitemap build. No manual index edits or indexing claims are implied. The homepage and core footers link to `/guides`, retaining the localized service pages under their full page titles.

@@ -13,7 +13,7 @@ for(const file of files){
  const canonical=html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1];
  if(!canonical)throw new Error(`${file}: indexable public page needs a canonical URL`);
  // Pages served on a clean URL through a vercel.json rewrite.
-const cleanUrls={'for-agencies.html':'for-agencies'};
+const cleanUrls={'for-agencies.html':'for-agencies', 'guides.html':'guides'};
 const expected=origin+'/'+(file==='index.html'?'':cleanUrls[file]||file);
  if(canonical!==expected)throw new Error(`${file}: canonical must be ${expected}, got ${canonical}`);
  const alternates=[...html.matchAll(/<link\b[^>]*rel=["']alternate["'][^>]*hreflang=["']([^"']+)["'][^>]*href=["']([^"']+)/gi)].map(m=>({lang:m[1],href:m[2]}));

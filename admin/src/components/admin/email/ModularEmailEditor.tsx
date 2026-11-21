@@ -147,7 +147,7 @@ export function parseRichTextToHtml(text?: string | null, textAlign: string = "l
   html = html.replace(/\b_(.*?)_\b/g, '<em>$1</em>');
   html = html.replace(/(?<!\*)\*(?!\*)(.*?)\*/g, '<em>$1</em>');
   
-  const color = isDark ? "#d4d4d8" : "#4a4a4a";
+  const color = isDark ? "#d4d4d8" : "#0b0b0b";
   const align = textAlign === "center" ? "center" : "left";
   
   const lines = html.split('\n');
@@ -278,98 +278,79 @@ export function ModularLivePreview({
   const isStandardLayout = form.layout_type === "standard";
   const isAtmosferiLayout = form.layout_type === "atmosferi_studio" || !form.layout_type;
 
-  if (isAtmosferiLayout) {
-      const isDark = previewTheme === "dark";
-      const bg = isDark ? "#16140F" : "#EFEDE6";
-      const panel = isDark ? "#2A2720" : "#FBFAF6";
-      const ink = isDark ? "#EFEDE6" : "#16140F";
-      const muted = isDark ? "#A8A398" : "#807C72";
-      const acc = "#D97757";
+  if (isAtmosferiLayout || isStandardLayout || isPlainLayout) {
+      // Mirrors supabase/functions/_shared/EmailTemplateGenerator.ts: a light letter in the website's style.
+      const sf = form.segment_filters || {};
+      const lang = String((form as any).language || "cz").toLowerCase();
+      const cs = ["cz", "cs", "sk"].includes(lang), de = ["de", "at", "ch"].includes(lang);
+      const ink = "#0b0b0b", mute = "#6b6b6b", soft = "#9a9a9a", line = "#ececec";
+      const font = "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+      const greeting = previewReplace(form.greeting || "").trim();
+      const bodyText = previewReplace(activeBody || "");
+      const firstWord = (x: string) => x.trim().split(/[\s,!]+/)[0]?.toLowerCase() || "";
+      const showGreeting = greeting !== "" && greeting.toLowerCase() !== "none" && firstWord(bodyText) !== firstWord(greeting);
+      const englishLike = !cs && !de;
+      const body = (!showGreeting || englishLike) ? bodyText.charAt(0).toUpperCase() + bodyText.slice(1) : bodyText;
+      const hero = (form.hero_image_url || "").trim();
+      const services = [sf.service_1_title || (cs ? "Webové stránky" : de ? "Websites" : "Websites"),
+        sf.service_2_title || (cs ? "3D vizualizace" : de ? "3D-Visualisierung" : "3D visualisation"),
+        sf.service_3_title || (cs ? "Filmy a 360° prohlídky" : de ? "Filme und 360°-Touren" : "Films and 360° tours")];
+      const sigEmail = sf.signature_email ?? "michal@atmosferi.com";
 
       return (
-        <div style={{ backgroundColor: bg, padding: "40px 20px", width: "100%", minHeight: "100%", fontFamily: "'Geist', system-ui, sans-serif" }}>
-          <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: panel, overflow: "hidden", color: ink }}>
-            <div style={{ backgroundColor: "#16140F", padding: "16px 24px", color: "#EFEDE6", display: "flex", alignItems: "center" }}>
-              <span style={{ fontFamily: "'Geist', system-ui, sans-serif", fontSize: "18px", fontWeight: 600, letterSpacing: "-0.02em" }}>Atmosferi<sup style={{ color: "#D97757", fontSize: "0.6em" }}>&deg;</sup></span>
-              <span style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "9px", letterSpacing: "0.18em", opacity: 0.6, marginLeft: "14px", borderLeft: "1px solid rgba(244,242,236,0.3)", paddingLeft: "14px", textTransform: "uppercase" }}>{form.segment_filters?.hero_tagline || "WEB A VIZUALIZACE"}</span>
-            </div>
-
-            {form.hero_image_url && (
-               <div>
-                 <img src={previewReplace(form.hero_image_url)} alt="Hero" style={{ width: "100%", height: "auto", display: "block" }} />
-                 <div style={{ backgroundColor: "#16140F", padding: "12px 24px", color: "#A8A398", fontFamily: "'Geist Mono', ui-monospace, monospace", fontSize: "10.5px", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-                   {previewReplace(form.segment_filters?.hero_caption || "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°")}
-                 </div>
-               </div>
-            )}
-            
-              <div style={{ padding: "32px" }}>
-
-              <div style={{ fontSize: "14px", lineHeight: "1.6", color: ink, marginBottom: "0px" }} dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(previewReplace(activeBody || ""), "left", isDark) }} />
-              
-              {!!form.segment_filters?.services_widget_enabled && (
-                <div style={{ margin: "24px 0", padding: "20px 24px", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}`, backgroundColor: isDark ? "#1f1f1d" : "#f5f3ec", textAlign: "left" }}>
-                  <h3 style={{ fontSize: "11px", fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px", color: muted, fontFamily: "'Geist Mono', ui-monospace, monospace" }}>
-                    {form.segment_filters?.services_widget_title || "CO DĚLÁME"}
-                  </h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    {[
-                      { num: "1", title: form.segment_filters?.service_1_title || "Webové stránky" },
-                      { num: "2", title: form.segment_filters?.service_2_title || "3D Vizualizace" },
-                      { num: "3", title: form.segment_filters?.service_3_title || "Klientské sekce" }
-                    ].map((item, i, arr) => (
-                      <div key={item.num} style={{ paddingBottom: "12px", borderBottom: i === arr.length - 1 ? "none" : `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
-                        <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                          <span style={{ fontSize: "15px", fontWeight: "bold", color: acc, lineHeight: "1.5" }}>{item.num}</span>
-                          <p style={{ fontSize: "14px", margin: 0, color: ink, lineHeight: "1.5" }}>
-                            <span style={{ color: isDark ? "#fff" : "#111" }}>{item.title}</span>
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {!!form.segment_filters?.gallery_enabled && carouselImages.length > 0 && (
-                <div style={{ display: "flex", gap: "8px", margin: "32px 0", width: "100%" }}>
-                  {carouselImages.slice(0, 3).map((imgUrl, i) => (
-                    <div key={i} style={{ flex: 1, aspectRatio: "16/9", overflow: "hidden", border: `1px solid ${isDark ? "#2d2d2a" : "#e6e4dc"}` }}>
-                      <img src={imgUrl} alt={`Gallery image ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {form.show_cta_button !== false && form.cta_text && form.cta_url && (
-                <div style={{ marginBottom: "32px" }}>
-                  <span style={{ display: "inline-block", backgroundColor: "#16140F", color: "#FBFAF6", padding: "12px 24px", textDecoration: "none", fontSize: "10.5px", fontWeight: 600, fontFamily: "'Geist Mono', ui-monospace, monospace", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-                    {previewReplace(form.cta_text)} &rarr;
-                  </span>
-                </div>
-              )}
-              
-              <div style={{ display: "flex", alignItems: "center", marginTop: "32px", borderTop: `1px solid ${isDark ? "#444" : "rgba(22,20,15,0.12)"}`, paddingTop: "24px", color: muted, fontSize: "11px", lineHeight: "1.5" }}>
-                <img src={form.segment_filters?.signature_avatar_url || "https://atmosferi.com/img/michal.jpg"} alt="Michal Kašpárek" style={{ width: "44px", height: "44px", borderRadius: "50%", marginRight: "16px", display: "block", objectFit: "cover", objectPosition: "center top" }} />
-                <div>
-                  <span style={{ display: "block", marginBottom: "0px", color: ink }}>{form.segment_filters?.signature_greeting ?? "S pozdravem"}</span>
-                  <strong style={{ color: ink, fontSize: "13px", fontWeight: 700 }}>{form.worker?.full_name ?? "Ing. arch. Michal Kašpárek"}</strong><br/>
-                  <span style={{ color: "#A8A398" }}>Atmosferi&deg; &mdash; {form.segment_filters?.signature_role ?? "web a vizualizace pro architekturu"}</span><br/>
-                  <span style={{ color: acc }}>{form.segment_filters?.signature_email ?? "info@atmosferi.com"}</span> <span style={{ color: "#A8A398" }}>&middot; atmosferi.com</span>
-                </div>
+        <div style={{ backgroundColor: "#f4f4f4", padding: "28px 12px", width: "100%", minHeight: "100%", fontFamily: font }}>
+          <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: "#fff", borderRadius: "12px", padding: "36px 36px 30px", color: ink, fontSize: "15px", lineHeight: 1.6 }}>
+            {hero && hero !== "none" && (
+              <div style={{ marginBottom: "24px" }}>
+                <img src={previewReplace(hero)} alt="" style={{ width: "100%", height: "auto", display: "block", borderRadius: "8px" }} />
+                {sf.hero_caption && <p style={{ margin: "8px 0 0", fontSize: "12px", color: soft }}>{previewReplace(sf.hero_caption)}</p>}
               </div>
+            )}
+            {showGreeting && <p style={{ margin: "0 0 16px" }}>{greeting}</p>}
+            <div dangerouslySetInnerHTML={{ __html: parseRichTextToHtml(body, "left", false) }} />
 
-              {form.ps_footer_enabled && form.ps_footer_text && (
-                <div style={{ fontStyle: "italic", marginTop: "24px", color: muted, fontSize: "12px", lineHeight: "1.5" }}>
-                  P.S. {previewReplace(form.ps_footer_text)}
-                </div>
-              )}
+            {!!sf.services_widget_enabled && (
+              <div style={{ margin: "4px 0 20px" }}>
+                <div style={{ fontSize: "13px", color: mute, paddingBottom: "6px" }}>{sf.services_widget_title || (cs ? "Co dělám" : de ? "Was ich mache" : "What I do")}</div>
+                {services.map(t => <div key={t} style={{ padding: "8px 0", borderTop: `1px solid ${line}` }}>{t}</div>)}
+              </div>
+            )}
+
+            {!!sf.gallery_enabled && carouselImages.length > 0 && (
+              <div style={{ display: "flex", gap: "6px", margin: "4px 0 22px" }}>
+                {carouselImages.slice(0, 3).map((imgUrl, i) => (
+                  <img key={i} src={imgUrl} alt="" style={{ flex: 1, minWidth: 0, height: "auto", display: "block", borderRadius: "6px" }} />
+                ))}
+              </div>
+            )}
+
+            {form.show_cta_button !== false && form.cta_text && form.cta_url && (
+              <p style={{ margin: "4px 0 16px" }}>
+                <span style={{ color: ink, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "3px" }}>{previewReplace(form.cta_text)}&nbsp;&rarr;</span>
+              </p>
+            )}
+
+            <div style={{ display: "flex", gap: "14px", marginTop: "28px", borderTop: `1px solid ${line}`, paddingTop: "20px", fontSize: "13px", lineHeight: 1.5, color: mute }}>
+              <img src={sf.signature_avatar_url || "https://www.atmosferi.com/img/michal-card.jpg"} alt="" style={{ width: "44px", height: "44px", borderRadius: "50%", objectFit: "cover", flex: "none" }} />
+              <div>
+                <span style={{ display: "block" }}>{sf.signature_greeting ?? (cs ? "S pozdravem" : de ? "Mit freundlichen Grüßen" : "Best regards")}</span>
+                <span style={{ display: "block", fontSize: "14px", fontWeight: 600, color: ink }}>{form.worker?.full_name ?? "Ing. arch. Michal Kašpárek"}</span>
+                Atmosferi&deg; &middot; {sf.signature_role ?? (cs ? "web a vizualizace pro architekturu" : de ? "Web und Visualisierung für Architektur" : "web & visualisation for architecture")}<br />
+                {sigEmail} &middot; atmosferi.com
+              </div>
             </div>
+
+            {form.ps_footer_enabled && form.ps_footer_text && (
+              <p style={{ margin: "22px 0 0", fontSize: "13px", lineHeight: 1.5, color: mute }}>P.S. {previewReplace(form.ps_footer_text)}</p>
+            )}
           </div>
+          <p style={{ textAlign: "center", margin: "16px 0 0", fontSize: "12px", color: soft }}>
+            atmosferı° &middot; {cs ? "Nechcete další e-maily?" : de ? "Keine weiteren E-Mails?" : "Prefer not to hear from me?"} <u>{cs ? "Odhlásit se" : de ? "Abmelden" : "Unsubscribe"}</u>
+          </p>
         </div>
       );
     }
-  
+
   if (isStandardLayout) {
     const isDark = previewTheme === "dark";
     return (

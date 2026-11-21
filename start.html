@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-langs="en,de,cs,fr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -59,12 +59,16 @@
       .s-row, .s-talk__points { grid-template-columns: 1fr; }
       .s-talk__points { padding-top: 36px; }
     }
+    .s-head { display: flex; align-items: center; }
+    .s-lang { margin-left: auto; margin-right: 18px; }
+    .s-lang .i18nsw { margin-left: 0; }
   </style>
 </head>
 <body class="f">
   <a class="f-skip" href="#brief">Skip to the form</a>
   <header class="f-header s-head">
     <a class="f-logo" href="index.html" aria-label="Atmosferi home"><span class="lg"><span class="lg-t" aria-hidden="true">atmosferı</span><i class="lg-o" aria-hidden="true"></i><span class="lg-sr">Atmosferi</span></span></a>
+    <div class="s-lang"><span class="swx" hidden aria-hidden="true"></span></div>
     <a class="s-close" href="index.html" id="closeLink">Close <span aria-hidden="true">✕</span></a>
   </header>
 
@@ -123,7 +127,10 @@
     </form>
   </main>
 
-  <script src="assets/inquiry.js?v=20261101-forms"></script>
+  <script src="assets/inquiry.js?v=20261120-fr"></script>
+  <script src="assets/start-i18n.js?v=20261120-1"></script>
+  <script src="assets/i18n-fr.js?v=20261120-1"></script>
+  <script src="assets/i18n.js?v=20261120-fr"></script>
   <script>
   (function () {
     "use strict";

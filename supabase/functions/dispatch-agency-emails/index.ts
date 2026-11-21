@@ -5,6 +5,7 @@
 // All mail goes out over SMTP as michal@atmosferi.com (see SMTP_USER / SMTP_FROM).
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.57.0";
 import { sendViaSmtp } from "../_shared/smtp.ts";
+import { generateAtmosferiEmailHtml } from "../_shared/EmailTemplateGenerator.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +23,6 @@ type Settings = { enabled: boolean; daily_limit: number; followup_enabled: boole
 
 const OPT_OUT = "Pokud od nás nechcete další e-maily, stačí odpovědět „ne“ a už se neozvu.";
 
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 function cleanCompany(name: string) {
   const cleaned = name.replace(/\s*\(.*?\)/g, "")
     .replace(/,?\s*\b(s\.?\s*r\.?\s*o\.?|spol\.?\s*s\s*r\.?\s*o\.?|a\.?\s*s\.?|z\.?\s*s\.?|v\.?\s*o\.?\s*s\.?|k\.?\s*s\.?)(?!\w)/gi, "")
@@ -33,13 +33,15 @@ function personalize(text: string, lead: Pick<Lead, "company_name" | "contact_na
   const firma = cleanCompany(lead.company_name || "") || "vaší agenturou";
   return text.replace(/\{\{\s*firma\s*\}\}/g, firma).replace(/\{\{\s*jmeno\s*\}\}/g, lead.contact_name || "");
 }
-function toHtml(text: string) {
-  const paragraphs = text.trim().split(/\n{2,}/).map(p =>
-    "<p style=\"margin:0 0 14px\">" + esc(p).replace(/(https?:\/\/[^\s<]+)/g, "<a href=\"$1\" style=\"color:#111\">$1</a>")
-      .replace(/\n/g, "<br>") + "</p>").join("");
-  return "<!doctype html><html><body style=\"margin:0;padding:24px;background:#fff\">"
-    + "<div style=\"max-width:600px;font:15px/1.6 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#111\">"
-    + paragraphs + "<p style=\"margin:28px 0 0;font-size:12px;color:#888\">" + esc(OPT_OUT) + "</p></div></body></html>";
+// Same light letter as every other Atmosferi e-mail; the signature is part of the template text.
+function toHtml(text: string, subject = "") {
+  return generateAtmosferiEmailHtml({
+    subject, body: text.trim(), language: "cz",
+    heroImageEnabled: false, heroImageUrl: "", portfolioEnabled: false, portfolioImages: [],
+    icebreakerEnabled: false, icebreakerText: "", signatureEnabled: false, signatureGreeting: "",
+    signatureName: "", signatureRole: "", signatureEmail: "michal@atmosferi.com",
+    psEnabled: false, psText: "", themeColor: "#0b0b0b", ctaButtonEnabled: false,
+  });
 }
 
 async function deliver(db: SupabaseClient, s: Settings, opts: {
@@ -47,7 +49,7 @@ async function deliver(db: SupabaseClient, s: Settings, opts: {
 }) {
   const result: { success: boolean; error?: string; messageId?: string; recipientRejected?: boolean } = await sendViaSmtp({
     from: `${s.sender_name} <${s.sender_email}>`, to: opts.to, subject: opts.subject,
-    html: toHtml(opts.body), text: opts.body.trim() + "\n\n--\n" + OPT_OUT,
+    html: toHtml(opts.body, opts.subject), text: opts.body.trim() + "\n\n--\n" + OPT_OUT,
     headers: { "List-Unsubscribe": `<mailto:${s.sender_email}?subject=unsubscribe>` },
   });
   await db.from("agency_outreach_log").insert({

@@ -1,3 +1,7 @@
+// Atmosferi° e-mail: a short personal letter in the website's style
+// (white sheet on #f4f4f4, black text, grey details, no banners or buttons).
+// Light HTML on purpose: it reads like a real message and stays out of the Promotions tab.
+
 export interface EmailTemplateData {
   subject: string;
   body: string;
@@ -14,7 +18,7 @@ export interface EmailTemplateData {
   signatureEmail: string;
   psEnabled: boolean;
   psText: string;
-  themeColor: string; // e.g. #D97757
+  themeColor: string; // kept for compatibility; the letter is monochrome
   heroCaption?: string;
   heroTagline?: string;
   signatureAvatarUrl?: string;
@@ -29,164 +33,125 @@ export interface EmailTemplateData {
   ctaUrl?: string;
   greeting?: string;
   language?: string;
+  heading?: string;      // optional title line (system e-mails); outreach letters leave it empty
 }
 
+const INK = "#0b0b0b";
+const MUTE = "#6b6b6b";
+const SOFT = "#9a9a9a";
+const LINE = "#ececec";
+const FONT = "'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+
 export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
-  // Greeting line ("Hello Anna,") is stored separately from the body; render it first.
-  const greeting = (data.greeting || "").trim();
-  const showGreeting = greeting !== "" && greeting.toLowerCase() !== "none"
-    && !startsWithSameWord(data.body, greeting);
-  // Convert markdown-like syntax to HTML for body
-  const parsedBody = (showGreeting ? `<p style="margin: 0 0 16px 0;">${greeting}</p>\n` : "") + parseBodyText(data.body);
   const t = copyFor(data.language);
+  const greeting = (data.greeting || "").trim();
+  const showGreeting = greeting !== "" && greeting.toLowerCase() !== "none" && !startsWithSameWord(data.body, greeting);
+  const p = (html: string, extra = "") => `<p style="margin: 0 0 16px 0;${extra}">${html}</p>`;
 
-  const topBannerHtml = `
-    <div style="background-color: #16140F; padding: 16px 24px; color: #EFEDE6;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td style="vertical-align: middle; width: 100px;">
-            <span style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; letter-spacing: -0.02em;">Atmosferi<sup style="color: #D97757; font-size: 0.6em;">&deg;</sup></span>
-          </td>
-          <td style="vertical-align: middle; border-left: 1px solid rgba(244,242,236,0.3); padding-left: 14px;">
-            <span style="font-family: monospace; font-size: 9px; letter-spacing: 0.18em; opacity: 0.6; text-transform: uppercase;">${data.heroTagline ?? t.tagline}</span>
-          </td>
-        </tr>
-      </table>
-    </div>
-  `;
+  const heroUrl = (data.heroImageUrl || "").trim();
+  const heroHtml = data.heroImageEnabled && heroUrl && heroUrl !== "none" ? `
+              <img src="${heroUrl}" alt="" width="528" style="display: block; width: 100%; max-width: 528px; height: auto; border: 0; border-radius: 8px;" />
+              ${data.heroCaption ? `<p style="margin: 8px 0 24px 0; font-size: 12px; line-height: 1.4; color: ${SOFT};">${data.heroCaption}</p>` : `<div style="height: 24px; line-height: 24px;">&nbsp;</div>`}` : "";
 
-  const heroHtml = data.heroImageEnabled && data.heroImageUrl ? `
-    <div>
-      <img src="${data.heroImageUrl}" alt="Hero" width="100%" style="display: block; max-width: 100%; height: auto;" />
-      <div style="background-color: #16140F; padding: 12px 24px; color: #A8A398; font-family: monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;">
-        ${data.heroCaption || t.caption}
-      </div>
-    </div>
-  ` : '';
+  const headingHtml = data.heading && data.heading.trim()
+    ? `<h1 style="margin: 0 0 18px 0; font-family: ${FONT}; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.02em; color: ${INK};">${data.heading}</h1>` : "";
 
-  const portfolioHtml = data.portfolioEnabled && data.portfolioImages.length > 0 ? `
-    <div style="margin: 32px 0;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          ${data.portfolioImages.slice(0, 3).map(url => `
-            <td width="${Math.floor(100 / Math.min(3, data.portfolioImages.length))}%" style="padding: 0 4px;">
-              <img src="${url}" alt="Gallery" width="100%" style="display: block; max-width: 100%; height: auto; border: 1px solid #EAEAEA;" />
-            </td>
-          `).join('')}
-        </tr>
-      </table>
-    </div>
-  ` : '';
-
-  const icebreakerHtml = data.icebreakerEnabled && data.icebreakerText ? `
-    <p style="margin: 0 0 20px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #16140F;">
-      <em>${data.icebreakerText}</em>
-    </p>
-  ` : '';
-
-  const signatureHtml = data.signatureEnabled ? `
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 40px; border-top: 1px solid #EAEAEA; padding-top: 20px;">
-      <tr>
-        <td width="48" style="padding-right: 16px; vertical-align: top;">
-          <img src="${data.signatureAvatarUrl || 'https://atmosferi.com/img/michal.jpg'}" width="48" height="48" alt="${data.signatureName}" style="display: block; width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: none; outline: none;" />
-        </td>
-        <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #807C72; vertical-align: top;">
-          <span style="display:block; margin-bottom: 2px;">${data.signatureGreeting}</span>
-          <strong style="color: #16140F;">${data.signatureName}</strong><br/>
-          Atmosferi&deg; &mdash; ${data.signatureRole}<br/>
-          <a href="mailto:${data.signatureEmail}" style="color: ${data.themeColor}; text-decoration: none;">${data.signatureEmail}</a> &middot; <a href="https://atmosferi.com" style="color: ${data.themeColor}; text-decoration: none;">atmosferi.com</a>
-        </td>
-      </tr>
-    </table>
-  ` : '';
-
-  const psHtml = data.psEnabled && data.psText ? `
-    <p style="margin: 30px 0 0 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5; color: #807C72; font-style: italic;">
-      P.S. ${data.psText}
-    </p>
-  ` : '';
+  const icebreakerHtml = data.icebreakerEnabled && data.icebreakerText ? p(data.icebreakerText) : "";
 
   const servicesHtml = data.servicesWidgetEnabled ? `
-    <div style="margin: 24px 0; padding: 20px 24px; border: 1px solid #EAEAEA; background-color: #F9F9F9; text-align: left;">
-      <h3 style="font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; color: #807C72; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
-        ${data.servicesWidgetTitle || "CO DĚLÁME"}
-      </h3>
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td style="padding-bottom: 12px; border-bottom: 1px solid #EAEAEA;">
-            <span style="font-size: 15px; font-weight: bold; color: ${data.themeColor}; margin-right: 8px;">1</span>
-            <span style="font-size: 14px; color: #16140F; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">${data.service1Title || "Webové stránky"}</span>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 12px 0; border-bottom: 1px solid #EAEAEA;">
-            <span style="font-size: 15px; font-weight: bold; color: ${data.themeColor}; margin-right: 8px;">2</span>
-            <span style="font-size: 14px; color: #16140F; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">${data.service2Title || "3D Vizualizace"}</span>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding-top: 12px;">
-            <span style="font-size: 15px; font-weight: bold; color: ${data.themeColor}; margin-right: 8px;">3</span>
-            <span style="font-size: 14px; color: #16140F; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">${data.service3Title || "Klientské sekce"}</span>
-          </td>
-        </tr>
-      </table>
-    </div>
-  ` : '';
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 4px 0 20px 0;">
+                <tr><td style="padding: 0 0 6px 0; font-size: 13px; color: ${MUTE};">${data.servicesWidgetTitle || t.services}</td></tr>
+                ${[data.service1Title || t.s1, data.service2Title || t.s2, data.service3Title || t.s3].map(s =>
+                  `<tr><td style="padding: 8px 0; border-top: 1px solid ${LINE}; font-size: 15px; color: ${INK};">${s}</td></tr>`).join("")}
+              </table>` : "";
 
-  const ctaHtml = data.ctaButtonEnabled && data.ctaText && data.ctaUrl ? `
-    <div style="margin-bottom: 32px;">
-      <a href="${data.ctaUrl}" style="display: inline-block; background-color: #16140F; color: #FBFAF6; padding: 12px 24px; text-decoration: none; font-size: 11px; font-weight: 600; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spacing: 0.16em; text-transform: uppercase;">
-        ${data.ctaText} &rarr;
-      </a>
-    </div>
-  ` : '';
+  const imgs = (data.portfolioImages || []).slice(0, 3);
+  const portfolioHtml = data.portfolioEnabled && imgs.length ? `
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 4px 0 22px 0;">
+                <tr>${imgs.map((url, i) => `
+                  <td width="${Math.floor(100 / imgs.length)}%" style="padding: 0 ${i < imgs.length - 1 ? 6 : 0}px 0 0; vertical-align: top;">
+                    <img src="${url}" alt="" width="172" style="display: block; width: 100%; height: auto; border: 0; border-radius: 6px;" />
+                  </td>`).join("")}
+                </tr>
+              </table>` : "";
 
-  return `
-<!DOCTYPE html>
+  const ctaHtml = data.ctaButtonEnabled && data.ctaText && data.ctaUrl
+    ? p(`<a href="${data.ctaUrl}" style="color: ${INK}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;">${data.ctaText}&nbsp;&rarr;</a>`, " margin-top: 4px;") : "";
+
+  const sigEmail = data.signatureEmail || "michal@atmosferi.com";
+  const signatureHtml = data.signatureEnabled ? `
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 28px; border-top: 1px solid ${LINE};">
+                <tr>
+                  <td width="56" style="padding: 20px 14px 0 0; vertical-align: top;">
+                    <img src="${data.signatureAvatarUrl || "https://www.atmosferi.com/img/michal-card.jpg"}" width="44" height="44" alt="" style="display: block; width: 44px; height: 44px; border-radius: 50%; border: 0;" />
+                  </td>
+                  <td style="padding: 20px 0 0 0; vertical-align: top; font-family: ${FONT}; font-size: 13px; line-height: 1.5; color: ${MUTE};">
+                    ${data.signatureGreeting ? `<span style="display: block;">${data.signatureGreeting}</span>` : ""}
+                    <span style="display: block; font-size: 14px; font-weight: 600; color: ${INK};">${data.signatureName}</span>
+                    Atmosferi&deg; &middot; ${data.signatureRole}<br />
+                    <a href="mailto:${sigEmail}" style="color: ${MUTE}; text-decoration: none;">${sigEmail}</a> &middot; <a href="https://www.atmosferi.com" style="color: ${MUTE}; text-decoration: none;">atmosferi.com</a>
+                  </td>
+                </tr>
+              </table>` : "";
+
+  const psHtml = data.psEnabled && data.psText
+    ? `<p style="margin: 22px 0 0 0; font-size: 13px; line-height: 1.5; color: ${MUTE};">P.S. ${data.psText}</p>` : "";
+
+  const bodyHtml = (showGreeting ? p(greeting) : "") + parseBodyText(data.body);
+
+  return `<!DOCTYPE html>
 <html lang="${t.lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
 <title>${data.subject}</title>
+<style>@media only screen and (max-width: 480px) { .at-sheet { padding: 26px 20px 22px 20px !important; } .at-wrap { padding: 12px 6px !important; } }</style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #EFEDE6; -webkit-font-smoothing: antialiased;">
-  <center style="width: 100%; background-color: #EFEDE6; padding: 40px 20px;">
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; max-width: 600px; background-color: #FBFAF6;">
-      <tr>
-        <td align="left" style="padding: 0;">
-          ${topBannerHtml}
-          ${heroHtml}
-          
-          <div style="padding: 32px;">
-            ${icebreakerHtml}
-            
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #16140F;">
-              ${parsedBody}
-            </div>
-            
-            ${servicesHtml}
-            ${portfolioHtml}
-            ${ctaHtml}
-            
-            ${signatureHtml}
-            ${psHtml}
-          </div>
-        </td>
-      </tr>
-    </table>
-  </center>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4;">
+    <tr>
+      <td class="at-wrap" align="center" style="padding: 28px 12px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px;">
+          <tr>
+            <td class="at-sheet" style="padding: 36px 36px 30px 36px; font-family: ${FONT}; font-size: 15px; line-height: 1.6; color: ${INK}; text-align: left;">
+              ${heroHtml}
+              ${headingHtml}
+              ${icebreakerHtml}
+              ${bodyHtml}
+              ${servicesHtml}
+              ${portfolioHtml}
+              ${ctaHtml}
+              ${signatureHtml}
+              ${psHtml}
+            </td>
+          </tr>
+        </table>
+        <p style="margin: 16px 0 0 0; font-family: ${FONT}; font-size: 12px; line-height: 1.5; color: ${SOFT};">
+          atmosfer&#305;&deg; &middot; ${t.optOut} <a href="mailto:${sigEmail}?subject=${encodeURIComponent(t.optOutSubject)}" style="color: ${SOFT}; text-decoration: underline;">${t.optOutLink}</a>
+        </p>
+      </td>
+    </tr>
+  </table>
 </body>
-</html>
-  `.trim();
+</html>`;
 }
 
-// Default labels in the recipient's language (templates can still override them).
+// Labels in the recipient's language (templates can still override most of them).
 function copyFor(language?: string) {
   const l = (language || "cz").toLowerCase();
-  if (l === "cz" || l === "cs" || l === "sk") return { lang: "cs", tagline: "WEB A VIZUALIZACE", caption: "UKÁZKA NAŠÍ VIZUALIZACE — ATMOSFERI°" };
-  if (l === "de" || l === "at" || l === "ch") return { lang: "de", tagline: "WEB UND VISUALISIERUNG", caption: "UNSERE VISUALISIERUNG — ATMOSFERI°" };
-  return { lang: "en", tagline: "WEB & VISUALISATION", caption: "OUR VISUALISATION — ATMOSFERI°" };
+  if (l === "cz" || l === "cs" || l === "sk") return {
+    lang: "cs", services: "Co dělám", s1: "Webové stránky", s2: "3D vizualizace", s3: "Filmy a 360° prohlídky",
+    optOut: "Nechcete další e-maily?", optOutLink: "Odhlásit se", optOutSubject: "Odhlásit",
+  };
+  if (l === "de" || l === "at" || l === "ch") return {
+    lang: "de", services: "Was ich mache", s1: "Websites", s2: "3D-Visualisierung", s3: "Filme und 360°-Touren",
+    optOut: "Keine weiteren E-Mails?", optOutLink: "Abmelden", optOutSubject: "Abmelden",
+  };
+  return {
+    lang: "en", services: "What I do", s1: "Websites", s2: "3D visualisation", s3: "Films and 360° tours",
+    optOut: "Prefer not to hear from me?", optOutLink: "Unsubscribe", optOutSubject: "Unsubscribe",
+  };
 }
 
 // True when the body already opens with the greeting (older templates kept it inside the body).
@@ -198,23 +163,19 @@ function startsWithSameWord(body: string, greeting: string): boolean {
 function parseBodyText(text: string): string {
   if (!text) return "";
   let html = text;
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\b_(.*?)_\b/g, '<em>$1</em>');
-  html = html.replace(/(?<!\*)\*(?!\*)(.*?)\*/g, '<em>$1</em>');
-  
-  const paragraphs = html.split(/\n\s*\n/);
-  return paragraphs.map(p => {
-    const lines = p.split('\n');
-    const isList = lines.some(l => l.trim().startsWith('- ') || l.trim().startsWith('• '));
+  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/\b_(.*?)_\b/g, "<em>$1</em>");
+  html = html.replace(/(?<!\*)\*(?!\*)(.*?)\*/g, "<em>$1</em>");
+  html = html.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, `$1<a href="$2" style="color: ${INK}; text-decoration: underline;">$2</a>`);
+
+  return html.split(/\n\s*\n/).map(par => {
+    const lines = par.split("\n");
+    const isList = lines.some(l => l.trim().startsWith("- ") || l.trim().startsWith("• "));
     if (isList) {
-      const listItems = lines.map(l => {
-        if (l.trim().startsWith('- ') || l.trim().startsWith('• ')) {
-          return `<li style="margin-bottom: 8px;">${l.substring(2).trim()}</li>`;
-        }
-        return l;
-      }).join('');
-      return `<ul style="margin: 0 0 16px 0; padding-left: 20px;">${listItems}</ul>`;
+      const items = lines.map(l => (l.trim().startsWith("- ") || l.trim().startsWith("• "))
+        ? `<li style="margin-bottom: 6px;">${l.trim().substring(2).trim()}</li>` : l).join("");
+      return `<ul style="margin: 0 0 16px 0; padding-left: 20px;">${items}</ul>`;
     }
-    return `<p style="margin: 0 0 16px 0;">${p.replace(/\n/g, '<br/>')}</p>`;
-  }).join('\n');
+    return `<p style="margin: 0 0 16px 0;">${par.replace(/\n/g, "<br />")}</p>`;
+  }).join("\n");
 }

@@ -1,0 +1,89 @@
+name: Direct Google Search Console monitoring
+
+on:
+  # Organic search metrics typically lag by 2–3 days; inspect URLs in batches.
+  # Private metrics are NEVER written to this public repository.
+  schedule:
+    - cron: '17 2,8,14,20 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/gsc/**'
+      - 'admin/src/pages/admin/AdminSeo.tsx'
+      - 'admin/src/lib/gsc-inspection-history.ts'
+      - 'admin/src/App.tsx'
+      - 'admin/src/layouts/AdminLayout.tsx'
+      - 'supabase/migrations/*gsc*.sql'
+      - 'supabase/functions/gsc-ingest/**'
+      - 'supabase/config.toml'
+      - '.github/workflows/gsc-monitor.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: direct-gsc-monitor
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate URL selection without Google credentials
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test canonical article inspection candidates
+        run: node scripts/gsc/monitor.mjs --dry-run
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check signed GitHub OIDC ingestion function
+        working-directory: supabase/functions/gsc-ingest
+        run: |
+          deno install
+          deno check index.ts
+      - name: Test cumulative Search Console inspection history
+        run: deno test scripts/gsc/history.test.ts
+      - name: Assert keyless storage
+        run: |
+          node -e "const fs=require('fs');const s=fs.readFileSync('scripts/gsc/monitor.mjs','utf8');if(s.includes('GSC_SUPABASE_SERVICE_ROLE_KEY')||s.includes('rest/v1/gsc_reports'))process.exit(1)"
+
+      - name: Compile Atmosferi admin with SEO dashboard
+        run: |
+          npm ci --prefix admin
+          npm run build --prefix admin
+
+  monitor:
+    name: Read Search Console into Atmosferi admin with keyless GitHub OIDC
+    if: >-
+      github.event_name != 'pull_request' &&
+      vars.GSC_WIF_PROVIDER != '' &&
+      vars.GSC_SERVICE_ACCOUNT != '' &&
+      vars.GSC_MONITOR_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Get short-lived Google OAuth token via keyless OIDC
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          token_format: access_token
+          workload_identity_provider: ${{ vars.GSC_WIF_PROVIDER }}
+          service_account: ${{ vars.GSC_SERVICE_ACCOUNT }}
+          access_token_scopes: |
+            https://www.googleapis.com/auth/webmasters.readonly
+      - name: Inspect Search Console and privately persist results
+        env:
+          GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: node scripts/gsc/monitor.mjs
+      - name: Monitoring result
+        if: success()
+        run: echo 'Search Console report saved to the restricted Atmosferi admin database.' >> "$GITHUB_STEP_SUMMARY"
