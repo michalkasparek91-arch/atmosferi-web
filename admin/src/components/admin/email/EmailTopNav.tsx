@@ -5,8 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 // One navigation for everything we send: overview first, then each part.
 const TABS: { id: string; label: string; match: string[] }[] = [
   { id: "prehled", label: "Přehled", match: ["prehled"] },
-  { id: "agentury", label: "Agentury", match: ["agentury"] },
-  { id: "fronta", label: "Akvizice · fronta", match: ["fronta", "outbox", "historie"] },
+  { id: "akvizice", label: "Akvizice", match: ["akvizice", "agentury", "fronta", "outbox", "historie"] },
   { id: "kontakty", label: "Publikum", match: ["kontakty", "crm"] },
   { id: "sablony", label: "Šablony", match: ["sablony"] },
   { id: "odpovedi", label: "Odpovědi", match: ["odpovedi"] },
@@ -35,7 +34,7 @@ export const EmailTopNav = () => {
     },
     refetchInterval: 60000,
   });
-  const badge: Record<string, number> = { fronta: ready, odpovedi: unread };
+  const badge: Record<string, number> = { akvizice: ready, odpovedi: unread };
 
   return (
     <nav aria-label="Kampaně" className="flex shrink-0 gap-1 overflow-x-auto no-scrollbar rounded-full bg-white p-1 w-fit max-w-full">

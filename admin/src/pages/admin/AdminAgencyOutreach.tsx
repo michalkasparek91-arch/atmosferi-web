@@ -100,7 +100,7 @@ type CollectorSummary = {
  last: { name: string; term: string; pages: number; at: number | null } | null;
 };
 
-function CollectorProgress() {
+export function CollectorProgress() {
  const [summary, setSummary] = useState<CollectorSummary | null>(null);
  const [connected, setConnected] = useState(false);
  const [loading, setLoading] = useState(false);

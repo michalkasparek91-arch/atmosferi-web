@@ -631,6 +631,7 @@ export const AudienceManager = (props: any) => {
                 <SelectItem value="architekt">Samostatný architekt</SelectItem>
                 <SelectItem value="interiery">Interiérové studio</SelectItem>
                 <SelectItem value="developeri">Realitní developer</SelectItem>
+                <SelectItem value="agentury">Marketingová agentura</SelectItem>
                 <SelectItem value="realitky">Realitní kancelář</SelectItem>
                 <SelectItem value="urbanismus">Urbanismus / Veřejný sektor</SelectItem>
               </SelectContent>
@@ -835,6 +836,7 @@ export const AudienceManager = (props: any) => {
                              "architekt": "Samostatný architekt",
                              "interiery": "Interiérové studio",
                              "developeri": "Realitní developer",
+                             "agentury": "Marketingová agentura",
                              "realitky": "Realitní kancelář",
                              "urbanismus": "Urbanismus / Veřejný sektor",
                              "remeslnici": "Řemeslníci"
