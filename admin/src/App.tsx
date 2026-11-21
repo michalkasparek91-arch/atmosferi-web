@@ -19,6 +19,7 @@ const AdminContacts = React.lazy(() => import("./pages/admin/AdminContacts"));
 const AdminEmails = React.lazy(() => import("./pages/admin/AdminEmails"));
 const AdminAnalytics = React.lazy(() => import("./pages/admin/AdminAnalytics"));
 const AdminVisualizations = React.lazy(() => import("./pages/admin/AdminVisualizations"));
+const AdminSeo = React.lazy(() => import("./pages/admin/AdminSeo"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const ProposalView = React.lazy(() => import("./pages/ProposalView"));
 
@@ -88,6 +89,7 @@ const App = () => {
                           <Route path="/agentury" element={<Navigate to="/emaily/agentury" replace />} />
                           <Route path="/emaily/*" element={<AdminEmails />} />
                           <Route path="/statistiky" element={<AdminAnalytics />} />
+                          <Route path="/seo" element={<AdminSeo />} />
                           <Route path="/vizualizace" element={<AdminVisualizations />} />
                         </Route>
                       </Route>
