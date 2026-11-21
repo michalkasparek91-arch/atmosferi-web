@@ -1,0 +1,66 @@
+name: Direct Google Search Console monitoring
+
+on:
+  # Organic search metrics typically lag by 2–3 days; inspect URLs in batches.
+  # Private metrics are NEVER written to this public repository.
+  schedule:
+    - cron: '17 2,8,14,20 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/gsc/**'
+      - '.github/workflows/gsc-monitor.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: direct-gsc-monitor
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate URL selection without Google credentials
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test canonical article inspection candidates
+        run: node scripts/gsc/monitor.mjs --dry-run
+
+  monitor:
+    name: Read Search Console into a private Google Sheet
+    if: >-
+      github.event_name != 'pull_request' &&
+      vars.GSC_WIF_PROVIDER != '' &&
+      vars.GSC_SERVICE_ACCOUNT != '' &&
+      vars.GSC_SPREADSHEET_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Get short-lived Google OAuth token via keyless OIDC
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          token_format: access_token
+          workload_identity_provider: ${{ vars.GSC_WIF_PROVIDER }}
+          service_account: ${{ vars.GSC_SERVICE_ACCOUNT }}
+          access_token_scopes: |
+            https://www.googleapis.com/auth/webmasters.readonly
+            https://www.googleapis.com/auth/spreadsheets
+      - name: Inspect Search Console and privately persist results
+        env:
+          GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          GSC_SPREADSHEET_ID: ${{ vars.GSC_SPREADSHEET_ID }}
+        run: node scripts/gsc/monitor.mjs
+      - name: Monitoring result
+        if: success()
+        run: echo 'The Search Console report was saved to the designated private Google Sheet.' >> "$GITHUB_STEP_SUMMARY"
