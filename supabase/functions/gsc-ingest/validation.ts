@@ -72,7 +72,7 @@ export function validateReport(report: unknown, now = Date.now()): string | null
   if (!validAnalytics(report.queries, "query")) return "INVALID_QUERIES";
   if (!validAnalytics(report.pages, "url")) return "INVALID_PAGES";
 
-  if (report.inspected_urls !== report.inspections.length ||
+  if (report.inspected_urls !== (report.inspections as unknown[]).length ||
       Number(report.indexed_urls) > Number(report.inspected_urls) ||
       Number(report.inspection_errors) > Number(report.inspected_urls)) return "INVALID_COUNTS";
 
