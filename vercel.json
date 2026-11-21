@@ -21,9 +21,23 @@
       "source": "/for-agencies/",
       "destination": "/for-agencies",
       "permanent": true
+    },
+    {
+      "source": "/guides.html",
+      "destination": "/guides",
+      "permanent": true
+    },
+    {
+      "source": "/guides/",
+      "destination": "/guides",
+      "permanent": true
     }
   ],
   "rewrites": [
+    {
+      "source": "/guides",
+      "destination": "/guides.html"
+    },
     {
       "source": "/for-agencies",
       "destination": "/for-agencies.html"
