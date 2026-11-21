@@ -2,13 +2,14 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
-  Activity, AlertCircle, ArrowUpRight, BarChart3, CheckCircle2, Clock3,
-  ExternalLink, FileSearch, Search, ShieldCheck
+  Activity, AlertCircle, ArrowUpRight, BarChart3, CheckCircle2,
+  FileSearch, Search, ShieldCheck
 } from "lucide-react";
 import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { GscSetupGuide } from "@/components/admin/GscSetupGuide";
 import { buildInspectionHistory, isInspectionIssue, summarizeInspectionHistory, type InspectionOutcome } from "@/lib/gsc-inspection-history";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -111,19 +112,7 @@ export default function AdminSeo() {
           <p className="mt-2 text-sm text-red-700">Ověř nasazení databázové migrace a přihlášení administrátora. Žádné statistiky nevymýšlíme.</p>
         </div>
       ) : !latest ? (
-        <Card className="rounded-2xl border border-zinc-200 shadow-none">
-          <CardContent className="p-8 md:p-12">
-            <div className="flex items-center gap-2 text-amber-700 font-medium"><Clock3 size={20}/> Čeká na první přímou synchronizaci</div>
-            <h2 className="text-2xl font-semibold tracking-tight mt-5">Přehled je připravený. Google zatím není propojený.</h2>
-            <p className="text-muted-foreground mt-3 max-w-2xl">
-              Po dokončení jednorázového nastavení Google Cloud a GitHubu se reporty budou ukládat do soukromé databáze každých šest hodin. Není potřeba Google Sheet ani otevřený prohlížeč.
-            </p>
-            <a className="inline-flex items-center gap-2 mt-6 text-sm font-medium underline underline-offset-4" target="_blank" rel="noopener noreferrer"
-              href="https://github.com/michalkasparek91-arch/atmosferi-web/blob/main/docs/gsc-direct-connection.md">
-              Nastavení trvalého napojení <ExternalLink size={15}/>
-            </a>
-          </CardContent>
-        </Card>
+        <GscSetupGuide />
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
