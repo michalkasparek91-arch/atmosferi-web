@@ -33,10 +33,10 @@ function inspectableServiceUrls() {
   const candidates=[];
   for(const file of fs.readdirSync('.').filter(f=>f.endsWith('.html'))) {
     const source=fs.readFileSync(file,'utf8');
-    if(/<meta\\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(source))continue;
-    const canonical=source.match(/<link\\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1];
+    if(/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(source))continue;
+    const canonical=source.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1];
     if(canonical!==ORIGIN+'/'+file)continue;
-    for(const match of source.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)){
+    for(const match of source.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
       let data;
       try{data=JSON.parse(match[1]);}catch{continue;}
       const nodes=Array.isArray(data['@graph'])?data['@graph']:[data];
