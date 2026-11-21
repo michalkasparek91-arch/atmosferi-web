@@ -51,7 +51,7 @@ if (process.env.VERCEL_ENV === 'production') {
       // A previous deployment from a different branch is not a safe baseline.
       git('merge-base', '--is-ancestor', previous, 'HEAD');
       const files = git('diff', '--name-only', '-z', previous, 'HEAD')
-        .split('\\0').filter(Boolean);
+        .split('\0').filter(Boolean);
       const nonPublicOnly = file =>
         file === 'AGENTS.md' || file === 'README.md' ||
         /^docs\/.*\.(?:md|txt)$/.test(file) ||
