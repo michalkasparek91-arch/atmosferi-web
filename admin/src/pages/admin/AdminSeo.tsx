@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { GscSetupGuide } from "@/components/admin/GscSetupGuide";
+import { GscPriorities } from "@/components/admin/GscPriorities";
 import { buildInspectionHistory, isInspectionIssue, summarizeInspectionHistory, type InspectionOutcome } from "@/lib/gsc-inspection-history";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -133,6 +134,8 @@ export default function AdminSeo() {
               </Card>
             ))}
           </div>
+
+          <GscPriorities reports={reports} inspections={inspectionHistory} />
 
           <div className="grid xl:grid-cols-[1.4fr_1fr] gap-5">
             <Card className="rounded-2xl shadow-none">
