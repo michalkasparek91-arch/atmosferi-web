@@ -1,7 +1,7 @@
 // Private Search Console ingestion.
 // The caller is authenticated using a signed GitHub Actions OIDC token, NOT
 // a Supabase service_role key in GitHub. No browser or anonymous access.
-import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
 const REPO = "michalkasparek91-arch/atmosferi-web";
 const REPO_ID = "1260597613";
