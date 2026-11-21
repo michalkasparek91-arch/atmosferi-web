@@ -31,6 +31,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['website-briefing-architekturbuero-angebot-checkliste.html', 'de', 'architekturbuero-website-relaunch-checkliste.html', '2026-11-21'],
             ['jak-merit-poptavky-z-webu-architektonickeho-atelieru.html', 'cs', 'struktura-webu-architektonickeho-atelieru.html', '2026-11-20'],
             ['architektonicka-vizualizace-bez-3d-modelu.html', 'cs', 'bim-cad-handover-architectural-visualisation.html', '2026-11-19'],
             ['external-stair-drainage-slip-resistant-nosing-rendering-review.html', 'en', 'staircase-tread-riser-geometry-rendering-review.html', '2026-11-17'],
@@ -463,6 +464,19 @@ jobs:
               const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
               assert(css.includes('max-width:850px') && css.includes('max-width:520px'), path + ': responsive CSS breakpoints');
               assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
+            }
+            if (path === 'website-briefing-architekturbuero-angebot-checkliste.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert((h.match(/<section id="/g) || []).length >= 10, path + ': substantive sections');
+              assert(h.includes('Fiktives Website-Briefing') && h.includes('fiktives Vergleichsraster'), path + ': illustrative examples labelled');
+              assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': accessible tables');
+              const anchors = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              assert(anchors.length >= 10 && anchors.every(id => ids.has(id)), path + ': contents anchors');
+              const css = fs.readFileSync('assets/seo-guides.css','utf8');
+              assert(css.includes('max-width:850px') && css.includes('max-width:520px'), path + ': mobile breakpoints');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': schema WebPage URL');
               assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
             }
             const local = [...h.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)].map(m => m[1]);
