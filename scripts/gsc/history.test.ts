@@ -1,4 +1,5 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import assert from "node:assert/strict";
+const assertEquals = (actual: unknown, expected: unknown) => assert.deepStrictEqual(actual, expected);
 import {
   buildInspectionHistory,
   isInspectionIssue,
