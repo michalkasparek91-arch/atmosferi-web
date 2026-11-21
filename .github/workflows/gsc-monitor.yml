@@ -33,12 +33,12 @@ jobs:
         run: node scripts/gsc/monitor.mjs --dry-run
 
   monitor:
-    name: Read Search Console into a private Google Sheet
+    name: Read Search Console into Atmosferi private admin
     if: >-
       github.event_name != 'pull_request' &&
       vars.GSC_WIF_PROVIDER != '' &&
       vars.GSC_SERVICE_ACCOUNT != '' &&
-      vars.GSC_SPREADSHEET_ID != ''
+      secrets.GSC_SUPABASE_SERVICE_ROLE_KEY != ''
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -55,12 +55,11 @@ jobs:
           service_account: ${{ vars.GSC_SERVICE_ACCOUNT }}
           access_token_scopes: |
             https://www.googleapis.com/auth/webmasters.readonly
-            https://www.googleapis.com/auth/spreadsheets
       - name: Inspect Search Console and privately persist results
         env:
           GSC_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
-          GSC_SPREADSHEET_ID: ${{ vars.GSC_SPREADSHEET_ID }}
+          GSC_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GSC_SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/gsc/monitor.mjs
       - name: Monitoring result
         if: success()
-        run: echo 'The Search Console report was saved to the designated private Google Sheet.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'Search Console report saved to the restricted Atmosferi admin database.' >> "$GITHUB_STEP_SUMMARY"
