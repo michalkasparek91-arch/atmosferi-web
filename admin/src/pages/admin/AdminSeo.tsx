@@ -45,8 +45,9 @@ const dateTime = (s: string) => new Date(s).toLocaleString("cs-CZ", { dateStyle:
 const percent = (n: number) => (n * 100).toLocaleString("cs-CZ", { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + " %";
 const position = (n: number) => n.toLocaleString("cs-CZ", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const verdictLabel: Record<string, string> = {
-  PASS: "Indexováno", FAIL: "Neindexováno", NEUTRAL: "Nerozhodné",
-  PARTIAL: "Částečně", ERROR: "Chyba kontroly", UNKNOWN: "Neznámé"
+  PASS: "Indexováno", FAIL: "Neindexováno", NEUTRAL: "Vyloučeno z indexu",
+  PARTIAL: "Částečně", ERROR: "Chyba kontroly", UNKNOWN: "Neznámé",
+  VERDICT_UNSPECIFIED: "Stav neurčen"
 };
 
 export default function AdminSeo() {
