@@ -1,6 +1,6 @@
 // Pure, deterministic URL selection for the private six-hour Search Console audit.
-// A contiguous group rotation visits the entire eligible archive. Jumping by
-// batch size modulo N alone can permanently skip URLs when gcd(N, batch) > 1.
+// A contiguous group rotation visits the entire eligible archive, with
+// explicit non-overlapping batches that can be proven complete in tests.
 const ORIGIN = 'https://www.atmosferi.com';
 const WINDOW_MS = 6 * 60 * 60 * 1000;
 const LIMIT = 32;
