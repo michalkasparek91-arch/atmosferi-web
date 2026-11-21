@@ -362,3 +362,23 @@ console.log('Trickle vent guide SEO, schema, incoming links, mobile viewport and
  for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),file+': broken local link '+href);}
  console.log('Brick weep opening guide SEO, schema, links, viewport and sitemap checks passed.');
 }
+
+
+// Curtain wall spandrel article: indexability, metadata, source-led schema and incoming link.
+{
+ const file='curtain-wall-spandrel-panel-rendering-review.html', html=fs.readFileSync(file,'utf8'), url=origin+'/'+file;
+ assert.match(html,/<html lang="en">/);
+ assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,'spandrel: one H1');
+ assert(html.includes('<link rel="canonical" href="'+url+'">'),'spandrel: canonical');
+ assert.match(html,/<meta name="robots" content="index, follow/);
+ assert(html.includes('name="viewport"'),'spandrel: mobile viewport');
+ for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(html.includes('href="assets/'+css+'.css"'),'spandrel: CSS '+css);
+ for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title','twitter:description'])assert(html.includes(key),'spandrel: social '+key);
+ const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+ for(const type of ['Article','WebPage'])assert(graph.some(x=>x['@type']===type),'spandrel: schema '+type);
+ assert(graph.some(x=>x['@type']==='Article'&&x.datePublished==='2026-11-21'&&x.mainEntityOfPage['@id']===url+'#webpage'),'spandrel: schema date and entity');
+ assert(locations.includes(url),'spandrel: sitemap');
+ assert(fs.readFileSync('architectural-rendering-glazing-reflection-transparency-review.html','utf8').includes('href="'+file+'"'),'spandrel: incoming link');
+ for(const [,href] of html.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;if(href==='/guides')continue;assert(fs.existsSync(href.replace(/^\//,'')),'spandrel: broken local link '+href);}
+ console.log('Curtain wall spandrel guide SEO, schema, incoming links, viewport and sitemap checks passed.');
+}
