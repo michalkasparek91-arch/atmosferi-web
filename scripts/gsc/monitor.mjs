@@ -108,7 +108,18 @@ async function writePrivateReport(payload) {
     },
     body:JSON.stringify(payload)
   });
-  if(!response.ok)throw new Error('Private OIDC-authenticated GSC ingestion failed (HTTP '+response.status+'). No private data written to logs.');
+  if(!response.ok) {
+    // Only log a fixed validation category, never GSC metrics, URLs or queries.
+    let validationCategory='';
+    if(response.status===422) {
+      try {
+        const result=await response.json();
+        const match=String(result?.message||'').match(/^Invalid Search Console report \((INVALID_[A-Z_]+)\)$/);
+        if(match)validationCategory=' ['+match[1]+']';
+      } catch { /* no private data can reach public GitHub logs */ }
+    }
+    throw new Error('Private OIDC-authenticated GSC ingestion failed (HTTP '+response.status+')'+validationCategory+'. No private data written to logs.');
+  }
 }
 
 async function main(){

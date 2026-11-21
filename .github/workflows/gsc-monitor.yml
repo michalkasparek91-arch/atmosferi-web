@@ -49,6 +49,8 @@ jobs:
           deno check index.ts
       - name: Test cumulative Search Console inspection history
         run: deno test scripts/gsc/history.test.ts
+      - name: Test real GSC payload validation and privacy safeguards
+        run: deno test scripts/gsc/payload-validation.test.ts
       - name: Assert keyless storage
         run: |
           node -e "const fs=require('fs');const s=fs.readFileSync('scripts/gsc/monitor.mjs','utf8');if(s.includes('GSC_SUPABASE_SERVICE_ROLE_KEY')||s.includes('rest/v1/gsc_reports'))process.exit(1)"
