@@ -1,5 +1,8 @@
-import assert from "node:assert/strict";
-const assertEquals = (actual: unknown, expected: unknown) => assert.deepStrictEqual(actual, expected);
+const assertEquals = (actual: unknown, expected: unknown) => {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error("Assertion failed: " + JSON.stringify({ actual, expected }));
+  }
+};
 import {
   buildInspectionHistory,
   isInspectionIssue,
