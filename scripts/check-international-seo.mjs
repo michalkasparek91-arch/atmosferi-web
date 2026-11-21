@@ -328,16 +328,16 @@ const trickleFile='window-trickle-vent-facade-rendering-review.html';
 const trickleHtml=fs.readFileSync(trickleFile,'utf8');
 const trickleUrl=origin+'/'+trickleFile;
 assert.match(trickleHtml,/<html lang="en">/,'trickle vents: language');
-assert.equal((trickleHtml.match(/<h1[\\s>]/g)||[]).length,1,'trickle vents: one H1');
+assert.equal((trickleHtml.match(/<h1[\s>]/g)||[]).length,1,'trickle vents: one H1');
 assert(trickleHtml.includes('<link rel="canonical" href="'+trickleUrl+'">'),'trickle vents: canonical');
 assert.match(trickleHtml,/<meta name="robots" content="index, follow/,'trickle vents: indexable');
 assert(trickleHtml.includes('name="viewport"'),'trickle vents: mobile viewport');
 for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(trickleHtml.includes('href="assets/'+css+'.css"'),'trickle vents: stylesheet '+css);
 for(const key of ['og:title','og:url','twitter:card','twitter:image'])assert(trickleHtml.includes(key),'trickle vents: social '+key);
-const trickleSchema=JSON.parse(trickleHtml.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/)[1]);
+const trickleSchema=JSON.parse(trickleHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
 for(const type of ['Article','WebPage'])assert(trickleSchema['@graph'].some(item=>item['@type']===type),'trickle vents: schema '+type);
 assert(trickleSchema['@graph'].some(item=>item['@type']==='Article'&&item.datePublished==='2026-11-21'),'trickle vents: publication date');
 assert(locations.includes(trickleUrl),'trickle vents: sitemap');
 assert(fs.readFileSync('operable-window-opening-architectural-rendering-review.html','utf8').includes('href="'+trickleFile+'"'),'trickle vents: incoming link');
-for(const [,href] of trickleHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\\//,'')),'trickle vents: broken link '+href);}
+for(const [,href] of trickleHtml.matchAll(/(?:href|src)="([^"#?]+)(?:[?#][^"]*)?"/g)){if(/^(?:https?:|mailto:)/.test(href))continue;assert(fs.existsSync(href.replace(/^\//,'')),'trickle vents: broken link '+href);}
 console.log('Trickle vent guide SEO, schema, incoming links, mobile viewport and sitemap checks passed.');
