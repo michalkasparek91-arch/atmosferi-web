@@ -40,7 +40,7 @@ Edit language content in scripts/build-international-seo.mjs, then run:
     node scripts/build-international-seo.mjs
     node scripts/check-international-seo.mjs
 
-scripts/update-seo-index.mjs maintains the language footer and sitemap. Review its output before use after adding new routes. It must not remove editorial language links in page content.
+scripts/update-seo-index.mjs is a compatibility helper that regenerates language service pages, the editorial `/guides` directory and sitemap **without altering footers or homepage content**. The regular `prebuild` is the primary release path. Future updates must preserve the visible category-directory link and all contextual editorial links.
 
 Reference: https://developers.google.com/search/docs/specialty/international/localized-versions
 Reference: https://developers.google.com/search/docs/essentials/spam-policies#doorway-abuse
