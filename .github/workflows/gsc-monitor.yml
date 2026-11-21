@@ -11,6 +11,8 @@ on:
       - 'scripts/gsc/**'
       - 'admin/src/pages/admin/AdminSeo.tsx'
       - 'admin/src/components/admin/GscSetupGuide.tsx'
+      - 'admin/src/components/admin/GscPriorities.tsx'
+      - 'admin/src/lib/gsc-priorities.ts'
       - 'admin/src/lib/gsc-inspection-history.ts'
       - 'admin/src/App.tsx'
       - 'admin/src/layouts/AdminLayout.tsx'
@@ -51,6 +53,8 @@ jobs:
         run: deno test scripts/gsc/history.test.ts
       - name: Test real GSC payload validation and privacy safeguards
         run: deno test scripts/gsc/payload-validation.test.ts
+      - name: Test honest SEO priority recommendations
+        run: deno test scripts/gsc/priorities.test.ts
       - name: Assert keyless storage
         run: |
           node -e "const fs=require('fs');const s=fs.readFileSync('scripts/gsc/monitor.mjs','utf8');if(s.includes('GSC_SUPABASE_SERVICE_ROLE_KEY')||s.includes('rest/v1/gsc_reports'))process.exit(1)"
