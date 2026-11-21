@@ -23,6 +23,8 @@ jobs:
           node-version: '22'
       - name: Generate SEO pages and sitemap
         run: npm run prebuild
+      - name: Verify Vercel build skipping never hides unpublished SEO pages
+        run: node --test scripts/vercel-ignore-build.test.mjs
       - name: Validate international SEO
         run: npm run seo:check
       - name: Validate editorial article
