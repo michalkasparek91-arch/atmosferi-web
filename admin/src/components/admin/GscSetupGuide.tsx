@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Check, CheckCircle2, Clipboard, ExternalLink, Info, KeyRound, LockKeyhole } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -39,7 +39,7 @@ function CopyField({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ActionLink({ href, children }: { href: string; children: React.ReactNode }) {
+function ActionLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a href={href} target="_blank" rel="noopener noreferrer"
       className="inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:text-zinc-600">
@@ -48,7 +48,7 @@ function ActionLink({ href, children }: { href: string; children: React.ReactNod
   );
 }
 
-function SetupStep({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+function SetupStep({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
     <li className="flex gap-4 border-t border-zinc-200 py-5 first:border-t-0 first:pt-0">
       <span aria-hidden="true" className="shrink-0 flex items-center justify-center h-9 w-9 rounded-full border border-zinc-300 font-medium text-sm">{n}</span>
