@@ -10,6 +10,7 @@ on:
     paths:
       - 'scripts/gsc/**'
       - 'admin/src/pages/admin/AdminSeo.tsx'
+      - 'admin/src/components/admin/GscSetupGuide.tsx'
       - 'admin/src/lib/gsc-inspection-history.ts'
       - 'admin/src/App.tsx'
       - 'admin/src/layouts/AdminLayout.tsx'
