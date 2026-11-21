@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { inspectionQueue } from './inspection-queue.mjs';
 
 const DOMAIN = 'atmosferi.com';
 const SITE = 'sc-domain:' + DOMAIN;
@@ -48,23 +49,17 @@ function inspectableServiceUrls() {
   }
   return candidates.sort();
 }
-function inspectionQueue(now,articles,services,topPages=[]) {
-  const slot=Math.floor(now.getTime()/(6*3600_000));
-  const newest=articles.slice(0,5).map(x=>x.url);
-  const known=new Set([ORIGIN+'/',ORIGIN+'/guides',...articles.map(x=>x.url),...services]);
-  const popular=[...topPages].sort((a,b)=>Number(b.impressions||0)-Number(a.impressions||0))
-    .map(row=>row.keys?.[0]).filter(url=>typeof url==='string'&&known.has(url)).slice(0,4);
-  // Keep the service page we are currently promoting under regular inspection;
-  // rotate the other service pages so that no new offering is permanently missed.
-  const primary=ORIGIN+'/interactive-floor-plan-design-real-estate.html';
-  const otherServices=services.filter(url=>url!==primary);
-  const serviceRotation=Array.from({length:Math.min(5,otherServices.length)},(_,i)=>
-    otherServices[(slot*5+i)%otherServices.length]).filter(Boolean);
-  const articleRotation=Array.from({length:Math.min(15,articles.length)},(_,i)=>
-    articles[(slot*15+i)%articles.length]?.url).filter(Boolean);
-  const queue=[...new Set([ORIGIN+'/',ORIGIN+'/guides',...services.filter(url=>url===primary),
-    ...popular,...newest,...serviceRotation,...articleRotation])];
-  return queue.slice(0,32); // enforced by the private ingestion validator
+function inspectablePublicUrls() {
+  const clean = {'guides.html':'guides','for-agencies.html':'for-agencies'};
+  const known = new Set();
+  for (const file of fs.readdirSync('.').filter(f=>f.endsWith('.html'))) {
+    const source=fs.readFileSync(file,'utf8');
+    if (/<meta\\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(source)) continue;
+    const canonical=source.match(/<link\\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1];
+    const expected=ORIGIN + '/' + (file === 'index.html' ? '' : (clean[file] || file));
+    if (canonical === expected) known.add(canonical);
+  }
+  return [...known].sort();
 }
 async function google(url,{method='GET',body}={}) {
   const res=await fetch(url,{
@@ -156,19 +151,30 @@ async function main(){
   const now=new Date();
   const articles=inspectableArticleUrls();
   const services=inspectableServiceUrls();
+  const canonicalUrls=inspectablePublicUrls();
   if(process.argv.includes('--dry-run')){
     if(articles.length<10)throw Error('Expected at least 10 editorial articles');
     const priority=ORIGIN+'/interactive-floor-plans-property-development-website.html';
     const service=ORIGIN+'/interactive-floor-plan-design-real-estate.html';
     if(!services.includes(service))throw Error('Commercial service landing is not discoverable for Search Console inspection');
-    const urls=inspectionQueue(now,articles,services,[{keys:[priority],impressions:316}]);
+    const urls=inspectionQueue(now,articles,services,canonicalUrls,[{keys:[priority],impressions:316}]);
     if(new Set(urls).size!==urls.length)throw Error('Duplicate URLs selected');
     if(urls.length>32)throw Error('URL Inspection batch exceeds private validator limit');
     for(const url of [ORIGIN+'/',ORIGIN+'/guides',priority,service]){
       if(!urls.includes(url))throw Error('Critical index-monitor URL omitted from batch: '+url);
     }
-    if(urls.some(url=>!url.startsWith(ORIGIN+'/')))throw Error('Non-canonical host in queue');
-    console.log('Direct GSC integration dry-run OK: '+articles.length+' editorial articles, '+services.length+' service pages, '+urls.length+' canonical inspection candidates. No credentials or external APIs used.');
+    if(urls.some(url=>!canonicalUrls.includes(url)))throw Error('Non-canonical or unknown page in inspection queue');
+    const slot=Math.floor(now.getTime()/(6*3600_000));
+    const monitored=new Set();
+    const cycles=Math.ceil(articles.length/16)+Math.ceil(services.length/4)+8;
+    for(let i=0;i<cycles;i++){
+      const auditTime=new Date((slot+i)*6*3600_000);
+      inspectionQueue(auditTime,articles,services,canonicalUrls,[{keys:[priority],impressions:316}])
+        .forEach(url=>monitored.add(url));
+    }
+    if(articles.some(article=>!monitored.has(article.url)))throw Error('Rotating GSC archive does not cover all canonical articles');
+    if(services.some(url=>!monitored.has(url)))throw Error('Rotating GSC archive does not cover all canonical services');
+    console.log('Direct GSC integration dry-run OK: '+articles.length+' editorial articles, '+services.length+' service pages, '+canonicalUrls.length+' indexable canonical pages; all articles/services covered across test cycles. No credentials or external APIs used.');
     return;
   }
   if(!TOKEN)throw Error('Google Search Console token is not configured. Grant the service account access and enable OIDC.');
@@ -183,7 +189,7 @@ async function main(){
     searchAnalytics(startDate,endDate,['query'],25),
     searchAnalytics(startDate,endDate,['page'],25)
   ]);
-  const queue=inspectionQueue(now,articles,services,pages.rows||[]);
+  const queue=inspectionQueue(now,articles,services,canonicalUrls,pages.rows||[]);
   const inspections=[];
   for(const url of queue)inspections.push(await inspect(url));
   const checkedAt=now.toISOString();
