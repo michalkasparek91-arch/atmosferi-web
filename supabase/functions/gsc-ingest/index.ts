@@ -77,9 +77,9 @@ function validReport(value: unknown): value is Entry {
   if (!inspectionArray(value.inspections) ||
       !performanceArray(value.queries,"query") ||
       !performanceArray(value.pages,"url")) return false;
-  return value.inspected_urls === value.inspections.length &&
-    value.indexed_urls <= value.inspected_urls &&
-    value.inspection_errors <= value.inspected_urls;
+  return Number(value.inspected_urls) === value.inspections.length &&
+    Number(value.indexed_urls) <= Number(value.inspected_urls) &&
+    Number(value.inspection_errors) <= Number(value.inspected_urls);
 }
 
 Deno.serve(async (request: Request) => {
