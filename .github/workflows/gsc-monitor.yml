@@ -13,6 +13,8 @@ on:
       - 'admin/src/App.tsx'
       - 'admin/src/layouts/AdminLayout.tsx'
       - 'supabase/migrations/*gsc*.sql'
+      - 'supabase/functions/gsc-ingest/**'
+      - 'supabase/config.toml'
       - '.github/workflows/gsc-monitor.yml'
 
 permissions:
