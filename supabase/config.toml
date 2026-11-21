@@ -1,1 +1,7 @@
 project_id = "atmosferi"
+
+# GitHub supplies a signed OIDC JWT, NOT a Supabase JWT.
+# The function verifies GitHub's signature, issuer, audience, repo, branch,
+# workflow identity and token lifetime before any privileged database write.
+[functions.gsc-ingest]
+verify_jwt = false
