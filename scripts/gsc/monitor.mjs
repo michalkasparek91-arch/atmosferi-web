@@ -54,8 +54,8 @@ function inspectablePublicUrls() {
   const known = new Set();
   for (const file of fs.readdirSync('.').filter(f=>f.endsWith('.html'))) {
     const source=fs.readFileSync(file,'utf8');
-    if (/<meta\\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(source)) continue;
-    const canonical=source.match(/<link\\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1];
+    if (/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(source)) continue;
+    const canonical=source.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1];
     const expected=ORIGIN + '/' + (file === 'index.html' ? '' : (clean[file] || file));
     if (canonical === expected) known.add(canonical);
   }
