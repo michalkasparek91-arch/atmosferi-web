@@ -8,6 +8,9 @@ on:
       - 'supabase/config.toml'
       - '.github/workflows/gsc-ingest-deploy.yml'
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/gsc-ingest-deploy.yml'
 
 permissions:
   contents: read
@@ -17,10 +20,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Verify noninteractive deployment flags
+        run: |
+          supabase functions deploy --help | grep -Fq -- '--yes'
+          supabase functions deploy --help | grep -Fq -- '--remote'
+
   deploy:
+    if: github.event_name != 'pull_request' && github.repository == 'michalkasparek91-arch/atmosferi-web'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.repository == 'michalkasparek91-arch/atmosferi-web'
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
