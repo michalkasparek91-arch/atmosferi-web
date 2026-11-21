@@ -43,7 +43,7 @@ jobs:
       - name: Type-check signed GitHub OIDC ingestion function
         working-directory: supabase/functions/gsc-ingest
         run: |
-          deno install --allow-scripts
+          deno install
           deno check index.ts
       - name: Assert keyless storage
         run: |
