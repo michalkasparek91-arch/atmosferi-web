@@ -4,13 +4,8 @@ const DOMAIN = 'atmosferi.com';
 const SITE = 'sc-domain:' + DOMAIN;
 const ORIGIN = 'https://www.' + DOMAIN;
 const TOKEN = process.env.GSC_ACCESS_TOKEN || '';
-const SPREADSHEET_ID = process.env.GSC_SPREADSHEET_ID || '';
-const SHEETS = {
-  Overview: ['checked_at_utc','site','period_start','period_end','clicks','impressions','ctr','average_position','inspected_urls','indexed_urls','other_urls','inspection_errors'],
-  Inspection: ['checked_at_utc','url','verdict','coverage_state','indexing_state','last_crawl_time','google_canonical','user_canonical','error'],
-  Queries: ['checked_at_utc','query','clicks','impressions','ctr','average_position'],
-  LandingPages: ['checked_at_utc','url','clicks','impressions','ctr','average_position']
-};
+const SUPABASE_URL = process.env.GSC_SUPABASE_URL || 'https://paryiowezqlnffanxtnt.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.GSC_SUPABASE_SERVICE_ROLE_KEY || '';
 
 function dateUTC(d) { return d.toISOString().slice(0,10); }
 function daysBefore(date, n) { return new Date(date.getTime()-n*86400_000); }
@@ -81,24 +76,28 @@ async function inspect(url) {
     return {url,verdict:'ERROR',coverage:'',indexing:'',lastCrawl:'',googleCanonical:'',userCanonical:'',error:error.message};
   }
 }
-function valueRows(rows,checkedAt){
-  return (rows||[]).map(row=>[checkedAt,...row.keys,Number(row.clicks||0),Number(row.impressions||0),Number(row.ctr||0),Number(row.position||0)]);
+function analyticsRows(rows,dimension) {
+  return (rows || []).map(row=>({
+    [dimension]:String(row.keys?.[0] || ''),
+    clicks:Number(row.clicks||0),
+    impressions:Number(row.impressions||0),
+    ctr:Number(row.ctr||0),
+    average_position:Number(row.position||0)
+  }));
 }
-async function ensureTabs() {
-  const path='https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(SPREADSHEET_ID);
-  const data=await google(path+'?fields=sheets(properties(title))');
-  const existing=new Set((data.sheets||[]).map(s=>s.properties?.title).filter(Boolean));
-  const missing=Object.keys(SHEETS).filter(name=>!existing.has(name));
-  if(missing.length){
-    await google(path+':batchUpdate',{method:'POST',body:{requests:missing.map(name=>({addSheet:{properties:{title:name}}}))}});
-    for(const name of missing)await appendValues(name,[SHEETS[name]]);
-  }
-}
-async function appendValues(tab,values){
-  if(!values.length)return;
-  const addr="'"+tab+"'!A:Z";
-  const url='https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(SPREADSHEET_ID)+'/values/'+encodeURIComponent(addr)+':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS';
-  await google(url,{method:'POST',body:{majorDimension:'ROWS',values}});
+async function writePrivateReport(payload) {
+  const endpoint=SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/gsc_reports';
+  const response=await fetch(endpoint,{
+    method:'POST',
+    headers:{
+      'apikey':SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization':'Bearer '+SUPABASE_SERVICE_ROLE_KEY,
+      'Content-Type':'application/json',
+      'Prefer':'return=minimal'
+    },
+    body:JSON.stringify(payload)
+  });
+  if(!response.ok)throw new Error('Private Supabase GSC report write failed with HTTP '+response.status);
 }
 async function main(){
   const now=new Date();
@@ -111,7 +110,7 @@ async function main(){
     console.log('Direct GSC integration dry-run OK: '+articles.length+' editorial articles, '+urls.length+' canonical inspection candidates. No credentials or external APIs used.');
     return;
   }
-  if(!TOKEN||!SPREADSHEET_ID)throw Error('GSC is not configured. Set GitHub Actions variables and WIF in the setup guide.');
+  if(!TOKEN||!SUPABASE_SERVICE_ROLE_KEY)throw Error('GSC Google token or private Supabase service credential is not configured. Follow the setup guide.');
   const sites=await google('https://www.googleapis.com/webmasters/v3/sites');
   if(!(sites.siteEntry||[]).some(x=>x.siteUrl===SITE&&x.permissionLevel!=='siteUnverifiedUser')){
     throw new Error('Service account has no verified Search Console access to '+SITE+'. Grant access to exact domain property.');
@@ -130,12 +129,20 @@ async function main(){
   const t=total.rows?.[0]||{};
   const indexed=inspections.filter(x=>x.verdict==='PASS').length;
   const errors=inspections.filter(x=>x.verdict==='ERROR').length;
-  await ensureTabs();
-  await appendValues('Overview',[[checkedAt,SITE,startDate,endDate,Number(t.clicks||0),Number(t.impressions||0),Number(t.ctr||0),Number(t.position||0),inspections.length,indexed,inspections.length-indexed-errors,errors]]);
-  await appendValues('Inspection',inspections.map(x=>[checkedAt,x.url,x.verdict,x.coverage,x.indexing,x.lastCrawl,x.googleCanonical,x.userCanonical,x.error]));
-  await appendValues('Queries',valueRows(queries.rows,checkedAt));
-  await appendValues('LandingPages',valueRows(pages.rows,checkedAt));
-  // Never print non-public query/traffic/index data to public GitHub Actions logs.
-  console.log('Direct Google Search Console check completed. Private results written to the designated Google Sheet.');
+  await writePrivateReport({
+    checked_at:checkedAt,site:SITE,period_start:startDate,period_end:endDate,
+    clicks:Number(t.clicks||0),impressions:Number(t.impressions||0),
+    ctr:Number(t.ctr||0),average_position:Number(t.position||0),
+    inspected_urls:inspections.length,indexed_urls:indexed,inspection_errors:errors,
+    inspections:inspections.map(x=>({
+      url:x.url,verdict:x.verdict,coverage_state:x.coverage,
+      indexing_state:x.indexing,last_crawl_time:x.lastCrawl,
+      google_canonical:x.googleCanonical,user_canonical:x.userCanonical,error:x.error
+    })),
+    queries:analyticsRows(queries.rows,'query'),
+    pages:analyticsRows(pages.rows,'url')
+  });
+  // This workflow runs in a public repo. No private counts or query data in logs.
+  console.log('Direct Search Console audit completed; results saved to private Supabase for the Atmosferi admin.');
 }
 main().catch(error=>{console.error(error.message);process.exitCode=1;});
