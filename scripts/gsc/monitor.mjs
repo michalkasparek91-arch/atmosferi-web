@@ -4,8 +4,7 @@ const DOMAIN = 'atmosferi.com';
 const SITE = 'sc-domain:' + DOMAIN;
 const ORIGIN = 'https://www.' + DOMAIN;
 const TOKEN = process.env.GSC_ACCESS_TOKEN || '';
-const SUPABASE_URL = process.env.GSC_SUPABASE_URL || 'https://paryiowezqlnffanxtnt.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.GSC_SUPABASE_SERVICE_ROLE_KEY || '';
+const INGEST_ENDPOINT = 'https://paryiowezqlnffanxtnt.supabase.co/functions/v1/gsc-ingest';
 
 function dateUTC(d) { return d.toISOString().slice(0,10); }
 function daysBefore(date, n) { return new Date(date.getTime()-n*86400_000); }
@@ -85,20 +84,33 @@ function analyticsRows(rows,dimension) {
     average_position:Number(row.position||0)
   }));
 }
+async function githubOidcToken() {
+  const endpoint=process.env.ACTIONS_ID_TOKEN_REQUEST_URL || '';
+  const requestToken=process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN || '';
+  if(!endpoint||!requestToken)throw Error('GitHub OIDC environment is unavailable. Enable id-token: write on the workflow.');
+  const url=new URL(endpoint);
+  url.searchParams.set('audience',INGEST_ENDPOINT);
+  const response=await fetch(url,{
+    headers:{Authorization:'Bearer '+requestToken,Accept:'application/json'}
+  });
+  if(!response.ok)throw Error('GitHub OIDC token request failed (HTTP '+response.status+')');
+  const data=await response.json();
+  if(typeof data.value!=='string'||!data.value)throw Error('GitHub OIDC response is missing a signed token');
+  return data.value;
+}
 async function writePrivateReport(payload) {
-  const endpoint=SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/gsc_reports';
-  const response=await fetch(endpoint,{
+  const signedToken=await githubOidcToken();
+  const response=await fetch(INGEST_ENDPOINT,{
     method:'POST',
     headers:{
-      'apikey':SUPABASE_SERVICE_ROLE_KEY,
-      'Authorization':'Bearer '+SUPABASE_SERVICE_ROLE_KEY,
-      'Content-Type':'application/json',
-      'Prefer':'return=minimal'
+      'Authorization':'Bearer '+signedToken,
+      'Content-Type':'application/json'
     },
     body:JSON.stringify(payload)
   });
-  if(!response.ok)throw new Error('Private Supabase GSC report write failed with HTTP '+response.status);
+  if(!response.ok)throw new Error('Private OIDC-authenticated GSC ingestion failed (HTTP '+response.status+'). No private data written to logs.');
 }
+
 async function main(){
   const now=new Date();
   const articles=inspectableArticleUrls();
@@ -110,7 +122,7 @@ async function main(){
     console.log('Direct GSC integration dry-run OK: '+articles.length+' editorial articles, '+urls.length+' canonical inspection candidates. No credentials or external APIs used.');
     return;
   }
-  if(!TOKEN||!SUPABASE_SERVICE_ROLE_KEY)throw Error('GSC Google token or private Supabase service credential is not configured. Follow the setup guide.');
+  if(!TOKEN)throw Error('Google Search Console token is not configured. Grant the service account access and enable OIDC.');
   const sites=await google('https://www.googleapis.com/webmasters/v3/sites');
   if(!(sites.siteEntry||[]).some(x=>x.siteUrl===SITE&&x.permissionLevel!=='siteUnverifiedUser')){
     throw new Error('Service account has no verified Search Console access to '+SITE+'. Grant access to exact domain property.');
