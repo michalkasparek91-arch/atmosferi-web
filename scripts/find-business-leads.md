@@ -14,6 +14,8 @@ Skript hledá veřejně uvedený e-mail a telefon na firemních webech. Výsledn
 
 ## Přímý zápis do adminu
 
+Německé marketingové agentury ze scraperu patří do **E-maily → Akvizice → Agentury · Německo**. Import přiřadí kategorii `agentury`, jazyk `de` a konkrétní německou šablonu. Přímý import i dávkový zápis používají stejné databázové pravidlo. Původní importní záznam slouží jako archiv. Ke skutečnému oslovení musí kontakt projít kontrolou a ověřením e-mailu a příslušná kampaň musí být zapnutá. Šablony a historie českých agentur jsou v části **Agentury · Česko**.
+
 Přepínač `--write-admin` ukládá nové kontakty s e-mailem do **E-maily → Agentury → K prověření**. Skript porovnává domény a e-maily s evidencí a při opakovaném běhu zachovává stav existujících kontaktů. Telefon a zdroje ukládá do poznámky. Skript eviduje kontakty k ruční kontrole. Odesílání e-mailů se z něj nespouští.
 
 ```powershell
@@ -44,11 +46,22 @@ S `LEAD_ADMIN_DIRECT=1` v prostředí úlohy Windows se připravené dávky budo
 
 Výchozí volba používá [Seznam](https://o-seznam.cz/napoveda/vyhledavani/prubeh-vyhledavani/). Po nastavení `SERPER_API_KEY` používá [Serper](https://serper.dev/) s parametrem země a jazyka. Zdroj lze zvolit ručně přes `--engine seznam`, `--engine serper` nebo `--engine bing`. Bing se čte přes RSS a při testu v Česku měl slabší relevanci.
 
+### Overture Places pro Německo
+
+Úloha **Overture Places** v panelu prochází předem načtené firemní weby právě rozpracované obce. Po vyřazení duplicit doplní volnou kapacitu dávky až do 120 webů dalšími položkami místního katalogu. Ukládá pozici i u kratší stránky, aby další běh začal následující doménou. Do fronty k prověření ukládá e-maily potvrzené na firemním webu. U každého zachová kategorii jako hledaný výraz, vydání katalogu, identifikátor GERS a původní datový zdroj. Import přijímá reklamní, marketingové, online marketingové a PR agentury s německou adresou. Přeskakuje trvale zavřené provozovny. Název obce musí jednoznačně odpovídat aktivní obci registru Destatis.
+
+Pro obnovu katalogu použijte Python s balíčkem DuckDB (ověřeno s 2.0.1) a číslo vydání z [katalogu Overture](https://stac.overturemaps.org/). Následující příkazy připraví soukromý soubor a načtou jej do místního plánu. Další kontrola firemních webů běží v existující úloze Windows. Stejné vydání zachová uloženou pozici. Nové vydání obnoví pouze úlohy Overture. [Popis dat a původ jednotlivých zdrojů](https://docs.overturemaps.org/guides/places/)
+
+```powershell
+python scripts/export-overture-agencies.py 2026-11-18.0 artifacts/private/lead-finder/overture-de.json
+node scripts/lib/overture-agencies.mjs artifacts/private/lead-finder/overture-de.json
+```
+
 ## Automatický sběr německých marketingových agentur
 
 Úloha **Atmosferi - DE Marketing Agencies** v Plánovači Windows běží při přihlášení a pak každých 15 minut. Zpracuje až šest stránek výsledků na běh a střídá čekající dotazy téže obce. Když zbývá jediný dotaz, může v jednom běhu projít až šest jeho navazujících stránek. Kontroluje nejvýše 120 webů na dávku a současně čte až osm různých webů. Prochází všechny politicky samostatné obce z registru [Destatis GV100AD](https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html). Marketing má sedm různých dotazů na obec. Na začátku bere větší města, ručně lze obec posunout dopředu.
 
-Seznam předává vlastní odkaz na další stránku. Skript si odkaz uloží a naváže na něj i mezi běhy. Dotaz označí jako dokončený, až zdroj další stránku nenabídne nebo vyčerpá podporovaný rozsah. Když vyprší čas požadavku a v dávce je volný požadavek, zkusí tutéž stránku jednou znovu. Jinak ji uloží k opakování v některé z dalších dávek. Bing a Serper používají číslované stránky a končí při vyčerpání výsledků, opakování domén nebo po 100 stranách. Dokončený dotaz se po 30 dnech znovu zařadí do plánu. Počet nalezených firem závisí na dosahu vyhledávače a na veřejně dostupném obsahu firemních webů.
+Seznam předává vlastní odkaz na další stránku. Skript si odkaz uloží a naváže na něj i mezi běhy. Dotaz označí jako dokončený, až zdroj další stránku nenabídne nebo na hranici 500 výsledků prokazatelně vrátí první stránku. Když vyprší čas požadavku a v dávce je volný požadavek, zkusí tutéž stránku jednou znovu. Jinak ji uloží k opakování v některé z dalších dávek. Bing pokračuje až k prázdné stránce nebo opakování stejné sady výsledných URL. Serper končí při vyčerpání výsledků, opakování domén nebo po 100 stranách. Dokončený dotaz se po 30 dnech znovu zařadí do plánu. Počet nalezených firem závisí na dosahu vyhledávače a na veřejně dostupném obsahu firemních webů.
 
 Plánovač zpracovává vždy jednu obec. Jakmile dokončí její dotazy, zkontroluje nalezené weby a uloží výsledky, může zbývající požadavky téhož běhu využít pro další obec. Rozpracovanou obec a pozici jednotlivých dotazů si pamatuje mezi běhy. I když všechny zbývající dotazy čekají na opakování po chybě, další obec vybere až po jejich dokončení. Ruční priorita se projeví při výběru další obce. Pokud obec v panelu pozastavíš, její dotazy zůstanou uložené a plánovač může přejít jinam. V automatickém běhu se velikost stránky Seznamu zvýší na 20 výsledků, jakmile se pokračování dostane na vhodný násobek 20. Počet požadavků na vyhledávač zůstává stejný a pozice se nepřeskakují.
 

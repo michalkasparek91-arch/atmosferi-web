@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
 import CampaignsOverview from "@/components/admin/email/CampaignsOverview";
 import EmailRepliesInbox from "@/components/admin/email/EmailRepliesInbox";
-import AdminAgencyOutreach from "@/pages/admin/AdminAgencyOutreach";
+import AcquisitionWorkspace from "@/components/admin/email/AcquisitionWorkspace";
 import { useSearchParams, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +28,6 @@ import { AdminEmailDashboard } from "@/components/admin/email/AdminEmailDashboar
 import { CampaignManager } from "@/components/admin/email/CampaignManager";
 import { AudienceManager } from "@/components/admin/email/AudienceManager";
 import { AdminAiHub } from "@/components/admin/email/AdminAiHub";
-import { AdminOutbox } from "@/components/admin/email/AdminOutbox";
 import { ProposalsManager } from "@/components/admin/email/ProposalsManager";
 import { AiInsightsTab } from "@/components/admin/email/AiInsightsTab";
 import { CampaignWizard } from "@/components/admin/email/CampaignWizard";
@@ -36,7 +35,6 @@ import { CampaignWizard } from "@/components/admin/email/CampaignWizard";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 import EmailTemplatesTab from "@/components/admin/EmailTemplatesTab";
-import CampaignReview from "@/components/admin/CampaignReview";
 
 const TEMPLATE_VARIABLES = [
   { key: "{{osloveni}}", label: "Oslovení (Vokativ)", desc: "Oslovení v 5. pádu (např. Petře)" },
@@ -1389,16 +1387,12 @@ export default function AdminEmails() {
               {/* Default Index: Fronta & Historie (#1 priority) */}
               <Route index element={<Navigate to="prehled" replace />} />
               <Route path="prehled" element={<CampaignsOverview />} />
-              <Route path="agentury" element={<AdminAgencyOutreach embedded />} />
+              <Route path="akvizice/*" element={<AcquisitionWorkspace />} />
+              <Route path="agentury" element={<Navigate to="/emaily/akvizice/agentury-cz" replace />} />
               <Route path="odpovedi" element={<EmailRepliesInbox />} />
 
               {/* Tab 1: Fronta & Historie */}
-              <Route path="fronta" element={
-                <div className="space-y-6">
-                  <AdminOutbox />
-                  <CampaignReview />
-                </div>
-              } />
+              <Route path="fronta" element={<Navigate to="/emaily/akvizice/fronta" replace />} />
 
               {/* Tab 2: Kontakty & Publiku */}
               <Route path="kontakty" element={

@@ -24,7 +24,7 @@ type Row = {
 };
 
 const GROUPS: { id: Group; title: string; note: string }[] = [
- { id: "agency", title: "Oslovení agentur", note: "B2B nabídka spolupráce, vlastní seznam kontaktů." },
+ { id: "agency", title: "Agentury · Česko", note: "První oslovení a připomenutí podle denního limitu české kampaně." },
  { id: "acquisition", title: "Akvizice", note: "Studia a firmy z publika podle oboru a jazyka. Odesílá server ve sdíleném denním limitu." },
  { id: "sequence", title: "Sekvence", note: "Série e-mailů po registraci, každý v daný den." },
  { id: "system", title: "Systémové e-maily", note: "Odchází jednotlivě při události (registrace, poptávka, faktura…)." },
@@ -32,7 +32,7 @@ const GROUPS: { id: Group; title: string; note: string }[] = [
 ];
 const CATEGORY: Record<string, string> = {
  architekti: "Architektonická studia", interiery: "Interiérová studia", developeri: "Developeři", urbanismus: "Urbanismus",
- architekt: "Samostatní architekti", stavebnictvi: "Stavební firmy", reality: "Reality", marketing: "Ostatní B2B",
+ architekt: "Samostatní architekti", stavebnictvi: "Stavební firmy", reality: "Reality", marketing: "Ostatní B2B", agentury: "Marketingové agentury",
 };
 const LANG: Record<string, string> = { cz: "CZ", cs: "CZ", sk: "SK", de: "DE", at: "AT", ch: "CH", en: "EN", pl: "PL", hu: "HU" };
 const ROLE: Record<string, string> = { all: "Všichni uživatelé", worker: "Dodavatelé", customer: "Zákazníci" };
@@ -67,10 +67,10 @@ function classify(t: Template, dispatch: { enabled: boolean; daily_limit: number
  return { group: "manual", who: ROLE[t.target_role || "all"] || "–", when: "Ručně" };
 }
 
-export default function CampaignsOverview() {
+export default function CampaignsOverview({ acquisitionOnly = false }: { acquisitionOnly?: boolean }) {
  const navigate = useNavigate();
  const qc = useQueryClient();
- const [onlyActive, setOnlyActive] = useState(true);
+ const [onlyActive, setOnlyActive] = useState(!acquisitionOnly);
  const [busy, setBusy] = useState<string | null>(null);
 
  const { data: templates = [] } = useQuery({
@@ -155,8 +155,8 @@ export default function CampaignsOverview() {
     failed: st ? Number(st.failed_7d) : 0, last: st?.last_sent_at || null,
    });
   }
-  return out;
- }, [templates, stats, dispatch, audience, agency]);
+  return acquisitionOnly ? out.filter(row => row.group === "agency" || row.group === "acquisition") : out;
+ }, [templates, stats, dispatch, audience, agency, acquisitionOnly]);
 
  const visible = rows.filter(r => !onlyActive || r.enabled);
  const activeAuto = rows.filter(r => r.enabled && (r.group === "agency" || r.group === "acquisition" || r.group === "sequence"));
@@ -201,7 +201,7 @@ export default function CampaignsOverview() {
     </div>
     <div className="flex items-center gap-2 text-sm mt-2">
      <span className={`h-2 w-2 rounded-full ${agency?.settings?.enabled ? "bg-foreground" : "bg-neutral-300"}`} />
-     <span className="font-medium">Agentury: {agency?.settings?.enabled ? `odesílá automaticky, max ${agency.settings.daily_limit}/den` : "vypnuto"}</span>
+     <span className="font-medium">České agentury · {agency?.settings?.enabled ? `odesílá automaticky, max ${agency.settings.daily_limit}/den` : "vypnuto"}</span>
     </div>
     <p className="text-xs text-muted-foreground mt-3">Vše odchází z {agency?.settings?.sender_email || "michal@atmosferi.com"}. Testy chodí na {TEST_EMAIL}.</p>
     {dispatch?.last_error && <p className="text-xs text-red-600 mt-2 flex gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />{dispatch.last_error}</p>}

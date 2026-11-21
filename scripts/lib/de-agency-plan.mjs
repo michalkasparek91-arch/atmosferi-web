@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { termsByKind } from './business-lead-taxonomy.mjs';
 
 export const workDir = fileURLToPath(new URL('../../artifacts/private/lead-finder/de-agencies/', import.meta.url));
+export const overtureJob = 'Overture Places';
 export const states = ['Schleswig-Holstein', 'Hamburg', 'Niedersachsen', 'Bremen', 'Nordrhein-Westfalen', 'Hessen', 'Rheinland-Pfalz',
   'Baden-Württemberg', 'Bayern', 'Saarland', 'Berlin', 'Brandenburg', 'Mecklenburg-Vorpommern', 'Sachsen', 'Sachsen-Anhalt', 'Thüringen'];
 const kindNames = Object.keys(termsByKind);
@@ -162,8 +163,8 @@ export function claimJobs(db, limit) {
       exists(select 1 from municipalities d where d.name=m.name and d.active=1 and d.ags<>m.ags) as ambiguous
       from jobs j join municipalities m using (ags) left join search_progress p using (ags, kind, term)
       where j.ags=? and j.due<=? and j.kind in (${eligible})
-      order by j.force desc, (j.status='done'), (j.status='retry'), coalesce(p.pages,0), j.rowid limit ?`)
-      .all(nextCity, timestamp, ...state.kinds, limit);
+      order by j.force desc, (j.status='done'), (j.status='retry'), (j.term=?) desc, coalesce(p.pages,0), j.rowid limit ?`)
+      .all(nextCity, timestamp, ...state.kinds, overtureJob, limit);
     const mark = db.prepare("update jobs set status='running', started=? where ags=? and kind=? and term=?");
     for (const job of pending) mark.run(timestamp, job.ags, job.kind, job.term);
     return pending;
@@ -188,8 +189,11 @@ export function finishJobs(db, jobs, visits) {
       const error = entry.error || (!page ? 'Chybí výsledek vyhledávání. Dotaz se zkusí znovu.' : null);
       const fails = error ? entry.failures + 1 : 0;
       const retry = Math.min(24, 2 ** Math.min(fails, 5)) * hour / 2;
-      if (page) progress.run(entry.ags, entry.kind, entry.term, page.engine, page.cursor, page.number,
-        JSON.stringify(page.cursor ? [...entry.matches] : []));
+      if (page) {
+        const hosts = page.cursor ? [...entry.matches] : [];
+        const seen = page.cursor && entry.signatures ? { hosts, signatures: [...entry.signatures] } : hosts;
+        progress.run(entry.ags, entry.kind, entry.term, page.engine, page.cursor, page.number, JSON.stringify(seen));
+      }
       const status = error ? 'retry' : page.cursor ? 'pending' : 'done';
       const due = status === 'pending' ? 0 : timestamp + (error ? retry : 30 * 24 * hour);
       finish.run(status, due, timestamp, fails, entry.matches?.size ?? entry.matches, entry.fetched, entry.contacts,

@@ -7,6 +7,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { bingResults, findSiteContact, hostKey, seznamNextPage, seznamResults, websiteUrl } from './lib/business-lead-web.mjs';
 import { backgroundSearchBudget, drainDirectQueue, openBackgroundRun } from './lib/de-agency-background.mjs';
 import { openAdminImporter } from './lib/business-lead-admin.mjs';
+import { overtureJob } from './lib/overture-agencies.mjs';
 import { leadKinds as types, termsByKind } from './lib/business-lead-taxonomy.mjs';
 
 const markets = {
@@ -45,6 +46,11 @@ function list(value, normalize = (value) => value) {
   return [...new Set(value.split(',').map((item) => normalize(item.trim())).filter(Boolean))];
 }
 
+function candidateWebsite(value) {
+  const url = websiteUrl(value);
+  return url && !/\.(?:pdf|docx?|xlsx?|jpe?g|png|zip)$/i.test(url.pathname) ? url : null;
+}
+
 function integer(value, name, max) {
   if (!/^\d+$/.test(value) || Number(value) < 1 || Number(value) > max) throw new Error(`${name} musí být číslo od 1 do ${max}.`);
   return Number(value);
@@ -65,8 +71,7 @@ export async function search(query, country, language, engine, cursor, { pageabl
     const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error(`Seznam HTTP ${response.status}`);
     const current = new URL(response.url);
-    if (current.origin !== url.origin || current.pathname !== url.pathname || current.searchParams.get('q') !== query ||
-        Number(current.searchParams.get('from')) !== offset) {
+    if (current.origin !== url.origin || current.pathname !== url.pathname || current.searchParams.get('q') !== query) {
       throw new Error('Seznam přesměroval dotaz na jinou stránku.');
     }
     const html = await response.text();
@@ -74,7 +79,17 @@ export async function search(query, country, language, engine, cursor, { pageabl
     if (!results.length && /<title[^>]*>[^<]*(?:ochrana vyhledávání|ověření|captcha)/i.test(html)) {
       throw new Error('Seznam HTTP 429 (ověření přístupu)');
     }
-    return { results, nextCursor: seznamNextPage(html, current) };
+    const nextCursor = seznamNextPage(html, current);
+    const returnedOffset = Number(current.searchParams.get('from'));
+    if (returnedOffset !== offset) {
+      // At the 500-result boundary Seznam may redirect its own next link back to page one.
+      if (offset >= 500 && returnedOffset === 0 && results.length && nextCursor &&
+          Number(new URL(nextCursor).searchParams.get('from')) <= 20) {
+        return { results: [], nextCursor: null, sourceLimit: true };
+      }
+      throw new Error('Seznam přesměroval dotaz na jinou stránku.');
+    }
+    return { results, nextCursor };
   }
   const page = Number(cursor ?? 1);
   if (engine === 'serper') {
@@ -113,13 +128,14 @@ function notes(lead) {
     !lead.city && `Hledáno pro město: ${lead.targetCity}`,
     lead.email && `Zdroj e-mailu: ${lead.email.source}`,
     lead.phone && `Zdroj telefonu: ${lead.phone.source}`,
+    lead.placeId && `Overture Maps Places ${lead.release}, GERS ${lead.placeId} (${lead.datasets}).`,
   ].filter(Boolean).join('\n');
 }
 
 function adminRow(lead, engine) {
   return {
     source_id: sourceId(lead), company_name: lead.company, email: lead.email.value, website: lead.website,
-    city: lead.city || null, source_name: `pc-lead-finder:${engine}`, notes: notes(lead),
+    city: lead.city || null, source_name: `pc-lead-finder:${lead.engine || engine}`, notes: notes(lead),
   };
 }
 
@@ -137,7 +153,7 @@ async function saveCsv(leads, engine) {
     ['id', 'firma', 'email', 'telefon', 'web', 'mesto', 'zeme', 'obor', 'specializace', 'hledany_vyraz', 'zdroj', 'zdroj_emailu', 'zdroj_telefonu', 'kontaktovat_poznamka'],
     ...leads.map((lead) => [sourceId(lead), lead.company, lead.email?.value, lead.phone?.value, lead.website,
       lead.city, lead.country, types[lead.type], lead.category?.specialties.join(', '), lead.category?.term,
-      `pc-lead-finder:${engine}`, lead.email?.source, lead.phone?.source, notes(lead)]),
+      `pc-lead-finder:${lead.engine || engine}`, lead.email?.source, lead.phone?.source, notes(lead)]),
   ];
   await writeFile(output, '\uFEFF' + rows.map((row) => row.map(csvCell).join(';')).join('\r\n') + '\r\n', { flag: 'wx' });
   return output;
@@ -174,7 +190,7 @@ async function main() {
   await importAfterCollection();
 }
 
-async function collect(values, background = null) {
+export async function collect(values, background = null, crawlSite = findSiteContact) {
   const countries = list(values.countries, (value) => value.toUpperCase());
   const selectedTypes = list(values.types, (value) => value.toLowerCase());
   const cities = values.cities === undefined ? null : list(values.cities);
@@ -195,6 +211,7 @@ async function collect(values, background = null) {
     return {
       country: 'DE', countryName: 'Německo', language: 'de', targetCity: job.name, type: job.kind,
       contactPaths: markets.DE[4], job, searchTerm: job.term, query: `${job.term} ${searchLocation}`,
+      engine: job.term === overtureJob ? 'overture' : engine,
     };
   }) : countries.flatMap((country) => {
     const [language, countryName, defaultCities, terms, contactPaths] = markets[country];
@@ -205,15 +222,16 @@ async function collect(values, background = null) {
     })));
   });
   const searchResults = queries.map(() => []);
-  const positions = queries.map(({ job, query }) => {
-    let cursor = job?.previous_engine === engine ? job.previous_cursor : null;
-    if (cursor && engine === 'seznam' && new URL(cursor).searchParams.get('q') !== query) cursor = null;
+  const positions = queries.map(({ job, query, engine: source = engine }) => {
+    let cursor = job?.previous_engine === source ? job.previous_cursor : null;
+    if (cursor && source === 'seznam' && new URL(cursor).searchParams.get('q') !== query) cursor = null;
+    const seen = cursor ? JSON.parse(job.previous_hosts) : [];
     return { cursor, number: cursor ? job.previous_pages + 1 : 1,
-      hosts: new Set(cursor ? JSON.parse(job.previous_hosts) : []) };
+      hosts: new Set(seen.hosts ?? seen), signatures: new Set(seen.signatures ?? []) };
   });
   const exhausted = new Set();
   const retried = new Set();
-  console.log(`Vyhledávač: ${engine}.`);
+  console.log(`Zdroje: ${[...new Set(queries.map(query => query.engine || engine))].join(', ')}.`);
   let requests = 0;
   let failures = 0;
   searches: for (let page = 1; page <= pages && exhausted.size < queries.length; page++) {
@@ -222,31 +240,46 @@ async function collect(values, background = null) {
       if (background && requests >= background.searchBudget) break searches;
       requests++;
       const position = positions[index];
+      const source = query.engine || engine;
       try {
-        const { results, nextCursor } = await search(query.query, query.country, query.language, engine, position.cursor, {
-          pageable: Boolean(background) || pages > 1, widen: Boolean(background),
-        });
+        const { results, nextCursor, sourceLimit } = source === 'overture'
+          ? background.overturePage(query.job, position.cursor)
+          : await search(query.query, query.country, query.language, source, position.cursor, {
+            pageable: Boolean(background) || pages > 1, widen: Boolean(background),
+          });
         if (query.job && !position.cursor) {
           query.job.fetched = 0;
           query.job.contacts = 0;
         }
         const previous = position.hosts.size;
         for (const result of results) {
-          const url = websiteUrl(result.url);
-          if (!url || /\.(?:pdf|docx?|xlsx?|jpe?g|png|zip)$/i.test(url.pathname)) continue;
+          const url = candidateWebsite(result.url);
+          if (!url) continue;
           const host = hostKey(url);
           if (position.hosts.has(host)) continue;
           position.hosts.add(host);
           searchResults[index].push({ ...result, url });
         }
         const count = position.hosts.size - previous;
-        const continuation = engine === 'seznam' || (count && position.number < 100) ? nextCursor : null;
+        let continuation = nextCursor;
+        let repeatedPage = false;
+        if (source === 'bing' && results.length) {
+          const urls = results.map(result => result.url).sort();
+          const signature = createHash('sha256').update(JSON.stringify(urls)).digest('hex');
+          repeatedPage = position.signatures.has(signature);
+          if (repeatedPage) continuation = null;
+          position.signatures.add(signature);
+        }
+        if (source === 'serper' && (!count || position.number >= 100)) continuation = null;
         if (query.job) {
           query.job.matches = position.hosts;
-          query.job.paging = { engine, cursor: continuation, number: position.number };
+          if (source === 'bing') query.job.signatures = position.signatures;
+          query.job.paging = { engine: source, cursor: continuation, number: sourceLimit ? position.number - 1 : position.number };
           query.job.error = null;
         }
-        console.log(`[${query.country}] ${query.query} · strana ${position.number}: ${count} nových webů${continuation ? ' · další strana' : ' · konec výsledků'}`);
+        if (sourceLimit) console.log(`[${query.country}] ${query.query} · limit zdroje: Seznam vrátil první stránku.`);
+        else if (repeatedPage) console.log(`[${query.country}] ${query.query} · Bing zopakoval již zpracovanou stránku.`);
+        else console.log(`[${query.country}] ${query.query} · strana ${position.number}: ${count} nových webů${continuation ? ' · další strana' : ' · konec výsledků'}`);
         if (!continuation) exhausted.add(index);
         position.cursor = continuation;
         position.number++;
@@ -264,25 +297,52 @@ async function collect(values, background = null) {
           break searches;
         }
       }
-      await sleep(400);
+      if (source !== 'overture') await sleep(400);
     }
   }
   const candidates = new Map();
+  function addCandidate(query, result) {
+    const url = result.url;
+    const host = hostKey(url);
+    if (background?.visited(query.job, host)) return;
+    const key = background ? `${query.job.ags}:${query.type}:${host}` : host;
+    if (!candidates.has(key)) candidates.set(key, {
+      ...query, ...result, url, searchTerm: result.searchTerm || query.searchTerm, title: result.title || '', snippet: result.snippet || '',
+    });
+  }
   const resultCount = Math.max(...searchResults.map((results) => results.length));
   for (let index = 0; index < resultCount && candidates.size < limit; index++) {
     for (const [queryIndex, results] of searchResults.entries()) {
       const result = results[index];
-      const url = result?.url;
-      if (!url) continue;
-      const host = hostKey(url);
-      const query = queries[queryIndex];
-      if (background?.visited(query.job, host)) continue;
-      const key = background ? `${query.job.ags}:${query.type}:${host}` : host;
-      if (!candidates.has(key)) candidates.set(key, {
-        ...query, url, title: result.title || '', snippet: result.snippet || '',
-      });
+      if (!result) continue;
+      addCandidate(queries[queryIndex], result);
       if (candidates.size >= limit) break;
     }
+  }
+  const catalog = queries.find(query => query.engine === 'overture');
+  if (catalog?.job.paging?.cursor && !background.jobs.some(job => job.error)) {
+    const { job } = catalog;
+    const before = candidates.size;
+    try {
+      while (job.paging.cursor && candidates.size < limit) {
+        const size = Math.min(20, limit - candidates.size);
+        const page = background.overturePage(job, job.paging.cursor, size);
+        for (const result of page.results) {
+          const url = candidateWebsite(result.url);
+          if (!url) continue;
+          const host = hostKey(url);
+          if (job.matches.has(host)) continue;
+          job.matches.add(host);
+          addCandidate(catalog, { ...result, url });
+        }
+        job.paging.cursor = page.nextCursor;
+        job.paging.number++;
+      }
+    } catch (error) {
+      job.error = error.message;
+      console.warn(`Overture Places · ${job.error}`);
+    }
+    console.log(`Overture Places · doplněno ${candidates.size - before} webů z místního katalogu k původním ${before}.`);
   }
   if (!background && !candidates.size) throw new Error('Vyhledávání nevrátilo použitelné weby.');
   console.log(`Kontroluji ${candidates.size} nalezených webů.`);
@@ -295,7 +355,7 @@ async function collect(values, background = null) {
     while (next < sites.length) {
       const site = sites[next++];
       const host = hostKey(site.url);
-      const pending = (inFlight.get(host) ?? Promise.resolve()).then(() => findSiteContact(site));
+      const pending = (inFlight.get(host) ?? Promise.resolve()).then(() => crawlSite(site));
       inFlight.set(host, pending);
       const lead = await pending;
       if (inFlight.get(host) === pending) inFlight.delete(host);

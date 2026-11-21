@@ -75,6 +75,7 @@ export interface EmailEditorState {
 const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
   architekti: { label: "Architekti", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   developeri: { label: "Developeři", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  agentury: { label: "Marketingové agentury", color: "bg-blue-100 text-blue-700 border-blue-200" },
   interiery: { label: "Interiéry", color: "bg-amber-100 text-amber-700 border-amber-200" },
   stavebnictvi: { label: "Stavebnictví", color: "bg-rose-100 text-rose-700 border-rose-200" },
   b2b: { label: "B2B / Ostatní", color: "bg-purple-100 text-purple-700 border-purple-200" },
@@ -1351,6 +1352,7 @@ export function ModularEmailEditorDialogInner({
                       { id: "architekti", label: "ARCHITEKTONICKÉ STUDIO" },
                       { id: "interiery", label: "INTERIÉROVÉ STUDIO" },
                       { id: "developeri", label: "REALITNÍ DEVELOPER" },
+                      { id: "agentury", label: "MARKETINGOVÁ AGENTURA" },
                       { id: "urbanismus", label: "URBANISMUS / VEŘEJNÝ SEKTOR" },
                       { id: "architekt", label: "SAMOSTATNÝ ARCHITEKT" },
                     ].find(cat => cat.id === form.category);
@@ -1390,6 +1392,7 @@ export function ModularEmailEditorDialogInner({
                         { id: "architekti", label: "ARCHITEKTONICKÉ STUDIO", icon: Building2 },
                         { id: "interiery", label: "INTERIÉROVÉ STUDIO", icon: Layout },
                         { id: "developeri", label: "REALITNÍ DEVELOPER", icon: MapPin },
+                        { id: "agentury", label: "MARKETINGOVÁ AGENTURA", icon: Briefcase },
                         { id: "urbanismus", label: "URBANISMUS / VEŘEJNÝ SEKTOR", icon: Hexagon },
                         { id: "architekt", label: "SAMOSTATNÝ ARCHITEKT", icon: Contrast },
                       ].map(c => {
@@ -1935,6 +1938,7 @@ export function ModularEmailEditorDialogInner({
                               { id: "architekti", label: "ARCHITEKTONICKÉ STUDIO", icon: Building2 },
                               { id: "interiery", label: "INTERIÉROVÉ STUDIO", icon: Layout },
                               { id: "developeri", label: "REALITNÍ DEVELOPER", icon: MapPin },
+                              { id: "agentury", label: "MARKETINGOVÁ AGENTURA", icon: Briefcase },
                               { id: "urbanismus", label: "URBANISMUS / VEŘEJNÝ SEKTOR", icon: Hexagon },
                               { id: "architekt", label: "SAMOSTATNÝ ARCHITEKT", icon: Contrast },
                             ].map(c => {
@@ -1987,6 +1991,7 @@ export function ModularEmailEditorDialogInner({
                             <SelectItem value="all">Všechny obory</SelectItem>
                             <SelectItem value="architekti">Architekti a studia</SelectItem>
                             <SelectItem value="developeri">Developeři a investoři</SelectItem>
+                            <SelectItem value="agentury">Marketingové agentury</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

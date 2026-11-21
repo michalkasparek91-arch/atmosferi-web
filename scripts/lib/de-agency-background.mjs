@@ -2,6 +2,7 @@ import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { claimJobs, control, currentMunicipality, finishJobs, openPlan, visitedWebsite, workDir } from './de-agency-plan.mjs';
 import { openAdminImporter } from './business-lead-admin.mjs';
+import { overturePage } from './overture-agencies.mjs';
 
 const pending = join(workDir, 'pending');
 const imported = join(workDir, 'imported');
@@ -35,6 +36,7 @@ export async function openBackgroundRun(searchBudget = backgroundSearchBudget) {
   return {
     jobs,
     searchBudget,
+    overturePage: (job, cursor, size) => overturePage(db, job.ags, cursor, size),
     visited: (job, host) => visitedWebsite(db, job, host),
     visit(job, host, lead) {
       job.fetched = (job.fetched ?? 0) + 1;
