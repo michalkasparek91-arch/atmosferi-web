@@ -49,6 +49,8 @@ jobs:
         run: |
           deno install
           deno check index.ts
+      - name: Test fair canonical URL selection and complete archive coverage
+        run: deno test scripts/gsc/inspection-queue.test.mjs
       - name: Test cumulative Search Console inspection history
         run: deno test scripts/gsc/history.test.ts
       - name: Test real GSC payload validation and privacy safeguards
