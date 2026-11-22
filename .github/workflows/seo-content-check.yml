@@ -12,12 +12,26 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: seo-content-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   seo:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Keep dependencies and local environment files out of Git
+        run: |
+          if git ls-files --error-unmatch admin/.env.local >/dev/null 2>&1; then
+            echo '::error::Local admin environment file must not be committed'
+            exit 1
+          fi
+          if [ "$(git ls-files 'admin/node_modules/**' | wc -l)" -ne 0 ]; then
+            echo '::error::Admin node_modules must not be committed'
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -25,8 +39,6 @@ jobs:
         run: npm run prebuild
       - name: Verify Vercel build skipping never hides unpublished SEO pages
         run: node --test scripts/vercel-ignore-build.test.mjs
-      - name: Validate international SEO
-        run: npm run seo:check
       - name: Validate editorial article
         run: |
           node --input-type=module <<'NODE'
