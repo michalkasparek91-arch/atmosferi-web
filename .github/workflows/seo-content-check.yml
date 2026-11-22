@@ -155,6 +155,7 @@ jobs:
           pages.push(['architecture-project-case-study-website-template.html', 'en', 'prepare-architecture-projects-for-website.html', '2026-11-22']);
           pages.push(['architecture-studio-website-cost-scope-guide.html', 'en', 'cms-for-architecture-portfolio-website.html', '2026-11-22']);
           pages.push(['architecture-studio-services-page-website-guide.html', 'en', 'architecture-studio-website-cost-scope-guide.html', '2026-11-22']);
+          pages.push(['architecture-website-project-brief-template.html', 'en', 'architecture-studio-website-cost-scope-guide.html', '2026-11-22']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
@@ -182,6 +183,19 @@ jobs:
             ]);
             const modified = updatedOn20261121.has(path) ? '2026-11-21' : published;
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === modified), path + ': publication / modification dates');
+            if (path === 'architecture-website-project-brief-template.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive editorial layout');
+              assert((h.match(/<section id="/g) || []).length === 12, path + ': substantive sections');
+              assert(h.includes('Fictional illustrative example'), path + ': fictional example labelled');
+              assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': accessible briefing tables');
+              assert(h.includes('Copy-ready architecture website briefing fields'), path + ': actionable template');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const anchors = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(anchors.length === 12 && anchors.every(id => ids.has(id)), path + ': working contents navigation');
+              assert(schema['@graph'].some(node => node['@type'] === 'WebPage' && node.url === url), path + ': WebPage schema');
+              assert(schema['@graph'].some(node => node['@type'] === 'Article' && node.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article schema');
+              assert(fs.readFileSync('guides.html', 'utf8').includes('href="' + path + '"'), path + ': generated guide entry');
+            }
             if (path === 'architecture-studio-services-page-website-guide.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
               assert((h.match(/<section id="/g) || []).length === 12, path + ': substantive guide sections');
