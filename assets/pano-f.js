@@ -107,6 +107,21 @@
   var pointers = {}, lastDist = 0;
   var engaged = false;
   var previewDirty = true;
+  var inViewport = false;
+
+  // Auto-rotate only while the panorama is visible. Previously the preview
+  // froze despite the UI showing the enabled auto-rotate/pause control.
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.target !== tour) return;
+        inViewport = entry.isIntersecting && entry.intersectionRatio >= 0.15;
+        if (inViewport) previewDirty = true;
+      });
+    }, { threshold: [0, 0.15, 0.5] }).observe(tour);
+  } else {
+    inViewport = true;
+  }
 
   function setEngaged(on) {
     engaged = !!on;
@@ -277,7 +292,12 @@
 
   /* ----- interaction ----- */
   function onDown(e) {
-    if (!engaged) return;
+    if (!engaged) {
+      // Mouse and pen drag can start immediately, but preserve normal
+      // touch scrolling until the visitor enters via Explore in 360°.
+      if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+      setEngaged(true);
+    }
     pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
     dragging = true; tour.classList.add("grabbing", "touched");
     velLon = velLat = 0;
@@ -330,6 +350,7 @@
 
   autoBtn.addEventListener("click", function () {
     autoOn = !autoOn; autoBtn.classList.toggle("on", autoOn);
+    previewDirty = true;
   });
   autoBtn.classList.toggle("on", autoOn);
 
@@ -349,15 +370,15 @@
   /* ----- render loop ----- */
   function frame() {
     requestAnimationFrame(frame);
-    // Render a static preview once; pause expensive WebGL draws while the
-    // visitor scrolls past without opting into the interactive walkthrough.
-    if (!engaged && !previewDirty) return;
+    // Render an automatic panorama when visible, but not when offscreen.
+    // Also avoid GPU work if the visitor has paused rotation.
+    if ((!inViewport || (!engaged && !autoOn)) && !previewDirty) return;
     previewDirty = false;
     if (!dragging) {
       if (Math.abs(velLon) > 0.01 || Math.abs(velLat) > 0.01) {
         lon += velLon; lat += velLat; velLon *= 0.93; velLat *= 0.93;
         lat = Math.max(-85, Math.min(85, lat));
-      } else if (engaged && autoOn && !busy) {
+      } else if ((engaged || inViewport) && autoOn && !busy) {
         lon += 0.035;
       }
     }

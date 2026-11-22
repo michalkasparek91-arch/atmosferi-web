@@ -99,7 +99,8 @@
 
 /* ---------- Studio ---------- */
 .h-studio__more { display: flex; flex-direction: column; align-items: flex-start; gap: 28px; }
-.h .f-team__card img { object-position: center 20%; }
+.h .f-team__card img { object-position: center 20%; filter: grayscale(.2); }
+.h .f-team__card:hover img { filter: grayscale(0); }
 
 /* ---------- Contact panel ---------- */
 .h-contact { padding-inline: 8px; }

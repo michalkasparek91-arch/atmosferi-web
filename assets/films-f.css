@@ -231,6 +231,10 @@
 .v-tour .tour__info h4 { font-family: "Geist", sans-serif; }
 .v-tour .tour__hint { border-radius: 999px; font-size: 13px; }
 .v-tour .rcell, .v-tour .rcell img { border-radius: 10px; }
+/* Dragging starts with the mouse, while touch scrolling remains native
+   until the user explicitly enters the tour. */
+.v-tour:not(.is-active):not(.fs) { touch-action: pan-y; cursor: grab; }
+.v-tour.is-active, .v-tour.fs, .v-tour:fullscreen { touch-action: none; }
 .v-tour .tour__gate { pointer-events: none; }
 .v-tour .tour__gate .tour__start-icon { display: grid; place-items: center; width: 74px; height: 74px; border-radius: 50%; background: rgba(255,255,255,.92); color: #0b0b0b; font: 600 15px/1 "Geist", sans-serif; }
 
