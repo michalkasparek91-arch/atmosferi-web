@@ -194,6 +194,15 @@
 .un-lightbox__caption { padding: 14px 0 22px; }
 @media (max-height: 600px) { .un-lightbox__caption p { display: none; } }
 
+/* h-viewport-overflow-guard: long display headings and the footer wordmark
+   must never enlarge the browser's horizontal scroll area. Use clip, not
+   hidden: clip does not create a scroll container or break the sticky header.
+   Keep the website cards scrollable inside their own .h-rail track. */
+html:has(> body.h) { overflow-x: clip; }
+body.h { max-width: 100%; overflow-x: clip; }
+.h .h-railwrap, .h .h-rail { min-width: 0; max-width: 100%; }
+.h .f-footer__mark { max-width: 100%; overflow: clip; }
+
 /* ---------- Architecture part: tighter corners (body.h = homepage, films, websites) ----------
    Scale: panels 12 · cards 10 · inner frames 8 · images in frames 6 · small 4. Pills and circles stay round. */
 .h { --r: 10px; }

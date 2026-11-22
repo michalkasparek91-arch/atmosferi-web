@@ -7,6 +7,13 @@ const css = fs.readFileSync("assets/films-f.css", "utf8");
 const films = fs.readFileSync("films.html", "utf8");
 const home = fs.readFileSync("index.html", "utf8");
 const homeCss = fs.readFileSync("assets/home-f.css", "utf8");
+assert(homeCss.includes("h-viewport-overflow-guard"), "Homepage must explicitly control horizontal overflow");
+assert(homeCss.includes("html:has(> body.h) { overflow-x: clip; }"), "Viewport document must not horizontally scroll");
+assert(homeCss.includes("body.h { max-width: 100%; overflow-x: clip; }"), "Homepage must clip wide descendants without scroll container");
+assert(homeCss.includes(".h .h-railwrap, .h .h-rail { min-width: 0; max-width: 100%; }"), "Website carousel track must fit the page");
+assert(homeCss.includes(".h .f-footer__mark { max-width: 100%; overflow: clip; }"), "Large footer wordmark must not cause page overflow");
+assert(homeCss.includes(".h-rail { display: grid;") && homeCss.includes("overflow-x: auto;"), "Nested website carousel must stay horizontally scrollable");
+assert(fs.readFileSync("index.html", "utf8").includes("assets/home-f.css?v=20261123-horizontal-clip"), "Use a fresh CSS version to avoid the old cached overflow");
 const agencyCss = fs.readFileSync("assets/for-agencies.css", "utf8");
 const agency = fs.readFileSync("for-agencies.html", "utf8");
 assert(agencyCss.includes('object-position: center 25%; filter: grayscale(.2);'), "Agency portrait must be 20% desaturated");
@@ -27,7 +34,7 @@ assert(footer.includes('f-footer__mark') && footer.includes('f-footer__mail'));
 assert(home.includes('<p class="f-brand">'), "Preserve the studio logo");
 assert(homeCss.includes("filter: grayscale(.2);"));
 assert(homeCss.includes(".h .f-team__card:hover img { filter: grayscale(0); }"));
-assert(home.includes("assets/home-f.css?v=20261122-portrait"));
+assert(home.includes("assets/home-f.css?v=20261123-horizontal-clip"));
 
 // Minimal event-driven WebGL mock that runs the real panorama script.
 const nodes = new Map();
