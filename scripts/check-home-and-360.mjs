@@ -34,7 +34,7 @@ assert(footer.includes('f-footer__mark') && footer.includes('f-footer__mail'));
 assert(home.includes('<p class="f-brand">'), "Preserve the studio logo");
 assert(homeCss.includes("filter: grayscale(.2);"));
 assert(homeCss.includes(".h .f-team__card:hover img { filter: grayscale(0); }"));
-assert(home.includes("assets/home-f.css?v=20261122-portrait"));
+assert(home.includes("assets/home-f.css?v=20261123-horizontal-clip"));
 
 // Minimal event-driven WebGL mock that runs the real panorama script.
 const nodes = new Map();
