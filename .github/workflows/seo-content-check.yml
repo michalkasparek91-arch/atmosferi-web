@@ -159,6 +159,7 @@ jobs:
           pages.push(['website-kosten-architekturbuero.html', 'de', 'website-briefing-architekturbuero-angebot-checkliste.html', '2026-11-22']);
           pages.push(['kolik-stoji-web-pro-architekta.html', 'cs', 'struktura-webu-architektonickeho-atelieru.html', '2026-11-22']);
           pages.push(['zadani-webu-pro-architektonicky-atelier.html', 'cs', 'kolik-stoji-web-pro-architekta.html', '2026-11-22']);
+          pages.push(['redesign-webu-architektonickeho-atelieru.html', 'cs', 'zadani-webu-pro-architektonicky-atelier.html', '2026-11-22']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
@@ -186,6 +187,19 @@ jobs:
             ]);
             const modified = updatedOn20261121.has(path) ? '2026-11-21' : published;
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === modified), path + ': publication / modification dates');
+            if (path === 'redesign-webu-architektonickeho-atelieru.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive layout');
+              assert((h.match(/<section id="/g) || []).length === 12, path + ': 12 substantive sections');
+              assert(h.includes('Fiktivní scénář'), path + ': fictional example disclosed');
+              assert((h.match(/class="guide-table-wrap"/g) || []).length === 2 && h.includes('scope="col"'), path + ': two accessible tables');
+              assert(h.includes('Zachovat') && h.includes('Vyřadit') && h.includes('Akceptační kontrola redesignu'), path + ': usable audit and launch checklist');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const anchors = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(anchors.length === 12 && anchors.every(id => ids.has(id)), path + ': working table of contents');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage schema');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article schema');
+              assert(fs.readFileSync('guides.html', 'utf8').includes('href="' + path + '"'), path + ': generated guides listing');
+            }
             if (path === 'zadani-webu-pro-architektonicky-atelier.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
               assert((h.match(/<section id="/g) || []).length === 12, path + ': 12 substantive sections');
