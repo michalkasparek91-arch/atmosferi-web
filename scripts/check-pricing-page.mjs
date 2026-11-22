@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+const html=fs.readFileSync('pricing.html','utf8'),css=fs.readFileSync('assets/pricing-page.css','utf8');
+assert(html.includes('<body class="f pricing-page">'));
+assert(html.includes('assets/for-agencies.css'));
+assert(html.includes('data-i18n-langs="en,de,cs,fr"'));
+assert.equal((html.match(/class="p-card"/g)||[]).length,3);
+for(const n of ['€3,000','€7,000','€15,000','€400'])assert(html.includes(n));
+assert(!html.includes('id="stack"')&&!html.includes('assets/pricing.js'));
+assert(html.includes('href="/guides"')&&html.includes('data-footer-agencies'));
+assert(css.includes('@media(max-width:700px)'));
+const ctx={window:{I18N_DICT:{}}};vm.runInNewContext(fs.readFileSync('assets/pricing-page-i18n.js','utf8'),ctx);
+for(const lang of ['en','de','cs','fr'])assert(html.includes('data-i18n-langs="en,de,cs,fr"'));
+for(const lang of ['de','cs','fr'])assert(ctx.window.I18N_DICT[lang]['Clear price.']);
+console.log('Pricing layout, prices, localization and simplification checks passed.');
