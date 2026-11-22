@@ -4,6 +4,26 @@
   var doc = document.documentElement;
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   doc.classList.add("js");
+  // Recover from an intermittent image delivery failure without forcing a page refresh.
+  // Only one retry, only for our own static image assets. Persistent 404s remain visible.
+  document.querySelectorAll('img[src^="/img/"]').forEach(function (img) {
+    function retryImage() {
+      if (img.dataset.imageRetryUsed) return;
+      img.dataset.imageRetryUsed = "1";
+      var original = img.getAttribute("src");
+      if (!original) return;
+      window.setTimeout(function () {
+        if (img.complete && img.naturalWidth > 0) return;
+        img.loading = "eager";
+        var url = new URL(original, window.location.origin);
+        url.searchParams.set("asset_retry", "1");
+        img.src = url.pathname + url.search;
+      }, 500);
+    }
+    img.addEventListener("error", retryImage);
+    if (img.complete && img.naturalWidth === 0) retryImage();
+  });
+
   // Strings set from script follow the language picked in the switcher.
   function tr(t) { var l = doc.lang; return (window.I18N_DICT && I18N_DICT[l] && I18N_DICT[l][t]) || t; }
 
