@@ -45,6 +45,7 @@ jobs:
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
           const pages = [
+            ['auditorium-stage-curtain-masking-interior-rendering-review.html', 'en', 'auditorium-projection-screen-interior-rendering-review.html', '2026-11-22'],
             ['stranka-o-nas-na-webu-architektonickeho-atelieru.html', 'cs', 'struktura-webu-architektonickeho-atelieru.html', '2026-11-21'],
             ['website-briefing-architekturbuero-angebot-checkliste.html', 'de', 'architekturbuero-website-relaunch-checkliste.html', '2026-11-21'],
             ['jak-merit-poptavky-z-webu-architektonickeho-atelieru.html', 'cs', 'struktura-webu-architektonickeho-atelieru.html', '2026-11-20'],
@@ -199,6 +200,19 @@ jobs:
             ]);
             const modified = updatedOn20261121.has(path) ? '2026-11-21' : published;
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === modified), path + ': publication / modification dates');
+            if (path === 'auditorium-stage-curtain-masking-interior-rendering-review.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
+              assert((h.match(/<section id="/g) || []).length === 12, path + ': 12 substantive sections');
+              assert(h.includes('Fictional illustrative example'), path + ': fictional example disclosed');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const anchors = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(anchors.length === 12 && anchors.every(id => ids.has(id)), path + ': working contents anchors');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relation');
+              const css = fs.readFileSync('assets/seo-guides.css', 'utf8');
+              assert(css.includes('max-width:850px') || css.includes('max-width: 850px'), path + ': mobile breakpoint');
+              assert(fs.readFileSync('guides.html', 'utf8').includes('href="' + path + '"'), path + ': generated /guides listing');
+            }
             if (path === 'redesign-webu-architektonickeho-atelieru.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive layout');
               assert((h.match(/<section id="/g) || []).length === 12, path + ': 12 substantive sections');
