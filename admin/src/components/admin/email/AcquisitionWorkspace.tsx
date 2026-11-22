@@ -77,13 +77,13 @@ function GermanAgencies() {
     <h2 className="text-xl font-semibold">Marketingové agentury · Německo</h2>
     <div className="rounded-2xl border bg-muted/50 p-4 space-y-2 text-sm">
       <strong>Šablony pro německé agentury</strong>
-      <p>První oslovení i připomenutí jsou vedené odděleně od české kampaně. Jsou to pozastavené koncepty. Německé kontakty čekají na kontrolu a oprávnění k oslovení; tento přehled e-maily neodesílá.</p>
+      <p>První oslovení i připomenutí jsou oddělené od české kampaně. Aktivní šablona v ručním režimu nespouští automatickou rozesílku. Před oslovením je nutné ověřit oprávnění ke kontaktování konkrétní firmy; tento přehled žádné e-maily neodesílá.</p>
       {["atmosferi-agenturen-de", "atmosferi-agenturen-de-followup"].map((slug, i) => {
         const tpl = deTemplates.data?.find(t => t.slug === slug);
         return <div key={slug} className="flex flex-wrap gap-2 items-center justify-between border-t pt-2">
           <span>{i === 0 ? "První oslovení" : "Připomenutí"} · {tpl?.subject || (deTemplates.isLoading ? "Načítám…" : "Šablona chybí")}</span>
-          <span className={tpl?.is_enabled ? "text-red-700" : "text-muted-foreground"}>
-            {tpl?.is_enabled ? "Pozor: zapnutá" : "Pozastaveno"} · {tpl?.trigger_type === "manual" ? "ruční" : "kontrolovat režim"}
+          <span className={tpl?.is_enabled && tpl.trigger_type !== "manual" ? "text-red-700" : "text-muted-foreground"}>
+            {deTemplates.isLoading ? "Načítám stav…" : !tpl ? "Šablona chybí" : !tpl.is_enabled ? "Vypnutá" : tpl.trigger_type === "manual" ? "Aktivní · pouze ruční použití" : "Pozor: automatická"}
           </span>
         </div>;
       })}
