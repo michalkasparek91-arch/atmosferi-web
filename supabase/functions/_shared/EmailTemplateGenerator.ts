@@ -1,3 +1,4 @@
+import { localizeAtmosferiUrl, localizeEmailBody } from "./email-localization.mjs";
 // Atmosferi° e-mail: a short personal letter in the website's style
 // (white sheet on #f4f4f4, black text, grey details, no banners or buttons).
 // Light HTML on purpose: it reads like a real message and stays out of the Promotions tab.
@@ -76,7 +77,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
               </table>` : "";
 
   const ctaHtml = data.ctaButtonEnabled && data.ctaText && data.ctaUrl
-    ? p(`<a href="${data.ctaUrl}" style="color: ${INK}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;">${data.ctaText}&nbsp;&rarr;</a>`, " margin-top: 4px;") : "";
+    ? p(`<a href="${localizeAtmosferiUrl(data.ctaUrl, data.language)}" style="color: ${INK}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;">${data.ctaText}&nbsp;&rarr;</a>`, " margin-top: 4px;") : "";
 
   const sigEmail = data.signatureEmail || "michal@atmosferi.com";
   const signatureHtml = data.signatureEnabled ? `
@@ -89,7 +90,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
                     ${data.signatureGreeting ? `<span style="display: block;">${data.signatureGreeting}</span>` : ""}
                     <span style="display: block; font-size: 14px; font-weight: 600; color: ${INK};">${data.signatureName}</span>
                     Atmosferi&deg; &middot; ${data.signatureRole}<br />
-                    <a href="mailto:${sigEmail}" style="color: ${MUTE}; text-decoration: none;">${sigEmail}</a> &middot; <a href="https://www.atmosferi.com" style="color: ${MUTE}; text-decoration: none;">atmosferi.com</a>
+                    <a href="mailto:${sigEmail}" style="color: ${MUTE}; text-decoration: none;">${sigEmail}</a> &middot; <a href="${localizeAtmosferiUrl("https://www.atmosferi.com", data.language)}" style="color: ${MUTE}; text-decoration: none;">atmosferi.com</a>
                   </td>
                 </tr>
               </table>` : "";
@@ -97,7 +98,7 @@ export function generateAtmosferiEmailHtml(data: EmailTemplateData): string {
   const psHtml = data.psEnabled && data.psText
     ? `<p style="margin: 22px 0 0 0; font-size: 13px; line-height: 1.5; color: ${MUTE};">P.S. ${data.psText}</p>` : "";
 
-  const bodyHtml = (showGreeting ? p(greeting) : "") + parseBodyText(data.body);
+  const bodyHtml = (showGreeting ? p(greeting) : "") + parseBodyText(localizeEmailBody(data.body, data.language));
 
   return `<!DOCTYPE html>
 <html lang="${t.lang}">
