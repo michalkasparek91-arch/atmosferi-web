@@ -69,13 +69,17 @@
  .p-hero { padding-top:55px; padding-bottom:90px; }.p-meta { font-size:12px; }
  .p-hero__body { display:block; margin-top:76px; }
  .pricing-page .p-hero h1 { font-size:clamp(49px,12vw,86px); }
+ html[lang="de"] .pricing-page .p-hero h1 { font-size:clamp(36px,10.6vw,68px); }
+ html[lang="cs"] .pricing-page .p-hero h1 { font-size:clamp(39px,11vw,73px); }
+ html[lang="fr"] .pricing-page .p-hero h1 { font-size:clamp(36px,10.6vw,68px); }
  .pricing-page .p-hero__body p { margin-top:42px; font-size:18px; }
  .p-section-head { display:block; }.p-section-head p { text-align:left; margin-top:18px; }
  .p-cards { grid-template-columns:1fr; }.p-card:last-child { grid-column:auto; }
  .pricing-page .p-card h3 { margin-top:55px; }.pricing-page .p-card__intro { min-height:0; }
  .p-card .f-pill { align-self:stretch; }
  .p-visual { grid-template-columns:1fr; }.p-visual__image { height:290px; }
- .pricing-page .p-visual h2 { margin-top:50px; font-size:clamp(55px,12vw,85px); }
+ .pricing-page .p-visual h2 { margin-top:50px; font-size:clamp(48px,10vw,78px); }
+ html[lang="de"] .pricing-page .p-visual h2 { font-size:clamp(44px,10vw,72px); }
  .p-visual__bottom { margin-top:28px; }
  .p-faq { grid-template-columns:1fr; padding-block:100px; }
  .p-contact { min-height:510px; }.pricing-page .p-contact h2 { margin:70px 0; }
