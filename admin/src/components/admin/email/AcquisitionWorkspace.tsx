@@ -25,6 +25,16 @@ function GermanAgencies() {
   const [reviewOnly, setReviewOnly] = useState(true);
   const [page, setPage] = useState(0);
   const size = 25;
+  const deTemplates = useQuery({
+    queryKey: ["de-agencies", "email-templates"],
+    queryFn: async () => {
+      const { data, error } = await db.from("email_templates")
+        .select("slug,name,subject,trigger_type,is_enabled")
+        .in("slug", ["atmosferi-agenturen-de", "atmosferi-agenturen-de-followup"]);
+      if (error) throw error;
+      return (data || []) as { slug: string; name: string; subject: string | null; trigger_type: string; is_enabled: boolean }[];
+    },
+  });
   const counts = useQuery({
     queryKey: ["de-agencies", "counts"], refetchInterval: 60000,
     queryFn: async () => {
@@ -65,6 +75,20 @@ function GermanAgencies() {
   const total = contacts.data?.count ?? 0;
   return <section className="space-y-4">
     <h2 className="text-xl font-semibold">Marketingové agentury · Německo</h2>
+    <div className="rounded-2xl border bg-muted/50 p-4 space-y-2 text-sm">
+      <strong>Šablony pro německé agentury</strong>
+      <p>První oslovení i připomenutí jsou vedené odděleně od české kampaně. Jsou to pozastavené koncepty. Německé kontakty čekají na kontrolu a oprávnění k oslovení; tento přehled e-maily neodesílá.</p>
+      {["atmosferi-agenturen-de", "atmosferi-agenturen-de-followup"].map((slug, i) => {
+        const tpl = deTemplates.data?.find(t => t.slug === slug);
+        return <div key={slug} className="flex flex-wrap gap-2 items-center justify-between border-t pt-2">
+          <span>{i === 0 ? "První oslovení" : "Připomenutí"} · {tpl?.subject || (deTemplates.isLoading ? "Načítám…" : "Šablona chybí")}</span>
+          <span className={tpl?.is_enabled ? "text-red-700" : "text-muted-foreground"}>
+            {tpl?.is_enabled ? "Pozor: zapnutá" : "Pozastaveno"} · {tpl?.trigger_type === "manual" ? "ruční" : "kontrolovat režim"}
+          </span>
+        </div>;
+      })}
+      <Link className="inline-block underline" to="/emaily/sablony">Spravovat německé šablony v knihovně</Link>
+    </div>
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{["V publiku", "K prověření", "E-mail ověřen", "Zprávy ve frontě", "Odesláno", "Selhalo"].map((label, i) =>
       <div key={label} className="rounded-2xl bg-muted p-4"><div className="text-sm">{label}</div>
         <strong className="text-2xl tabular-nums">{counts.data?.[i]?.toLocaleString("cs-CZ") ?? "–"}</strong></div>)}</div>
