@@ -6,6 +6,7 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.57.0";
 import { sendViaSmtp } from "../_shared/smtp.ts";
 import { generateAtmosferiEmailHtml } from "../_shared/EmailTemplateGenerator.ts";
+import { localizeEmailBody } from "../_shared/email-localization.mjs";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -48,7 +49,7 @@ async function deliver(db: SupabaseClient, s: Settings, opts: {
   lead: Lead | null; kind: "intro" | "followup" | "test"; to: string; subject: string; body: string;
 }) {
   // Visible opt-out must be identical in the plain-text and HTML versions.
-  const bodyWithOptOut = opts.body.includes(OPT_OUT) ? opts.body.trim() : opts.body.trim() + "\n\n" + OPT_OUT;
+  const bodyWithOptOut = localizeEmailBody(opts.body.includes(OPT_OUT) ? opts.body.trim() : opts.body.trim() + "\n\n" + OPT_OUT, "cs");
   const result: { success: boolean; error?: string; messageId?: string; recipientRejected?: boolean } = await sendViaSmtp({
     from: `${s.sender_name} <${s.sender_email}>`, to: opts.to, subject: opts.subject,
     html: toHtml(bodyWithOptOut, opts.subject), text: bodyWithOptOut,
