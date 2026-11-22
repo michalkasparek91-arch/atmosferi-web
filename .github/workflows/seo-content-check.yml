@@ -152,6 +152,7 @@ jobs:
           pages.push(['interior-acoustic-wall-panel-layout-rendering-review.html', 'en', 'architectural-rendering-material-finish-approval-checklist.html', '2026-11-16']);
           pages.push(['integrated-roller-shutter-box-facade-rendering-review.html', 'en', 'external-sun-shading-louvers-architectural-rendering-review.html', '2026-11-16']);
           pages.push(['recessed-linear-lighting-interior-rendering-review.html', 'en', 'interior-rendering-daylight-artificial-lighting-review.html', '2026-11-16']);
+          pages.push(['architecture-project-case-study-website-template.html', 'en', 'prepare-architecture-projects-for-website.html', '2026-11-22']);
           const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
           for (const [path, lang, incoming, published = '2026-11-01'] of pages) {
             const url = 'https://www.atmosferi.com/' + path;
@@ -179,6 +180,18 @@ jobs:
             ]);
             const modified = updatedOn20261121.has(path) ? '2026-11-21' : published;
             assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.datePublished === published && item.dateModified === modified), path + ': publication / modification dates');
+            if (path === 'architecture-project-case-study-website-template.html') {
+              assert(h.includes('class="wrap guide-main"'), path + ': responsive editorial layout');
+              assert((h.match(/<section id="/g) || []).length === 12, path + ': 12 useful sections');
+              assert(h.includes('Fictional illustrative example only'), path + ': fictional example labelled');
+              assert(h.includes('class="guide-table-wrap"') && h.includes('scope="col"'), path + ': accessible, responsive template table');
+              const ids = new Set([...h.matchAll(/<section id="([^"]+)"/g)].map(m => m[1]));
+              const anchors = [...h.matchAll(/<a href="#([^"]+)"/g)].map(m => m[1]);
+              assert(anchors.length === 12 && anchors.every(id => ids.has(id)), path + ': functioning contents index');
+              assert(schema['@graph'].some(item => item['@type'] === 'WebPage' && item.url === url), path + ': WebPage URL');
+              assert(schema['@graph'].some(item => item['@type'] === 'Article' && item.mainEntityOfPage['@id'] === url + '#webpage'), path + ': Article relationship');
+              assert(fs.readFileSync('guides.html', 'utf8').includes('href="' + path + '"'), path + ': auto-generated guide listing');
+            }
             if (path === 'automatic-sliding-entrance-door-architectural-rendering-review.html') {
               assert(h.includes('class="wrap guide-main"'), path + ': responsive guide layout');
               assert((h.match(/<section id=/g) || []).length >= 12, path + ': substantive sections');
