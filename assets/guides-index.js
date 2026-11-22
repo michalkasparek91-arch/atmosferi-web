@@ -82,7 +82,8 @@ document.querySelectorAll('.guidehub-footer nav a').forEach((a, i) => {
   a.textContent = [t.nav[0], t.nav[1], t.all, t.nav[4]][i];
 });
 setText('.seo-header-contact', t.contact);
-setText('.nav__burger', t.menu);
+const burger = document.querySelector('.nav__burger');
+if (burger) burger.setAttribute('aria-label', t.menu);
 setText('.guidehub-hero .guidehub-eyebrow', t.field);
 setHtml('.guidehub-hero h1', t.title);
 setText('.guidehub-hero__side p', t.intro);

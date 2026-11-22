@@ -44,7 +44,7 @@ body.guides-page{background:#f7f7f7;color:#111112;font-family:'Geist',Arial,sans
 .guidehub-entry__link{font-size:12px;font-weight:600;letter-spacing:.02em;margin-top:auto}
 .guidehub-entry__link span{display:inline-block;transition:transform .2s}
 .guidehub-entry a:hover .guidehub-entry__link span{transform:translate(3px,-3px)}
-.guidehub-entry[hidden],.guidehub-section[hidden],.guidehub-no-results[hidden]{display:none!important}
+.guidehub-topic[hidden],.guidehub-entry[hidden],.guidehub-section[hidden],.guidehub-no-results[hidden]{display:none!important}
 .guidehub-no-results{padding-block:50px;font-size:18px;color:#6a6a6d}
 .guides-page .guidehub-cta{margin-block:clamp(70px,10vw,160px);padding-block:clamp(52px,7vw,98px);border-top:1px solid #aaa;display:grid;grid-template-columns:1fr 2fr;gap:30px}
 .guides-page .guidehub-cta h2{font-size:clamp(42px,6vw,92px);line-height:.99;letter-spacing:-.064em;max-width:none;margin:0}
