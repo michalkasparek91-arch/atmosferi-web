@@ -60,7 +60,7 @@ const cards=categories.map(category=>{
 const sections=categories.map(category=>{
   const items=byGroup(category.id);
   const rows=items.map(a=>
-    '<article class="guidehub-entry" data-guide-row data-search="'+escape([a.headline,a.description,a.language].join(' ').toLocaleLowerCase())+'">'+
+    '<article class="guidehub-entry" data-guide-row data-guide-lang="'+escape(a.language)+'" data-search="'+escape([a.headline,a.description,a.language].join(' ').toLocaleLowerCase())+'">'+
     '<a href="'+escape(a.file)+'"><div class="guidehub-entry__meta"><span>'+escape(langs[a.language]||a.language.toUpperCase())+'</span>'+
     (a.date?'<time datetime="'+a.date+'">'+escape(dateText(a.date))+'</time>':'')+'</div>'+
     '<h3>'+escape(a.headline)+'</h3><p>'+escape(a.description)+'</p>'+

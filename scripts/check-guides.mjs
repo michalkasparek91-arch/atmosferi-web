@@ -52,5 +52,9 @@ for(const f of ['index.html','work.html','services.html','studio.html','contact.
   assert(fs.readFileSync(f,'utf8').includes('href="/guides"'),f+': no directory navigation');
 }
 assert(html.includes('data-guides-search')&&html.includes('data-guide-row'),'guides: searchable static rows');
+assert(/data-guide-row data-guide-lang="(?:en|cs|de|nb|fr)"/.test(html), 'guides: each row must declare its source language');
+const guideScript=fs.readFileSync('assets/guides-index.js','utf8');
+assert(guideScript.includes("article.dataset.guideLang === language"), 'guides: language-specific filtering');
+for (const lang of ['en','cs','de']) assert(guideScript.includes(lang + ':'), 'guides: localized UI '+lang);
 assert(html.includes('aria-controls="guidehub-results"'),'guides: search target');
 console.log('Guides directory OK: '+listed.length+' indexable Article pages in four groups, canonical route, sitemap, links, structured data and core-page navigation.');

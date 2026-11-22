@@ -127,6 +127,44 @@
     });
   }
 
+
+  // The homepage footer contains indexable static language-page links, but only
+  // the selected language's page should be visible to visitors.
+  // Do not label translated ?lang= variants as SEO hreflang alternates.
+  function syncHomepageFooter(lang) {
+    var agency = document.querySelector("[data-footer-agencies]");
+    if (!agency) return;
+    var labels = {
+      en: { agency: "For agencies", guides: "All guides ↗" },
+      cs: { agency: "Pro agentury", guides: "Všechny návody ↗" },
+      de: { agency: "Für Agenturen", guides: "Alle Ratgeber ↗" },
+      fr: { agency: "Pour les agences", guides: "Tous les guides ↗" }
+    };
+    var copy = labels[lang] || labels.en;
+    agency.textContent = copy.agency;
+    agency.setAttribute("href", "/for-agencies?lang=" + lang);
+
+    var hasGuides = false;
+    document.querySelectorAll("[data-footer-seo-lang]").forEach(function (link) {
+      var visible = link.getAttribute("data-footer-seo-lang") === lang;
+      link.hidden = !visible;
+      link.style.display = visible ? "" : "none";
+      if (visible) hasGuides = true;
+    });
+    var guides = document.querySelector("[data-footer-guides]");
+    if (guides) {
+      guides.textContent = copy.guides;
+      guides.setAttribute("href", "/guides?lang=" + lang);
+    }
+    // French has no published French-language SEO cluster yet. Do not
+    // silently send a French visitor to English/Czech/German articles.
+    var nav = document.querySelector("[data-footer-guides-nav]");
+    if (nav) {
+      nav.hidden = !hasGuides;
+      nav.style.display = hasGuides ? "" : "none";
+    }
+  }
+
   // Only an explicit choice is remembered; opening a page never overwrites it,
   // so each page falls back to its own language until the visitor picks one.
   function setLang(lang, remember) {
@@ -134,6 +172,7 @@
     current = lang;
     if (remember) { try { localStorage.setItem(KEY, lang); } catch (e) {} }
     applyAll(lang);
+    syncHomepageFooter(lang);
     updateSwitchers();
   }
   window.atmosferiSetLang = function (lang) { setLang(lang, true); };
