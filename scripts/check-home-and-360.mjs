@@ -7,6 +7,12 @@ const css = fs.readFileSync("assets/films-f.css", "utf8");
 const films = fs.readFileSync("films.html", "utf8");
 const home = fs.readFileSync("index.html", "utf8");
 const homeCss = fs.readFileSync("assets/home-f.css", "utf8");
+const agencyCss = fs.readFileSync("assets/for-agencies.css", "utf8");
+const agency = fs.readFileSync("for-agencies.html", "utf8");
+assert(agencyCss.includes('object-position: center 25%; filter: grayscale(.2);'), "Agency portrait must be 20% desaturated");
+assert(agencyCss.includes('.f-team__card:hover img { filter: grayscale(0);'), "Agency portrait must be full color on hover");
+assert(agency.includes('/assets/for-agencies.css?v=20261122-portrait'), "Agency stylesheet cache must be refreshed");
+
 
 assert(pano.includes("inViewport = entry.isIntersecting && entry.intersectionRatio >= 0.15"));
 assert(pano.includes("(engaged || inViewport) && autoOn && !busy"));
