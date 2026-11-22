@@ -15,6 +15,10 @@ assert(deWorkspace.includes('slug = "atmosferi-agenturen-de"'), "German audience
 assert(deWorkspace.includes('outreach_template_slug: slug'), "German audience mapping must be explicit");
 assert(deWorkspace.includes('"atmosferi-agenturen-de-followup"'), "German follow-up draft must be discoverable");
 assert(deWorkspace.includes('to="/emaily/sablony"'), "German template library must be reachable");
+assert(deWorkspace.includes("Aktivní · pouze ruční použití"), "German manual template must be labelled correctly");
+assert(deWorkspace.includes('tpl.trigger_type !== "manual"'), "Only unexpected automatic campaigns show a warning");
+assert(!deWorkspace.includes("Jsou to pozastavené koncepty"), "No misleading stale template state text");
+
 assert(deWorkspace.includes("outreach_email_ready: false"), "approving DE agency must not enable email sending");
 assert(czWorkspace.includes("pouze českým agenturám"), "CZ template editor must disclose its scope");
 assert(root.scripts.prebuild.includes("node scripts/check-agency-email-routing.mjs"), "routing guard must run in prebuild");
