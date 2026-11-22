@@ -446,6 +446,7 @@ export default function AdminAgencyOutreach({ embedded = false }: { embedded?: b
    </TabsContent>
 
    <TabsContent value="templates" className="space-y-4">
+    <p className="text-sm text-muted-foreground">Tato dvojice šablon slouží pouze českým agenturám. Německé koncepty jsou oddělené v sekci Agentury · Německo a v knihovně e-mailů.</p>
     {templateEditor(INTRO, "1 · První oslovení", "Posílá se kontaktům ve frontě.")}
     {templateEditor(FOLLOW, "2 · Připomenutí", `Jednou, ${settings?.followup_after_days ?? 6} dní po oslovení, jen když kontakt neodpověděl.`)}
    </TabsContent>
