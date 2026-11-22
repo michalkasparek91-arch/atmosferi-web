@@ -1,0 +1,31 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const file='exposed-clt-panel-joints-interior-rendering-review.html';
+const source='timber-cladding-board-layout-rendering-review.html';
+const origin='https://www.atmosferi.com/';
+const html=fs.readFileSync(file,'utf8');
+const canonical=origin+file;
+assert.match(html,/<html lang="en">/,'language');
+assert.equal((html.match(/<h1(?:\s|>)/g)||[]).length,1,'exactly one H1');
+assert(html.includes('<link rel="canonical" href="'+canonical+'">'),'self canonical');
+assert.match(html,/<meta name="robots" content="index, follow/,'indexable');
+assert(html.includes('name="viewport"'),'mobile viewport');
+for(const css of ['site','redesign','brand-header','seo-services','seo-guides'])assert(html.includes('href="assets/'+css+'.css"'),'missing stylesheet '+css);
+for(const key of ['og:title','og:description','og:url','twitter:card','twitter:title','twitter:description'])assert(html.includes(key),'social metadata '+key);
+const json=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+const nodes=json['@graph'];
+for(const type of ['WebPage','Article'])assert(nodes.some(n=>n['@type']===type),'missing '+type);
+const article=nodes.find(n=>n['@type']==='Article');
+assert.equal(article.datePublished,'2026-11-22');
+assert.equal(article.dateModified,'2026-11-22');
+assert.equal(article.mainEntityOfPage['@id'],canonical+'#webpage');
+assert(html.includes('Fictional illustrative example'),'fiction label');
+for(const id of ['scope','panel-grid','joints','grain','openings','services','finish','interfaces','comparison','fiction','check'])assert(html.includes('id="'+id+'"'),'missing section '+id);
+assert(fs.readFileSync(source,'utf8').includes('href="'+file+'"'),'missing contextual inbound link');
+assert(fs.readFileSync('sitemap.xml','utf8').includes('<loc>'+canonical+'</loc>'),'missing sitemap URL');
+for(const m of html.matchAll(/(?:href|src)="([^"]+)"/g)){
+ const path=m[1].split(/[?#]/)[0];
+ if(!path||/^(?:https?:|mailto:)/.test(path)||path==='/guides')continue;
+ assert(fs.existsSync(path.replace(/^\//,'')),'broken local link '+path);
+}
+console.log('CLT rendering guide SEO QA passed');
