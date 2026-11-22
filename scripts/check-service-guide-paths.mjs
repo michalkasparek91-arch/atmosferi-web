@@ -17,7 +17,8 @@ const routes = [
     targets: [
       'architecture-studio-website-cost-scope-guide.html',
       'architecture-website-project-brief-template.html',
-      'architecture-project-case-study-website-template.html'
+      'architecture-project-case-study-website-template.html',
+      'cms-for-architecture-portfolio-website.html'
     ]
   },
   {
