@@ -10,7 +10,7 @@ assert.equal((html.match(/class="p-visual-price"/g)||[]).length,4);
 assert(html.includes('02 / Visualisation &amp; motion'));
 for(const n of ['€3,000','€7,000','€15,000','€400','€1,200','€650','€1,600'])assert(html.includes(n));
 assert(!html.includes('id="stack"')&&!html.includes('assets/pricing.js'));
-assert(html.includes('href="/guides"')&&html.includes('data-footer-agencies'));
+assert(html.includes('href="/guides?lang=en"')&&html.includes('data-footer-guides')&&html.includes('data-footer-agencies'), 'Localized footer links');
 for(const anchor of ['index.html#work','index.html#services','index.html#visuals']) assert(html.includes('href="'+anchor+'"'), 'Footer must navigate back to homepage section '+anchor);
 assert(fs.readFileSync('assets/pricing-page.js','utf8').includes("u.searchParams.set('lang',lang)"), 'Preserve language on subpage links');
 assert(css.includes('@media(max-width:700px)'));

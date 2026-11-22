@@ -48,8 +48,16 @@ for(const href of html.matchAll(/(?:href|src)="([^"]+)"/g)){
   if(!link || /^(?:https?:|mailto:)/.test(link) || link==='/guides')continue;
   assert(fs.existsSync(link.replace(/^\//,'')),'guides: broken local URL '+link);
 }
+// The newer pages preserve the visitor's active language in their Guides link.
+// Legacy core pages still link to the same canonical route without a parameter.
 for(const f of ['index.html','work.html','services.html','studio.html','contact.html','pricing.html']){
-  assert(fs.readFileSync(f,'utf8').includes('href="/guides"'),f+': no directory navigation');
+  const source=fs.readFileSync(f,'utf8');
+  const target=(f==='index.html'||f==='pricing.html')?'/guides?lang=en':'/guides';
+  assert(source.includes('href="'+target+'"'),f+': missing localized directory navigation '+target);
+}
+for(const f of ['index.html','pricing.html']){
+  const source=fs.readFileSync(f,'utf8');
+  assert(source.includes('data-footer-guides'),f+': language-aware directory hook missing');
 }
 assert(html.includes('data-guides-search')&&html.includes('data-guide-row'),'guides: searchable static rows');
 assert(/data-guide-row data-guide-lang="(?:en|cs|de|nb|fr)"/.test(html), 'guides: each row must declare its source language');
