@@ -103,17 +103,6 @@
       </div>
       <label class="f-field"><span>The project *</span><textarea name="message" rows="5" required minlength="10" placeholder="A few lines about the project, the deadline, links to drawings or sites you like."></textarea></label>
 
-      <fieldset class="s-group">
-        <legend>Budget, optional</legend>
-        <div class="s-chips" data-group="budget">
-          <button type="button" class="s-chip" aria-pressed="false" data-value="Under €2,000">Under €2k</button>
-          <button type="button" class="s-chip" aria-pressed="false" data-value="€2,000–5,000">€2–5k</button>
-          <button type="button" class="s-chip" aria-pressed="false" data-value="€5,000–10,000">€5–10k</button>
-          <button type="button" class="s-chip" aria-pressed="false" data-value="Over €10,000">€10k+</button>
-          <button type="button" class="s-chip" aria-pressed="false" data-value="Not sure">Not sure</button>
-        </div>
-      </fieldset>
-
       <label class="ag-hp" aria-hidden="true">Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
       <button class="f-pill f-pill--dark s-send" type="submit">Send</button>
       <p class="s-status" id="briefStatus" role="status" aria-live="polite"></p>
@@ -143,7 +132,7 @@
     var close = document.getElementById("closeLink");
     if (document.referrer && document.referrer.indexOf(location.origin) === 0) close.href = document.referrer;
 
-    // Chips: "need" allows several, "budget" exactly one.
+    // Service choices can be selected in combination.
     form.querySelectorAll(".s-chips").forEach(function (group) {
       var multi = group.getAttribute("data-multi") === "true";
       group.addEventListener("click", function (e) {
@@ -172,7 +161,7 @@
       var message = String(data.get("message") || "").trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { say(AtmosferiInquiry.t("invalidEmail"), "error"); form.elements.email.focus(); return; }
       if (message.length < 10) { say(AtmosferiInquiry.t("invalidMessage"), "error"); form.elements.message.focus(); return; }
-      var needs = picked("need"), budget = picked("budget")[0] || "";
+      var needs = picked("need");
       var btn = form.querySelector('[type="submit"]');
       busy = true; btn.disabled = true; say(AtmosferiInquiry.t("sending"));
       try {
@@ -181,12 +170,12 @@
           mode: needs.indexOf("Website") === -1 && needs.length ? "viz" : "web",
           name: String(data.get("name") || "").trim(),
           email: email,
-          message: (needs.length ? "Need: " + needs.join(", ") + "\n" : "") + (budget ? "Budget: " + budget + "\n" : "") + (needs.length || budget ? "\n" : "") + message,
-          budget: budget,
+          message: (needs.length ? "Need: " + needs.join(", ") + "\n\n" : "") + message,
+          budget: "", // API compatibility; no budget question
           project_type: needs.join(", ").slice(0, 100),
           started_at: startedAt,
           website: String(data.get("website") || ""),
-          details: { page: location.pathname, from: from, needs: needs, budget: budget, language: document.documentElement.lang || "en" }
+          details: { page: location.pathname, from: from, needs: needs, language: document.documentElement.lang || "en" }
         });
         form.classList.add("is-done");
         form.querySelector(".s-done").focus();
