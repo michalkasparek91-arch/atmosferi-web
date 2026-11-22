@@ -9,6 +9,8 @@ assert.equal((html.match(/class="p-card"/g)||[]).length,3);
 for(const n of ['€3,000','€7,000','€15,000','€400'])assert(html.includes(n));
 assert(!html.includes('id="stack"')&&!html.includes('assets/pricing.js'));
 assert(html.includes('href="/guides"')&&html.includes('data-footer-agencies'));
+for(const anchor of ['index.html#work','index.html#services','index.html#visuals']) assert(html.includes('href="'+anchor+'"'), 'Footer must navigate back to homepage section '+anchor);
+assert(fs.readFileSync('assets/pricing-page.js','utf8').includes("u.searchParams.set('lang',lang)"), 'Preserve language on subpage links');
 assert(css.includes('@media(max-width:700px)'));
 const ctx={window:{I18N_DICT:{}}};vm.runInNewContext(fs.readFileSync('assets/pricing-page-i18n.js','utf8'),ctx);
 for(const lang of ['en','de','cs','fr'])assert(html.includes('data-i18n-langs="en,de,cs,fr"'));
