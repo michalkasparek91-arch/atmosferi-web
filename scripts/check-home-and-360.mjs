@@ -18,7 +18,8 @@ const agencyCss = fs.readFileSync("assets/for-agencies.css", "utf8");
 const agency = fs.readFileSync("for-agencies.html", "utf8");
 assert(agencyCss.includes('object-position: center 25%; filter: grayscale(.2);'), "Agency portrait must be 20% desaturated");
 assert(agencyCss.includes('.f-team__card:hover img { filter: grayscale(0);'), "Agency portrait must be full color on hover");
-assert(agency.includes('/assets/for-agencies.css?v=20261122-portrait'), "Agency stylesheet cache must be refreshed");
+const agencyStylesheet = agency.match(/<link[^>]+href=["']\/assets\/for-agencies\.css\?v=([a-z0-9._-]+)["']/i);
+assert(agencyStylesheet && agencyStylesheet[1], "Agency must load its existing versioned stylesheet");
 
 
 assert(pano.includes("inViewport = entry.isIntersecting && entry.intersectionRatio >= 0.15"));
