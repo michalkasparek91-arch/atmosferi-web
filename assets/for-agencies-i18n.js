@@ -184,6 +184,10 @@
     ["Kdo se postará o web po spuštění?", "Who looks after the site after launch?", "Wer betreut die Website nach dem Launch?"],
     ["Jak se dohodneme. Web předám i s přístupy a dokumentací, nebo ho dál spravuji a upravuji podle potřeb vás i klienta.", "Whatever we agree. I hand over the site with access and documentation, or keep maintaining and updating it for you and your client.", "Wie wir es vereinbaren. Ich übergebe die Website mit Zugängen und Dokumentation oder betreue und erweitere sie weiter für Sie und Ihren Kunden."],
 
+    // Google Calendar booking copy
+    ["Vybrat volný termín","Choose a time slot","Freien Termin wählen"],
+    ["Vyberte si čas přímo v Google Kalendáři. Potvrzení a odkaz na Meet dostanete automaticky.","Choose a time in Google Calendar. Your invitation and Meet link arrive automatically.","Wählen Sie eine Zeit im Google Kalender. Einladung und Meet-Link erhalten Sie automatisch."],
+    ["Raději napsat zprávu ↗","Prefer to send a message ↗","Lieber eine Nachricht senden ↗"],
     // Intro-call invitation and low-friction contact mode
     ["15 MIN · GOOGLE MEET","15 MIN · GOOGLE MEET","15 MIN · GOOGLE MEET"],
     ["Nejdřív si","Let's start","Lassen Sie uns"],

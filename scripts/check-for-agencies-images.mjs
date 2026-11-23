@@ -28,6 +28,13 @@ assert(html.includes('id="uvodni-call"') && html.includes('data-agency-call-requ
 assert(html.includes('class="f-form__call-intro ag-call-only"') && html.includes('data-agency-call-reset'), "Switchable call enquiry form missing");
 assert(html.includes('Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.'), "Do not claim a calendar slot is booked");
 assert(!html.includes("calendar.app.google/"), "Do not invent an appointment scheduler link");
+assert(html.includes('assets/agency-booking-config.js'), "Google Calendar config script is loaded");
+assert(html.includes('data-agency-booking-on') && html.includes('data-agency-booking-off'), "Both booking and fallback states exist");
+assert(html.includes('Raději napsat zprávu'), "Booking UI retains contact fallback");
+const bookingConfig=fs.readFileSync("assets/agency-booking-config.js","utf8");
+assert(bookingConfig.includes('ATMOSFERI_AGENCY_APPOINTMENT_URL'), "One explicit booking URL setting");
+assert(js.includes('validAppointmentUrl') && js.includes('calendar.app.google') && js.includes('calendar.google.com'), "Restrict appointment URLs to Google");
+assert(js.includes('noopener noreferrer'), "External calendar link must be safe");
 assert(js.includes('source: callRequest ? "agency-intro-call"'), "Meeting enquiries must be identifiable");
 assert(js.includes('form.classList.contains("is-call-request")'), "Call mode must not require a project brief");
 assert(js.includes('call_request: callRequest'), "Preserve call intent in inquiry metadata");

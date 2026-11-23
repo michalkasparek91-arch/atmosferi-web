@@ -242,7 +242,31 @@
     form.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
     form.elements.email.focus({ preventScroll: true });
   }
-  callLinks.forEach(function (a) { a.addEventListener("click", enterCallMode); });
+  // A real Google Calendar booking page handles availability and the Meet link.
+  // Never interpret an arbitrary or visitor-provided URL as a booking provider.
+  function validAppointmentUrl(raw) {
+    if (typeof raw !== "string" || !raw.trim()) return "";
+    try {
+      var url = new URL(raw.trim());
+      if (url.protocol !== "https:") return "";
+      if (url.hostname === "calendar.app.google" && url.pathname.length > 1) return url.href;
+      if (url.hostname === "calendar.google.com" && url.pathname.includes("/appointments/")) return url.href;
+    } catch (err) {}
+    return "";
+  }
+  var bookingUrl = validAppointmentUrl(window.ATMOSFERI_AGENCY_APPOINTMENT_URL);
+  if (bookingUrl) {
+    callLinks.forEach(function (a) {
+      a.setAttribute("href", bookingUrl);
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+    });
+    document.querySelectorAll("[data-agency-booking-on]").forEach(function (el) { el.hidden = false; });
+    document.querySelectorAll("[data-agency-booking-off]").forEach(function (el) { el.hidden = true; });
+  } else {
+    // Until a real public booking URL exists, keep the working call request.
+    callLinks.forEach(function (a) { a.addEventListener("click", enterCallMode); });
+  }
   if (callReset) callReset.addEventListener("click", resetCallMode);
   function say(t, kind) { status.textContent = tr(t); status.className = "ag-form__status" + (kind ? " is-" + kind : ""); }
   form.addEventListener("submit", async function (e) {
