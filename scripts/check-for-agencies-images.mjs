@@ -8,6 +8,12 @@ const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const tags = [...html.matchAll(/<img\b[^>]*>/g)].map(m => m[0]);
 const srcs = tags.map(tag => tag.match(/\bsrc="([^"]+)"/)?.[1]).filter(Boolean);
 assert(srcs.length >= 28, "The real agency showcase should retain its images");
+assert.equal((html.match(/src="\/img\/agencies\/michal\.webp"/g) || []).length, 1, "Only the About section may show the portrait");
+assert(!html.includes('src="/img/michal-card.jpg"'), "No repeated portrait thumbnails");
+assert(html.includes('class="f-why__process"'), "Design-to-code card replaces Why portrait");
+assert(html.includes('class="f-person f-person--intro"'), "Hero intro CTA without headshot");
+assert(html.includes('class="f-person f-person--talk f-person--email"'), "Contact links to email without headshot");
+assert(fs.readFileSync("assets/for-agencies.css","utf8").includes(".f-process__art"), "Process card styling exists");
 assert(srcs.every(x => !x.startsWith("img/")), "Images must not depend on URL cleanups or trailing slash");
 for (const src of srcs.filter(x => x.startsWith("/img/"))) {
   const asset = path.join(process.cwd(), src.slice(1).split("?")[0]);
