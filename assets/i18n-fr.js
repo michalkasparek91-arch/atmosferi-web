@@ -630,6 +630,7 @@
 "← Zpět k projektové poptávce": "← Revenir au formulaire projet",
 "Kdy se vám to hodí? (nepovinné)": "Quand seriez-vous disponible ? (facultatif)",
 "Požádat o úvodní call": "Demander un appel de présentation",
+"Úvodní call": "Appel de découverte",
 "Vybrat volný termín": "Choisir un créneau",
 "Vyberte si čas přímo v Google Kalendáři. Potvrzení a odkaz na Meet dostanete automaticky.": "Choisissez un créneau dans Google Agenda. L'invitation et le lien Meet arrivent automatiquement.",
 "Raději napsat zprávu ↗": "Vous préférez écrire un message ↗",

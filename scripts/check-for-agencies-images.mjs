@@ -25,6 +25,7 @@ assert(js.includes("dataset.imageRetryUsed") && js.includes('addEventListener("e
 assert(js.includes('url.searchParams.set("asset_retry", "1")'), "Recovery must bypass a failed cached request");
 assert(pkg.scripts.prebuild.includes("node scripts/check-for-agencies-images.mjs"), "Image test must run in prebuild");
 assert(html.includes('id="uvodni-call"') && html.includes('data-agency-call-request'), "Intro call invitation must exist");
+assert(html.includes('class="f-person" href="#uvodni-call"'), "Hero must surface intro-call booking early");
 assert(html.includes('class="f-form__call-intro ag-call-only"') && html.includes('data-agency-call-reset'), "Switchable call enquiry form missing");
 assert(html.includes('Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.'), "Do not claim a calendar slot is booked");
 assert(!html.includes("calendar.app.google/"), "Do not invent an appointment scheduler link");
