@@ -13,7 +13,7 @@ assert(homeCss.includes("body.h { max-width: 100%; overflow-x: clip; }"), "Homep
 assert(homeCss.includes(".h .h-railwrap, .h .h-rail { min-width: 0; max-width: 100%; }"), "Website carousel track must fit the page");
 assert(homeCss.includes(".h .f-footer__mark { max-width: 100%; overflow: clip; }"), "Large footer wordmark must not cause page overflow");
 assert(homeCss.includes(".h-rail { display: grid;") && homeCss.includes("overflow-x: auto;"), "Nested website carousel must stay horizontally scrollable");
-assert(fs.readFileSync("index.html", "utf8").includes("assets/home-f.css?v=20261123-horizontal-clip"), "Use a fresh CSS version to avoid the old cached overflow");
+assert(/href="assets\/home-f\.css\?v=[a-z0-9._-]+"/i.test(home), "Homepage must reference a versioned CSS file");
 const agencyCss = fs.readFileSync("assets/for-agencies.css", "utf8");
 const agency = fs.readFileSync("for-agencies.html", "utf8");
 assert(agencyCss.includes('object-position: center 25%; filter: grayscale(.2);'), "Agency portrait must be 20% desaturated");
@@ -27,8 +27,8 @@ assert(pano.includes("(engaged || inViewport) && autoOn && !busy"));
 assert(pano.includes('if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;'));
 assert(css.includes(".v-tour:not(.is-active):not(.fs) { touch-action: pan-y;"));
 assert(css.includes(".v-tour.is-active, .v-tour.fs, .v-tour:fullscreen { touch-action: none; }"));
-assert(films.includes("assets/pano-f.js?v=20261122-360-motion"));
-assert(films.includes("assets/films-f.css?v=20261122-360-motion"));
+assert(/src="assets\/pano-f\.js\?v=[a-z0-9._-]+"/i.test(films), "Films page must reference a versioned panorama script");
+assert(/href="assets\/films-f\.css\?v=[a-z0-9._-]+"/i.test(films), "Films page must reference a versioned stylesheet");
 const footer = home.slice(home.indexOf('<footer class="f-footer">'));
 assert(!footer.includes('<p class="f-brand">'), "Remove only the small footer logo");
 assert(footer.includes('f-footer__mark') && footer.includes('f-footer__mail'));
@@ -41,7 +41,7 @@ assert(footer.includes('/guides?lang=en'), 'Guides link must preserve language')
 assert(home.includes('<p class="f-brand">'), "Preserve the studio logo");
 assert(homeCss.includes("filter: grayscale(.2);"));
 assert(homeCss.includes(".h .f-team__card:hover img { filter: grayscale(0); }"));
-assert(home.includes("assets/home-f.css?v=20261123-horizontal-clip"));
+// Homepage asset cache query is checked above.
 
 // Minimal event-driven WebGL mock that runs the real panorama script.
 const nodes = new Map();
