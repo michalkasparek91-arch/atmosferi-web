@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Outfit:wght@500;600&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="/img/agencies/zrobee/desk-home.webp" fetchpriority="high">
   <link rel="preload" as="image" href="/img/agencies/card-otavation.webp" fetchpriority="high">
-  <link rel="stylesheet" href="/assets/for-agencies.css?v=20261123-single-portrait">
+  <link rel="stylesheet" href="/assets/for-agencies.css?v=20261123-unified-contact">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Atmosferi°">
   <meta property="og:locale" content="cs_CZ">
@@ -96,6 +96,7 @@
           <h1 id="agTitle"><span class="f-hero__h">Vývoj pro agentury, pod vaší značkou.</span> <span class="f-mute">Weby, aplikace a automatizace na jeden projekt, nebo jako vaše stálá externí kapacita.</span></h1>
           <p class="f-hero__c">© 2026 Atmosferi°</p>
           <a class="f-person f-person--intro" href="#uvodni-call">
+            <span class="f-person__meet" aria-hidden="true"><img src="/img/agencies/google-meet-2026.svg" width="192" height="192" alt="" decoding="async"></span>
             <span class="f-person__info"><span class="f-person__role">15 minut přes Google Meet<small>Nezávazné seznámení</small></span><strong>Seznamme se.</strong><span class="f-pill f-pill--dark">Domluvit call <span aria-hidden="true">↗</span></span></span>
           </a>
         </div>
@@ -291,26 +292,24 @@
     </section>
 
 
-    <section class="f-call" id="uvodni-call" aria-labelledby="agencyCallTitle">
-      <div class="f-card f-call__in" data-reveal>
-        <div class="f-call__main">
-          <p class="f-call__eyebrow"><span class="f-call__dot" aria-hidden="true"></span> 15 MIN · GOOGLE MEET</p>
-          <h2 class="f-call__title" id="agencyCallTitle">Nejdřív si <span>zavolejme.</span></h2>
+    <section class="f-contact f-contact--unified" id="kontakt" aria-label="Kontakt a úvodní hovor">
+      <div class="f-panel f-talk f-contact__meeting" id="uvodni-call" data-reveal aria-labelledby="contactTitle">
+        <div class="f-contact__topline"><span class="f-call__dot" aria-hidden="true"></span> 15 MIN · GOOGLE MEET <span class="f-contact__count">01 / CALL</span></div>
+        <div class="f-contact__content">
+          <h2 class="f-contact__title" id="contactTitle">Pojďme <span>se spojit.</span></h2>
+          <p class="f-contact__lead">Krátké, nezávazné seznámení. Řekneme si, co právě řešíte, a jestli vám můžu být užitečný.</p>
         </div>
-        <div class="f-call__aside">
-          <p>Krátké, nezávazné seznámení. Řekneme si, co právě řešíte, a zjistíme, jestli vám můžu být užitečný.</p>
-          <a class="f-pill f-pill--dark f-call__cta" href="#kontakt" data-agency-call-request><span data-agency-booking-off>Domluvit 15min call</span><span data-agency-booking-on hidden>Vybrat volný termín</span><span aria-hidden="true">↗</span></a>
-          <span class="f-call__note" data-agency-booking-off>Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.</span>
-          <span class="f-call__note" data-agency-booking-on hidden>Vyberte si čas přímo v Google Kalendáři. Potvrzení a odkaz na Meet dostanete automaticky.</span>
-          <a class="f-call__secondary" href="#kontakt" data-agency-booking-on hidden>Raději napsat zprávu ↗</a>
+        <div class="f-contact__actions">
+          <a class="f-pill f-pill--light f-contact__book" href="#agencyForm" data-agency-call-request><span data-agency-booking-off>Domluvit 15min call</span><span data-agency-booking-on hidden>Vybrat volný termín</span><span aria-hidden="true">↗</span></a>
+          <p class="f-contact__explain" data-agency-booking-off>Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.</p>
+          <p class="f-contact__explain" data-agency-booking-on hidden>Vyberte si čas přímo v Google Kalendáři. Potvrzení a odkaz na Meet dostanete automaticky.</p>
+          <a class="f-contact__write" href="#agencyForm" data-agency-booking-on hidden>Raději napsat zprávu ↗</a>
         </div>
+        <p class="f-contact__subfoot">Bez závazků. Jen krátké seznámení.</p>
       </div>
-    </section>
-
-    <section class="f-contact" id="kontakt" aria-labelledby="contactTitle">
       <form class="f-card f-form" id="agencyForm" novalidate data-reveal>
         <p class="f-label"><span class="f-ic" aria-hidden="true"></span>Kontakt</p>
-        <p class="f-form__title"><span class="ag-brief-only">Máte projekt?</span><span class="ag-call-only">Domluvme si krátký call.</span></p>
+        <p class="f-form__title"><span class="ag-brief-only">Raději zprávu?</span><span class="ag-call-only">Domluvme si krátký call.</span></p>
         <p class="f-form__call-intro ag-call-only">15 minut přes Google Meet. Bez závazků a bez dlouhého zadání.</p>
         <button type="button" class="f-form__call-back ag-call-only" data-agency-call-reset>← Zpět k projektové poptávce</button>
         <fieldset class="f-form__choices ag-brief-only">
@@ -328,17 +327,6 @@
         <button class="f-pill f-pill--dark f-form__send" type="submit"><span class="ag-brief-only">Odeslat zprávu</span><span class="ag-call-only">Požádat o úvodní call</span></button>
         <p class="ag-form__status" id="agencyStatus" role="status" aria-live="polite"></p>
       </form>
-      <div class="f-panel f-talk" data-reveal>
-        <h2 class="f-talk__title" id="contactTitle">Pojďme na to.</h2>
-        <p class="f-talk__lead">Napište, co právě řešíte. <span class="f-mute">Konkrétní zakázku, nebo jen zjištění, jestli si sedneme.</span></p>
-        <div class="f-talk__points">
-          <p><span class="f-ic f-ic--light" aria-hidden="true"></span><strong>Rychlá odpověď</strong><span>Ozvu se do dvou pracovních dnů.</span></p>
-          <p><span class="f-ic f-ic--light" aria-hidden="true"></span><strong>Jasný další krok</strong><span>Po hovoru pošlu rozsah, cenu a termín.</span></p>
-        </div>
-        <a class="f-person f-person--talk f-person--email" href="mailto:info@atmosferi.com">
-          <span class="f-person__info"><span class="f-person__role">Přímý kontakt<small>Bez formulářů a prostředníků</small></span><strong>info@atmosferi.com</strong><span class="f-pill f-pill--dark">Napsat e-mail <span aria-hidden="true">↗</span></span></span>
-        </a>
-      </div>
     </section>
   </main>
 
@@ -353,8 +341,8 @@
   </footer>
 
   <script src="/assets/inquiry.js?v=20261119-headers-fix"></script>
-  <script src="/assets/for-agencies-i18n.js?v=20261123-single-portrait"></script>
-  <script src="/assets/i18n-fr.js?v=20261123-single-portrait"></script>
+  <script src="/assets/for-agencies-i18n.js?v=20261123-unified-contact"></script>
+  <script src="/assets/i18n-fr.js?v=20261123-unified-contact"></script>
   <script src="/assets/i18n.js?v=20261120-fr"></script>
   <script src="/assets/agency-booking-config.js?v=20261123-live"></script>
   <script src="/assets/for-agencies.js?v=20261123-calendar-booking"></script>

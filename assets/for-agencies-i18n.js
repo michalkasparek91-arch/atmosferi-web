@@ -198,6 +198,11 @@
     ["Přímý kontakt","Direct contact","Direkter Kontakt"],
     ["Bez formulářů a prostředníků","No forms or middlemen","Ohne Formulare oder Umwege"],
     ["Napsat e-mail","Send an email","E-Mail schreiben"],
+    ["Raději zprávu?","Or send a message?","Lieber eine Nachricht?"],
+    ["Pojďme","Let's","Lassen Sie uns"],
+    ["se spojit.","talk.","sprechen."],
+    ["Krátké, nezávazné seznámení. Řekneme si, co právě řešíte, a jestli vám můžu být užitečný.","A quick, no-pressure introduction. We'll talk about what you're working on and whether I can help.","Ein kurzes, unverbindliches Kennenlernen. Wir sprechen über Ihr Vorhaben und ob ich unterstützen kann."],
+    ["Bez závazků. Jen krátké seznámení.","No commitment. Just a quick introduction.","Unverbindlich. Nur ein kurzes Kennenlernen."],
     // Google Calendar booking copy
     ["Vybrat volný termín","Choose a time slot","Freien Termin wählen"],
     ["Vyberte si čas přímo v Google Kalendáři. Potvrzení a odkaz na Meet dostanete automaticky.","Choose a time in Google Calendar. Your invitation and Meet link arrive automatically.","Wählen Sie eine Zeit im Google Kalender. Einladung und Meet-Link erhalten Sie automatisch."],

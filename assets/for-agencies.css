@@ -781,22 +781,6 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
 }
 
 
-/* --- Low-pressure intro call invitation for agency partners. --- */
-.f-call { padding: clamp(72px,8vw,140px) 8px 0; }
-.f-call__in { display: grid; grid-template-columns: 1.35fr .65fr; gap: clamp(34px,6vw,100px);
-  margin: 0; padding: clamp(32px,5vw,86px) clamp(28px,5vw,88px); border-radius: var(--r); }
-.f-call__main { display: flex; flex-direction: column; justify-content: space-between; gap: clamp(60px,7vw,115px); min-width: 0; }
-.f-call__eyebrow { display: flex; align-items: center; gap: 10px; color: var(--mute); font-size: 13px; font-weight: 600; letter-spacing: .06em; }
-.f-call__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); flex: none; }
-.f-call__title { max-width: 11ch; font-size: clamp(53px,6.6vw,120px); line-height: .93; letter-spacing: -.073em; font-weight: 700; }
-.f-call__title span { display: block; color: #9a9a9a; }
-.f-call__aside { align-self: end; min-width: 0; }
-.f-call__aside > p { max-width: 35ch; font-size: clamp(18px,1.4vw,24px); line-height: 1.35; letter-spacing: -.025em; margin-bottom: 30px; }
-.f-call__cta { display: inline-flex; justify-content: space-between; gap: 24px; min-height: 54px; white-space: nowrap; }
-.f-call__note { display: block; max-width: 36ch; margin-top: 15px; font-size: 13px; line-height: 1.45; color: var(--mute); }
-.f-call [hidden] { display: none !important; }
-.f-call__secondary { display: inline-block; margin-top: 16px; font-size: 14px; font-weight: 500; text-decoration: underline; text-underline-offset: 4px; transition: opacity .2s; }
-.f-call__secondary:hover { opacity: .6; }
 .f-form .ag-call-only { display: none !important; }
 .f-form.is-call-request .ag-call-only { display: revert !important; }
 .f-form.is-call-request .ag-brief-only { display: none !important; }
@@ -806,18 +790,6 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
 .f-form__call-back { text-align: left; background: none; border: 0; padding: 0; align-self: start; cursor: pointer; color: var(--mute); font: 500 14px/1.4 "Geist", sans-serif; text-decoration: underline; text-underline-offset: 4px; }
 .f-form__call-back:hover { color: var(--ink); }
 .f-form.is-call-request .f-field textarea { min-height: 80px; }
-@media (max-width: 1100px) {
-  .f-call__in { grid-template-columns: 1fr 1fr; }
-  .f-call__title { font-size: clamp(50px,7vw,94px); }
-}
-@media (max-width: 700px) {
-  .f-call { padding: 76px 6px 0; }
-  .f-call__in { grid-template-columns: 1fr; gap: 36px; padding: 34px 23px; }
-  .f-call__main { gap: 42px; }
-  .f-call__title { font-size: clamp(48px,11.6vw,75px); }
-  .f-call__aside > p { font-size: 18px; }
-  .f-call__cta { width: 100%; white-space: normal; }
-}
 
 /* One portrait in About; a design-to-code illustration takes its old place. */
 .f-person--intro,.f-person--email { grid-template-columns:minmax(0,1fr);gap:0 }
@@ -856,3 +828,67 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
 @media(max-width:1100px) { .f-why__process { min-height:540px } }
 @media(max-width:700px) { .f-why__process { min-height:570px } .f-process__art { min-height:295px } }
 @media(prefers-reduced-motion:reduce) { .f-process__design,.f-process__code { transition:none } }
+
+/* Unified contact composition: one decision, two equally clear paths.
+   Meet carries the color accent only in the original hero-card portrait slot. */
+.f-person--intro { grid-template-columns: 38% minmax(0,1fr); gap: 6px; }
+.f-person--intro .f-person__meet { display: grid; place-items: center; min-width: 0; min-height: 174px; padding: 15px; border-radius: 18px; background: #fff; overflow: hidden; }
+.f-person--intro .f-person__meet img { width: 100%; height: auto; max-width: 132px; max-height: 136px; object-fit: contain; filter: none; transition: transform .55s var(--out); }
+.f-person--intro:hover .f-person__meet img { transform: translateY(-4px) scale(1.06); }
+.f-person--intro .f-person__info { min-width: 0; min-height: 174px; }
+.f-person--intro .f-person__role { font-size: clamp(12px,1vw,15px); }
+.f-person--intro .f-person__role small { font-size: 12px; }
+.f-person--intro .f-person__info strong { margin: 7px 0; font-size: clamp(22px,1.75vw,31px); }
+.f-person--intro .f-pill { padding-inline: 12px; font-size: 13px; white-space: nowrap; }
+.f-contact--unified { display: grid; grid-template-columns: minmax(0,1.23fr) minmax(350px,.77fr); gap: 6px; align-items: stretch; margin-top: clamp(90px,9vw,160px); padding: 0 8px; }
+.f-contact--unified [hidden] { display: none !important; }
+.f-contact--unified .f-talk { display: flex; flex-direction: column; grid-column: 1; grid-row: 1; gap: 0; min-height: 660px; padding: clamp(34px,4.1vw,76px); margin: 0; border-radius: var(--r); }
+.f-contact--unified .f-form { display: flex; flex-direction: column; grid-column: 2; grid-row: 1; min-width: 0; margin: 0; padding: clamp(26px,2.8vw,49px); border-radius: var(--r); }
+.f-contact__topline { display: flex; gap: 10px; align-items: center; font-size: 12px; font-weight: 600; letter-spacing: .09em; color: #d2d2d2; }
+.f-contact__topline .f-call__dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.f-contact__count { margin-left: auto; color: #aaa; white-space: nowrap; }
+.f-contact__content { margin-top: clamp(65px,7.5vw,125px); max-width: 750px; }
+.f-contact__title { font-size: clamp(69px,7.5vw,140px); line-height: .86; letter-spacing: -.075em; font-weight: 700; overflow-wrap: normal; }
+.f-contact__title span { display: block; color: #aaa; }
+.f-contact__lead { max-width: 31ch; margin-top: clamp(30px,3vw,51px); font-size: clamp(19px,1.5vw,25px); line-height: 1.35; font-weight: 500; letter-spacing: -.024em; color: #d2d2d2; }
+.f-contact__actions { margin-top: auto; padding-top: clamp(48px,6vw,100px); display: flex; flex-direction: column; align-items: flex-start; gap: 13px; }
+.f-contact__book { min-height: 57px; gap: 26px; color: #111; white-space: nowrap; }
+.f-contact__explain { max-width: 41ch; font-size: 14px; line-height: 1.45; color: #aaa; }
+.f-contact__write { display: inline-block; border-bottom: 1px solid currentColor; font-size: 14px; line-height: 1.6; font-weight: 500; text-underline-offset: 3px; }
+.f-contact__write:hover { color: #ccc; }
+.f-contact__subfoot { margin-top: clamp(25px,3vw,46px); padding-top: 15px; border-top: 1px solid rgba(255,255,255,.25); font-size: 12px; color: #aaa; }
+.f-contact--unified .f-form__title { font-size: clamp(30px,2.3vw,40px); margin-bottom: 3px; }
+.f-contact--unified .f-form__choices { margin-top: 2px; }
+.f-contact--unified .f-field textarea { min-height: 155px; }
+.f-contact--unified .f-form__send { margin-top: auto; }
+#uvodni-call,#kontakt,#agencyForm { scroll-margin-top: 90px; }
+@media(max-width: 1150px) {
+ .f-contact--unified { grid-template-columns: minmax(0,1fr) minmax(300px,.85fr); }
+ .f-contact__title { font-size: clamp(56px,7.2vw,98px); }
+ .f-contact--unified .f-talk { min-height: 615px; }
+}
+@media(max-width: 900px) {
+ .f-contact--unified { grid-template-columns: minmax(0,1fr); }
+ .f-contact--unified .f-talk { grid-column: 1; grid-row: 1; min-height: 540px; }
+ .f-contact--unified .f-form { grid-column: 1; grid-row: 2; padding: clamp(26px,5vw,45px); }
+ .f-contact__title { font-size: clamp(66px,10.5vw,110px); }
+ .f-contact__content { margin-top: 70px; }
+ .f-contact__actions { margin-top: 30px; padding-top: 35px; }
+}
+@media(max-width: 700px) {
+ .f-person--intro { grid-template-columns: 35% minmax(0,1fr); }
+ .f-person--intro .f-person__meet { min-height: 140px; padding: 12px; }
+ .f-person--intro .f-person__meet img { max-width: 97px; }
+ .f-person--intro .f-person__info { min-height: 140px; }
+ .f-contact--unified { padding-inline: 6px; }
+ .f-contact--unified .f-talk { min-height: 490px; padding: 32px 23px; }
+ .f-contact__title { font-size: clamp(55px,12vw,89px); }
+ .f-contact__content { margin-top: 75px; }
+ .f-contact__lead { font-size: 18px; max-width: 36ch; }
+ .f-contact__book { width: 100%; justify-content: space-between; padding-inline: 18px; white-space: normal; }
+ .f-contact--unified .f-form { padding: 30px 23px; }
+}
+@media(prefers-reduced-motion: reduce) {
+ .f-person--intro .f-person__meet img { transition: none; }
+ .f-person--intro:hover .f-person__meet img { transform: none; }
+}

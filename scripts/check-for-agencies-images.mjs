@@ -32,8 +32,15 @@ assert(js.includes('url.searchParams.set("asset_retry", "1")'), "Recovery must b
 assert(pkg.scripts.prebuild.includes("node scripts/check-for-agencies-images.mjs"), "Image test must run in prebuild");
 assert(html.includes('id="uvodni-call"') && html.includes('data-agency-call-request'), "Intro call invitation must exist");
 assert(html.includes('class="f-person f-person--intro" href="#uvodni-call"'), "Hero must surface intro-call booking early");
+assert(html.includes('src="/img/agencies/google-meet-2026.svg"'), "Hero must show a colored Google Meet logo in place of the portrait");
+assert(html.includes('class="f-contact f-contact--unified"'), "One merged contact section must replace duplicate full-size sections");
+assert.equal((html.match(/<section class="f-contact /g)||[]).length,1,"Only one contact section");
+assert(!html.includes('<section class="f-call"'), "No duplicate introductory call section");
+assert(html.includes('id="uvodni-call"')&&html.includes('id="kontakt"'),"Existing deep links remain");
 assert(html.includes('class="f-form__call-intro ag-call-only"') && html.includes('data-agency-call-reset'), "Switchable call enquiry form missing");
 assert(html.includes('Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.'), "Do not claim a calendar slot is booked");
+assert(html.includes('href="#agencyForm" data-agency-booking-on hidden'),"Secondary path must lead to the actual form");
+assert(html.includes('data-agency-call-request'),"Google Meet CTA remains connected to scheduler");
 assert(!html.includes("calendar.app.google/"), "Do not invent an appointment scheduler link");
 assert(html.includes('assets/agency-booking-config.js'), "Google Calendar config script is loaded");
 assert(html.includes('data-agency-booking-on') && html.includes('data-agency-booking-off'), "Both booking and fallback states exist");
@@ -47,7 +54,7 @@ assert(js.includes('noopener noreferrer'), "External calendar link must be safe"
 assert(js.includes('source: callRequest ? "agency-intro-call"'), "Meeting enquiries must be identifiable");
 assert(js.includes('form.classList.contains("is-call-request")'), "Call mode must not require a project brief");
 assert(js.includes('call_request: callRequest'), "Preserve call intent in inquiry metadata");
-assert(fs.readFileSync("assets/for-agencies.css","utf8").includes(".f-call__in"), "Call invitation styling missing");
+assert(fs.readFileSync("assets/for-agencies.css","utf8").includes(".f-contact--unified"), "Merged contact styles missing");
 for(const [path,lang] of [["assets/for-agencies-i18n.js","de"],["assets/i18n-fr.js","fr"]]) {
   const translations=fs.readFileSync(path,"utf8");
   assert(translations.includes("Požádat o úvodní call"), "Missing "+lang+" call translation");
