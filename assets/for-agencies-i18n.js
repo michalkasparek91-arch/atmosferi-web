@@ -184,6 +184,20 @@
     ["Kdo se postará o web po spuštění?", "Who looks after the site after launch?", "Wer betreut die Website nach dem Launch?"],
     ["Jak se dohodneme. Web předám i s přístupy a dokumentací, nebo ho dál spravuji a upravuji podle potřeb vás i klienta.", "Whatever we agree. I hand over the site with access and documentation, or keep maintaining and updating it for you and your client.", "Wie wir es vereinbaren. Ich übergebe die Website mit Zugängen und Dokumentation oder betreue und erweitere sie weiter für Sie und Ihren Kunden."],
 
+    // Intro-call invitation and low-friction contact mode
+    ["15 MIN · GOOGLE MEET","15 MIN · GOOGLE MEET","15 MIN · GOOGLE MEET"],
+    ["Nejdřív si","Let's start","Lassen Sie uns"],
+    ["zavolejme.","with a call.","telefonieren."],
+    ["Krátké, nezávazné seznámení. Řekneme si, co právě řešíte, a zjistíme, jestli vám můžu být užitečný.","A quick, no-pressure intro. We'll discuss what you're working on and whether I can help.","Ein kurzes, unverbindliches Kennenlernen. Wir besprechen Ihr Vorhaben und ob ich unterstützen kann."],
+    ["Domluvit 15min call","Arrange a 15-minute call","15-Minuten-Call vereinbaren"],
+    ["Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.","Just your email is enough. I'll confirm the time and Google Meet link personally.","Ihre E-Mail genügt. Termin und Google-Meet-Link bestätige ich persönlich."],
+    ["Domluvme si krátký call.","Let's arrange a quick call.","Vereinbaren wir ein kurzes Gespräch."],
+    ["15 minut přes Google Meet. Bez závazků a bez dlouhého zadání.","15 minutes on Google Meet. No commitment, no long brief.","15 Minuten via Google Meet. Unverbindlich, ohne langes Briefing."],
+    ["← Zpět k projektové poptávce","← Back to project enquiry","← Zurück zur Projektanfrage"],
+    ["Kdy se vám to hodí? (nepovinné)","When would suit you? (optional)","Wann passt es Ihnen? (optional)"],
+    ["Požádat o úvodní call","Request an intro call","Unverbindliches Gespräch anfragen"],
+    ["Děkuji, žádost o call odešla. Ozvu se s termínem a odkazem na Google Meet do dvou pracovních dnů.","Thanks, your call request was sent. I'll reply with a time and Google Meet link within two working days.","Danke, Ihre Gesprächsanfrage wurde gesendet. Innerhalb von zwei Werktagen melde ich mich mit einem Termin und dem Google-Meet-Link."],
+
     // Contact
     ["Máte projekt?", "Have a project?", "Haben Sie ein Projekt?"],
     ["S čím potřebujete pomoct", "What do you need help with", "Wobei brauchen Sie Hilfe"],

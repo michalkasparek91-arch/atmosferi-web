@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Outfit:wght@500;600&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="/img/agencies/zrobee/desk-home.webp" fetchpriority="high">
   <link rel="preload" as="image" href="/img/agencies/card-otavation.webp" fetchpriority="high">
-  <link rel="stylesheet" href="/assets/for-agencies.css?v=20261122-portrait">
+  <link rel="stylesheet" href="/assets/for-agencies.css?v=20261123-agency-call">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Atmosferi°">
   <meta property="og:locale" content="cs_CZ">
@@ -284,11 +284,28 @@
       </div>
     </section>
 
+
+    <section class="f-call" id="uvodni-call" aria-labelledby="agencyCallTitle">
+      <div class="f-card f-call__in" data-reveal>
+        <div class="f-call__main">
+          <p class="f-call__eyebrow"><span class="f-call__dot" aria-hidden="true"></span> 15 MIN · GOOGLE MEET</p>
+          <h2 class="f-call__title" id="agencyCallTitle">Nejdřív si <span>zavolejme.</span></h2>
+        </div>
+        <div class="f-call__aside">
+          <p>Krátké, nezávazné seznámení. Řekneme si, co právě řešíte, a zjistíme, jestli vám můžu být užitečný.</p>
+          <a class="f-pill f-pill--dark f-call__cta" href="#kontakt" data-agency-call-request>Domluvit 15min call <span aria-hidden="true">↗</span></a>
+          <span class="f-call__note">Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.</span>
+        </div>
+      </div>
+    </section>
+
     <section class="f-contact" id="kontakt" aria-labelledby="contactTitle">
       <form class="f-card f-form" id="agencyForm" novalidate data-reveal>
         <p class="f-label"><span class="f-ic" aria-hidden="true"></span>Kontakt</p>
-        <p class="f-form__title">Máte projekt?</p>
-        <fieldset class="f-form__choices">
+        <p class="f-form__title"><span class="ag-brief-only">Máte projekt?</span><span class="ag-call-only">Domluvme si krátký call.</span></p>
+        <p class="f-form__call-intro ag-call-only">15 minut přes Google Meet. Bez závazků a bez dlouhého zadání.</p>
+        <button type="button" class="f-form__call-back ag-call-only" data-agency-call-reset>← Zpět k projektové poptávce</button>
+        <fieldset class="f-form__choices ag-brief-only">
           <legend>S čím potřebujete pomoct</legend>
           <button type="button" class="ag-choice" aria-pressed="false" data-value="Web nebo landing page">Web</button>
           <button type="button" class="ag-choice" aria-pressed="false" data-value="Webová aplikace">Aplikace</button>
@@ -297,10 +314,10 @@
         </fieldset>
         <label class="f-field"><span>Jméno a agentura</span><input type="text" name="name" autocomplete="name" placeholder="Jana Nováková, Agentura s.r.o."></label>
         <label class="f-field"><span>E-mail *</span><input type="email" name="email" autocomplete="email" required placeholder="jana@agentura.cz"></label>
-        <label class="f-field"><span>Zpráva *</span><textarea name="message" rows="4" required minlength="10" placeholder="Pár vět o projektu nebo o tom, jakou výpomoc hledáte."></textarea></label>
+        <label class="f-field"><span class="ag-brief-only">Zpráva *</span><span class="ag-call-only">Kdy se vám to hodí? (nepovinné)</span><textarea name="message" rows="4" required minlength="10" placeholder="Pár vět o projektu nebo o tom, jakou výpomoc hledáte."></textarea></label>
         <input type="hidden" name="agency" value="">
         <label class="ag-hp" aria-hidden="true">Web <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
-        <button class="f-pill f-pill--dark f-form__send" type="submit">Odeslat zprávu</button>
+        <button class="f-pill f-pill--dark f-form__send" type="submit"><span class="ag-brief-only">Odeslat zprávu</span><span class="ag-call-only">Požádat o úvodní call</span></button>
         <p class="ag-form__status" id="agencyStatus" role="status" aria-live="polite"></p>
       </form>
       <div class="f-panel f-talk" data-reveal>
@@ -329,9 +346,9 @@
   </footer>
 
   <script src="/assets/inquiry.js?v=20261119-headers-fix"></script>
-  <script src="/assets/for-agencies-i18n.js?v=20261119-1"></script>
-  <script src="/assets/i18n-fr.js?v=20261120-1"></script>
+  <script src="/assets/for-agencies-i18n.js?v=20261123-call"></script>
+  <script src="/assets/i18n-fr.js?v=20261123-call"></script>
   <script src="/assets/i18n.js?v=20261120-fr"></script>
-  <script src="/assets/for-agencies.js?v=20261122-asset-recovery"></script>
+  <script src="/assets/for-agencies.js?v=20261123-agency-call"></script>
 </body>
 </html>

@@ -24,5 +24,17 @@ assert(!html.includes('src="img/') && !html.includes('poster="img/'), "All media
 assert(js.includes("dataset.imageRetryUsed") && js.includes('addEventListener("error", retryImage)'), "One-shot image recovery missing");
 assert(js.includes('url.searchParams.set("asset_retry", "1")'), "Recovery must bypass a failed cached request");
 assert(pkg.scripts.prebuild.includes("node scripts/check-for-agencies-images.mjs"), "Image test must run in prebuild");
+assert(html.includes('id="uvodni-call"') && html.includes('data-agency-call-request'), "Intro call invitation must exist");
+assert(html.includes('class="f-form__call-intro ag-call-only"') && html.includes('data-agency-call-reset'), "Switchable call enquiry form missing");
+assert(html.includes('Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.'), "Do not claim a calendar slot is booked");
+assert(!html.includes("calendar.app.google/"), "Do not invent an appointment scheduler link");
+assert(js.includes('source: callRequest ? "agency-intro-call"'), "Meeting enquiries must be identifiable");
+assert(js.includes('form.classList.contains("is-call-request")'), "Call mode must not require a project brief");
+assert(js.includes('call_request: callRequest'), "Preserve call intent in inquiry metadata");
+assert(fs.readFileSync("assets/for-agencies.css","utf8").includes(".f-call__in"), "Call invitation styling missing");
+for(const [path,lang] of [["assets/for-agencies-i18n.js","de"],["assets/i18n-fr.js","fr"]]) {
+  const translations=fs.readFileSync(path,"utf8");
+  assert(translations.includes("Požádat o úvodní call"), "Missing "+lang+" call translation");
+}
 
 console.log("For-agencies image URLs, file existence, priority and one-shot retry OK.");

@@ -779,3 +779,39 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
 @media (max-width: 700px) {
   .f-hero__mark { font-size: min(calc((100vw - 48px) / 4.62), 13svh, 120px); }
 }
+
+
+/* --- Low-pressure intro call invitation for agency partners. --- */
+.f-call { padding: clamp(72px,8vw,140px) 8px 0; }
+.f-call__in { display: grid; grid-template-columns: 1.35fr .65fr; gap: clamp(34px,6vw,100px);
+  margin: 0; padding: clamp(32px,5vw,86px) clamp(28px,5vw,88px); border-radius: var(--r); }
+.f-call__main { display: flex; flex-direction: column; justify-content: space-between; gap: clamp(60px,7vw,115px); min-width: 0; }
+.f-call__eyebrow { display: flex; align-items: center; gap: 10px; color: var(--mute); font-size: 13px; font-weight: 600; letter-spacing: .06em; }
+.f-call__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); flex: none; }
+.f-call__title { max-width: 11ch; font-size: clamp(53px,6.6vw,120px); line-height: .93; letter-spacing: -.073em; font-weight: 700; }
+.f-call__title span { display: block; color: #9a9a9a; }
+.f-call__aside { align-self: end; min-width: 0; }
+.f-call__aside > p { max-width: 35ch; font-size: clamp(18px,1.4vw,24px); line-height: 1.35; letter-spacing: -.025em; margin-bottom: 30px; }
+.f-call__cta { display: inline-flex; justify-content: space-between; gap: 24px; min-height: 54px; white-space: nowrap; }
+.f-call__note { display: block; max-width: 36ch; margin-top: 15px; font-size: 13px; line-height: 1.45; color: var(--mute); }
+.f-form .ag-call-only { display: none !important; }
+.f-form.is-call-request .ag-call-only { display: revert !important; }
+.f-form.is-call-request .ag-brief-only { display: none !important; }
+.f-form.is-call-request .f-form__title .ag-call-only { display: inline !important; }
+.f-form.is-call-request .f-form__send .ag-call-only { display: inline !important; }
+.f-form__call-intro { font-size: 15px; line-height: 1.45; color: var(--mute); }
+.f-form__call-back { text-align: left; background: none; border: 0; padding: 0; align-self: start; cursor: pointer; color: var(--mute); font: 500 14px/1.4 "Geist", sans-serif; text-decoration: underline; text-underline-offset: 4px; }
+.f-form__call-back:hover { color: var(--ink); }
+.f-form.is-call-request .f-field textarea { min-height: 80px; }
+@media (max-width: 1100px) {
+  .f-call__in { grid-template-columns: 1fr 1fr; }
+  .f-call__title { font-size: clamp(50px,7vw,94px); }
+}
+@media (max-width: 700px) {
+  .f-call { padding: 76px 6px 0; }
+  .f-call__in { grid-template-columns: 1fr; gap: 36px; padding: 34px 23px; }
+  .f-call__main { gap: 42px; }
+  .f-call__title { font-size: clamp(48px,11.6vw,75px); }
+  .f-call__aside > p { font-size: 18px; }
+  .f-call__cta { width: 100%; white-space: normal; }
+}
