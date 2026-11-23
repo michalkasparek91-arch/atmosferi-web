@@ -31,7 +31,7 @@ assert(js.includes("dataset.imageRetryUsed") && js.includes('addEventListener("e
 assert(js.includes('url.searchParams.set("asset_retry", "1")'), "Recovery must bypass a failed cached request");
 assert(pkg.scripts.prebuild.includes("node scripts/check-for-agencies-images.mjs"), "Image test must run in prebuild");
 assert(html.includes('id="uvodni-call"') && html.includes('data-agency-call-request'), "Intro call invitation must exist");
-assert(html.includes('class="f-person" href="#uvodni-call"'), "Hero must surface intro-call booking early");
+assert(html.includes('class="f-person f-person--intro" href="#uvodni-call"'), "Hero must surface intro-call booking early");
 assert(html.includes('class="f-form__call-intro ag-call-only"') && html.includes('data-agency-call-reset'), "Switchable call enquiry form missing");
 assert(html.includes('Stačí e-mail. Termín a odkaz na Google Meet potvrdím osobně.'), "Do not claim a calendar slot is booked");
 assert(!html.includes("calendar.app.google/"), "Do not invent an appointment scheduler link");
@@ -40,6 +40,8 @@ assert(html.includes('data-agency-booking-on') && html.includes('data-agency-boo
 assert(html.includes('Raději napsat zprávu'), "Booking UI retains contact fallback");
 const bookingConfig=fs.readFileSync("assets/agency-booking-config.js","utf8");
 assert(bookingConfig.includes('ATMOSFERI_AGENCY_APPOINTMENT_URL'), "One explicit booking URL setting");
+assert(bookingConfig.includes("window.ATMOSFERI_AGENCY_APPOINTMENT_URL = \"https://calendar.app.google/Lgxqqk9g8sg78Cvw8\""), "Correct owner-provided booking link");
+assert(html.includes("/assets/agency-booking-config.js?v=20261123-live"), "Booking config cache refreshed");
 assert(js.includes('validAppointmentUrl') && js.includes('calendar.app.google') && js.includes('calendar.google.com'), "Restrict appointment URLs to Google");
 assert(js.includes('noopener noreferrer'), "External calendar link must be safe");
 assert(js.includes('source: callRequest ? "agency-intro-call"'), "Meeting enquiries must be identifiable");

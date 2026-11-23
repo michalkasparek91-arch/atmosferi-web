@@ -1,7 +1,7 @@
 # Atmosferi° agency intro: Google Calendar booking
 
 The public booking URL is configured at `assets/agency-booking-config.js`:
-`window.ATMOSFERI_AGENCY_APPOINTMENT_URL = "";`
+`window.ATMOSFERI_AGENCY_APPOINTMENT_URL = "https://calendar.app.google/Lgxqqk9g8sg78Cvw8";`
 
 ## Configure the Google appointment page
 
