@@ -74,22 +74,25 @@ function GermanAgencies() {
   });
   const approveAll = useMutation({
     mutationFn: async () => {
-      const { error, count } = await db.from("marketing_leads")
+      const before = counts.data?.[1] ?? 0;
+      const { error } = await db.from("marketing_leads")
         .update({ outreach_import_review: false, outreach_email_ready: false })
         .match(segment)
         .eq("outreach_import_review", true)
         .or("marketing_notifications.is.null,marketing_notifications.eq.true")
-        .or("email_notifications.is.null,email_notifications.eq.true")
-        .select("id", { count: "exact", head: true });
+        .or("email_notifications.is.null,email_notifications.eq.true");
       if (error) throw error;
-      return count as number;
+      return before;
     },
-    onSuccess: (count) => {
+    onSuccess: (before) => {
       setPage(0);
       void qc.invalidateQueries({ queryKey: ["de-agencies"] });
-      toast.success(`Schváleno ${count?.toLocaleString("cs-CZ") ?? "?"} kontaktů k ověření e-mailu.`);
+      toast.success(`Schváleno ${before.toLocaleString("cs-CZ")} kontaktů k ověření e-mailu.`);
     },
-    onError: () => toast.error("Hromadné schválení se nepodařilo."),
+    onError: (err: any) => {
+      console.error("Bulk approve error:", err);
+      toast.error("Hromadné schválení se nepodařilo: " + (err?.message || "Neznámá chyba"));
+    },
   });
   const total = contacts.data?.count ?? 0;
   return <section className="space-y-4">
