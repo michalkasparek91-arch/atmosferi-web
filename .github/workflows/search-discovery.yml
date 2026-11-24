@@ -1,27 +1,64 @@
-name: Notify search engines after production deployment
+name: Notify IndexNow after verified production deployment
+# A deployment_status event fires repeatedly (including non-production status
+# changes). Its environment name was unreliable, leaving most jobs skipped.
+# Poll the deployed revision at a low frequency instead and notify only once
+# per changed release. No additional Vercel deployments are triggered.
 on:
-  deployment_status:
+  schedule:
+    - cron: "37 */6 * * *"
   workflow_dispatch:
+
 permissions:
   contents: read
+
 concurrency:
-  group: production-search-discovery
+  group: atmosferi-indexnow-production
   cancel-in-progress: false
+
 jobs:
   notify:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.deployment_status.state == 'success' &&
-      (github.event.deployment.environment == 'Production' ||
-      github.event.deployment.environment == 'production'))
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out current repository
+        uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.deployment.sha || github.sha }}
-      - uses: actions/setup-node@v4
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node scripts/check-international-seo.mjs
-      - run: node scripts/notify-indexnow.mjs
+      - name: Identify the commit actually deployed to production
+        id: live
+        run: node scripts/resolve-indexnow-release.mjs
+      - name: Check out the deployed commit (not a newer pending change)
+        if: steps.live.outputs.ready == 'true'
+        env:
+          DEPLOYED_SHA: ${{ steps.live.outputs.sha }}
+        run: git checkout --detach "$DEPLOYED_SHA"
+      - name: Generate the exact release sitemap and verify page metadata
+        if: steps.live.outputs.ready == 'true'
+        run: npm run prebuild
+      - name: Check IndexNow payload without submitting
+        if: steps.live.outputs.ready == 'true'
+        run: node scripts/notify-indexnow.mjs --dry-run
+      - name: Restore receipt for previously notified content
+        if: steps.live.outputs.ready == 'true'
+        id: receipt
+        uses: actions/cache/restore@v4
+        with:
+          path: .indexnow-success-receipt
+          key: indexnow-${{ hashFiles('sitemap.xml', '*.html', 'demos/atmosferi-viz/index.html') }}
+      - name: Notify IndexNow only when publication has changed
+        if: steps.live.outputs.ready == 'true' && steps.receipt.outputs.cache-hit != 'true'
+        run: node scripts/notify-indexnow.mjs
+      - name: Record successful notification
+        if: steps.live.outputs.ready == 'true' && steps.receipt.outputs.cache-hit != 'true'
+        run: printf 'IndexNow accepted publication %s\n' "$GITHUB_SHA" > .indexnow-success-receipt
+      - name: Cache successful notification receipt
+        if: steps.live.outputs.ready == 'true' && steps.receipt.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .indexnow-success-receipt
+          key: indexnow-${{ hashFiles('sitemap.xml', '*.html', 'demos/atmosferi-viz/index.html') }}

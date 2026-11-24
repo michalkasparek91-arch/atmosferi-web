@@ -25,10 +25,15 @@ if((await get(`${origin}/indexnow-key.txt`)).trim()!==key)throw new Error('Produ
 const urls=parse(await get(`${origin}/sitemap.xml`));
 const expected=parse(fs.readFileSync('sitemap.xml','utf8'));
 if(JSON.stringify([...urls].sort())!==JSON.stringify([...expected].sort()))throw new Error('Production sitemap differs from this release; nothing submitted.');
-for(const u of urls){
- const r=await fetch(u,{method:'HEAD',redirect:'error',signal:AbortSignal.timeout(30000)});
- if(!r.ok)throw new Error(`Indexable URL unavailable: ${u} (${r.status}); nothing submitted.`);
- if(/noindex/i.test(r.headers.get('x-robots-tag')||''))throw new Error(`Indexable URL blocked: ${u}`);
+// Bound concurrency so a sitemap with hundreds of pages does not take
+// longer than the Actions timeout; do not submit a partial list.
+for(let offset=0;offset<urls.length;offset+=12){
+ await Promise.all(urls.slice(offset,offset+12).map(async u=>{
+  const r=await fetch(u,{method:'HEAD',redirect:'error',signal:AbortSignal.timeout(30000)});
+  if(!r.ok)throw new Error(`Indexable URL unavailable: ${u} (${r.status}); nothing submitted.`);
+  if(/noindex/i.test(r.headers.get('x-robots-tag')||''))throw new Error(`Indexable URL blocked: ${u}`);
+  await r.body?.cancel();
+ }));
 }
 for(let i=0;i<urls.length;i+=10000){
  const r=await fetch('https://api.indexnow.org/indexnow',{
