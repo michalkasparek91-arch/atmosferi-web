@@ -55,7 +55,9 @@ jobs:
         run: node scripts/notify-indexnow.mjs
       - name: Record successful notification
         if: steps.live.outputs.ready == 'true' && steps.receipt.outputs.cache-hit != 'true'
-        run: printf 'IndexNow accepted publication %s\n' "$GITHUB_SHA" > .indexnow-success-receipt
+        env:
+          DEPLOYED_SHA: ${{ steps.live.outputs.sha }}
+        run: printf 'IndexNow accepted publication %s\n' "$DEPLOYED_SHA" > .indexnow-success-receipt
       - name: Cache successful notification receipt
         if: steps.live.outputs.ready == 'true' && steps.receipt.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4

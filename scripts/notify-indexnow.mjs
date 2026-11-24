@@ -21,6 +21,12 @@ async function get(url){
 }
 // Always read production, never submit localhost, preview or build-only URLs.
 // Verify deployed ownership and the live sitemap before any notification.
+// Canonical URL lists may be identical after a content-only change.
+// Match the SHA of the publicly served version before submitting anything.
+const {execFileSync}=await import('node:child_process');
+const checkedOutSha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+const publishedSha=(await get(`${origin}/release-sha.txt`)).trim();
+if(publishedSha!==checkedOutSha)throw new Error('Production commit differs from release being notified; nothing submitted.');
 if((await get(`${origin}/indexnow-key.txt`)).trim()!==key)throw new Error('Production verification file is not deployed or does not match; nothing submitted.');
 const urls=parse(await get(`${origin}/sitemap.xml`));
 const expected=parse(fs.readFileSync('sitemap.xml','utf8'));
