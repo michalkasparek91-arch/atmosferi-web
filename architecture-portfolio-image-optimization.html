@@ -135,7 +135,7 @@
       </section>
 
       <section id="priority">
-        <h2>Load the first meaningful image first.</h2>
+        <h2>Load the first meaningful image first.</h2><p>For a complete performance review covering LCP, layout shifts and gallery responsiveness, use the <a href="architecture-portfolio-core-web-vitals-checklist.html">architecture portfolio Core Web Vitals checklist</a>.</p>
         <p>On image-led architecture sites, the opening photograph or rendering is often a candidate for <strong>Largest Contentful Paint (LCP)</strong>, a loading metric. The browser should discover this important asset early. Avoid putting the main image behind a JavaScript-only loader or marking it <code>loading="lazy"</code>. For a genuinely critical hero image, <code>fetchpriority="high"</code> can help the browser prioritise its request.</p>
         <p>Reserve lazy loading for images that are off screen, such as later gallery frames. Do not give every image high priority: a portfolio with ten competing “important” images has no meaningful priority order. If the hero is a CSS background, consider whether a responsive HTML image would make discovery, alternative text and sizing easier; any preload must match the actual chosen asset rather than accidentally causing a second download.</p>
         <div class="guide-example">
