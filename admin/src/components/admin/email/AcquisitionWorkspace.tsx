@@ -72,6 +72,25 @@ function GermanAgencies() {
     },
     onError: () => toast.error("Schválení kontaktu se nepodařilo."),
   });
+  const approveAll = useMutation({
+    mutationFn: async () => {
+      const { error, count } = await db.from("marketing_leads")
+        .update({ outreach_import_review: false, outreach_email_ready: false })
+        .match(segment)
+        .eq("outreach_import_review", true)
+        .or("marketing_notifications.is.null,marketing_notifications.eq.true")
+        .or("email_notifications.is.null,email_notifications.eq.true")
+        .select("id", { count: "exact", head: true });
+      if (error) throw error;
+      return count as number;
+    },
+    onSuccess: (count) => {
+      setPage(0);
+      void qc.invalidateQueries({ queryKey: ["de-agencies"] });
+      toast.success(`Schváleno ${count?.toLocaleString("cs-CZ") ?? "?"} kontaktů k ověření e-mailu.`);
+    },
+    onError: () => toast.error("Hromadné schválení se nepodařilo."),
+  });
   const total = contacts.data?.count ?? 0;
   return <section className="space-y-4">
     <h2 className="text-xl font-semibold">Marketingové agentury · Německo</h2>
@@ -95,6 +114,12 @@ function GermanAgencies() {
     <div className="flex flex-wrap items-center gap-3">{[true, false].map(value =>
       <Button key={String(value)} variant={value === reviewOnly ? "default" : "outline"} size="sm"
         onClick={() => { setReviewOnly(value); setPage(0); }}>{value ? "K prověření" : "Celé publikum"}</Button>)}
+      {reviewOnly && (counts.data?.[1] ?? 0) > 0 && (
+        <Button size="sm" variant="destructive" disabled={approveAll.isPending}
+          onClick={() => { if (window.confirm(`Schválit všech ${(counts.data?.[1] ?? 0).toLocaleString("cs-CZ")} kontaktů čekajících na prověření?`)) approveAll.mutate(); }}>
+          {approveAll.isPending ? "Schvaluji…" : `Schválit vše (${(counts.data?.[1] ?? 0).toLocaleString("cs-CZ")})`}
+        </Button>
+      )}
       <Link className="text-sm underline" to="/emaily/akvizice">Nastavení kampaně a šablona</Link></div>
     {(contacts.isError || counts.isError) && <p role="alert">Některá data publika se nepodařilo načíst.</p>}
     {contacts.isLoading && <p>Načítám kontakty…</p>}
