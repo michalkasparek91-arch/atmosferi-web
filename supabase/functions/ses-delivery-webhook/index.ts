@@ -79,6 +79,24 @@ Deno.serve(async (req) => {
           console.error("Failed to update email_outbox:", outboxError);
           throw outboxError;
         }
+
+        // A permanent bounce or a complaint retires the address everywhere,
+        // including agency outreach (sent over SES SMTP, not tracked in email_outbox).
+        const hard = (notificationType === "Bounce" && message.bounce?.bounceType === "Permanent") || notificationType === "Complaint";
+        if (hard) {
+          const recipients: string[] = (notificationType === "Bounce"
+            ? (message.bounce?.bouncedRecipients || []) : (message.complaint?.complainedRecipients || []))
+            .map((r: { emailAddress?: string }) => String(r.emailAddress || "").trim().toLowerCase()).filter(Boolean);
+          for (const email of recipients) {
+            await supabase.from("email_recipient_suppression")
+              .upsert({ email, reason: notificationType === "Bounce" ? "ses_hard_bounce" : "ses_complaint" }, { onConflict: "email", ignoreDuplicates: true });
+            await supabase.from("agency_outreach_leads")
+              .update({ outreach_status: "do_not_contact", last_error: reason, updated_at: new Date().toISOString() })
+              .eq("email", email);
+          }
+          await supabase.from("agency_outreach_log").update({ status: "failed", error: reason })
+            .in("message_id", [rawMessageId, bracketMessageId]);
+        }
       }
       return new Response(JSON.stringify({ ok: true, status: newStatus }), { headers: corsHeaders });
     }

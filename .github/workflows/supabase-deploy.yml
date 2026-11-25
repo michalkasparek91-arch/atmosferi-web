@@ -55,6 +55,11 @@ jobs:
           test "$PROJECT_ID" = "paryiowezqlnffanxtnt"
           supabase functions deploy dispatch-agency-emails --no-verify-jwt --project-ref $PROJECT_ID
 
+      - name: Deploy mailbox sync (replies and bounces)
+        run: |
+          test "$PROJECT_ID" = "paryiowezqlnffanxtnt"
+          supabase functions deploy sync-inbox --no-verify-jwt --project-ref $PROJECT_ID
+
       - name: Deploy send-template-test
         continue-on-error: true
         run: supabase functions deploy send-template-test --project-ref $PROJECT_ID
