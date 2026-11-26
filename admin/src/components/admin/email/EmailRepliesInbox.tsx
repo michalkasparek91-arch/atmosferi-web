@@ -74,10 +74,10 @@ export default function EmailRepliesInbox() {
     qc.invalidateQueries({ queryKey: ["replies-unread-nav"] });
   };
 
-  const syncNow = async () => {
+  const syncNow = async (rescan = false) => {
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("sync-inbox", { body: {} });
+      const { data, error } = await supabase.functions.invoke("sync-inbox", { body: rescan ? { rescan: true } : {} });
       if (error) {
         let m = error.message;
         try { m = (await (error as any).context?.json())?.error || m; } catch { /* keep message */ }
@@ -133,9 +133,12 @@ export default function EmailRepliesInbox() {
             <div className="text-xs text-red-600 mt-1 flex gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />{sync.last_error}</div>
           )}
         </div>
+        <div className="flex items-center gap-2">
+        <Button size="sm" variant="ghost" onClick={() => void syncNow(true)} disabled={syncing} title="Znovu projde posledních 30 dní. Co už je načtené, se neduplikuje.">Projít 30 dní znovu</Button>
         <Button size="sm" onClick={() => void syncNow()} disabled={syncing}>
           {syncing ? <Loader2 className="animate-spin" /> : <RefreshCw />}{syncing ? "Načítám…" : "Načíst teď"}
         </Button>
+        </div>
       </div>
 
       <div className="rounded-[20px] bg-white p-5">

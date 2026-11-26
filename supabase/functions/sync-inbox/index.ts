@@ -136,6 +136,7 @@ Deno.serve(async (req: Request) => {
     if (user) ok = (await db.from("profiles").select("is_admin").eq("id", user.id).single()).data?.is_admin === true;
   }
   if (!ok) return json({ error: "Unauthorized" }, 401);
+  const rescan = !token && (await req.clone().json().catch(() => ({}))).rescan === true;
 
   const host = Deno.env.get("IMAP_HOST"), user = Deno.env.get("IMAP_USER"), pass = Deno.env.get("IMAP_PASSWORD");
   if (!host || !user || !pass) return json({ error: "Chybí IMAP_HOST, IMAP_USER nebo IMAP_PASSWORD." }, 500);
@@ -156,6 +157,7 @@ Deno.serve(async (req: Request) => {
       const box = client.mailbox as { uidValidity: bigint };
       const validity = Number(box.uidValidity);
       let lastUid = state?.uid_validity && Number(state.uid_validity) === validity ? Number(state.last_uid || 0) : 0;
+      if (rescan) lastUid = 0;   // admin asked to go through the last 30 days again (duplicates are ignored)
 
       let uids: number[];
       if (lastUid > 0) {
@@ -179,32 +181,39 @@ Deno.serve(async (req: Request) => {
       metas.sort((a, b) => a.uid - b.uid);
       const known = await contactedSet(db, metas.map(m => m.from).filter(f => f && !OWN.test(f) && !DAEMON.test(f)));
 
-      await step(`zpracovávám (${metas.length} zpráv, ${known.size} od oslovených)`);
-      // Pass 2: download and process only bounces and messages from people we wrote to.
+      // Pass 2: download only bounces and messages from people we wrote to, in one streamed
+      // FETCH (the same way as pass 1; single-message fetchOne hangs on this server).
+      const isDaemonMeta = (m: Meta) => DAEMON.test(m.from) || DAEMON.test(m.name)
+        || /delivery status notification|undeliver|nedoručiteln|unzustellbar|returned mail/i.test(m.subject);
+      const wanted = metas.filter(m => isDaemonMeta(m) || known.has(m.from));
+      await step(`stahuji ${wanted.length} z ${metas.length} zpráv (bounce a odpovědi oslovených)`);
+      const sources = new Map<number, Uint8Array>();
+      if (wanted.length) {
+        // Watchdog: a stuck connection is closed after 45 s; whatever arrived is still processed.
+        const watchdog = setTimeout(() => { (stats as any).stalled = true; try { client.close(); } catch { /* closed */ } }, 45_000);
+        try {
+          for await (const m of client.fetch(wanted.map(w => w.uid).join(","), { uid: true, source: true }, { uid: true })) {
+            if ((m as any).source) sources.set(m.uid, (m as any).source as Uint8Array);
+          }
+        } catch (e) {
+          if (!(stats as any).stalled) throw e;
+        } finally {
+          clearTimeout(watchdog);
+        }
+      }
+      await step(`zpracovávám ${sources.size} stažených zpráv`);
+
       let n = 0;
       for (const meta of metas) {
         if (Date.now() > deadline) break;
+        const wantedMeta = isDaemonMeta(meta) || known.has(meta.from);
+        if (!wantedMeta) { stats.scanned++; stats.skipped++; lastUid = meta.uid; continue; }
+        const bytes = sources.get(meta.uid);
+        // Not downloaded (stalled connection): stop here, the next run starts with this message.
+        if (!bytes) { if (sources.size === 0) { lastUid = meta.uid; stats.skipped++; } break; }
         stats.scanned++;
-        const isDaemon = DAEMON.test(meta.from) || DAEMON.test(meta.name) || /delivery status notification|undeliver|nedoručiteln|unzustellbar|returned mail/i.test(meta.subject);
-        if (!isDaemon && !known.has(meta.from)) { stats.skipped++; lastUid = meta.uid; continue; }
-
-        await db.from("email_inbox_sync_state").update({
-          uid_validity: validity, last_uid: lastUid,
-          last_error: `Probíhá: zpráva ${stats.scanned} z ${metas.length} (${meta.from || "bez odesílatele"})`,
-        }).eq("id", 1);
-        // Only the first 200 kB: headers and text are at the start, big attachments are not needed.
-        // A message that does not arrive in 25 s is skipped so one odd e-mail cannot block the mailbox.
-        let one: unknown = null, timedOut = false;
-        try {
-          one = await Promise.race([
-            client.fetchOne(String(meta.uid), { uid: true, source: { start: 0, maxLength: 200_000 } }, { uid: true }),
-            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 25_000)),
-          ]);
-        } catch { timedOut = true; }
         lastUid = meta.uid;
-        if (timedOut) { stats.skipped++; (stats as any).stalled = meta.uid; break; }
-        const bytes: Uint8Array | undefined = one ? (one as any).source : undefined;
-        if (!bytes || !bytes.length) continue;
+        const isDaemon = isDaemonMeta(meta);
         const raw = new TextDecoder().decode(bytes);
         // Parse the original bytes so every charset (UTF-8, ISO-8859-2, Windows-1250) decodes correctly.
         const p = (await PostalMime.parse(bytes)) as unknown as Parsed;
@@ -266,10 +275,10 @@ Deno.serve(async (req: Request) => {
         skipped_total: (state?.skipped_total || 0) + stats.skipped,
       }).eq("id", 1);
     } finally {
-      (lock as unknown as { release(): void }).release();
+      try { (lock as unknown as { release(): void }).release(); } catch { /* connection already closed */ }
     }
     // After a stalled download the connection may be stuck; close it instead of a polite logout.
-    if ((stats as any).stalled) client.close(); else await client.logout();
+    if (!(stats as any).stalled) await client.logout();
     return json({ ok: true, ...stats });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
