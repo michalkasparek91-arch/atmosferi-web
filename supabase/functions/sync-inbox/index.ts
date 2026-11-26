@@ -19,8 +19,8 @@ const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
 const FIRST_RUN_DAYS = 30;
-const MAX_PER_RUN = 400;     // headers only; full messages are downloaded just for bounces and replies
-const TIME_BUDGET_MS = 90_000; // stop early and save progress well before the edge function limit
+const MAX_PER_RUN = 120;     // headers only; full messages are downloaded just for bounces and replies
+const TIME_BUDGET_MS = 60_000; // stop early and save progress well before the edge function limit
 const OWN = /@atmosferi\.com$/i;
 const DAEMON = /(mailer-daemon|postmaster|mail delivery (subsystem|system)|delivery status notification)/i;
 const AUTO_SUBJECT = /^(automatic reply|auto(matic)?[- ]?reply|autoreply|out of (the )?office|automatická odpověď|automatische antwort|abwesenheit|absence|réponse automatique|fraværende|poza biurem|nepřítomn)/i;
@@ -141,12 +141,16 @@ Deno.serve(async (req: Request) => {
   if (!host || !user || !pass) return json({ error: "Chybí IMAP_HOST, IMAP_USER nebo IMAP_PASSWORD." }, 500);
 
   const { data: state } = await db.from("email_inbox_sync_state").select("*").eq("id", 1).single();
+  // Breadcrumbs: if the platform stops the function mid-run, the admin still sees how far it got.
+  const step = (text: string) => db.from("email_inbox_sync_state").update({ last_error: `Probíhá: ${text}` }).eq("id", 1);
+  await step("připojuji se ke schránce");
   const stats = { replies: 0, bounces: 0, blocked: 0, auto: 0, skipped: 0, scanned: 0 };
   const client = new ImapFlow({ host, port: Number(Deno.env.get("IMAP_PORT") || 993), secure: true, auth: { user, pass }, logger: false,
     connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: 60000 });
 
   try {
     await client.connect();
+    await step("přihlášeno, otevírám INBOX");
     const lock = await client.getMailboxLock("INBOX", { readOnly: true });
     try {
       const box = client.mailbox as { uidValidity: bigint };
@@ -164,6 +168,7 @@ Deno.serve(async (req: Request) => {
       const saveProgress = () => db.from("email_inbox_sync_state")
         .update({ uid_validity: validity, last_uid: lastUid, last_run_at: new Date().toISOString() }).eq("id", 1);
 
+      await step(`čtu hlavičky ${uids.length} zpráv`);
       // Pass 1: envelopes only (fast, no attachments).
       type Meta = { uid: number; from: string; name: string; subject: string };
       const metas: Meta[] = [];
@@ -176,6 +181,7 @@ Deno.serve(async (req: Request) => {
       metas.sort((a, b) => a.uid - b.uid);
       const known = await contactedSet(db, metas.map(m => m.from).filter(f => f && !OWN.test(f) && !DAEMON.test(f)));
 
+      await step(`zpracovávám (${metas.length} zpráv, ${known.size} od oslovených)`);
       // Pass 2: download and process only bounces and messages from people we wrote to.
       let n = 0;
       for (const meta of metas) {
@@ -185,10 +191,12 @@ Deno.serve(async (req: Request) => {
         if (!isDaemon && !known.has(meta.from)) { stats.skipped++; lastUid = meta.uid; continue; }
 
         const one = await client.fetchOne(String(meta.uid), { uid: true, source: true }, { uid: true });
-        const raw = one && (one as any).source ? new TextDecoder().decode((one as any).source) : "";
+        const bytes: Uint8Array | undefined = one ? (one as any).source : undefined;
         lastUid = meta.uid;
-        if (!raw) continue;
-        const p = (await PostalMime.parse(raw)) as Parsed;
+        if (!bytes || !bytes.length) continue;
+        const raw = new TextDecoder().decode(bytes);
+        // Parse the original bytes so every charset (UTF-8, ISO-8859-2, Windows-1250) decodes correctly.
+        const p = (await PostalMime.parse(bytes)) as Parsed;
         const from = (p.from?.address || meta.from).toLowerCase();
         const subject = p.subject || meta.subject;
         const messageId = p.messageId || `uid-${validity}-${meta.uid}`;

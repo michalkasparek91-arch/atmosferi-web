@@ -64,7 +64,7 @@ export default function EmailRepliesInbox() {
       if (error) return { missing: true } as any;
       return data as null | { missing?: boolean; last_run_at: string | null; last_error: string | null; replies_total: number; bounces_total: number };
     },
-    refetchInterval: 60000,
+    refetchInterval: syncing ? 3000 : 60000,
   });
 
   const setStatus = async (id: string, status: string) => {
@@ -123,10 +123,13 @@ export default function EmailRepliesInbox() {
           {sync?.missing && (
             <div className="text-xs text-red-600 mt-1 flex gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />V databázi chybí migrace 20261125090000_inbox_sync.sql. Spusť ji v Supabase SQL Editoru, jinak se schránka nenačte.</div>
           )}
-          {sync && !sync.missing && sync.last_run_at === null && !sync.last_error && (
+          {sync && !sync.missing && sync.last_run_at === null && !sync.last_error && !syncing && (
             <div className="text-xs text-muted-foreground mt-1">Schránka se ještě nenačetla. Klikni na „Načíst teď“.</div>
           )}
-          {sync?.last_error && (
+          {sync?.last_error?.startsWith("Probíhá") && (
+            <div className="text-xs text-muted-foreground mt-1">{sync.last_error}{!syncing && " (pokud se to dlouho nemění, běh byl přerušen; zkus Načíst teď znovu)"}</div>
+          )}
+          {sync?.last_error && !sync.last_error.startsWith("Probíhá") && (
             <div className="text-xs text-red-600 mt-1 flex gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />{sync.last_error}</div>
           )}
         </div>
