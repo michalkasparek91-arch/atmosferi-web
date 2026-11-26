@@ -165,8 +165,6 @@ Deno.serve(async (req: Request) => {
       }
       uids = uids.filter(u => u > lastUid).sort((a, b) => a - b).slice(0, MAX_PER_RUN);
       const deadline = Date.now() + TIME_BUDGET_MS;
-      const saveProgress = () => db.from("email_inbox_sync_state")
-        .update({ uid_validity: validity, last_uid: lastUid, last_run_at: new Date().toISOString() }).eq("id", 1);
 
       await step(`čtu hlavičky ${uids.length} zpráv`);
       // Pass 1: envelopes only (fast, no attachments).
@@ -190,13 +188,26 @@ Deno.serve(async (req: Request) => {
         const isDaemon = DAEMON.test(meta.from) || DAEMON.test(meta.name) || /delivery status notification|undeliver|nedoručiteln|unzustellbar|returned mail/i.test(meta.subject);
         if (!isDaemon && !known.has(meta.from)) { stats.skipped++; lastUid = meta.uid; continue; }
 
-        const one = await client.fetchOne(String(meta.uid), { uid: true, source: true }, { uid: true });
-        const bytes: Uint8Array | undefined = one ? (one as any).source : undefined;
+        await db.from("email_inbox_sync_state").update({
+          uid_validity: validity, last_uid: lastUid,
+          last_error: `Probíhá: zpráva ${stats.scanned} z ${metas.length} (${meta.from || "bez odesílatele"})`,
+        }).eq("id", 1);
+        // Only the first 200 kB: headers and text are at the start, big attachments are not needed.
+        // A message that does not arrive in 25 s is skipped so one odd e-mail cannot block the mailbox.
+        let one: unknown = null, timedOut = false;
+        try {
+          one = await Promise.race([
+            client.fetchOne(String(meta.uid), { uid: true, source: { start: 0, maxLength: 200_000 } }, { uid: true }),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 25_000)),
+          ]);
+        } catch { timedOut = true; }
         lastUid = meta.uid;
+        if (timedOut) { stats.skipped++; (stats as any).stalled = meta.uid; break; }
+        const bytes: Uint8Array | undefined = one ? (one as any).source : undefined;
         if (!bytes || !bytes.length) continue;
         const raw = new TextDecoder().decode(bytes);
         // Parse the original bytes so every charset (UTF-8, ISO-8859-2, Windows-1250) decodes correctly.
-        const p = (await PostalMime.parse(bytes)) as Parsed;
+        const p = (await PostalMime.parse(bytes)) as unknown as Parsed;
         const from = (p.from?.address || meta.from).toLowerCase();
         const subject = p.subject || meta.subject;
         const messageId = p.messageId || `uid-${validity}-${meta.uid}`;
@@ -244,7 +255,7 @@ Deno.serve(async (req: Request) => {
             }
           }
         }
-        if (++n % 10 === 0) await saveProgress();
+        n++;
       }
       (stats as any).more = metas.length > 0 && lastUid < metas[metas.length - 1].uid || uids.length === MAX_PER_RUN;
 
@@ -255,9 +266,10 @@ Deno.serve(async (req: Request) => {
         skipped_total: (state?.skipped_total || 0) + stats.skipped,
       }).eq("id", 1);
     } finally {
-      lock.release();
+      (lock as unknown as { release(): void }).release();
     }
-    await client.logout();
+    // After a stalled download the connection may be stuck; close it instead of a polite logout.
+    if ((stats as any).stalled) client.close(); else await client.logout();
     return json({ ok: true, ...stats });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
