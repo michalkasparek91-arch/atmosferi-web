@@ -6,7 +6,7 @@
 // Everything else in the mailbox (newsletters, invoices, personal mail) is ignored.
 // Runs from pg_cron every 10 minutes (x-atmosferi-cron-token) or from the admin.
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.57.0";
-import { ImapFlow } from "npm:imapflow@1.0.171";
+import { MiniImap } from "../_shared/mini-imap.ts";
 import PostalMime from "npm:postal-mime@2.4.4";
 import { getApiKeys } from "../_shared/api_keys.ts";
 
@@ -145,74 +145,60 @@ Deno.serve(async (req: Request) => {
   // Breadcrumbs: if the platform stops the function mid-run, the admin still sees how far it got.
   const step = (text: string) => db.from("email_inbox_sync_state").update({ last_error: `Probíhá: ${text}` }).eq("id", 1);
   await step("připojuji se ke schránce");
-  const stats = { replies: 0, bounces: 0, blocked: 0, auto: 0, skipped: 0, scanned: 0 };
-  const client = new ImapFlow({ host, port: Number(Deno.env.get("IMAP_PORT") || 993), secure: true, auth: { user, pass }, logger: false,
-    connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: 60000 });
+  const stats = { replies: 0, bounces: 0, blocked: 0, auto: 0, skipped: 0, scanned: 0, more: false };
+  const client = new MiniImap(25_000);
 
   try {
-    await client.connect();
+    await client.connect(host, Number(Deno.env.get("IMAP_PORT") || 993), Deno.env.get("IMAP_TLS") !== "0");
+    await client.login(user, pass);
     await step("přihlášeno, otevírám INBOX");
-    const lock = await client.getMailboxLock("INBOX", { readOnly: true });
-    try {
-      const box = client.mailbox as { uidValidity: bigint };
-      const validity = Number(box.uidValidity);
+    const validity = await client.examine("INBOX");   // read-only: nothing gets marked as read
+    {
       let lastUid = state?.uid_validity && Number(state.uid_validity) === validity ? Number(state.last_uid || 0) : 0;
       if (rescan) lastUid = 0;   // admin asked to go through the last 30 days again (duplicates are ignored)
 
-      let uids: number[];
-      if (lastUid > 0) {
-        uids = (await client.search({ uid: `${lastUid + 1}:*` }, { uid: true })) || [];
-      } else {
-        uids = (await client.search({ since: new Date(Date.now() - FIRST_RUN_DAYS * 86400e3) }, { uid: true })) || [];
-      }
-      uids = uids.filter(u => u > lastUid).sort((a, b) => a - b).slice(0, MAX_PER_RUN);
+      let uids = lastUid > 0
+        ? await client.searchUids(`UID ${lastUid + 1}:*`)
+        : await client.searchUids(`SINCE ${MiniImap.since(new Date(Date.now() - FIRST_RUN_DAYS * 86400e3))}`);
+      uids = uids.filter(u => u > lastUid).slice(0, MAX_PER_RUN);
       const deadline = Date.now() + TIME_BUDGET_MS;
 
       await step(`čtu hlavičky ${uids.length} zpráv`);
-      // Pass 1: envelopes only (fast, no attachments).
+      // Pass 1: only From and Subject (small, fast).
       type Meta = { uid: number; from: string; name: string; subject: string };
       const metas: Meta[] = [];
-      if (uids.length) {
-        for await (const m of client.fetch(uids.join(","), { uid: true, envelope: true }, { uid: true })) {
-          const f = (m as any).envelope?.from?.[0] || {};
-          metas.push({ uid: m.uid, from: String(f.address || "").toLowerCase(), name: String(f.name || ""), subject: String((m as any).envelope?.subject || "") });
-        }
+      const heads = await client.fetchBodies(uids, "BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)]");
+      for (const uid of uids) {
+        const h = heads.get(uid);
+        const hp = h ? ((await PostalMime.parse(new Uint8Array([...h, 13, 10, 13, 10]))) as unknown as Parsed) : {};
+        metas.push({ uid, from: String(hp.from?.address || "").toLowerCase(), name: String(hp.from?.name || ""), subject: String(hp.subject || "") });
       }
-      metas.sort((a, b) => a.uid - b.uid);
       const known = await contactedSet(db, metas.map(m => m.from).filter(f => f && !OWN.test(f) && !DAEMON.test(f)));
-
-      // Pass 2: download only bounces and messages from people we wrote to, in one streamed
-      // FETCH (the same way as pass 1; single-message fetchOne hangs on this server).
       const isDaemonMeta = (m: Meta) => DAEMON.test(m.from) || DAEMON.test(m.name)
         || /delivery status notification|undeliver|nedoručiteln|unzustellbar|returned mail/i.test(m.subject);
-      const wanted = metas.filter(m => isDaemonMeta(m) || known.has(m.from));
-      await step(`stahuji ${wanted.length} z ${metas.length} zpráv (bounce a odpovědi oslovených)`);
-      const sources = new Map<number, Uint8Array>();
-      if (wanted.length) {
-        // Watchdog: a stuck connection is closed after 45 s; whatever arrived is still processed.
-        const watchdog = setTimeout(() => { (stats as any).stalled = true; try { client.close(); } catch { /* closed */ } }, 45_000);
-        try {
-          for await (const m of client.fetch(wanted.map(w => w.uid).join(","), { uid: true, source: true }, { uid: true })) {
-            if ((m as any).source) sources.set(m.uid, (m as any).source as Uint8Array);
-          }
-        } catch (e) {
-          if (!(stats as any).stalled) throw e;
-        } finally {
-          clearTimeout(watchdog);
-        }
-      }
-      await step(`zpracovávám ${sources.size} stažených zpráv`);
+      const wantedCount = metas.filter(m => isDaemonMeta(m) || known.has(m.from)).length;
 
-      let n = 0;
-      for (const meta of metas) {
+      // Pass 2: bounces and messages from people we wrote to, downloaded 10 at a time
+      // (first 200 kB of each: headers and text, never the big attachments).
+      let sources = new Map<number, Uint8Array>();
+      let done = 0;
+      for (let idx = 0; idx < metas.length; idx++) {
+        const meta = metas[idx];
         if (Date.now() > deadline) break;
         const wantedMeta = isDaemonMeta(meta) || known.has(meta.from);
         if (!wantedMeta) { stats.scanned++; stats.skipped++; lastUid = meta.uid; continue; }
+        if (!sources.has(meta.uid)) {
+          const batch = metas.slice(idx).filter(m => isDaemonMeta(m) || known.has(m.from)).slice(0, 10).map(m => m.uid);
+          await db.from("email_inbox_sync_state").update({
+            uid_validity: validity, last_uid: lastUid, last_error: `Probíhá: stahuji zprávy ${done + 1}–${done + batch.length} z ${wantedCount}`,
+          }).eq("id", 1);
+          sources = await client.fetchBodies(batch, "BODY.PEEK[]<0.200000>");
+        }
         const bytes = sources.get(meta.uid);
-        // Not downloaded (stalled connection): stop here, the next run starts with this message.
-        if (!bytes) { if (sources.size === 0) { lastUid = meta.uid; stats.skipped++; } break; }
         stats.scanned++;
         lastUid = meta.uid;
+        done++;
+        if (!bytes || !bytes.length) { stats.skipped++; continue; }
         const isDaemon = isDaemonMeta(meta);
         const raw = new TextDecoder().decode(bytes);
         // Parse the original bytes so every charset (UTF-8, ISO-8859-2, Windows-1250) decodes correctly.
@@ -264,9 +250,8 @@ Deno.serve(async (req: Request) => {
             }
           }
         }
-        n++;
       }
-      (stats as any).more = metas.length > 0 && lastUid < metas[metas.length - 1].uid || uids.length === MAX_PER_RUN;
+      stats.more = (metas.length > 0 && lastUid < metas[metas.length - 1].uid) || uids.length === MAX_PER_RUN;
 
       await db.from("email_inbox_sync_state").update({
         uid_validity: validity, last_uid: lastUid, last_run_at: new Date().toISOString(), last_error: null,
@@ -274,16 +259,13 @@ Deno.serve(async (req: Request) => {
         bounces_total: (state?.bounces_total || 0) + stats.bounces,
         skipped_total: (state?.skipped_total || 0) + stats.skipped,
       }).eq("id", 1);
-    } finally {
-      try { (lock as unknown as { release(): void }).release(); } catch { /* connection already closed */ }
     }
-    // After a stalled download the connection may be stuck; close it instead of a polite logout.
-    if (!(stats as any).stalled) await client.logout();
+    await client.logout();
     return json({ ok: true, ...stats });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await db.from("email_inbox_sync_state").update({ last_run_at: new Date().toISOString(), last_error: message.slice(0, 500) }).eq("id", 1);
-    try { client.close(); } catch { /* already closed */ }
+    client.close();
     return json({ error: message }, 500);
   }
 });

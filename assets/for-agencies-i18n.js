@@ -36,6 +36,9 @@
     // Work
     ["Práce.", "Work.", "Arbeiten."],
     ["Vlastní produkt a web pro zahraničního klienta. Návrh, vývoj i redakční systém.", "My own product and a website for a client abroad. Design, development and the content system.", "Ein eigenes Produkt und eine Website für einen Kunden im Ausland. Design, Entwicklung und Redaktionssystem."],
+    ["Dva vlastní produkty a web pro zahraničního klienta. Návrh, vývoj, e-shop i redakční systém.", "Two products of my own and a website for a client abroad. Design, development, e-shop and the content system.", "Zwei eigene Produkte und eine Website für einen Kunden im Ausland. Design, Entwicklung, Onlineshop und Content-System."],
+    ["Vlastní e-shop", "Own online shop", "Eigener Onlineshop"],
+    ["E-shop Batanana: batana olej pro vlasy i pokožku, úvodní stránka", "Batanana online shop: batana oil for hair and skin, homepage", "Onlineshop Batanana: Batana-Öl für Haare und Haut, Startseite"],
     ["Vlastní produkt", "Own product", "Eigenes Produkt"],
     ["Úvodní stránka Zrobee: Najdi profíka na cokoliv", "Zrobee homepage: find a pro for anything", "Zrobee-Startseite: Profis für alles finden"],
     ["Web pro klienta, Dublin", "Client website, Dublin", "Kunden-Website, Dublin"],

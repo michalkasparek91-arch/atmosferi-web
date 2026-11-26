@@ -165,7 +165,7 @@
 
 /* ---------- Projects ---------- */
 .f-head .f-count { grid-column: 1; }
-.f-projs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); padding-inline: var(--pad); }
+.f-projs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); padding-inline: var(--pad); }
 .f-proj { display: flex; flex-direction: column; gap: 4px; }
 .f-proj__bar {
   display: flex; align-items: baseline; gap: 22px; padding: 22px 28px; border-radius: var(--r) var(--r) 10px 10px; background: var(--card);
@@ -892,3 +892,6 @@ details[open] > summary .f-svc__toggle::after { transform: translate(-50%, -50%)
  .f-person--intro .f-person__meet img { transition: none; }
  .f-person--intro:hover .f-person__meet img { transform: none; }
 }
+
+/* Work: three projects in a row on wide screens, two on tablets, one on phones. */
+@media (min-width: 701px) and (max-width: 1100px) { .f-projs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
