@@ -19,7 +19,8 @@ const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
 const FIRST_RUN_DAYS = 30;
-const MAX_PER_RUN = 150;
+const MAX_PER_RUN = 400;     // headers only; full messages are downloaded just for bounces and replies
+const TIME_BUDGET_MS = 90_000; // stop early and save progress well before the edge function limit
 const OWN = /@atmosferi\.com$/i;
 const DAEMON = /(mailer-daemon|postmaster|mail delivery (subsystem|system)|delivery status notification)/i;
 const AUTO_SUBJECT = /^(automatic reply|auto(matic)?[- ]?reply|autoreply|out of (the )?office|automatická odpověď|automatische antwort|abwesenheit|absence|réponse automatique|fraværende|poza biurem|nepřítomn)/i;
@@ -60,21 +61,31 @@ function parseBounce(raw: string, p: Parsed) {
   return { recipients: [...new Set(finals)], hard, reason };
 }
 
-async function contacted(db: SupabaseClient, email: string) {
-  const { data: agency } = await db.from("agency_outreach_leads").select("id").eq("email", email)
-    .not("outreach_status", "in", "(new,queued)").limit(1);
-  if (agency?.length) return true;
-  const { data: leads } = await db.from("marketing_leads").select("id").ilike("email", email.replace(/[%_]/g, "\\$&")).limit(5);
-  if (!leads?.length) return false;
-  const { count } = await db.from("email_outbox").select("id", { count: "exact", head: true })
-    .in("lead_id", leads.map((l: { id: string }) => l.id)).in("status", ["sent", "failed"]);
-  return (count || 0) > 0;
+// Which of these senders have we actually written to? One batch of queries per run
+// (exact matches, so the big marketing_leads table is never scanned).
+async function contactedSet(db: SupabaseClient, emails: string[]) {
+  const out = new Set<string>();
+  const list = [...new Set(emails.filter(Boolean))];
+  for (let i = 0; i < list.length; i += 100) {
+    const chunk = list.slice(i, i + 100);
+    const { data: agency } = await db.from("agency_outreach_leads").select("email")
+      .in("email", chunk).not("outreach_status", "in", "(new,queued)");
+    (agency || []).forEach((r: { email: string }) => out.add(r.email.toLowerCase()));
+    const { data: leads } = await db.from("marketing_leads").select("id,email").in("email", chunk);
+    const ids = (leads || []).map((l: { id: string }) => l.id);
+    if (ids.length) {
+      const { data: sent } = await db.from("email_outbox").select("lead_id").in("lead_id", ids).in("status", ["sent", "failed"]);
+      const sentIds = new Set((sent || []).map((r: { lead_id: string }) => r.lead_id));
+      (leads || []).forEach((l: { id: string; email: string }) => { if (sentIds.has(l.id)) out.add(l.email.toLowerCase()); });
+    }
+  }
+  return out;
 }
 
 async function blockAddress(db: SupabaseClient, email: string, reason: string) {
   await db.from("email_recipient_suppression").upsert({ email, reason: "mailbox_bounce" }, { onConflict: "email", ignoreDuplicates: true });
   await db.from("agency_outreach_leads").update({ outreach_status: "do_not_contact", last_error: reason, updated_at: new Date().toISOString() }).eq("email", email);
-  const { data: leads } = await db.from("marketing_leads").select("id,tags").ilike("email", email.replace(/[%_]/g, "\\$&"));
+  const { data: leads } = await db.from("marketing_leads").select("id,tags").eq("email", email);
   for (const l of leads || []) {
     const tags = [...new Set([...(l.tags || []), "email:suppressed", "email:bounced"])];
     await db.from("marketing_leads").update({ outreach_email_ready: false, outreach_import_review: true, tags }).eq("id", l.id);
@@ -131,7 +142,8 @@ Deno.serve(async (req: Request) => {
 
   const { data: state } = await db.from("email_inbox_sync_state").select("*").eq("id", 1).single();
   const stats = { replies: 0, bounces: 0, blocked: 0, auto: 0, skipped: 0, scanned: 0 };
-  const client = new ImapFlow({ host, port: Number(Deno.env.get("IMAP_PORT") || 993), secure: true, auth: { user, pass }, logger: false });
+  const client = new ImapFlow({ host, port: Number(Deno.env.get("IMAP_PORT") || 993), secure: true, auth: { user, pass }, logger: false,
+    connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: 60000 });
 
   try {
     await client.connect();
@@ -148,41 +160,57 @@ Deno.serve(async (req: Request) => {
         uids = (await client.search({ since: new Date(Date.now() - FIRST_RUN_DAYS * 86400e3) }, { uid: true })) || [];
       }
       uids = uids.filter(u => u > lastUid).sort((a, b) => a - b).slice(0, MAX_PER_RUN);
+      const deadline = Date.now() + TIME_BUDGET_MS;
+      const saveProgress = () => db.from("email_inbox_sync_state")
+        .update({ uid_validity: validity, last_uid: lastUid, last_run_at: new Date().toISOString() }).eq("id", 1);
 
+      // Pass 1: envelopes only (fast, no attachments).
+      type Meta = { uid: number; from: string; name: string; subject: string };
+      const metas: Meta[] = [];
       if (uids.length) {
-        for await (const msg of client.fetch(uids.join(","), { uid: true, source: true }, { uid: true })) {
-          stats.scanned++;
-          lastUid = Math.max(lastUid, msg.uid);
-          const raw = msg.source ? new TextDecoder().decode(msg.source) : "";
-          if (!raw) continue;
-          const p = (await PostalMime.parse(raw)) as Parsed;
-          const from = (p.from?.address || "").toLowerCase();
-          const subject = p.subject || "";
-          const messageId = p.messageId || `uid-${validity}-${msg.uid}`;
-          const receivedAt = p.date ? new Date(p.date).toISOString() : new Date().toISOString();
-          const isReport = /multipart\/report/i.test(header(p, "content-type")) || /report-type=delivery-status/i.test(raw.slice(0, 4000));
+        for await (const m of client.fetch(uids.join(","), { uid: true, envelope: true }, { uid: true })) {
+          const f = (m as any).envelope?.from?.[0] || {};
+          metas.push({ uid: m.uid, from: String(f.address || "").toLowerCase(), name: String(f.name || ""), subject: String((m as any).envelope?.subject || "") });
+        }
+      }
+      metas.sort((a, b) => a.uid - b.uid);
+      const known = await contactedSet(db, metas.map(m => m.from).filter(f => f && !OWN.test(f) && !DAEMON.test(f)));
 
-          // 1) Bounces
-          if (DAEMON.test(from) || DAEMON.test(p.from?.name || "") || isReport) {
-            const b = parseBounce(raw, p);
-            const targets = b.recipients.filter(e => !OWN.test(e));
-            for (const email of targets) if (b.hard) { await blockAddress(db, email, b.reason); stats.blocked++; }
-            if (targets.length) {
-              stats.bounces++;
-              await db.from("email_replies").upsert({
-                message_id: messageId, kind: "bounce", bounced_email: targets.join(", "), from_email: from || "mailer-daemon",
-                from_name: p.from?.name || "Mail Delivery", subject, body_text: (b.hard ? "Trvale nedoručitelné: " : "Dočasně nedoručeno: ") + b.reason,
-                ai_sentiment: b.hard ? "bounce" : "soft_bounce", status: "archived", received_at: receivedAt,
-              }, { onConflict: "message_id", ignoreDuplicates: true });
-            } else stats.skipped++;
-            continue;
-          }
+      // Pass 2: download and process only bounces and messages from people we wrote to.
+      let n = 0;
+      for (const meta of metas) {
+        if (Date.now() > deadline) break;
+        stats.scanned++;
+        const isDaemon = DAEMON.test(meta.from) || DAEMON.test(meta.name) || /delivery status notification|undeliver|nedoručiteln|unzustellbar|returned mail/i.test(meta.subject);
+        if (!isDaemon && !known.has(meta.from)) { stats.skipped++; lastUid = meta.uid; continue; }
 
-          // 2) Only people we have actually written to; the rest of the mailbox is none of our business.
-          if (!from || OWN.test(from) || !(await contacted(db, from))) { stats.skipped++; continue; }
+        const one = await client.fetchOne(String(meta.uid), { uid: true, source: true }, { uid: true });
+        const raw = one && (one as any).source ? new TextDecoder().decode((one as any).source) : "";
+        lastUid = meta.uid;
+        if (!raw) continue;
+        const p = (await PostalMime.parse(raw)) as Parsed;
+        const from = (p.from?.address || meta.from).toLowerCase();
+        const subject = p.subject || meta.subject;
+        const messageId = p.messageId || `uid-${validity}-${meta.uid}`;
+        const receivedAt = p.date ? new Date(p.date).toISOString() : new Date().toISOString();
+        const isReport = /multipart\/report/i.test(header(p, "content-type")) || /report-type=delivery-status/i.test(raw.slice(0, 4000));
+
+        // 1) Bounces
+        if (isDaemon || isReport) {
+          const b = parseBounce(raw, p);
+          const targets = b.recipients.filter(e => !OWN.test(e));
+          for (const email of targets) if (b.hard) { await blockAddress(db, email, b.reason); stats.blocked++; }
+          if (targets.length) {
+            stats.bounces++;
+            await db.from("email_replies").upsert({
+              message_id: messageId, kind: "bounce", bounced_email: targets.join(", "), from_email: from || "mailer-daemon",
+              from_name: p.from?.name || "Mail Delivery", subject, body_text: (b.hard ? "Trvale nedoručitelné: " : "Dočasně nedoručeno: ") + b.reason,
+              ai_sentiment: b.hard ? "bounce" : "soft_bounce", status: "archived", received_at: receivedAt,
+            }, { onConflict: "message_id", ignoreDuplicates: true });
+          } else stats.skipped++;
+        } else {
           const text = stripQuoted(p.text || (p.html || "").replace(/<[^>]+>/g, " "));
-
-          // 3) Automatic replies
+          // 2) Automatic replies
           const autoSubmitted = header(p, "auto-submitted");
           const isAuto = (autoSubmitted && autoSubmitted.toLowerCase() !== "no") || !!header(p, "x-autoreply") || !!header(p, "x-autorespond")
             || /auto_reply|auto-reply/i.test(header(p, "precedence")) || AUTO_SUBJECT.test(subject.replace(/^(re|aw|odp|sv|fw|wg):\s*/i, ""));
@@ -192,23 +220,25 @@ Deno.serve(async (req: Request) => {
               message_id: messageId, kind: "auto", from_email: from, from_name: p.from?.name || from, subject, body_text: text,
               ai_sentiment: "auto", status: "archived", received_at: receivedAt,
             }, { onConflict: "message_id", ignoreDuplicates: true });
-            continue;
-          }
-
-          // 4) A real reply
-          const { data: exists } = await db.from("email_replies").select("id").eq("message_id", messageId).maybeSingle();
-          if (exists) continue;
-          const ai = await classify(db, p.from?.name || from, subject, text);
-          const { error } = await db.from("email_replies").insert({
-            message_id: messageId, kind: "reply", from_email: from, from_name: p.from?.name || from, subject, body_text: text,
-            ai_sentiment: ai.sentiment, ai_draft_reply: ai.draft, status: "unread", received_at: receivedAt,
-          });
-          if (!error) stats.replies++;
-          if (ai.sentiment === "unsubscribe") {
-            await db.from("email_recipient_suppression").upsert({ email: from, reason: "reply_unsubscribe" }, { onConflict: "email", ignoreDuplicates: true });
+          } else {
+            // 3) A real reply
+            const { data: exists } = await db.from("email_replies").select("id").eq("message_id", messageId).maybeSingle();
+            if (!exists) {
+              const ai = await classify(db, p.from?.name || from, subject, text);
+              const { error } = await db.from("email_replies").insert({
+                message_id: messageId, kind: "reply", from_email: from, from_name: p.from?.name || from, subject, body_text: text,
+                ai_sentiment: ai.sentiment, ai_draft_reply: ai.draft, status: "unread", received_at: receivedAt,
+              });
+              if (!error) stats.replies++;
+              if (ai.sentiment === "unsubscribe") {
+                await db.from("email_recipient_suppression").upsert({ email: from, reason: "reply_unsubscribe" }, { onConflict: "email", ignoreDuplicates: true });
+              }
+            }
           }
         }
+        if (++n % 10 === 0) await saveProgress();
       }
+      (stats as any).more = metas.length > 0 && lastUid < metas[metas.length - 1].uid || uids.length === MAX_PER_RUN;
 
       await db.from("email_inbox_sync_state").update({
         uid_validity: validity, last_uid: lastUid, last_run_at: new Date().toISOString(), last_error: null,

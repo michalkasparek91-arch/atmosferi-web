@@ -60,8 +60,9 @@ export default function EmailRepliesInbox() {
   const { data: sync } = useQuery({
     queryKey: ["inbox-sync-state"],
     queryFn: async () => {
-      const { data } = await db.from("email_inbox_sync_state").select("*").eq("id", 1).maybeSingle();
-      return data as null | { last_run_at: string | null; last_error: string | null; replies_total: number; bounces_total: number };
+      const { data, error } = await db.from("email_inbox_sync_state").select("*").eq("id", 1).maybeSingle();
+      if (error) return { missing: true } as any;
+      return data as null | { missing?: boolean; last_run_at: string | null; last_error: string | null; replies_total: number; bounces_total: number };
     },
     refetchInterval: 60000,
   });
@@ -82,7 +83,7 @@ export default function EmailRepliesInbox() {
         try { m = (await (error as any).context?.json())?.error || m; } catch { /* keep message */ }
         throw new Error(m);
       }
-      toast.success(`Prošlo ${data?.scanned ?? 0} zpráv: ${data?.replies ?? 0} odpovědí, ${data?.bounces ?? 0} nedoručených (${data?.blocked ?? 0} adres zablokováno), ${data?.auto ?? 0} automatických.`);
+      toast.success(`Prošlo ${data?.scanned ?? 0} zpráv: ${data?.replies ?? 0} odpovědí, ${data?.bounces ?? 0} nedoručených (${data?.blocked ?? 0} adres zablokováno), ${data?.auto ?? 0} automatických.${data?.more ? " Zbytek schránky se načte v dalších kolech (každých 10 minut)." : ""}`);
     } catch (e: any) {
       toast.error(e.message || "Načtení schránky selhalo");
     } finally {
@@ -117,8 +118,14 @@ export default function EmailRepliesInbox() {
           <div className="text-xs text-muted-foreground mt-1">
             Načítá se automaticky každých 10 minut. Nic se v ní neoznačuje jako přečtené.
             {sync?.last_run_at && <> Naposledy {when(sync.last_run_at)}.</>}
-            {sync && <> Celkem {sync.replies_total} odpovědí, {sync.bounces_total} nedoručených.</>}
+            {sync && !sync.missing && <> Celkem {sync.replies_total} odpovědí, {sync.bounces_total} nedoručených.</>}
           </div>
+          {sync?.missing && (
+            <div className="text-xs text-red-600 mt-1 flex gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />V databázi chybí migrace 20261125090000_inbox_sync.sql. Spusť ji v Supabase SQL Editoru, jinak se schránka nenačte.</div>
+          )}
+          {sync && !sync.missing && sync.last_run_at === null && !sync.last_error && (
+            <div className="text-xs text-muted-foreground mt-1">Schránka se ještě nenačetla. Klikni na „Načíst teď“.</div>
+          )}
           {sync?.last_error && (
             <div className="text-xs text-red-600 mt-1 flex gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />{sync.last_error}</div>
           )}
