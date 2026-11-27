@@ -1,7 +1,8 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { claimJobs, control, currentMunicipality, finishJobs, openPlan, visitedWebsite, workDir } from './de-agency-plan.mjs';
+import { claimJobs, control, currentMunicipality, finishJobs, openPlan, recordImport, visitedWebsite, workDir } from './de-agency-plan.mjs';
 import { openAdminImporter } from './business-lead-admin.mjs';
+import { hasPairedDevice, openDeviceImporter } from './pc-lead-import.mjs';
 import { overturePage } from './overture-agencies.mjs';
 
 const pending = join(workDir, 'pending');
@@ -16,14 +17,15 @@ async function writeJson(path, data) {
   await rename(temporary, path);
 }
 
-export async function openBackgroundRun(searchBudget = backgroundSearchBudget) {
+export async function openBackgroundRun(searchBudget = backgroundSearchBudget, { catalogOnly = false, catalogSiteLimit = 40 } = {}) {
   await mkdir(pending, { recursive: true });
   const db = openPlan();
   const settings = control(db);
-  const jobs = claimJobs(db, searchBudget);
+  const jobs = claimJobs(db, searchBudget, { catalogOnly, catalogSiteLimit });
   if (!jobs.length) {
     const current = currentMunicipality(db, settings.kinds);
     db.close();
+    if (catalogOnly) return { waiting: true };
     if (!settings.registry) console.log('Čekám na načtení registru Destatis.');
     else if (settings.paused) console.log('Sběr je pozastavený.');
     else if (current?.running) console.log(`${current.name} · předchozí dávka stále běží.`);
@@ -31,14 +33,17 @@ export async function openBackgroundRun(searchBudget = backgroundSearchBudget) {
     else console.log('Žádné splatné dotazy.');
     return { waiting: true };
   }
-  console.log(`Obec: ${jobs[0].name} (${jobs[0].ags}) · dotazů v dávce: ${jobs.length}.`);
+  if (catalogOnly) console.log(`Overture · společná dávka pro ${jobs.length} obcí: ${jobs.map(job => job.name).join(', ')}.`);
+  else console.log(`Obec: ${jobs[0].name} (${jobs[0].ags}) · dotazů v dávce: ${jobs.length}.`);
   const visits = [];
   return {
     jobs,
-    searchBudget,
+    searchBudget: catalogOnly ? jobs.length : searchBudget,
     overturePage: (job, cursor, size) => overturePage(db, job.ags, cursor, size),
     visited: (job, host) => visitedWebsite(db, job, host),
     visit(job, host, lead) {
+      job.batchFetched = (job.batchFetched || 0) + 1;
+      if (lead) job.batchContacts = (job.batchContacts || 0) + 1;
       job.fetched = (job.fetched ?? 0) + 1;
       if (lead) job.contacts = (job.contacts ?? 0) + 1;
       const scope = lead?.email ? job.kind : `${job.kind}:${job.ags}`;
@@ -64,7 +69,10 @@ async function readNextBatch() {
   await mkdir(pending, { recursive: true });
   const batch = (await readdir(pending)).filter((name) => batchPattern.test(name)).sort()[0];
   if (!batch) return null;
-  const rows = JSON.parse(await readFile(join(pending, batch), 'utf8'));
+  let raw;
+  try { raw = await readFile(join(pending, batch), 'utf8'); }
+  catch (error) { if (error.code === 'ENOENT') return readNextBatch(); throw error; }
+  const rows = JSON.parse(raw);
   if (!Array.isArray(rows) || !rows.length || rows.length > importSize ||
       rows.some((row) => !/^pc-lead:[a-f0-9]{32}$/.test(row.source_id) || !row.email || !row.website || !row.company_name)) {
     throw new Error(`Neplatná dávka ${batch}.`);
@@ -74,7 +82,10 @@ async function readNextBatch() {
 
 async function acknowledgeBatch(batch) {
   await mkdir(imported, { recursive: true });
-  await rename(join(pending, batch), join(imported, batch));
+  try { await rename(join(pending, batch), join(imported, batch)); }
+  catch (error) {
+    if (error.code !== 'ENOENT' || !(await readdir(imported)).includes(batch)) throw error;
+  }
 }
 
 async function nextBatch() {
@@ -106,20 +117,27 @@ select (select count(*) from incoming)::int as received, count(*)::int as insert
   return { batch, expected: rows.length, query };
 }
 
-export async function drainDirectQueue(maxBatches = 12, { next = readNextBatch, acknowledge = acknowledgeBatch, connect = openAdminImporter } = {}) {
+const openImporter = () => hasPairedDevice() ? openDeviceImporter() : openAdminImporter();
+export async function drainDirectQueue(maxBatches = 12, { next = readNextBatch, acknowledge = acknowledgeBatch, connect = openImporter } = {}) {
   let insert;
   let batches = 0;
   let received = 0;
   let inserted = 0;
-  while (batches < maxBatches) {
-    const item = await next();
-    if (!item) break;
-    insert ??= await connect();
-    inserted += await insert(item.rows);
-    await acknowledge(item.batch);
-    received += item.rows.length;
-    batches++;
-  }
+  let db;
+  try {
+    while (batches < maxBatches) {
+      const item = await next();
+      if (!item) break;
+      db ??= openPlan();
+      insert ??= await connect();
+      const added = await insert(item.rows);
+      recordImport(db, item.batch, added);
+      await acknowledge(item.batch);
+      inserted += added;
+      received += item.rows.length;
+      batches++;
+    }
+  } finally { db?.close(); }
   return { batches, received, inserted };
 }
 
@@ -130,8 +148,9 @@ if (import.meta.main) {
     else if (command === '--ack' && batchPattern.test(name ?? '')) await acknowledgeBatch(name);
     else if (command === '--direct') console.log(JSON.stringify(await drainDirectQueue()));
     else if (command === '--check-direct') {
-      await openAdminImporter();
-      console.log('Přihlášení správce a přístup k evidenci jsou v pořádku.');
+      if (hasPairedDevice()) await (await openDeviceImporter())([]);
+      else await openAdminImporter();
+      console.log('Přístup k importu je v pořádku.');
     } else throw new Error('Použijte --direct, --check-direct, --next nebo --ack s ID dávky.');
   } catch (error) {
     console.error(error.message);

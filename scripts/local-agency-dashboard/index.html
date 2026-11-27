@@ -11,7 +11,7 @@
   <header class="site-header">
     <div class="shell header-inner">
       <a class="brand" href="/">Atmosferi°</a>
-      <a class="button secondary" href="https://www.atmosferi.com/admin/emaily/agentury" target="_blank" rel="noopener noreferrer">Přejít do adminu <span aria-hidden="true">↗</span></a>
+      <a class="button secondary" href="https://www.atmosferi.com/admin/emaily/akvizice" target="_blank" rel="noopener noreferrer">Přejít do adminu <span aria-hidden="true">↗</span></a>
     </div>
   </header>
   <main class="shell">
@@ -25,6 +25,7 @@
       <div><span>Dokončené dotazy</span><strong id="queries">—</strong></div>
       <div><span>Rozpracovaná obec</span><strong id="current">—</strong><small id="current-detail" class="muted"></small></div>
       <div><span>Dávky čekající na import</span><strong id="waiting">—</strong><small id="processed" class="muted"></small></div>
+      <div><span>Nové kontakty v adminu za 60 min</span><strong id="import-rate">—</strong><small id="rate-since" class="muted"></small></div>
     </div>
     <section class="panel scope">
       <div><h2>Obory ve sběru</h2><p>Změna se projeví v další dávce.</p></div>
@@ -34,8 +35,27 @@
         <label><input type="checkbox" value="developer"> Realitní developeři</label>
       </fieldset>
     </section>
+    <section class="panel" aria-labelledby="scope-title">
+      <h2 id="scope-title">Země a vyhledávací výrazy</h2>
+      <form id="scope-form">
+        <fieldset id="active-countries"><legend>Aktivní země</legend></fieldset>
+        <label class="editor-label">Upravit plán pro zemi <select id="edit-country"></select></label>
+        <p id="city-hint"></p>
+        <label class="editor-label" id="city-label">Obce · jedna na řádek<textarea id="scope-cities" rows="4"></textarea></label>
+        <p>Každý výraz dej na vlastní řádek do oboru, do kterého patří jeho kontakty.</p>
+        <div class="term-grid">
+          <label>Marketingové agentury<textarea id="term-marketing" rows="5"></textarea></label>
+          <label>Architekti<textarea id="term-architect" rows="5"></textarea></label>
+          <label>Realitní developeři<textarea id="term-developer" rows="5"></textarea></label>
+        </div>
+        <label id="catalog-label"><input id="scope-overture" type="checkbox"> Přidat agentury z Overture Places</label>
+        <p id="catalog-coverage"></p>
+        <small id="catalog-attribution" hidden>Hranice obcí © BKG <span id="boundary-year"></span>, dl-de/by-2-0. <a href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf" target="_blank" rel="noopener noreferrer">Datové zdroje VG250</a></small>
+        <div class="save-row"><button id="save-scope" class="button" disabled>Uložit plán</button><button id="reset-scope" class="button secondary" type="button" hidden>Zahodit úpravy</button><output id="scope-message" aria-live="polite"></output></div>
+      </form>
+    </section>
     <section class="panel" aria-labelledby="plan-title">
-      <div class="panel-heading"><h2 id="plan-title">Plán obcí v Německu</h2><span id="matched" class="muted"></span></div>
+      <div class="panel-heading"><h2 id="plan-title">Plán obcí v aktivních zemích</h2><span id="matched" class="muted"></span></div>
       <div class="filters">
         <label>Obec, okres nebo AGS <input id="query" type="search" placeholder="Např. Leipzig"></label>
         <label>Spolková země <select id="land"><option value="">Všechny země</option></select></label>
@@ -49,8 +69,13 @@
     </section>
     <div class="details">
       <section class="panel"><div class="panel-heading"><h2>Poslední dotazy</h2></div><ul id="activity" class="items"></ul></section>
-      <section class="panel"><div class="panel-heading"><h2>Import a export</h2></div><div id="imports"></div><details><summary>Stáhnout CSV</summary><ul id="exports" class="items"></ul></details></section>
+      <section class="panel"><div class="panel-heading"><h2>Import a export</h2></div><div id="imports"></div>
+        <div class="pager"><button id="imports-back" class="button secondary">Novější dávky</button><button id="imports-more" class="button secondary">Starší dávky</button></div>
+        <details><summary>Stáhnout CSV</summary><ul id="exports" class="items"></ul></details></section>
     </div>
+    <section class="panel"><h2>Historie zpracování dotazů</h2><ul id="history" class="items"></ul>
+      <div class="pager"><button id="history-back" class="button secondary">Novější dotazy</button><button id="history-more" class="button secondary">Starší dotazy</button></div>
+    </section>
   </main>
 </body>
 </html>

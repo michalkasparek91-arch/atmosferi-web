@@ -11,6 +11,11 @@ let plan;
 let requestVersion = 0;
 let debounce;
 let mutation = false;
+let scope;
+let importsPage = 0;
+let historyNext;
+const historyPages = [null];
+const categories = ['marketing', 'architect', 'developer'];
 
 async function api(path, body) {
   const response = await fetch(path, body ? {
@@ -30,16 +35,21 @@ function notify(message, error = false) {
 
 function renderPlan(data) {
   plan = data;
+  if (scope) renderCatalog(select('edit-country').value);
   const { counts, current, registry } = data;
   if (registry) {
     select('registry').innerHTML = `Německo · ${amount(registry.count)} obcí · <a href="https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/_inhalt.html" target="_blank" rel="noopener noreferrer">Destatis</a> ${escape(registry.date)}`;
   } else select('registry').textContent = 'Čeká se na načtení registru obcí.';
-  select('pause').disabled = !registry;
+  select('pause').disabled = false;
   select('pause').textContent = data.paused ? 'Obnovit sběr' : 'Pozastavit sběr';
-  select('kinds').disabled = !registry;
+  select('kinds').disabled = false;
   for (const checkbox of select('kinds').querySelectorAll('input')) checkbox.checked = data.kinds.includes(checkbox.value);
   select('covered').textContent = `${amount(counts.done)} / ${amount(counts.municipalities)}`;
   select('queries').textContent = `${amount(counts.searches_done)} / ${amount(counts.queries)}`;
+  if (data.recentImports) {
+    select('import-rate').textContent = amount(data.recentImports.inserted);
+    select('rate-since').textContent = 'Od ' + stamp(data.recentImports.since);
+  }
   select('current').textContent = current?.name ?? '—';
   const waiting = current?.retry_at && !current.ready && !current.running;
   select('current-detail').textContent = current
@@ -53,7 +63,7 @@ function renderPlan(data) {
   select('matched').textContent = `${amount(matched)} obcí`;
   select('municipalities').innerHTML = data.rows.length ? data.rows.map((row) => {
     const status = !row.enabled ? 'disabled' : row.running ? 'running' : row.retry ? 'retry' : row.done === row.total ? 'done' : 'pending';
-    const area = [row.district !== row.name ? row.district : '', row.land, row.ags].filter(Boolean).join(' · ');
+    const area = [row.country, row.district !== row.name ? row.district : '', row.land, row.country === 'DE' ? row.ags : ''].filter(Boolean).join(' · ');
     return `<tr><td><strong>${escape(row.name)}</strong><small>${escape(area)}</small></td>
       <td>${chip(status)}</td><td>${amount(row.done)} / ${amount(row.total)}</td><td>${amount(row.contacts)}</td>
       <td>${escape(stamp(row.last))}</td><td><div class="row-buttons" data-ags="${escape(row.ags)}">
@@ -70,6 +80,8 @@ function renderPlan(data) {
 }
 
 function renderImports(data, exports) {
+  select('imports-back').disabled = importsPage === 0;
+  select('imports-more').disabled = (importsPage + 1) * 12 >= data.pending + data.imported;
   select('waiting').textContent = amount(data.pending);
   select('processed').textContent = `Zpracovaných dávek: ${amount(data.imported)}`;
   const container = select('imports');
@@ -81,14 +93,94 @@ function renderImports(data, exports) {
   select('exports').innerHTML = exports.map((name) => `<li><a href="/download/${encodeURIComponent(name)}" download>${escape(name)}</a></li>`).join('') || '<li>Zatím bez exportů.</li>';
 }
 
+function renderHistory(data) {
+  historyNext = data.next;
+  select('history-back').disabled = historyPages.length === 1;
+  select('history-more').disabled = !historyNext;
+  select('history').innerHTML = data.rows.map(row => `<li><strong>${escape(row.name)} · ${escape(row.country)}</strong> · ${escape(row.term)} ${chip(row.status, row.status === 'pending' ? 'Pokračuje další stranou' : undefined)}
+    <small>${stamp(row.finished)} · stran v dávce ${amount(row.pages)} · zkontrolovaných webů ${amount(row.fetched)} · nalezených kontaktů ${amount(row.contacts)}</small>
+    ${row.error ? '<small>' + escape(row.error) + '</small>' : ''}</li>`).join('') || '<li>První záznam se objeví po dokončení další dávky. Starší importy najdeš v části Import a export.</li>';
+}
+
+function renderCountry() {
+  const country = select('edit-country').value;
+  const config = scope.markets[country];
+  for (const kind of categories) select('term-' + kind).value = config.keywords[kind].join('\n');
+  select('scope-cities').value = config.cities.join('\n');
+  select('city-label').hidden = country === 'DE';
+  select('scope-overture').checked = config.overture;
+  renderCatalog(country);
+  select('city-hint').textContent = country === 'DE' ? 'Výrazy se procházejí ve všech povolených obcích registru Destatis.' : 'Sběr projde uvedené obce. Přidej další města či obce, které chceš pokrýt.';
+}
+
+function renderCatalog(country) {
+  const catalog = plan?.catalogSettings?.['overture_coverage_'+country] ?? scope.markets[country].catalog;
+  const update = plan?.catalogSettings?.['overture_refresh_'+country];
+  select('catalog-attribution').hidden = !catalog?.boundaries;
+  select('boundary-year').textContent = catalog?.boundaryYear ?? '';
+  const coverage = catalog
+    ? `Vydání ${catalog.release} · ${amount(catalog.sites)} webů v ${amount(catalog.municipalities)} obcích · podle hranic přiřazeno ${amount(catalog.geometry)} adres. Z ${amount(catalog.listings)} adres čeká na přiřazení ${amount(catalog.unmatched)} (neznámá obec ${amount(catalog.unknown)}, shodné názvy ${amount(catalog.ambiguous)}, rozpor s mapou ${amount(catalog.conflict)}).`
+    : 'Statistika pokrytí se zobrazí po načtení katalogu pro tuto zemi.';
+  const status = { loading:'Načítá se katalog.', waiting:'Čeká na dokončení dávky sběru.', error:'Obnova se zopakuje. ' + (update?.detail ?? ''), ready:'' };
+  select('catalog-coverage').textContent = [coverage,status[update?.status]].filter(Boolean).join(' ');
+}
+
+function renderScope(config, selected) {
+  scope = config;
+  select('active-countries').innerHTML = '<legend>Aktivní země</legend>' + Object.entries(scope.markets).map(([code, market]) =>
+    `<label><input type="checkbox" value="${escape(code)}" ${scope.active.includes(code) ? 'checked' : ''}>${escape(market.name)}</label>`).join('');
+  const picker = select('edit-country');
+  picker.replaceChildren(...Object.entries(scope.markets).map(([code, market]) => new Option(market.name, code)));
+  picker.value = selected || scope.active[0];
+  picker.disabled = false;
+  select('save-scope').disabled = true;
+  select('reset-scope').hidden = true;
+  renderCountry();
+}
+
+select('edit-country').addEventListener('change', renderCountry);
+select('scope-form').addEventListener('input', event => {
+  if (event.target.id === 'edit-country' || !scope) return;
+  select('save-scope').disabled = false;
+  select('reset-scope').hidden = false;
+  if (!event.target.closest('#active-countries')) select('edit-country').disabled = true;
+  select('scope-message').textContent = 'Neuložené změny';
+});
+select('reset-scope').addEventListener('click', async () => {
+  try { renderScope(await api('/api/scope'), select('edit-country').value); select('scope-message').textContent = ''; }
+  catch (error) { select('scope-message').textContent = error.message; }
+});
+select('scope-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!scope || mutation) return;
+  const lines = id => select(id).value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const country = select('edit-country').value;
+  const payload = { revision: scope.revision, country,
+    active: [...select('active-countries').querySelectorAll('input:checked')].map(box => box.value),
+    cities: lines('scope-cities'), overture: select('scope-overture').checked,
+    keywords: Object.fromEntries(categories.map(kind => [kind, lines('term-' + kind)])) };
+  mutation = true;
+  select('scope-form').inert = true;
+  try {
+    renderScope(await api('/api/scope', payload), country);
+    page = 0;
+    select('scope-message').textContent = 'Uloženo. Nový plán platí od další dávky.';
+    await refresh();
+  } catch (error) { select('scope-message').textContent = error.message; }
+  finally { mutation = false; select('scope-form').inert = false; }
+});
+
 async function refresh() {
   const version = ++requestVersion;
   const filters = new URLSearchParams({ page, query: select('query').value, land: select('land').value, status: select('status').value });
   try {
-    const [data, imports, exports] = await Promise.all([api(`/api/plan?${filters}`), api('/api/imports'), api('/api/exports')]);
+    const [data, imports, exports, past, config] = await Promise.all([api(`/api/plan?${filters}`), api('/api/imports?page=' + importsPage), api('/api/exports'),
+      api('/api/history?before=' + (historyPages.at(-1) || '')), scope ? null : api('/api/scope')]);
     if (version !== requestVersion) return;
     renderPlan(data);
     renderImports(imports, exports);
+    renderHistory(past);
+    if (config && !scope) renderScope(config);
     if (select('notice').classList.contains('error')) notify('');
   } catch (error) {
     if (version === requestVersion) notify(error.message, true);
@@ -122,5 +214,9 @@ select('query').addEventListener('input', () => { page = 0; clearTimeout(debounc
 for (const id of ['land', 'status']) select(id).addEventListener('change', () => { page = 0; void refresh(); });
 select('previous').addEventListener('click', () => { if (page > 0) page--; void refresh(); });
 select('next').addEventListener('click', () => { page++; void refresh(); });
+select('imports-back').addEventListener('click', () => { importsPage = Math.max(0, importsPage - 1); void refresh(); });
+select('imports-more').addEventListener('click', () => { importsPage++; void refresh(); });
+select('history-back').addEventListener('click', () => { if (historyPages.length > 1) historyPages.pop(); void refresh(); });
+select('history-more').addEventListener('click', () => { if (historyNext) historyPages.push(historyNext); void refresh(); });
 void refresh();
 setInterval(() => { if (!mutation && !document.hidden) void refresh(); }, 12_000);

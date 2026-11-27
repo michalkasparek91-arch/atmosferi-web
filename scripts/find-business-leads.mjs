@@ -7,21 +7,11 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { bingResults, findSiteContact, hostKey, seznamNextPage, seznamResults, websiteUrl } from './lib/business-lead-web.mjs';
 import { backgroundSearchBudget, drainDirectQueue, openBackgroundRun } from './lib/de-agency-background.mjs';
 import { openAdminImporter } from './lib/business-lead-admin.mjs';
+import { hasPairedDevice } from './lib/pc-lead-import.mjs';
 import { overtureJob } from './lib/overture-agencies.mjs';
 import { leadKinds as types, termsByKind } from './lib/business-lead-taxonomy.mjs';
 
-const markets = {
-  CZ: ['cs', 'Česko', ['Praha', 'Brno', 'Ostrava', 'Plzeň'], ['marketingová agentura', 'architektonické studio', 'realitní developer'], ['/kontakt', '/kontakty']],
-  SK: ['sk', 'Slovensko', ['Bratislava', 'Košice', 'Žilina'], ['marketingová agentúra', 'architektonické štúdio', 'realitný developer'], ['/kontakt', '/kontakty']],
-  DE: ['de', 'Německo', ['Berlin', 'Hamburg', 'München', 'Frankfurt am Main'], ['Marketingagentur', 'Architekturbüro', 'Immobilien Projektentwickler'], ['/kontakt', '/impressum']],
-  AT: ['de', 'Rakousko', ['Wien', 'Graz', 'Linz', 'Salzburg'], ['Marketingagentur', 'Architekturbüro', 'Immobilien Projektentwickler'], ['/kontakt', '/impressum']],
-  CH: ['de', 'Švýcarsko', ['Zürich', 'Bern', 'Basel'], ['Marketingagentur', 'Architekturbüro', 'Immobilien Projektentwickler'], ['/kontakt', '/impressum']],
-  PL: ['pl', 'Polsko', ['Warszawa', 'Kraków', 'Wrocław'], ['agencja marketingowa', 'pracownia architektoniczna', 'deweloper nieruchomości'], ['/kontakt']],
-  HU: ['hu', 'Maďarsko', ['Budapest', 'Debrecen', 'Szeged'], ['marketing ügynökség', 'építész iroda', 'ingatlanfejlesztő'], ['/kapcsolat']],
-  GB: ['en', 'Spojené království', ['London', 'Manchester', 'Birmingham'], ['marketing agency', 'architecture practice', 'property developer'], ['/contact', '/contact-us']],
-  US: ['en', 'USA', ['New York', 'Chicago', 'Los Angeles'], ['marketing agency', 'architecture firm', 'real estate developer'], ['/contact', '/contact-us']],
-  FR: ['fr', 'Francie', ['Paris', 'Lyon', 'Marseille'], ['agence marketing', 'agence architecture', 'promoteur immobilier'], ['/contact', '/nous-joindre']],
-};
+import { markets } from './lib/business-lead-markets.mjs';
 
 const help = `Atmosferi | Vyhledávání firemních kontaktů
 
@@ -176,15 +166,26 @@ async function main() {
   if (values.help) { console.log(help); return; }
   if (!values['background-de-agencies']) return collect(values);
 
+  const catalogDeadline = Date.now() + 7 * 60_000;
+  try { await importAfterCollection(); } catch (error) { console.warn('Import před sběrem:', error.message); }
   let remainingSearches = backgroundSearchBudget;
   let remainingSites = 120;
   while (remainingSearches > 0 && remainingSites >= 20) {
     const available = Math.min(remainingSearches, Math.floor(remainingSites / 20));
     const background = await openBackgroundRun(available);
     if (background.waiting) break;
-    const batch = await collect({ ...values, countries: 'DE', cities: undefined, limit: String(remainingSites) }, background);
+    const batch = await collect({ ...values, countries: background.jobs[0].country, cities: undefined, limit: String(remainingSites) }, background);
     remainingSearches -= batch.requests;
     remainingSites -= batch.sites;
+    if (batch.unresolvedError || !batch.requests) break;
+  }
+  // Use spare time only for indexed places in enabled municipalities. Claim again
+  // between chunks so pause, country changes and saved cursors take effect.
+  while (Date.now() < catalogDeadline) {
+    const siteLimit = 40;
+    const background = await openBackgroundRun(siteLimit, { catalogOnly: true, catalogSiteLimit: siteLimit });
+    if (background.waiting) break;
+    const batch = await collect({ ...values, countries: background.jobs[0].country, cities: undefined, limit: String(siteLimit) }, background);
     if (batch.unresolvedError || !batch.requests) break;
   }
   await importAfterCollection();
@@ -206,11 +207,13 @@ export async function collect(values, background = null, crawlSite = findSiteCon
   if (engine === 'serper' && !process.env.SERPER_API_KEY) throw new Error('Pro Serper nastavte SERPER_API_KEY.');
 
   const queries = background ? background.jobs.map((job) => {
+    const country = job.country || 'DE';
+    const [language, countryName, , , contactPaths] = markets[country];
     const locality = job.ambiguous && job.district && job.district !== job.name ? [job.name, job.district] : [job.name];
     const searchLocation = locality.map((name) => `"${name.replaceAll('"', '')}"`).join(' ');
     return {
-      country: 'DE', countryName: 'Německo', language: 'de', targetCity: job.name, type: job.kind,
-      contactPaths: markets.DE[4], job, searchTerm: job.term, query: `${job.term} ${searchLocation}`,
+      country, countryName, language, targetCity: job.name, type: job.kind,
+      contactPaths, job, searchTerm: job.term, query: `${job.term} ${searchLocation}`,
       engine: job.term === overtureJob ? 'overture' : engine,
     };
   }) : countries.flatMap((country) => {
@@ -243,7 +246,7 @@ export async function collect(values, background = null, crawlSite = findSiteCon
       const source = query.engine || engine;
       try {
         const { results, nextCursor, sourceLimit } = source === 'overture'
-          ? background.overturePage(query.job, position.cursor)
+          ? background.overturePage(query.job, position.cursor, query.job.catalogPageSize)
           : await search(query.query, query.country, query.language, source, position.cursor, {
             pageable: Boolean(background) || pages > 1, widen: Boolean(background),
           });
@@ -319,8 +322,9 @@ export async function collect(values, background = null, crawlSite = findSiteCon
       if (candidates.size >= limit) break;
     }
   }
-  const catalog = queries.find(query => query.engine === 'overture');
-  if (catalog?.job.paging?.cursor && !background.jobs.some(job => job.error)) {
+  for (const catalog of queries.filter(query => query.engine === 'overture')) {
+    if (!catalog.job.paging?.cursor || catalog.job.error || candidates.size >= limit) continue;
+    if (!catalog.job.catalogPageSize && background.jobs.some(job => job.error)) continue;
     const { job } = catalog;
     const before = candidates.size;
     try {
@@ -387,7 +391,7 @@ export async function collect(values, background = null, crawlSite = findSiteCon
 }
 
 async function importAfterCollection() {
-  if (process.env.LEAD_ADMIN_DIRECT !== '1') return;
+  if (process.env.LEAD_ADMIN_DIRECT === '0' || (process.env.LEAD_ADMIN_DIRECT !== '1' && !hasPairedDevice())) return;
   const { batches, received, inserted } = await drainDirectQueue();
   console.log(`Přímý import do adminu · ${batches} dávek · ${inserted} nových kontaktů z ${received}.`);
 }

@@ -1,7 +1,9 @@
 import { createServer } from 'node:http';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { openPlan, snapshot, states, updateControl, updateMunicipality, workDir } from './lib/de-agency-plan.mjs';
+import { history, openPlan, scopeConfig, snapshot, states, updateControl, updateMunicipality, updateScope, workDir } from './lib/de-agency-plan.mjs';
 
 const port = 4317;
 const host = `127.0.0.1:${port}`;
@@ -19,13 +21,13 @@ async function list(folder, pattern) {
   catch (error) { if (error.code === 'ENOENT') return []; throw error; }
 }
 
-async function importActivity() {
+async function importActivity(page) {
   const pattern = /^batch-\d{13}-\d+-\d{2}\.json$/;
   const folders = Object.fromEntries(['pending', 'imported'].map((name) => [name, join(workDir, name)]));
   const [pending, imported] = await Promise.all(Object.values(folders).map((folder) => list(folder, pattern)));
   const pairs = [...pending.map((name) => [name, 'pending']), ...imported.map((name) => [name, 'imported'])];
   pairs.sort(([a], [b]) => b.localeCompare(a));
-  const recent = await Promise.all(pairs.slice(0, 12).map(async ([name, status]) => {
+  const recent = await Promise.all(pairs.slice(page * 12, (page + 1) * 12).map(async ([name, status]) => {
     try {
       const rows = JSON.parse(await readFile(join(folders[status], name), 'utf8'));
       return { name, status, at: Number(name.split('-')[1]), count: rows.length,
@@ -40,10 +42,11 @@ async function input(req) {
   if (req.headers.origin !== `http://${host}` || !/^application\/json(?:;|$)/.test(req.headers['content-type'] ?? '')) {
     throw Object.assign(new Error('Požadavek musí přijít z místního panelu.'), { status: 403 });
   }
+  req.setEncoding('utf8');
   let text = '';
   for await (const chunk of req) {
     text += chunk.toString('utf8');
-    if (text.length > 2_048) throw Object.assign(new Error('Požadavek je příliš velký.'), { status: 413 });
+    if (text.length > 262144) throw Object.assign(new Error('Požadavek je příliš velký.'), { status: 413 });
   }
   try {
     const target = JSON.parse(text);
@@ -80,7 +83,9 @@ const server = createServer(async (req, res) => {
         return res.writeHead(200, { 'Content-Type': contentType }).end(content);
       }
       if (url.pathname === '/api/plan') return json({ ...snapshot(db, Object.fromEntries(url.searchParams)), states });
-      if (url.pathname === '/api/imports') return json(await importActivity());
+      if (url.pathname === '/api/imports') return json(await importActivity(Math.max(0, parseInt(url.searchParams.get('page'), 10) || 0)));
+      if (url.pathname === '/api/scope') return json(scopeConfig(db));
+      if (url.pathname === '/api/history') return json(history(db, url.searchParams.get('before')));
       if (url.pathname === '/api/exports') return json((await list(join(workDir, '..'), csvName)).slice(0, 12));
       const name = url.pathname.slice('/download/'.length);
       if (url.pathname.startsWith('/download/') && csvName.test(name)) {
@@ -89,7 +94,8 @@ const server = createServer(async (req, res) => {
       }
     }
     if (req.method === 'PATCH' && url.pathname === '/api/control') return json(updateControl(db, await input(req)));
-    const municipality = url.pathname.match(/^\/api\/municipalities\/(\d{8})$/);
+    if (req.method === 'PATCH' && url.pathname === '/api/scope') return json(updateScope(db, await input(req)));
+    const municipality = url.pathname.match(/^\/api\/municipalities\/(\d{8}|[A-Z]{2}-[0-9a-f]{24})$/);
     if (req.method === 'PATCH' && municipality) {
       const updated = updateMunicipality(db, municipality[1], await input(req));
       return json(updated ? { updated } : { error: 'Obec nebyla nalezena.' }, updated ? 200 : 404);
@@ -103,3 +109,14 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, '127.0.0.1', () => console.log(`Atmosferi · sběr kontaktů http://${host}/`));
+
+let refreshWorker;
+function checkCatalogs() {
+  if (refreshWorker) return;
+  refreshWorker = spawn(process.execPath,[fileURLToPath(new URL('./refresh-lead-catalogs.mjs',import.meta.url))],
+    {windowsHide:true,stdio:['ignore','inherit','inherit']});
+  refreshWorker.on('error', error => console.error('Obnova katalogu:',error.message));
+  refreshWorker.on('close', () => { refreshWorker = null; });
+}
+server.once('listening',checkCatalogs);
+setInterval(checkCatalogs,5*60000).unref();

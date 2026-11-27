@@ -4,6 +4,7 @@ import { request as httpsRequest } from 'node:https';
 import { BlockList, isIP } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { classifyLeadTerm } from './business-lead-taxonomy.mjs';
+import { cityAliasesByCountry } from './business-lead-markets.mjs';
 
 const agent = 'AtmosferiLeadFinder';
 const blocked = new BlockList();
@@ -197,10 +198,6 @@ const contactPage = /(?:kontakt|contact|impressum|about|o-nas|o_nas|kapcsolat|co
 const companyPage = /(?:^|\/)(?:leistungen|services|uber-uns|ueber-uns|unternehmen|profil|about(?:-us)?|agentur|studio)(?:\/|$)/i;
 const nonCompanyIdentity = /(?:internationaler|deutscher|europaischer) verband der|(?:international|european|german) (?:federation|association) of|\bbranchen(?:buch|verzeichnis)\b|\b(?:directory|Verzeichnis) (?:of|fur|der)\b/i;
 const phoneLabel = /(?:telefon|phone|téléphone|tel(?:\.|\s*:)|mobil(?:e|ní)?)[\s:]*((?:\+|00)?\d[\d().\-\s]{6,24}\d)/giu;
-const cityAliases = {
-  Praha: ['Praze', 'Prague'], Plzeň: ['Plzni', 'Pilsen'], Bratislava: ['Bratislave'], Košice: ['Košiciach'],
-  Wien: ['Vienna', 'Vídeň'], München: ['Munich'], Zürich: ['Zurich'], Warszawa: ['Warsaw'],
-};
 const folded = (text) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
 function cleanPhone(raw) {
@@ -258,11 +255,21 @@ export function readContact(html, url) {
   };
 }
 
+export function siteLocality(candidate) {
+  const names = cityAliasesByCountry[candidate.country] ?? {};
+  const aliases = [candidate.targetCity, ...(Object.hasOwn(names, candidate.targetCity) ? names[candidate.targetCity] : [])];
+  const pattern = values => values.filter(Boolean).map(value => folded(value).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
+  const locality = pattern(aliases);
+  const cityMatch = new RegExp('\\b(?:'+locality+')(?![a-z])');
+  const address = candidate.catalogAddress;
+  const addressNames = pattern([...aliases,address?.locality]);
+  const postal = /^\d{5}$/.test(address?.postcode) ? new RegExp('\\b'+address.postcode+'[\\s,–-]+(?:'+addressNames+')(?![a-z])') : null;
+  const postalMatches = text => Boolean(postal?.test(text));
+  return { locality, postalMatches, matches: text => (!address?.ambiguous && cityMatch.test(text)) || postalMatches(text) };
+}
+
 export async function findSiteContact(candidate) {
-  const aliases = Object.hasOwn(cityAliases, candidate.targetCity)
-    ? [candidate.targetCity, ...cityAliases[candidate.targetCity]] : [candidate.targetCity];
-  const locality = aliases.map((alias) => folded(alias).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-  const cityMatch = new RegExp(`\\b(?:${locality})(?![a-z])`);
+  const {locality,matches,postalMatches} = siteLocality(candidate);
   const robots = new Map();
   const start = await readPage(candidate.url, robots);
   const home = new URL('/', start?.url ?? candidate.url);
@@ -297,7 +304,7 @@ export async function findSiteContact(candidate) {
     targets.set(url.href, url);
   }
   for (const url of [...targets.values()].filter((link) => !pages.has(link.href)).slice(0, 4)) {
-    if (email?.score >= 12 && phone && (!candidate.job || cityMatch.test(evidence)) &&
+    if (email?.score >= 12 && phone && (!candidate.job || matches(evidence)) &&
         classifyLeadTerm(candidate.type, candidate.searchTerm, services)) break;
     const page = await readPage(url, robots);
     if (page?.body) inspect(page);
@@ -308,10 +315,10 @@ export async function findSiteContact(candidate) {
   const germanAgency = candidate.country === 'DE' && candidate.type === 'marketing';
   const category = classifyLeadTerm(candidate.type, candidate.searchTerm, services);
   if (!category) return null;
-  const city = cityMatch.test(evidence) ? candidate.targetCity : '';
+  const city = matches(evidence) ? candidate.targetCity : '';
   const localDomain = hostKey(official).endsWith(`.${candidate.country.toLowerCase()}`);
   if (!city && (candidate.job || !localDomain)) return null;
-  if (germanAgency && !localDomain && !phone?.value.startsWith('+49') &&
+  if (germanAgency && !localDomain && !phone?.value.startsWith('+49') && !postalMatches(evidence) &&
       !new RegExp(`\\b\\d{5}\\s+(?:${locality})(?![a-z])`).test(evidence)) return null;
   if (germanAgency && phone?.value.startsWith('0')) phone.value = `+49${phone.value.replace(/\D/g, '').slice(1)}`;
   return { ...candidate, city, category, website: official.origin, company: name || candidate.title.slice(0, 160) || hostKey(official), email, phone };
