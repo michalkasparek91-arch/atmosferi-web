@@ -6,6 +6,7 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.57.0";
 import { sendViaSmtp } from "../_shared/smtp.ts";
 import { generateAtmosferiEmailHtml } from "../_shared/EmailTemplateGenerator.ts";
+import { localizeEmailBody } from "../_shared/email-localization.mjs";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -47,9 +48,11 @@ function toHtml(text: string, subject = "") {
 async function deliver(db: SupabaseClient, s: Settings, opts: {
   lead: Lead | null; kind: "intro" | "followup" | "test"; to: string; subject: string; body: string;
 }) {
+  // Visible opt-out must be identical in the plain-text and HTML versions.
+  const bodyWithOptOut = localizeEmailBody(opts.body.includes(OPT_OUT) ? opts.body.trim() : opts.body.trim() + "\n\n" + OPT_OUT, "cs");
   const result: { success: boolean; error?: string; messageId?: string; recipientRejected?: boolean } = await sendViaSmtp({
     from: `${s.sender_name} <${s.sender_email}>`, to: opts.to, subject: opts.subject,
-    html: toHtml(opts.body, opts.subject), text: opts.body.trim() + "\n\n--\n" + OPT_OUT,
+    html: toHtml(bodyWithOptOut, opts.subject), text: bodyWithOptOut,
     headers: { "List-Unsubscribe": `<mailto:${s.sender_email}?subject=unsubscribe>` },
   });
   await db.from("agency_outreach_log").insert({
@@ -130,6 +133,9 @@ Deno.serve(async (req: Request) => {
   try {
     // ---- Test: always to the fixed test address, never touches a lead.
     if (action === "test") {
+      if (!["agency-intro-cs", "agency-followup-cs"].includes(body.slug)) {
+        return json({ error: "Tato testovací akce podporuje pouze české šablony agentur." }, 400);
+      }
       const base = body.slug === "agency-followup-cs" ? followup : intro;
       const subject = String(body.subject ?? base?.subject ?? "");
       const text = String(body.body ?? base?.body ?? "");
@@ -144,6 +150,8 @@ Deno.serve(async (req: Request) => {
     if (action === "send_one") {
       const { data: lead } = await db.from("agency_outreach_leads").select("*").eq("id", body.lead_id).single();
       if (!lead) return json({ error: "Kontakt nenalezen." }, 404);
+      // Manual send must obey the same review gate as the scheduled Czech batch.
+      if (lead.review_state !== "ready") return json({ error: "Kontakt není schválen pro českou rozesílku." }, 409);
       if (["replied", "meeting", "won", "not_interested", "do_not_contact"].includes(lead.outreach_status))
         return json({ error: "Kontakt už odpověděl nebo se nemá oslovovat." }, 409);
       if ((await suppressed(db, [lead.email])).size) return json({ error: "Adresa je na seznamu odhlášených." }, 409);

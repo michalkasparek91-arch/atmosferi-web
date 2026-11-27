@@ -212,4 +212,6 @@
   Object.assign(window.I18N_DICT.cs, { "Architect & founder": "Architekt a zakladatel" });
   Object.assign(window.I18N_DICT.de, { "Guides for architects": "Ratgeber für Architekten" });
   Object.assign(window.I18N_DICT.cs, { "Guides for architects": "Návody pro architekty" });
+  Object.assign(window.I18N_DICT.de, { "Insights & Guides": "Wissen & Ratgeber" });
+  Object.assign(window.I18N_DICT.cs, { "Insights & Guides": "Články a návody" });
 })();

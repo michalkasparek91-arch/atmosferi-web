@@ -8,7 +8,14 @@ assert.match(html,/<html\s+lang="en"/);
 assert.match(html,/<meta name="robots" content="index, follow/);
 assert(html.includes('<link rel="canonical" href="'+url+'">'), 'self canonical');
 assert.match(html,/<h1>Interactive floor plans for real estate websites\.<\/h1>/);
-assert.match(html,/<meta name="description" content="Custom interactive floor plans/);
+assert(html.includes('<title>Interactive Floor Plan Design & Development | Atmosferi</title>'), 'targeted service title');
+assert(html.includes('How to choose an interactive floor plan service provider.'), 'commercial supplier evaluation intent');
+assert(html.includes('id="provider"') && html.includes('01 / Test the actual buyer journey') && html.includes('03 / Make handover part of the offer'), 'concrete selection criteria');
+assert(html.includes('Our <a href="demos/meridian/index.html">Meridian demo</a> is a fictional working concept'), 'no fabricated client evidence');
+assert(html.includes('href="apartment-floor-plan-publication-qa.html"'), 'plan publication signoff link');
+assert(fs.readFileSync('interactive-floor-plans-property-development-website.html','utf8').includes('Atmosferi interactive floor plan design and development service'), 'accurate commercial incoming anchor');
+
+assert.match(html,/<meta name="description" content="Interactive floor plan design service for real estate developers/);
 assert(html.includes('<link rel="stylesheet" href="assets/seo-services.css?v=20261120-r">'), 'uses shared responsive brand');
 const ld=html.match(/<script type="application\/ld\+json">([\s\S]+?)<\/script>/);
 assert(ld,'JSON-LD exists');

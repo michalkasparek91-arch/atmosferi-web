@@ -99,7 +99,8 @@
 
 /* ---------- Studio ---------- */
 .h-studio__more { display: flex; flex-direction: column; align-items: flex-start; gap: 28px; }
-.h .f-team__card img { object-position: center 20%; }
+.h .f-team__card img { object-position: center 20%; filter: grayscale(.2); }
+.h .f-team__card:hover img { filter: grayscale(0); }
 
 /* ---------- Contact panel ---------- */
 .h-contact { padding-inline: 8px; }
@@ -192,6 +193,15 @@
 .un-lightbox__image { align-self: center; justify-self: center; width: auto; height: auto; max-width: 100%; max-height: 100%; min-width: 0; min-height: 0; object-fit: contain; }
 .un-lightbox__caption { padding: 14px 0 22px; }
 @media (max-height: 600px) { .un-lightbox__caption p { display: none; } }
+
+/* h-viewport-overflow-guard: long display headings and the footer wordmark
+   must never enlarge the browser's horizontal scroll area. Use clip, not
+   hidden: clip does not create a scroll container or break the sticky header.
+   Keep the website cards scrollable inside their own .h-rail track. */
+html:has(> body.h) { overflow-x: clip; }
+body.h { max-width: 100%; overflow-x: clip; }
+.h .h-railwrap, .h .h-rail { min-width: 0; max-width: 100%; }
+.h .f-footer__mark { max-width: 100%; overflow: clip; }
 
 /* ---------- Architecture part: tighter corners (body.h = homepage, films, websites) ----------
    Scale: panels 12 · cards 10 · inner frames 8 · images in frames 6 · small 4. Pills and circles stay round. */

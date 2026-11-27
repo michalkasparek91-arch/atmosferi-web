@@ -25,6 +25,16 @@ function GermanAgencies() {
   const [reviewOnly, setReviewOnly] = useState(true);
   const [page, setPage] = useState(0);
   const size = 25;
+  const deTemplates = useQuery({
+    queryKey: ["de-agencies", "email-templates"],
+    queryFn: async () => {
+      const { data, error } = await db.from("email_templates")
+        .select("slug,name,subject,trigger_type,is_enabled")
+        .in("slug", ["atmosferi-agenturen-de", "atmosferi-agenturen-de-followup"]);
+      if (error) throw error;
+      return (data || []) as { slug: string; name: string; subject: string | null; trigger_type: string; is_enabled: boolean }[];
+    },
+  });
   const counts = useQuery({
     queryKey: ["de-agencies", "counts"], refetchInterval: 60000,
     queryFn: async () => {
@@ -62,15 +72,57 @@ function GermanAgencies() {
     },
     onError: () => toast.error("Schválení kontaktu se nepodařilo."),
   });
+  const approveAll = useMutation({
+    mutationFn: async () => {
+      const before = counts.data?.[1] ?? 0;
+      const { error } = await db.from("marketing_leads")
+        .update({ outreach_import_review: false, outreach_email_ready: false })
+        .match(segment)
+        .eq("outreach_import_review", true)
+        .or("marketing_notifications.is.null,marketing_notifications.eq.true")
+        .or("email_notifications.is.null,email_notifications.eq.true");
+      if (error) throw error;
+      return before;
+    },
+    onSuccess: (before) => {
+      setPage(0);
+      void qc.invalidateQueries({ queryKey: ["de-agencies"] });
+      toast.success(`Schváleno ${before.toLocaleString("cs-CZ")} kontaktů k ověření e-mailu.`);
+    },
+    onError: (err: any) => {
+      console.error("Bulk approve error:", err);
+      toast.error("Hromadné schválení se nepodařilo: " + (err?.message || "Neznámá chyba"));
+    },
+  });
   const total = contacts.data?.count ?? 0;
   return <section className="space-y-4">
     <h2 className="text-xl font-semibold">Marketingové agentury · Německo</h2>
+    <div className="rounded-2xl border bg-muted/50 p-4 space-y-2 text-sm">
+      <strong>Šablony pro německé agentury</strong>
+      <p>První oslovení i připomenutí jsou oddělené od české kampaně. Aktivní šablona v ručním režimu nespouští automatickou rozesílku. Před oslovením je nutné ověřit oprávnění ke kontaktování konkrétní firmy; tento přehled žádné e-maily neodesílá.</p>
+      {["atmosferi-agenturen-de", "atmosferi-agenturen-de-followup"].map((slug, i) => {
+        const tpl = deTemplates.data?.find(t => t.slug === slug);
+        return <div key={slug} className="flex flex-wrap gap-2 items-center justify-between border-t pt-2">
+          <span>{i === 0 ? "První oslovení" : "Připomenutí"} · {tpl?.subject || (deTemplates.isLoading ? "Načítám…" : "Šablona chybí")}</span>
+          <span className={tpl?.is_enabled && tpl.trigger_type !== "manual" ? "text-red-700" : "text-muted-foreground"}>
+            {deTemplates.isLoading ? "Načítám stav…" : !tpl ? "Šablona chybí" : !tpl.is_enabled ? "Vypnutá" : tpl.trigger_type === "manual" ? "Aktivní · pouze ruční použití" : "Pozor: automatická"}
+          </span>
+        </div>;
+      })}
+      <Link className="inline-block underline" to="/emaily/sablony">Spravovat německé šablony v knihovně</Link>
+    </div>
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{["V publiku", "K prověření", "E-mail ověřen", "Zprávy ve frontě", "Odesláno", "Selhalo"].map((label, i) =>
       <div key={label} className="rounded-2xl bg-muted p-4"><div className="text-sm">{label}</div>
         <strong className="text-2xl tabular-nums">{counts.data?.[i]?.toLocaleString("cs-CZ") ?? "–"}</strong></div>)}</div>
     <div className="flex flex-wrap items-center gap-3">{[true, false].map(value =>
       <Button key={String(value)} variant={value === reviewOnly ? "default" : "outline"} size="sm"
         onClick={() => { setReviewOnly(value); setPage(0); }}>{value ? "K prověření" : "Celé publikum"}</Button>)}
+      {reviewOnly && (counts.data?.[1] ?? 0) > 0 && (
+        <Button size="sm" variant="destructive" disabled={approveAll.isPending}
+          onClick={() => { if (window.confirm(`Schválit všech ${(counts.data?.[1] ?? 0).toLocaleString("cs-CZ")} kontaktů čekajících na prověření?`)) approveAll.mutate(); }}>
+          {approveAll.isPending ? "Schvaluji…" : `Schválit vše (${(counts.data?.[1] ?? 0).toLocaleString("cs-CZ")})`}
+        </Button>
+      )}
       <Link className="text-sm underline" to="/emaily/akvizice">Nastavení kampaně a šablona</Link></div>
     {(contacts.isError || counts.isError) && <p role="alert">Některá data publika se nepodařilo načíst.</p>}
     {contacts.isLoading && <p>Načítám kontakty…</p>}

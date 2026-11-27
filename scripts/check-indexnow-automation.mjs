@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+const sha = execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+assert.equal(fs.readFileSync('release-sha.txt','utf8').trim(),sha,'Public release marker must use the checked out commit');
+const workflow=fs.readFileSync('.github/workflows/search-discovery.yml','utf8');
+assert(workflow.includes('  schedule:')&&workflow.includes('  workflow_dispatch:'),'IndexNow needs scheduled and manual triggers');
+assert(!workflow.includes('  deployment_status:'),'Do not emit skipped runs for every GitHub deployment status');
+assert(workflow.includes('scripts/resolve-indexnow-release.mjs'),'Only the actual deployed revision may be notified');
+assert(workflow.includes('git checkout --detach'),'Build the sitemap from the deployed version');
+assert(workflow.includes('npm run prebuild'),'Regenerate sitemap; tracked sitemap.xml is outdated');
+assert(workflow.includes('actions/cache/restore@v4')&&workflow.includes('actions/cache/save@v4'),'Avoid duplicate URL submissions for unchanged content');
+const packageData=JSON.parse(fs.readFileSync('package.json','utf8'));
+assert(packageData.scripts.build.includes('cp release-sha.txt _vercel_out/'),'Deploy the release SHA marker');
+const sender=fs.readFileSync('scripts/notify-indexnow.mjs','utf8');
+assert(sender.includes('/release-sha.txt')&&sender.includes('/sitemap.xml'),'Require matching live release and sitemap');
+assert(sender.includes('Promise.all'),'Check URLs in bounded parallel batches');
+console.log('IndexNow automation QA passed: verified live release, generated sitemap, cache deduplication and bounded URL checks.');

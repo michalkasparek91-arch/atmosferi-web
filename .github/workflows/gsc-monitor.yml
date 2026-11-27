@@ -1,10 +1,10 @@
 name: Direct Google Search Console monitoring
 
 on:
-  # Organic search metrics typically lag by 2–3 days; inspect URLs in batches.
+  # Organic search metrics lag 2–3 days; one daily rotating URL sample saves Actions minutes.
   # Private metrics are NEVER written to this public repository.
   schedule:
-    - cron: '17 2,8,14,20 * * *'
+    - cron: '17 6 * * *'
   workflow_dispatch:
   pull_request:
     paths:

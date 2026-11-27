@@ -21,14 +21,25 @@ async function get(url){
 }
 // Always read production, never submit localhost, preview or build-only URLs.
 // Verify deployed ownership and the live sitemap before any notification.
+// Canonical URL lists may be identical after a content-only change.
+// Match the SHA of the publicly served version before submitting anything.
+const {execFileSync}=await import('node:child_process');
+const checkedOutSha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+const publishedSha=(await get(`${origin}/release-sha.txt`)).trim();
+if(publishedSha!==checkedOutSha)throw new Error('Production commit differs from release being notified; nothing submitted.');
 if((await get(`${origin}/indexnow-key.txt`)).trim()!==key)throw new Error('Production verification file is not deployed or does not match; nothing submitted.');
 const urls=parse(await get(`${origin}/sitemap.xml`));
 const expected=parse(fs.readFileSync('sitemap.xml','utf8'));
 if(JSON.stringify([...urls].sort())!==JSON.stringify([...expected].sort()))throw new Error('Production sitemap differs from this release; nothing submitted.');
-for(const u of urls){
- const r=await fetch(u,{method:'HEAD',redirect:'error',signal:AbortSignal.timeout(30000)});
- if(!r.ok)throw new Error(`Indexable URL unavailable: ${u} (${r.status}); nothing submitted.`);
- if(/noindex/i.test(r.headers.get('x-robots-tag')||''))throw new Error(`Indexable URL blocked: ${u}`);
+// Bound concurrency so a sitemap with hundreds of pages does not take
+// longer than the Actions timeout; do not submit a partial list.
+for(let offset=0;offset<urls.length;offset+=12){
+ await Promise.all(urls.slice(offset,offset+12).map(async u=>{
+  const r=await fetch(u,{method:'HEAD',redirect:'error',signal:AbortSignal.timeout(30000)});
+  if(!r.ok)throw new Error(`Indexable URL unavailable: ${u} (${r.status}); nothing submitted.`);
+  if(/noindex/i.test(r.headers.get('x-robots-tag')||''))throw new Error(`Indexable URL blocked: ${u}`);
+  await r.body?.cancel();
+ }));
 }
 for(let i=0;i<urls.length;i+=10000){
  const r=await fetch('https://api.indexnow.org/indexnow',{

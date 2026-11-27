@@ -4,6 +4,26 @@
   var doc = document.documentElement;
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   doc.classList.add("js");
+  // Recover from an intermittent image delivery failure without forcing a page refresh.
+  // Only one retry, only for our own static image assets. Persistent 404s remain visible.
+  document.querySelectorAll('img[src^="/img/"]').forEach(function (img) {
+    function retryImage() {
+      if (img.dataset.imageRetryUsed) return;
+      img.dataset.imageRetryUsed = "1";
+      var original = img.getAttribute("src");
+      if (!original) return;
+      window.setTimeout(function () {
+        if (img.complete && img.naturalWidth > 0) return;
+        img.loading = "eager";
+        var url = new URL(original, window.location.origin);
+        url.searchParams.set("asset_retry", "1");
+        img.src = url.pathname + url.search;
+      }, 500);
+    }
+    img.addEventListener("error", retryImage);
+    if (img.complete && img.naturalWidth === 0) retryImage();
+  });
+
   // Strings set from script follow the language picked in the switcher.
   function tr(t) { var l = doc.lang; return (window.I18N_DICT && I18N_DICT[l] && I18N_DICT[l][t]) || t; }
 
@@ -189,6 +209,65 @@
   form.querySelectorAll(".ag-choice").forEach(function (b) {
     b.addEventListener("click", function () { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); });
   });
+
+  // Google Meet intro: this is a call REQUEST, never an invented calendar
+  // booking. The existing inquiry endpoint delivers it with minimal friction.
+  var callLinks = document.querySelectorAll("[data-agency-call-request]");
+  var callReset = form.querySelector("[data-agency-call-reset]");
+  var messageField = form.elements.message;
+  var originalPlaceholder = messageField.getAttribute("placeholder");
+  var callPlaceholders = {
+    cs: "Například úterý odpoledne, případně se domluvíme e-mailem.",
+    en: "For example Tuesday afternoon, or we can arrange it by email.",
+    de: "Zum Beispiel Dienstag Nachmittag, oder wir stimmen uns per E-Mail ab.",
+    fr: "Par exemple mardi après-midi, ou nous convenons d'un créneau par e-mail."
+  };
+  function resetCallMode() {
+    form.classList.remove("is-call-request");
+    messageField.required = true;
+    messageField.minLength = 10;
+    messageField.value = "";
+    // Restore the original localized placeholder instead of a translated
+    // stale value if the visitor changed language mid-form.
+    messageField.placeholder = tr(originalPlaceholder);
+  }
+  function enterCallMode(event) {
+    event.preventDefault();
+    form.classList.add("is-call-request");
+    messageField.required = false;
+    messageField.minLength = 0;
+    messageField.value = "";
+    messageField.placeholder = callPlaceholders[doc.lang] || callPlaceholders.cs;
+    form.querySelectorAll(".ag-choice").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+    form.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    form.elements.email.focus({ preventScroll: true });
+  }
+  // A real Google Calendar booking page handles availability and the Meet link.
+  // Never interpret an arbitrary or visitor-provided URL as a booking provider.
+  function validAppointmentUrl(raw) {
+    if (typeof raw !== "string" || !raw.trim()) return "";
+    try {
+      var url = new URL(raw.trim());
+      if (url.protocol !== "https:") return "";
+      if (url.hostname === "calendar.app.google" && url.pathname.length > 1) return url.href;
+      if (url.hostname === "calendar.google.com" && url.pathname.includes("/appointments/")) return url.href;
+    } catch (err) {}
+    return "";
+  }
+  var bookingUrl = validAppointmentUrl(window.ATMOSFERI_AGENCY_APPOINTMENT_URL);
+  if (bookingUrl) {
+    callLinks.forEach(function (a) {
+      a.setAttribute("href", bookingUrl);
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+    });
+    document.querySelectorAll("[data-agency-booking-on]").forEach(function (el) { el.hidden = false; });
+    document.querySelectorAll("[data-agency-booking-off]").forEach(function (el) { el.hidden = true; });
+  } else {
+    // Until a real public booking URL exists, keep the working call request.
+    callLinks.forEach(function (a) { a.addEventListener("click", enterCallMode); });
+  }
+  if (callReset) callReset.addEventListener("click", resetCallMode);
   function say(t, kind) { status.textContent = tr(t); status.className = "ag-form__status" + (kind ? " is-" + kind : ""); }
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -197,7 +276,8 @@
     var email = String(data.get("email") || "").trim();
     var message = String(data.get("message") || "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { say("Zadejte prosím platnou e-mailovou adresu.", "error"); form.elements.email.focus(); return; }
-    if (message.length < 10) { say("Napište prosím alespoň krátký popis, stačí pár slov.", "error"); form.elements.message.focus(); return; }
+    var callRequest = form.classList.contains("is-call-request");
+    if (!callRequest && message.length < 10) { say("Napište prosím alespoň krátký popis, stačí pár slov.", "error"); form.elements.message.focus(); return; }
     if (!window.AtmosferiInquiry) { say("Odeslání se nezdařilo. Napište prosím na info@atmosferi.com.", "error"); return; }
     var needs = Array.from(form.querySelectorAll('.ag-choice[aria-pressed="true"]')).map(function (b) { return b.getAttribute("data-value"); });
     var name = String(data.get("name") || "").trim();
@@ -205,14 +285,15 @@
     busy = true; btn.disabled = true; say("Odesílám…");
     try {
       await window.AtmosferiInquiry.send({
-        source: "websites-contact", mode: "web", name: name, email: email,
-        message: (needs.length ? "Zájem: " + needs.join(", ") + "\n\n" : "") + message,
-        project_type: needs.join(", ").slice(0, 100),
+        source: callRequest ? "agency-intro-call" : "websites-contact", mode: "web", name: name, email: email,
+        message: callRequest ? ("Žádost o úvodní 15min Google Meet. " + (message ? "Navržený čas: " + message : "Termín domluvit e-mailem.")) : ((needs.length ? "Zájem: " + needs.join(", ") + "\n\n" : "") + message),
+        project_type: callRequest ? "Agency intro call · Google Meet" : needs.join(", ").slice(0, 100),
         website: String(data.get("website") || ""), started_at: startedAt,
-        details: { page: "for-agencies", needs: needs, language: doc.lang || "cs" }
+        details: { page: "for-agencies", needs: needs, call_request: callRequest, language: doc.lang || "cs" }
       });
-      say("Děkuji, zpráva odešla. Ozvu se vám do dvou pracovních dnů.", "ok");
+      say(callRequest ? "Děkuji, žádost o call odešla. Ozvu se s termínem a odkazem na Google Meet do dvou pracovních dnů." : "Děkuji, zpráva odešla. Ozvu se vám do dvou pracovních dnů.", "ok");
       form.reset();
+      resetCallMode();
       form.querySelectorAll(".ag-choice").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
       startedAt = Date.now();
     } catch (err) {
